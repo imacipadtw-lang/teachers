@@ -1,0 +1,747 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>土城國小 課務查詢</title>
+<meta name="description" content="土城國小教師課務查詢：查空堂、找代課、兩人互調與三角調方案。">
+<meta name="color-scheme" content="light dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230E3B2E'/%3E%3Cpath d='M6 11h20M6 17h20M6 23h20M12 7v20M20 7v20' stroke='%237FCDA8' stroke-width='1.6'/%3E%3C/svg%3E">
+<style>
+:root{
+  --board:#0E3B2E; --board-2:#14513D; --paper:#F4F6F2; --card:#FFFFFF;
+  --ink:#16221E; --ink-2:#4E5F59; --ink-3:#7B8C86;
+  --line:#D9E0DB; --line-2:#EDF1EE;
+  --free:#0F7B5A; --free-bg:#E4F3EC;
+  --busy:#A8443C; --busy-bg:#F8E9E7;
+  --note:#9A6212; --note-bg:#FAF0DD;
+  --pick:#1F5FA8; --pick-bg:#E7EFF9;
+  --focus:#0F7B5A;
+  --f:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --shadow:0 1px 2px rgba(16,40,32,.06),0 8px 24px -16px rgba(16,40,32,.3);
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --board:#0A2A20; --board-2:#0F3B2D; --paper:#111715; --card:#18211E;
+    --ink:#E7EDE9; --ink-2:#A6B5AF; --ink-3:#788A84;
+    --line:#2C3A35; --line-2:#222C29;
+    --free:#5FC79C; --free-bg:#133026; --busy:#E08076; --busy-bg:#32211F;
+    --note:#DFAE5C; --note-bg:#2E2515; --pick:#8FB6EA; --pick-bg:#182538;
+    --focus:#5FC79C; --shadow:0 1px 2px rgba(0,0,0,.4);
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--f);font-size:16px;line-height:1.6}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:2.5px solid var(--focus);outline-offset:2px;border-radius:4px}
+.num{font-variant-numeric:tabular-nums}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ── 頁首 ───────────────────────────── */
+header{background:var(--board);color:#EAF4EF}
+.bar{max-width:1240px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.mark{width:44px;height:44px;flex:none;border-radius:50%;background:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.22)}
+.crest{width:100%;height:100%;display:block;border-radius:50%}
+.plan>header .crest,.panelcrest{width:22px;height:22px;flex:none;border-radius:50%;background:#fff}
+.sheetmark{display:flex;align-items:center;gap:10px;margin:0 0 12px}
+.sheetmark img{width:30px;height:30px;border-radius:50%;background:#fff;flex:none}
+.sheetmark b{font-size:15px}
+.sheetmark span{color:var(--ink-2);font-size:13px}
+.title{font-size:19px;font-weight:900;letter-spacing:.04em;line-height:1.2}
+.subtitle{font-size:12.5px;color:#9EC6B4;letter-spacing:.02em}
+.ver{margin-left:auto;font-size:12px;color:#9EC6B4;text-align:right;line-height:1.4}
+nav{background:var(--board-2)}
+.tabs{max-width:1240px;margin:0 auto;padding:0 12px;display:flex;gap:2px;overflow-x:auto}
+.tabs button{all:unset;cursor:pointer;padding:11px 16px;color:#A8CDBC;white-space:nowrap;font-weight:500;border-bottom:3px solid transparent}
+.tabs button:hover{color:#fff}
+.tabs button[aria-selected="true"]{color:#fff;font-weight:700;border-bottom-color:#7FCDA8;background:rgba(255,255,255,.06)}
+
+main{max-width:1240px;margin:0 auto;padding:22px 20px 80px}
+h2{font-size:17px;margin:0 0 10px;letter-spacing:.02em}
+h3{font-size:15px;margin:0 0 6px}
+p{margin:0 0 10px}
+.muted{color:var(--ink-2)}
+.small{font-size:13.5px}
+.tiny{font-size:12.5px}
+
+/* ── 查詢控制台 ─────────────────────── */
+.console{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:var(--shadow);margin-bottom:18px}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+.step{display:flex;flex-direction:column;gap:6px;min-width:0}
+.step label{font-size:13px;font-weight:700;color:var(--ink-2);display:flex;align-items:center;gap:7px}
+.step label i{width:19px;height:19px;border-radius:50%;background:var(--board);color:#fff;font-style:normal;font-size:11.5px;font-weight:700;display:grid;place-items:center;flex:none}
+select{appearance:none;background:var(--card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%237B8C86' stroke-width='2'/%3E%3C/svg%3E") right 13px center no-repeat;
+  border:1.5px solid var(--line);border-radius:9px;padding:11px 36px 11px 13px;width:100%;cursor:pointer}
+select:hover{border-color:var(--ink-3)}
+select:disabled{opacity:.5;cursor:not-allowed}
+.dayrow{display:flex;gap:6px;flex-wrap:wrap}
+.dayrow button{all:unset;cursor:pointer;flex:1;min-width:46px;text-align:center;padding:10px 4px;border:1.5px solid var(--line);border-radius:9px;font-weight:500}
+.dayrow button:hover{border-color:var(--ink-3)}
+.dayrow button[aria-pressed="true"]{background:var(--board);border-color:var(--board);color:#fff;font-weight:700}
+
+/* ── 目標課卡 ───────────────────────── */
+.target{margin-top:16px;border-top:1px dashed var(--line);padding-top:14px;display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.slotchip{background:var(--board);color:#fff;border-radius:11px;padding:10px 14px;text-align:center;flex:none;min-width:92px}
+.slotchip b{display:block;font-size:22px;font-weight:900;line-height:1.1}
+.slotchip span{font-size:12px;color:#9EC6B4}
+.target .what{min-width:0}
+.target .what b{font-size:18px}
+.flags{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.flag{font-size:12px;padding:2px 9px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
+.flag.co{color:var(--note);background:var(--note-bg)}
+.flag.gp{color:var(--pick);background:var(--pick-bg)}
+.flag.ok{color:var(--free);background:var(--free-bg)}
+
+/* ── 方案區塊 ───────────────────────── */
+.plan{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:16px;overflow:hidden;box-shadow:var(--shadow)}
+.plan>header{background:transparent;color:inherit;border-bottom:1px solid var(--line-2);padding:13px 18px;display:flex;align-items:center;gap:11px;flex-wrap:wrap}
+.plan>header .n{width:26px;height:26px;border-radius:8px;background:var(--free-bg);color:var(--free);display:grid;place-items:center;font-weight:900;font-size:14px;flex:none}
+.plan>header h2{margin:0}
+.plan>header .count{margin-left:auto;font-size:13px;color:var(--ink-2)}
+.plan .body{padding:14px 18px 18px}
+.hint{font-size:13.5px;color:var(--ink-2);margin:-2px 0 12px}
+
+.people{display:grid;grid-template-columns:repeat(auto-fill,minmax(188px,1fr));gap:9px}
+.person{border:1.5px solid var(--line);border-radius:11px;padding:11px 13px;background:var(--card);display:flex;flex-direction:column;gap:5px}
+.person.top{border-color:var(--free);background:var(--free-bg)}
+.person .nm{font-weight:700;font-size:16.5px;display:flex;align-items:center;gap:7px}
+.person .nm em{font-style:normal;font-size:11.5px;font-weight:500;color:var(--free);border:1px solid currentColor;border-radius:999px;padding:1px 7px}
+.person .meta{font-size:12.5px;color:var(--ink-2)}
+.load{display:flex;gap:3px;margin-top:2px}
+.load i{width:9px;height:9px;border-radius:2px;background:var(--line);display:block}
+.load i.on{background:var(--board)}
+
+.swaps{display:flex;flex-direction:column;gap:9px}
+.swap{border:1.5px solid var(--line);border-radius:11px;padding:12px 14px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
+.swap.best{border-color:var(--free)}
+.swap .ln{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0}
+.swap .when{font-weight:700;white-space:nowrap}
+.swap .arrow{color:var(--ink-3);font-weight:700}
+.swap .detail{font-size:13.5px;color:var(--ink-2);margin-top:3px}
+.swap .why{font-size:12.5px;color:var(--free);margin-top:3px}
+.btn{all:unset;cursor:pointer;border:1.5px solid var(--line);border-radius:9px;padding:7px 13px;font-size:13.5px;white-space:nowrap;background:var(--card)}
+.btn:hover{border-color:var(--ink-3)}
+.btn.solid{background:var(--board);border-color:var(--board);color:#fff;font-weight:500}
+.btn.sm{padding:4px 10px;font-size:12.5px}
+
+.chain{border:1.5px solid var(--line);border-radius:11px;padding:13px 15px;margin-bottom:9px}
+.chain ol{margin:8px 0 0;padding-left:0;list-style:none;counter-reset:s;display:flex;flex-direction:column;gap:7px}
+.chain li{counter-increment:s;display:flex;gap:10px;align-items:flex-start;font-size:14.5px}
+.chain li::before{content:counter(s);width:21px;height:21px;border-radius:50%;background:var(--pick-bg);color:var(--pick);font-size:12px;font-weight:700;display:grid;place-items:center;flex:none;margin-top:2px}
+
+.empty{padding:16px;border:1.5px dashed var(--line);border-radius:11px;color:var(--ink-2);font-size:14px}
+
+/* ── 課表格 ─────────────────────────── */
+.wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+table.tt{border-collapse:collapse;width:100%;min-width:720px}
+.tt th,.tt td{border:1px solid var(--line-2);padding:7px 9px;font-size:13.5px;vertical-align:top;line-height:1.45}
+.tt thead th{background:var(--paper);text-align:center;font-size:13px;position:sticky;top:0;z-index:2}
+.tt thead th b{display:block;font-size:14.5px}
+.tt thead th span{font-weight:400;color:var(--ink-2);font-size:12px}
+.tt th.p{width:84px;text-align:center;background:var(--paper);vertical-align:middle;position:sticky;left:0;z-index:1}
+.tt th.p b{display:block;font-size:17px;font-weight:900}
+.tt th.p span{font-size:11px;color:var(--ink-3);letter-spacing:-.02em}
+.tt td{height:56px}
+.tt td.none{background:repeating-linear-gradient(135deg,transparent 0 7px,var(--line-2) 7px 8px)}
+.tt td .s{font-weight:700}
+.tt td .t{color:var(--ink-2);font-size:12.5px}
+.tt td.me{background:var(--free-bg);box-shadow:inset 3px 0 0 var(--free)}
+.tt td.hit{background:var(--pick-bg);box-shadow:inset 0 0 0 2.5px var(--pick)}
+.tt tr.lunch td,.tt tr.lunch th{height:9px;padding:0;background:var(--line-2);border-color:var(--line-2)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--ink-2);margin-top:9px}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+
+/* ── 空堂總表 ───────────────────────── */
+table.free{border-collapse:separate;border-spacing:5px;width:100%;min-width:560px}
+table.free th{font-size:13px;color:var(--ink-2);font-weight:500;padding:0 0 2px}
+table.free th.p{width:76px;text-align:right;padding-right:8px;color:var(--ink);font-weight:700}
+.cellbtn{all:unset;cursor:pointer;display:block;width:100%;border-radius:10px;padding:9px 6px;text-align:center;border:1.5px solid var(--line);background:var(--card)}
+.cellbtn:hover{border-color:var(--ink-3)}
+.cellbtn b{display:block;font-size:19px;font-weight:900;line-height:1.15}
+.cellbtn span{font-size:11.5px;color:var(--ink-2)}
+.cellbtn[data-lvl="0"]{background:var(--busy-bg);border-color:transparent;color:var(--busy)}
+.cellbtn[data-lvl="1"]{background:var(--note-bg);border-color:transparent;color:var(--note)}
+.cellbtn[data-lvl="2"]{background:var(--free-bg);border-color:transparent;color:var(--free)}
+.cellbtn[aria-pressed="true"]{outline:2.5px solid var(--board);outline-offset:1px}
+.cellbtn[data-lvl] span{color:inherit;opacity:.8}
+.names{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.tag{border:1.5px solid var(--line);border-radius:999px;padding:5px 12px;font-size:14px}
+.tag.free{border-color:var(--free);color:var(--free);background:var(--free-bg);font-weight:500}
+
+.toolbar{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--board);color:#fff;padding:11px 20px;border-radius:10px;font-size:14.5px;z-index:60;box-shadow:var(--shadow);max-width:92vw}
+.toast[hidden]{display:none}
+footer{border-top:1px solid var(--line);margin-top:30px;padding:16px 20px 0;color:var(--ink-3);font-size:12.5px;display:flex;gap:14px;flex-wrap:wrap;justify-content:space-between}
+details.help{border:1px solid var(--line);border-radius:12px;background:var(--card);padding:0;margin-top:16px}
+details.help summary{cursor:pointer;padding:13px 18px;font-weight:700;font-size:14.5px;list-style:none}
+details.help summary::-webkit-details-marker{display:none}
+details.help summary::after{content:"＋";float:right;color:var(--ink-3)}
+details.help[open] summary::after{content:"－"}
+details.help .body{padding:0 18px 16px;font-size:14px;color:var(--ink-2)}
+details.help dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 14px}
+details.help dt{font-weight:700;color:var(--ink);white-space:nowrap}
+details.help dd{margin:0}
+
+@media (max-width:760px){
+  body{font-size:15px}
+  .ver .long{display:none}
+  table.free{min-width:0;border-spacing:4px}
+  table.free th{font-size:12px}
+  table.free th.p{width:46px;padding-right:4px;font-size:12.5px}
+  table.free th.p .tiny{display:none}
+  .cellbtn{padding:7px 2px}
+  .cellbtn b{font-size:16px}
+  .cellbtn span{font-size:10.5px}
+  .wrap.free-wrap{padding:7px}
+  main{padding:16px 13px 72px}
+  .bar{padding:12px 14px;gap:10px}
+  .ver{width:100%;text-align:left;margin-left:0;border-top:1px solid rgba(255,255,255,.12);padding-top:8px}
+  .steps{grid-template-columns:1fr}
+  .swap{grid-template-columns:1fr}
+  .swap .btn{justify-self:stretch;text-align:center}
+  .tt td{height:auto}
+}
+@media print{
+  header,nav,.toolbar,.btn,footer,details.help{display:none!important}
+  .console{box-shadow:none;border-color:#999}
+  .sheetmark{border-bottom:1px solid #999;padding-bottom:8px}
+  body{background:#fff}
+  .plan,.wrap{break-inside:avoid;box-shadow:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="mark"><img class="crest" src="__LOGO__" alt="土城國民小學校徽"></div>
+    <div>
+      <div class="title">課務查詢</div>
+      <div class="subtitle">土城國民小學　找代課・調課・查空堂</div>
+    </div>
+    <div class="ver" id="ver"></div>
+  </div>
+</header>
+<nav><div class="tabs" role="tablist" id="tabs"></div></nav>
+<main id="main" tabindex="-1"></main>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script id="timetable" type="application/json">__DATA__</script>
+<script>
+"use strict";
+const LOGO = "__LOGO__";
+const DATA = JSON.parse(document.getElementById('timetable').textContent);
+const WD = ['一','二','三','四','五'];
+const DAYS = [1,2,3,4,5];
+const CLS = DATA.classes;
+const TIMES = DATA.times;
+const PERIODS = [1,2,3,4,5,6,7];
+
+/* ── 課表查詢核心 ───────────────────── */
+const cell = (d,p,ci) => (DATA.grid[d] && DATA.grid[d][p-1]) ? DATA.grid[d][p-1][ci] : null;
+
+const teacherList = (() => {
+  const set = new Set();
+  DAYS.forEach(d => PERIODS.forEach(p => CLS.forEach((_,ci) => {
+    const c = cell(d,p,ci); if (c) c.teachers.forEach(t => set.add(t));
+  })));
+  return [...set].sort((a,b) => a.localeCompare(b,'zh-Hant'));
+})();
+
+// 每位老師的所有課：{d,p,ci,cell}
+const SLOTS = (() => {
+  const m = {}; teacherList.forEach(t => m[t] = []);
+  DAYS.forEach(d => PERIODS.forEach(p => CLS.forEach((_,ci) => {
+    const c = cell(d,p,ci);
+    if (c) c.teachers.forEach(t => m[t].push({d,p,ci,cell:c}));
+  })));
+  return m;
+})();
+const busyAt = (t,d,p) => SLOTS[t].filter(s => s.d===d && s.p===p);
+const isFree = (t,d,p) => busyAt(t,d,p).length === 0;
+const dayLoad = (t,d) => new Set(SLOTS[t].filter(s => s.d===d).map(s => s.p)).size;
+const weekLoad = t => new Set(SLOTS[t].map(s => s.d+'-'+s.p)).size;
+const teachesClass = (t,ci) => SLOTS[t].some(s => s.ci===ci);
+const subjectsIn = (t,ci) => [...new Set(SLOTS[t].filter(s => s.ci===ci).map(s => s.cell.subject))];
+const homeroomOf = ci => CLS[ci].homeroom;
+const soleTeacher = c => c && c.teachers.length === 1 && !c.groups;
+
+/* 兩班一起上的課用學段稱呼：三甲＋四甲＝中年級 */
+const GRADE_PAIRS = [
+  {set:['一甲','二甲'], label:'低年級'},
+  {set:['三甲','四甲'], label:'中年級'},
+  {set:['五甲','六甲'], label:'高年級'}
+];
+function gradeLabel(ciList){
+  const names = ciList.map(ci => CLS[ci].name);
+  if (names.length < 2) return names.join('');
+  const hit = GRADE_PAIRS.find(g => g.set.length === names.length && g.set.every(n => names.includes(n)));
+  return hit ? hit.label : names.join('＋');
+}
+function showSubj(subject, ciList){
+  const lab = gradeLabel(ciList || []);
+  return (lab && /^(低|中|高)年級$/.test(lab)) ? subject.replace(new RegExp('^'+lab), '') || subject : subject;
+}
+function gradeFull(ciList){
+  const names = ciList.map(ci => CLS[ci].name);
+  if (names.length < 2) return names.join('');
+  const hit = GRADE_PAIRS.find(g => g.set.length === names.length && g.set.every(n => names.includes(n)));
+  return hit ? `${hit.label}（${names.join('＋')}）` : names.join('＋');
+}
+/* 某一節有哪些班一起上同一堂課（協同、合班） */
+function sameLessonClasses(d,p,ci){
+  const c = cell(d,p,ci);
+  if (!c) return [ci];
+  const key = x => x.subject + '|' + x.teachers.slice().sort().join('+');
+  return CLS.map((_,i) => i).filter(i => { const x = cell(d,p,i); return x && key(x) === key(c); });
+}
+const when = (d,p) => `星期${WD[d-1]} 第${p}節`;
+const slotLabel = s => `${when(s.d,s.p)} ${CLS[s.ci].name} ${s.cell.subject}`;
+
+/* 代課候選：該節空堂的老師 */
+function substitutes(target){
+  const {d,p,ci,cell:c} = target;
+  const mine = new Set(c.teachers);
+  return teacherList.filter(t => !mine.has(t) && isFree(t,d,p)).map(t => {
+    const reasons = [];
+    let score = 0;
+    if (homeroomOf(ci) === t) { reasons.push('本班導師'); score += 100; }
+    else if (teachesClass(t,ci)) { reasons.push('教過' + CLS[ci].name + '：' + subjectsIn(t,ci).slice(0,3).join('、')); score += 60; }
+    const dl = dayLoad(t,d), wl = weekLoad(t);
+    score += (7 - dl) * 4 + (35 - wl) * 0.4;
+    return {name:t, reasons, dayLoad:dl, weekLoad:wl, score};
+  }).sort((a,b) => b.score - a.score || a.name.localeCompare(b.name,'zh-Hant'));
+}
+
+/* 同班互調：整節課一起搬，牽涉的每個班都要能對調
+   affected = 這一節同時上課的班級（低年級合班、中高年級體育協同會同時佔兩班） */
+function sameClassSwaps(target, me, affected){
+  const {d,p} = target, out = [], blocked = [];
+  const cls = affected && affected.length ? affected : [target.ci];
+  const mineTeachers = target.cell.teachers;      // 協同課會有兩位，整節搬動時兩位都要有空
+  DAYS.forEach(d2 => PERIODS.forEach(q => {
+    if (d2===d && q===p) return;
+    const cells = cls.map(ci => cell(d2,q,ci));
+    if (cells.some(c2 => !c2)) return;                        // 有班級那一節沒課，不能整節搬
+    if (cells.some(c2 => c2.teachers.includes(me))) return;
+    const key = c2 => c2.subject + '|' + c2.teachers.slice().sort().join('+');
+    if (cells.some(c2 => key(c2) !== key(cells[0]))) return;   // 幾個班那一節不是同一堂課
+    const others = cells[0].teachers;
+    if (cells[0].groups) { blocked.push({d:d2,p:q,ci:cls[0],cell:cells[0]}); return; } // 分組課不整節搬
+    if (others.some(o => !isFree(o,d,p))) return;              // 對方（含協同搭檔）要能來上我這一節
+    if (mineTeachers.some(t => !isFree(t,d2,q))) return;       // 我方（含協同搭檔）要能去上那一節
+    out.push({d:d2,p:q,ci:cls[0],cells,cell:cells[0],others,other:others.join('、'),sameDay:d2===d});
+  }));
+  out.sort((a,b) => (b.sameDay - a.sameDay) || (a.d-b.d) || (a.p-b.p));
+  return {out, blocked};
+}
+
+/* 跨班互換：我上他的課、他上我的課（不同班） */
+function crossSwaps(target, me){
+  const {d,p,ci} = target, out = [];
+  teacherList.forEach(other => {
+    if (other === me || !isFree(other,d,p)) return;
+    SLOTS[other].forEach(s => {
+      if (s.ci === ci) return;                      // 同班的已在方案②
+      if (!soleTeacher(s.cell)) return;
+      if (s.d===d && s.p===p) return;
+      if (!isFree(me,s.d,s.p)) return;
+      out.push({other, give:s, sameDay:s.d===d});
+    });
+  });
+  out.sort((a,b) => (b.sameDay - a.sameDay) || (a.give.d-b.give.d) || (a.give.p-b.give.p));
+  const seen = new Set();
+  return out.filter(x => { const k = x.other; if (seen.has(k)) return false; seen.add(k); return true; });
+}
+
+/* 三角調：三人接力，每個人都只動一節 */
+function triangles(target, me, limit){
+  const {d,p} = target, found = [], used = new Set();
+  const B_list = teacherList.filter(t => t !== me && isFree(t,d,p));
+  for (const B of B_list){
+    for (const sB of SLOTS[B]){
+      if (!soleTeacher(sB.cell) || (sB.d===d && sB.p===p)) continue;
+      if (isFree(me, sB.d, sB.p)) continue;         // 我有空就是方案 2、3，不必找第三人
+      for (const C of teacherList){
+        if (C===me || C===B || !isFree(C, sB.d, sB.p)) continue;
+        for (const sC of SLOTS[C]){
+          if (!soleTeacher(sC.cell)) continue;
+          if (sC.d===d && sC.p===p) continue;
+          if (sC.d===sB.d && sC.p===sB.p) continue;
+          if (!isFree(me, sC.d, sC.p)) continue;    // 我回補 C 的那一節
+          const key = B+'|'+C;
+          if (used.has(key)) continue;
+          used.add(key);
+          found.push({B, C, sB, sC, sameDay:(sB.d===d) + (sC.d===d)});
+          break;
+        }
+      }
+    }
+  }
+  // 同一天優先，並讓不同老師都有機會出現，不要五組都是同一個人
+  found.sort((a,b) => b.sameDay - a.sameDay);
+  const out = [], seenB = new Set(), rest = [];
+  for (const x of found){ if (!seenB.has(x.B)) { seenB.add(x.B); out.push(x); } else rest.push(x); }
+  return out.concat(rest).slice(0, limit);
+}
+
+/* 整節空堂表 */
+function freeCount(d,p){
+  return teacherList.filter(t => isFree(t,d,p)).length;
+}
+function anyClassAt(d,p){ return CLS.some((_,ci) => cell(d,p,ci)); }
+
+/* ── 畫面 ───────────────────────────── */
+const S = {tab:'find', me:'', d:1, p:'', freePick:null, ttMode:'class', ttWho:0};
+const h = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const TABS = [
+  {id:'find',  label:'找代課・調課'},
+  {id:'free',  label:'空堂一覽'},
+  {id:'table', label:'課表'}
+];
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.hidden = false;
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.hidden = true, 2400);
+}
+function sheetHead(label){
+  return `<div class="sheetmark"><img src="${LOGO}" alt="土城國民小學校徽">
+    <div><b>土城國民小學</b> <span>${h(DATA.title||'')}・${h(label)}</span></div></div>`;
+}
+function render(){
+  document.getElementById('ver').innerHTML = `${h(DATA.title||'115學年度第1學期')}<span class="long"><br>${h(DATA.version)}</span>`;
+  document.getElementById('tabs').innerHTML = TABS.map(t =>
+    `<button role="tab" aria-selected="${S.tab===t.id}" data-tab="${t.id}">${t.label}</button>`).join('');
+  const label = (TABS.find(t => t.id === S.tab) || {}).label || '';
+  document.getElementById('main').innerHTML = sheetHead(label) +
+    (S.tab === 'find' ? viewFind() : S.tab === 'free' ? viewFree() : viewTable());
+  syncHash();
+}
+
+/* ── 分頁一：找代課・調課 ───────────── */
+function viewFind(){
+  const me = S.me;
+  const mySlots = me ? SLOTS[me].filter(s => s.d === S.d) : [];
+  const byPeriod = {};
+  mySlots.forEach(s => (byPeriod[s.p] = byPeriod[s.p] || []).push(s));
+  const periods = Object.keys(byPeriod).map(Number).sort((a,b) => a-b);
+  if (S.p && !periods.includes(+S.p)) S.p = '';
+
+  const console_ = `
+  <section class="console">
+    <div class="steps">
+      <div class="step">
+        <label for="who"><i>1</i>我是</label>
+        <select id="who"><option value="">選擇老師…</option>${
+          teacherList.map(t => `<option ${t===me?'selected':''}>${h(t)}</option>`).join('')}</select>
+      </div>
+      <div class="step">
+        <label><i>2</i>哪一天</label>
+        <div class="dayrow">${DAYS.map(d =>
+          `<button data-day="${d}" aria-pressed="${S.d===d}">週${WD[d-1]}</button>`).join('')}</div>
+      </div>
+      <div class="step">
+        <label for="per"><i>3</i>要調哪一節</label>
+        <select id="per" ${me?'':'disabled'}><option value="">${
+          me ? (periods.length ? '選擇節次…' : `${h(me)}週${WD[S.d-1]}沒有課`) : '請先選老師'}</option>${
+          periods.map(p => {
+            const list = byPeriod[p];
+            const cis = list.map(s => s.ci);
+            const txt = gradeLabel(cis) + ' ' + showSubj(list[0].cell.subject, cis);
+            return `<option value="${p}" ${+S.p===p?'selected':''}>第${p}節　${h(txt)}</option>`;
+          }).join('')}</select>
+      </div>
+    </div>
+    ${S.p ? targetCard(byPeriod[+S.p]) : ''}
+  </section>`;
+
+  if (!me) return console_ + introCard();
+  if (!S.p) return console_ + `<div class="empty">選好節次後，這裡會列出可以代課的老師、可以對調的課，以及三角調方案。</div>` + helpBlock();
+
+  const group = byPeriod[+S.p];
+  const target = group[0];
+  const affected = group.map(s => s.ci);
+  return console_ + planSub(target, group, me) + planSwap(target, me, affected, group)
+         + planCross(target, me, group) + planTri(target, me) + helpBlock();
+}
+
+function introCard(){
+  return `<div class="plan"><div class="body">
+    <h2>這個系統能幫你什麼</h2>
+    <p class="muted small" style="max-width:62ch">選出你要請假或想調走的那一節，系統會比對全校課表，列出四種處理方式：找空堂老師代課、同班兩節對調、跨班兩人互換，以及需要第三人幫忙的三角調。所有人選都已確認過當節沒有其他課。</p>
+    <div class="legend" style="margin-top:4px">
+      <span><i style="background:var(--free)"></i>有空堂、可安排</span>
+      <span><i style="background:var(--note)"></i>協同或合班課，需確認</span>
+      <span><i style="background:var(--busy)"></i>當節有課</span>
+    </div>
+  </div></div>` + helpBlock();
+}
+
+function targetCard(group){
+  const c = group[0].cell;
+  const affected = group.map(s => s.ci);
+  const names = gradeFull(affected);
+  const co = c.teachers.filter(t => t !== S.me);
+  const flags = [];
+  if (co.length && c.notes.includes('協同教學')) flags.push(`<span class="flag co">協同課：你和 ${h(co.join('、'))}一起上，你請假這一節仍要處理</span>`);
+  if (c.notes.includes('低年級合班')) flags.push(`<span class="flag co">低年級合班</span>`);
+  if (c.groups) flags.push(`<span class="flag gp">分組課：${c.groups.map(g => h(g.subject)+'（'+h(g.teachers.join('、'))+'）').join('／')}</span>`);
+  if (group.length > 1) flags.push(`<span class="flag co">${h(gradeLabel(affected))}兩班同時上課</span>`);
+  if (!flags.length) flags.push(`<span class="flag ok">單人授課，調動單純</span>`);
+  return `<div class="target">
+    <div class="slotchip"><span>星期${WD[S.d-1]}</span><b>第${S.p}節</b><span class="num">${h(TIMES[S.p-1])}</span></div>
+    <div class="what">
+      <b>${h(names)}　${h(showSubj(c.subject, affected))}</b>
+      <div class="small muted">授課：${h(c.teachers.join('、'))}${c.notes.filter(n=>n!=='協同教學'&&n!=='低年級合班').length?'　'+h(c.notes.filter(n=>n!=='協同教學'&&n!=='低年級合班').join('、')):''}</div>
+      <div class="flags">${flags.join('')}</div>
+    </div>
+  </div>`;
+}
+
+function planHead(n, title, hint, count){
+  return `<header><span class="n">${n}</span><h2>${title}</h2><span class="count">${count}</span></header>`;
+}
+function copyBtn(text){
+  return `<button class="btn" data-copy="${h(text)}">複製說明</button>`;
+}
+
+function planSub(target, group, me){
+  const list = substitutes(target);
+  const affected = group.map(s => s.ci);
+  const names = gradeFull(affected);
+  const co = target.cell.teachers.filter(t => t !== me);
+  const coNote = co.length ? `<p class="hint">這一節是協同課。你請假時 ${h(co.join('、'))}仍在場，但人力少一位，仍須依規定找人代課或改用下面的調課方案。</p>` : '';
+  const body = list.length ? `
+    ${coNote}
+    <p class="hint">以下老師在${when(target.d,target.p)}沒有課，可以代這一節。每張卡片標示當天已有的節數，避免找到整天滿堂的人。</p>
+    <div class="people">${list.map((x,i) => `
+      <div class="person${i<3?' top':''}">
+        <div class="nm">${h(x.name)}${x.reasons.length?`<em>${h(x.reasons[0].split('：')[0])}</em>`:''}</div>
+        ${x.reasons.length && x.reasons[0].includes('：') ? `<div class="meta">${h(x.reasons[0].split('：')[1])}</div>` : ''}
+        <div class="meta num">當天 ${x.dayLoad} 節・本週 ${x.weekLoad} 節</div>
+        <div class="load" aria-hidden="true">${PERIODS.map(p => `<i class="${busyAt(x.name,target.d,p).length?'on':''}"></i>`).join('')}</div>
+      </div>`).join('')}</div>
+    <div class="toolbar" style="margin:14px 0 0">${copyBtn(
+      `${when(target.d,target.p)}　${names} ${target.cell.subject}（${me}）\n可代課老師：${list.slice(0,6).map(x=>x.name).join('、')}`)}</div>`
+    : `<div class="empty">這一節全校老師都有課，沒有人能代。請改用下面的對調方案。</div>`;
+  return `<section class="plan">${planHead('1','找人代課', '', list.length ? `${list.length} 位老師有空堂` : '無人有空')}<div class="body">${body}</div></section>`;
+}
+
+function planSwap(target, me, affected, group){
+  const {out, blocked} = sameClassSwaps(target, me, affected);
+  const cn = gradeLabel(affected);
+  const cnFull = gradeFull(affected);
+  const co = target.cell.teachers.filter(t => t !== me);
+  const multi = group.length > 1;
+  const body = out.length ? `
+    <p class="hint">${co.length
+      ? `這一節你和 ${h(co.join('、'))}協同，整節對調時兩位都要有空，以下方案都已確認過。`
+      : multi
+        ? `這一節 ${h(cnFull)} 一起上，所以要找兩班同時都能換、而且是同一堂課的節次。以下每一筆都已確認。`
+        : `把 ${h(cn)} 的兩節課對調，課程總量不變，是最單純的調課方式。以下每一筆都已確認雙方都能挪。`}</p>
+    <div class="swaps">${out.map(x => `
+      <div class="swap${x.sameDay?' best':''}">
+        <div>
+          <div class="ln"><span class="when">${when(target.d,target.p)} ${h(showSubj(target.cell.subject, affected))}</span>
+            <span class="arrow">⇄</span>
+            <span class="when">${when(x.d,x.p)} ${h(showSubj(x.cell.subject, affected))}</span></div>
+          <div class="detail">${h(cnFull)}　對調老師：<b>${h(x.other)}</b>${x.sameDay?'　（同一天，學生作息影響最小）':''}</div>
+          <div class="why">${h(x.other)} 在${when(target.d,target.p)}空堂，${co.length?`你和 ${h(co.join('、'))}`:'你'}在${when(x.d,x.p)}也沒課</div>
+        </div>
+        ${copyBtn(`調課申請：${cnFull}\n原節次：${when(target.d,target.p)} ${target.cell.subject}（${target.cell.teachers.join('、')}）\n調整後：${when(x.d,x.p)} ${x.cell.subject}（${x.other}）\n兩節對調，雙方該節均無課。`)}
+      </div>`).join('')}</div>`
+    : `<div class="empty">${h(cn)}這一週沒有可以直接對調的節次。可以看方案 3 或 4。</div>`;
+  const note = blocked.length ? `<p class="tiny muted" style="margin-top:10px">另有 ${blocked.length} 節是協同、合班或分組課（${blocked.slice(0,3).map(b => `週${WD[b.d-1]}第${b.p}節 ${h(b.cell.subject)}`).join('、')}${blocked.length>3?' 等':''}），牽涉兩位以上老師，系統不列為對調建議，需要時請與教務組確認。</p>` : '';
+  return `<section class="plan">${planHead('2', multi ? `${h(cn)}整節對調` : '同班兩節對調', '', out.length ? `${out.length} 個方案` : '無可用方案')}<div class="body">${body}${note}</div></section>`;
+}
+
+function planCross(target, me, group){
+  const list = crossSwaps(target, me).slice(0,10);
+  const co = target.cell.teachers.filter(t => t !== me);
+  const body = list.length ? `
+    <p class="hint">和別班的老師互換：對方來上你這一節${co.length?`（${h(co.join('、'))}仍在場）`:''}，你去上對方的一節。請確認自己能接該科目。</p>
+    <div class="swaps">${list.map(x => `
+      <div class="swap${x.sameDay?' best':''}">
+        <div>
+          <div class="ln"><span class="when">${h(x.other)}</span><span class="arrow">→</span>
+            <span>${when(target.d,target.p)} ${h(CLS[target.ci].name)} ${h(target.cell.subject)}</span></div>
+          <div class="detail"><b>${h(me)}</b> → ${when(x.give.d,x.give.p)} ${h(CLS[x.give.ci].name)} ${h(x.give.cell.subject)}</div>
+          <div class="why">雙方在對方的節次都沒有課${x.sameDay?'，而且同一天':''}</div>
+        </div>
+        ${copyBtn(`調課申請（跨班互換）\n${x.other}：${when(target.d,target.p)} 代上 ${CLS[target.ci].name} ${target.cell.subject}\n${me}：${when(x.give.d,x.give.p)} 代上 ${CLS[x.give.ci].name} ${x.give.cell.subject}`)}
+      </div>`).join('')}</div>`
+    : `<div class="empty">目前沒有可以跨班互換的對象。</div>`;
+  return `<section class="plan">${planHead('3','跨班兩人互換', '', list.length ? `${list.length} 位老師可互換` : '無可用方案')}<div class="body">${body}</div></section>`;
+}
+
+function planTri(target, me){
+  const list = triangles(target, me, 5);
+  const body = list.length ? `
+    <p class="hint">前面的方案都不行時，用三個人輪一圈：每人只動一節，誰都不會多上課。</p>
+    ${list.map(x => `
+      <div class="chain">
+        <div class="small"><b>${h(me)} → ${h(x.C)} → ${h(x.B)} → ${h(me)}</b></div>
+        <ol>
+          <li><b>${h(x.B)}</b> 上你的 ${when(target.d,target.p)} ${h(CLS[target.ci].name)} ${h(target.cell.subject)}</li>
+          <li><b>${h(x.C)}</b> 上 ${h(x.B)} 的 ${when(x.sB.d,x.sB.p)} ${h(CLS[x.sB.ci].name)} ${h(x.sB.cell.subject)}</li>
+          <li><b>${h(me)}</b> 上 ${h(x.C)} 的 ${when(x.sC.d,x.sC.p)} ${h(CLS[x.sC.ci].name)} ${h(x.sC.cell.subject)}</li>
+        </ol>
+        <div class="toolbar" style="margin:12px 0 0">${copyBtn(
+`三角調（三人接力）
+1. ${x.B}：${when(target.d,target.p)} 上 ${CLS[target.ci].name} ${target.cell.subject}（原 ${me}）
+2. ${x.C}：${when(x.sB.d,x.sB.p)} 上 ${CLS[x.sB.ci].name} ${x.sB.cell.subject}（原 ${x.B}）
+3. ${me}：${when(x.sC.d,x.sC.p)} 上 ${CLS[x.sC.ci].name} ${x.sC.cell.subject}（原 ${x.C}）
+三人各動一節，課堂總量不變。`)}</div>
+      </div>`).join('')}`
+    : `<div class="empty">目前找不到三人接力的組合。建議改用方案 1 的代課。</div>`;
+  return `<section class="plan">${planHead('4','三角調（三人接力）', '', list.length ? `${list.length} 組` : '無可用組合')}<div class="body">${body}</div></section>`;
+}
+
+function helpBlock(){
+  return `<details class="help"><summary>系統怎麼判斷「可以」與「不行」</summary><div class="body">
+    <dl>
+      <dt>有空堂</dt><dd>這位老師該節在全校六個班都沒有課，包含協同、合班、分組的課都算有課。</dd>
+      <dt>可對調</dt><dd>同時成立兩件事：對方在你要調走的那一節沒課，而你在對方那一節也沒課。只要一邊不成立就不會列出來。</dd>
+      <dt>不列入對調</dt><dd>協同課、低年級合班、分組（本土語分語別）的節次牽涉兩位以上老師，系統只提示，不自動配對。</dd>
+      <dt>資料來源</dt><dd>${h(DATA.version)}，共 ${teacherList.length} 位授課老師、${CLS.length} 個班級。課表更新後請教務組重新產生本頁。</dd>
+    </dl>
+  </div></details>`;
+}
+
+/* ── 分頁二：空堂一覽 ───────────────── */
+function viewFree(){
+  const pick = S.freePick;
+  const grid = `
+  <div class="wrap free-wrap" style="padding:10px;border-radius:12px">
+  <table class="free"><thead><tr><th class="p"></th>${DAYS.map(d => `<th>星期${WD[d-1]}</th>`).join('')}</tr></thead>
+    <tbody>${PERIODS.map(p => `<tr><th class="p">第${p}節<br><span class="tiny muted num" style="font-weight:400">${h(TIMES[p-1])}</span></th>${
+      DAYS.map(d => {
+        if (!anyClassAt(d,p)) return `<td><div class="cellbtn" style="opacity:.45;cursor:default" aria-hidden="true"><b>—</b><span>全校無課</span></div></td>`;
+        const n = freeCount(d,p);
+        const lvl = n === 0 ? 0 : n <= 3 ? 1 : 2;
+        const on = pick && pick.d===d && pick.p===p;
+        return `<td><button class="cellbtn" data-lvl="${lvl}" data-free="${d}-${p}" aria-pressed="${!!on}">
+          <b class="num">${n}</b><span>位有空</span></button></td>`;
+      }).join('')}</tr>`).join('')}
+    </tbody></table></div>`;
+
+  let detail = `<div class="empty" style="margin-top:14px">點任一格，看那一節誰有空、各班在上什麼。</div>`;
+  if (pick){
+    const free = teacherList.filter(t => isFree(t,pick.d,pick.p));
+    detail = `<section class="plan" style="margin-top:14px">
+      <header><span class="n">${WD[pick.d-1]}</span><h2>星期${WD[pick.d-1]} 第${pick.p}節</h2><span class="count num">${h(TIMES[pick.p-1])}</span></header>
+      <div class="body">
+        <h3>有空堂的老師（${free.length}）</h3>
+        <div class="names">${free.length ? free.map(t => `<span class="tag free">${h(t)}</span>`).join('') : '<span class="muted small">沒有人有空</span>'}</div>
+        <h3 style="margin-top:16px">這一節各班上什麼</h3>
+        <div class="names">${CLS.map((c,ci) => {
+          const x = cell(pick.d,pick.p,ci);
+          return `<span class="tag">${h(c.name)}　${x ? h(x.subject)+'<span class="muted">（'+h(x.teachers.join('、'))+'）</span>' : '<span class="muted">無課</span>'}</span>`;
+        }).join('')}</div>
+      </div></section>`;
+  }
+  return `<p class="hint" style="margin-bottom:12px">數字是該節沒有課的老師人數。綠色代表人手充足，橘色代表只剩少數人，紅色代表全校都在上課。</p>${grid}${detail}`;
+}
+
+/* ── 分頁三：課表 ───────────────────── */
+function viewTable(){
+  const isClass = S.ttMode === 'class';
+  const who = S.ttWho;
+  const picker = `
+  <div class="toolbar">
+    <div class="dayrow" style="flex:none">
+      <button data-tt="class" aria-pressed="${isClass}">班級課表</button>
+      <button data-tt="teacher" aria-pressed="${!isClass}">老師課表</button>
+    </div>
+    <select id="ttWho" style="max-width:220px">${
+      (isClass ? CLS.map((c,i) => [i, `${c.name}（導師 ${c.homeroom}）`]) : teacherList.map((t,i) => [i, t]))
+      .map(([i,label]) => `<option value="${i}" ${+who===i?'selected':''}>${h(label)}</option>`).join('')}</select>
+    <button class="btn" onclick="window.print()">列印</button>
+  </div>`;
+
+  let head, rows, caption;
+  if (isClass){
+    const ci = Math.min(who, CLS.length-1);
+    caption = `${CLS[ci].name}　導師 ${CLS[ci].homeroom}　${CLS[ci].students} 人`;
+    head = DAYS.map(d => `<th>星期${WD[d-1]}</th>`).join('');
+    rows = PERIODS.map(p => `${p===5?lunchRow():''}<tr><th class="p"><b>${p}</b><span class="num">${h(TIMES[p-1])}</span></th>${
+      DAYS.map(d => {
+        const c = cell(d,p,ci);
+        if (!c) return `<td class="none"></td>`;
+        return `<td><div class="s">${h(c.subject)}</div><div class="t">${h(c.teachers.join('、'))}${c.notes.length?'・'+h(c.notes.join('・')):''}</div></td>`;
+      }).join('')}</tr>`).join('');
+  } else {
+    const t = teacherList[Math.min(who, teacherList.length-1)];
+    caption = `${t}　本週 ${weekLoad(t)} 節`;
+    head = DAYS.map(d => `<th>星期${WD[d-1]}<span><br>${dayLoad(t,d)} 節</span></th>`).join('');
+    rows = PERIODS.map(p => `${p===5?lunchRow():''}<tr><th class="p"><b>${p}</b><span class="num">${h(TIMES[p-1])}</span></th>${
+      DAYS.map(d => {
+        const list = busyAt(t,d,p);
+        if (!list.length) return `<td></td>`;
+        const c = list[0].cell, cis = list.map(s => s.ci);
+        return `<td class="me"><div class="s">${h(showSubj(c.subject, cis))}</div><div class="t">${h(gradeFull(cis))}${c.notes.length?'・'+h(c.notes.join('・')):''}</div></td>`;
+      }).join('')}</tr>`).join('');
+  }
+  return `${picker}<h2>${h(caption)}</h2><div class="wrap"><table class="tt"><thead><tr><th class="p">節次</th>${head}</tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="legend">${isClass ? '<span><i style="background:var(--line-2)"></i>斜線＝該班該節無課</span>' : '<span><i style="background:var(--free-bg)"></i>綠底＝授課節次，空白＝空堂</span>'}
+    <span>資料：${h(DATA.version)}</span></div>`;
+}
+function lunchRow(){ return `<tr class="lunch"><th></th>${DAYS.map(()=>'<td></td>').join('')}</tr>`; }
+
+/* ── 事件 ───────────────────────────── */
+document.addEventListener('click', async e => {
+  const b = e.target.closest('[data-tab],[data-day],[data-free],[data-tt],[data-copy]');
+  if (!b) return;
+  if (b.dataset.tab){ S.tab = b.dataset.tab; render(); document.getElementById('main').focus({preventScroll:true}); }
+  else if (b.dataset.day){ S.d = +b.dataset.day; S.p = ''; render(); }
+  else if (b.dataset.free){ const [d,p] = b.dataset.free.split('-').map(Number);
+    S.freePick = (S.freePick && S.freePick.d===d && S.freePick.p===p) ? null : {d,p}; render(); }
+  else if (b.dataset.tt){ S.ttMode = b.dataset.tt; S.ttWho = 0; render(); }
+  else if (b.dataset.copy){
+    const text = b.dataset.copy;
+    let ok = false;
+    try { await navigator.clipboard.writeText(text); ok = true; }
+    catch(err){
+      const ta = document.createElement('textarea'); ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+      document.body.appendChild(ta); ta.select();
+      try { ok = document.execCommand('copy'); } catch(e2){}
+      ta.remove();
+    }
+    toast(ok ? '已複製，可貼到調課單或 LINE' : '複製失敗，請長按文字手動複製');
+  }
+});
+document.addEventListener('change', e => {
+  if (e.target.id === 'who'){ S.me = e.target.value; S.p = ''; render(); }
+  else if (e.target.id === 'per'){ S.p = e.target.value; render(); }
+  else if (e.target.id === 'ttWho'){ S.ttWho = +e.target.value; render(); }
+});
+
+/* 網址記住選擇，方便存成書籤或傳給同事 */
+function syncHash(){
+  const q = new URLSearchParams();
+  q.set('t', S.tab);
+  if (S.tab === 'find'){ if (S.me) q.set('me', S.me); q.set('d', S.d); if (S.p) q.set('p', S.p); }
+  if (S.tab === 'table'){ q.set('m', S.ttMode); q.set('w', S.ttWho); }
+  if (S.tab === 'free' && S.freePick){ q.set('s', S.freePick.d + '-' + S.freePick.p); }
+  history.replaceState(null, '', '#' + q.toString());
+}
+function readHash(){
+  const q = new URLSearchParams(location.hash.slice(1));
+  if (q.get('t') && TABS.some(t => t.id === q.get('t'))) S.tab = q.get('t');
+  if (q.get('me') && teacherList.includes(q.get('me'))) S.me = q.get('me');
+  if (+q.get('d') >= 1 && +q.get('d') <= 5) S.d = +q.get('d');
+  if (q.get('p')) S.p = q.get('p');
+  if (q.get('m')) S.ttMode = q.get('m') === 'teacher' ? 'teacher' : 'class';
+  if (q.get('w')) S.ttWho = +q.get('w') || 0;
+  if (q.get('s')){ const [d,p] = q.get('s').split('-').map(Number); if (d && p) S.freePick = {d,p}; }
+}
+readHash();
+render();
+</script>
+</body>
+</html>
