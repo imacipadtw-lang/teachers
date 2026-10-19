@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Grade 3 Action Words</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@700;900&display=swap">
+</head>
+<body>
+<style>
+/* Layout: game tabs on top, one huge card stage below; sized so a 3rd grader at the back of the room can read it */
+:root{
+  --bg:#fff7e6; --paper:#ffffff; --ink:#2b2346; --muted:#6c6680; --line:#f1dfb8;
+  --red:#ff6b6b; --yellow:#ffd93d; --green:#6bcb77; --blue:#4d96ff; --purple:#b388ff; --pink:#ff8fab;
+  --display:'Baloo 2','Nunito',system-ui,sans-serif; --body:'Nunito','Segoe UI',system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:clamp(16px,1.7vw,24px);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px}
+.top{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.top h1{font:800 clamp(22px,2.6vw,34px) var(--display);margin:0 10px 0 0;text-wrap:balance}
+.tab{border:3px solid var(--line);background:var(--paper);color:var(--ink);font:900 .95em var(--body);padding:8px 16px;border-radius:999px;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.step{display:none}.step.on{display:block}
+.card{background:var(--paper);border:3px solid var(--line);border-radius:24px;padding:clamp(14px,2vw,28px)}
+.btn{font:900 1.05em var(--body);padding:12px 22px;border-radius:16px;border:0;cursor:pointer;background:var(--blue);color:#fff}
+.btn.y{background:var(--yellow);color:var(--ink)}.btn.g{background:var(--green);color:var(--ink)}.btn.r{background:var(--red)}.btn.p{background:var(--purple);color:var(--ink)}
+.btn.sm{font-size:.9em;padding:8px 14px}
+button:focus-visible{outline:4px solid var(--blue);outline-offset:3px}
+.hint{color:var(--muted);font-size:.85em;margin:0}
+.teacher{margin-top:14px;border-left:6px solid var(--yellow);padding:6px 12px;font-size:.88em;color:var(--muted);max-width:75ch}
+.teacher b{color:var(--ink)}
+.controls{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 0;justify-content:center}
+/* flash card */
+.stage{display:grid;place-items:center}
+.flash{width:min(100%,560px);aspect-ratio:4/3;max-width:100%;border-radius:28px;background:var(--c,var(--yellow));display:grid;place-items:center;text-align:center;cursor:pointer;border:0;padding:16px;color:var(--ink);font-family:var(--body);box-shadow:0 10px 0 rgba(0,0,0,.08)}
+.flash .ic{font-size:clamp(90px,16vw,170px);line-height:1}
+.flash .w{font:800 clamp(34px,6vw,64px) var(--display);line-height:1.1}
+.flash .zh{font:900 clamp(26px,4vw,44px) var(--body);margin-top:6px}
+.flash .act{font-size:clamp(16px,2vw,24px);color:var(--muted);margin-top:8px}
+.flash .back{display:none}.flash.flip .front{display:none}.flash.flip .back{display:block}
+.counter{font:800 1.2em var(--display);text-align:center;margin-top:8px;font-variant-numeric:tabular-nums}
+/* TPR */
+.big{font:800 clamp(48px,9vw,110px) var(--display);text-align:center;line-height:1.1;min-height:1.3em}
+.bigic{font-size:clamp(80px,14vw,160px);text-align:center;line-height:1.1}
+.timer{font:800 clamp(30px,5vw,60px) var(--display);text-align:center;color:var(--red);min-height:1.3em;font-variant-numeric:tabular-nums}
+.simon{text-align:center;font:900 1.3em var(--body);margin-bottom:6px;color:var(--purple)}
+/* missing */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}
+.mini{border:0;border-radius:18px;background:var(--c);padding:12px 6px;text-align:center;color:var(--ink);font-family:var(--body);cursor:pointer;min-height:7em;display:grid;place-content:center}
+.mini .ic{font-size:2.6em;line-height:1.1}.mini .w{font:800 1.1em var(--display)}
+.mini.gone{background:var(--paper);border:3px dashed var(--line)}
+.mini.gone .ic,.mini.gone .w{visibility:hidden}
+.mini.gone::after{content:"?";font:800 3em var(--display);color:var(--muted);grid-row:1/3}
+/* match */
+.mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px}
+.tile{border:3px solid var(--line);border-radius:16px;background:var(--paper);min-height:5em;display:grid;place-items:center;font-family:var(--body);cursor:pointer;color:var(--ink)}
+.tile.e{font-size:2.6em}.tile.t{font:800 1.15em var(--display);padding:6px}
+.tile.sel{border-color:var(--blue);background:#e8f0ff}
+.tile.done{background:var(--green);border-color:var(--green);cursor:default}
+.tile.bad{background:var(--red);border-color:var(--red);color:#fff}
+/* quiz */
+.qic{font-size:clamp(80px,14vw,150px);text-align:center;line-height:1.1}
+.opts{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+.opt{font:800 clamp(22px,3vw,36px) var(--display);padding:14px 26px;border-radius:18px;border:4px solid var(--line);background:var(--paper);cursor:pointer;color:var(--ink);min-width:6em}
+.opt.ok{background:var(--green);border-color:var(--green)}
+.opt.bad{background:var(--red);border-color:var(--red);color:#fff}
+.score{font:800 1.4em var(--display);text-align:center;margin-top:10px}
+.stars{text-align:center;font-size:1.6em;min-height:1.4em;letter-spacing:.1em}
+@media (prefers-reduced-motion:no-preference){.flash{transition:transform .15s}.flash:active{transform:scale(.97)}}
+</style>
+
+<div class="top">
+  <h1>Action Words 🎉</h1>
+  <button class="tab" role="tab" aria-selected="true" data-step="0" type="button">1 Flash Cards</button>
+  <button class="tab" role="tab" aria-selected="false" data-step="1" type="button">2 Do It!</button>
+  <button class="tab" role="tab" aria-selected="false" data-step="2" type="button">3 What's Missing?</button>
+  <button class="tab" role="tab" aria-selected="false" data-step="3" type="button">4 Match</button>
+  <button class="tab" role="tab" aria-selected="false" data-step="4" type="button">5 Quiz</button>
+  <span class="hint">鍵盤 ← → 換遊戲</span>
+</div>
+
+<section class="step on" id="s0">
+  <div class="card">
+    <div class="stage"><button class="flash" type="button" id="flash"></button></div>
+    <div class="counter" id="counter"></div>
+    <div class="controls">
+      <button class="btn y" type="button" id="prev">◀ Back</button>
+      <button class="btn g" type="button" id="say">🔊 Say it</button>
+      <button class="btn" type="button" id="next">Next ▶</button>
+      <button class="btn p sm" type="button" id="shuffle">🔀 Shuffle</button>
+    </div>
+    <div class="teacher"><b>老師流程（PPP 呈現，8 分鐘）</b>：先只看圖，問 "What is he doing?"，學生猜。點卡片翻面出現單字、中文和動作。老師唸三次（大聲、小聲、悄悄話），全班跟讀並做動作。🔊 會用電腦發音。空白鍵也可以翻面。</div>
+  </div>
+</section>
+
+<section class="step" id="s1">
+  <div class="card">
+    <div class="simon" id="simonTag"></div>
+    <div class="bigic" id="tprIc">👋</div>
+    <div class="big" id="tprW">Ready?</div>
+    <div class="timer" id="tprT"></div>
+    <div class="controls">
+      <button class="btn r" type="button" id="tprGo">GO! 🎲</button>
+      <button class="btn p" type="button" id="simonBtn">Simon Says: OFF</button>
+    </div>
+    <div class="teacher"><b>老師流程（TPR 全身反應，5 分鐘）</b>：按 GO 隨機出單字，倒數 3 秒內全班做動作並大聲唸。開 Simon Says 後，有時會顯示 "Simon says" 有時不會：沒有 Simon says 卻動的人要坐下。最後站著的人贏。</div>
+  </div>
+</section>
+
+<section class="step" id="s2">
+  <div class="card">
+    <div class="grid" id="mgrid"></div>
+    <div class="controls">
+      <button class="btn r" type="button" id="hideOne">Close your eyes! 🙈</button>
+      <button class="btn g" type="button" id="revealOne">Open! 👀</button>
+      <button class="btn y sm" type="button" id="newSet">New cards</button>
+    </div>
+    <div class="teacher"><b>老師流程（記憶遊戲，5 分鐘）</b>：6 張卡一起唸一次。按「閉眼睛」一張會變成 ?，學生睜眼搶答 "<b>Run!</b>"，再按 Open 揭曉。可以連按兩次讓兩張消失，增加難度。</div>
+  </div>
+</section>
+
+<section class="step" id="s3">
+  <div class="card">
+    <div class="mgrid" id="match"></div>
+    <div class="stars" id="mstars"></div>
+    <div class="controls"><button class="btn y" type="button" id="mreset">New game 🔄</button></div>
+    <div class="teacher"><b>老師流程（配對，5 分鐘）</b>：分兩隊輪流上台，點一個圖再點一個字，對了變綠得一顆星。每配對成功全班一起唸該單字並做動作。</div>
+  </div>
+</section>
+
+<section class="step" id="s4">
+  <div class="card">
+    <div class="qic" id="qic"></div>
+    <div class="opts" id="qopts"></div>
+    <div class="score" id="qscore">⭐ 0</div>
+    <div class="controls"><button class="btn" type="button" id="qnext">Next question ▶</button></div>
+    <div class="teacher"><b>老師流程（檢核，5 分鐘）</b>：看圖選字，可全班舉手投票 1、2、3 再點。答對加一顆星，老師可設定目標（例如 10 顆星全班贏糖果）。也可以反過來：老師說中文，學生說英文再點答案。</div>
+  </div>
+</section>
+
+<script>
+const W=[
+ ['reuse','再利用','♻️','把東西再拿起來用一次'],
+ ['rest','休息','😴','雙手合十放臉頰旁'],
+ ['repeat','重複','🔁','手在空中畫圈圈'],
+ ['run','跑','🏃','原地跑步'],
+ ['put','放','📥','把東西輕輕放下'],
+ ['prepare','準備','🎒','收拾書包'],
+ ['pick','挑選','👆','手指點一點選一個'],
+ ['pay','付','💰','把錢遞出去'],
+ ['write','寫','✏️','在空中寫字'],
+ ['clean','清潔','🧹','掃地'],
+ ['find','找到','🔍','手當望遠鏡找一找'],
+ ['hurt','傷害','🤕','摸摸受傷的手臂'],
+ ['help','幫助','🤝','伸手拉人一把'],
+ ['miss','想念','💭','手放心口嘆氣'],
+ ['need','需要','🙏','雙手合十要東西'],
+ ['want to','想要','⭐','舉手大喊「我要！」'],
+ ['try','嘗試','💪','握拳加油'],
+ ['have to','必須','⏰','指著手錶'],
+ ['wash hands','洗手','🧼','搓搓手'],
+ ['wear a mask','戴口罩','😷','把口罩戴上']
+];
+const COLORS=['var(--yellow)','var(--green)','var(--blue)','var(--pink)','var(--purple)','var(--red)'];
+const col=i=>COLORS[i%COLORS.length];
+const shuffleArr=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+function speak(t){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='en-US';u.rate=.85;speechSynthesis.speak(u);}catch(e){}}
+
+let cur=0;
+const tabs=[...document.querySelectorAll('.tab')];
+function go(n){if(n<0||n>4)return;cur=n;tabs.forEach(t=>t.setAttribute('aria-selected',String(+t.dataset.step===n)));document.querySelectorAll('.step').forEach((s,i)=>s.classList.toggle('on',i===n));}
+tabs.forEach(t=>t.addEventListener('click',()=>go(+t.dataset.step)));
+
+/* flash cards */
+let order=W.map((_,i)=>i),fi=0;
+const flash=document.getElementById('flash');
+function showFlash(){
+  const w=W[order[fi]];flash.classList.remove('flip');flash.style.setProperty('--c',col(fi));
+  flash.innerHTML='<div class="front"><div class="ic">'+w[2]+'</div><div class="act">Tap to see the word</div></div><div class="back"><div class="ic">'+w[2]+'</div><div class="w">'+w[0]+'</div><div class="zh">'+w[1]+'</div><div class="act">動作：'+w[3]+'</div></div>';
+  document.getElementById('counter').textContent=(fi+1)+' / '+W.length;
+}
+flash.addEventListener('click',()=>{flash.classList.toggle('flip');if(flash.classList.contains('flip'))speak(W[order[fi]][0]);});
+document.getElementById('next').addEventListener('click',()=>{fi=(fi+1)%W.length;showFlash();});
+document.getElementById('prev').addEventListener('click',()=>{fi=(fi-1+W.length)%W.length;showFlash();});
+document.getElementById('say').addEventListener('click',()=>speak(W[order[fi]][0]));
+document.getElementById('shuffle').addEventListener('click',()=>{order=shuffleArr(order);fi=0;showFlash();});
+showFlash();
+
+/* TPR */
+let simon=false,tprTimer=null;
+document.getElementById('simonBtn').addEventListener('click',e=>{simon=!simon;e.target.textContent='Simon Says: '+(simon?'ON':'OFF');document.getElementById('simonTag').textContent='';});
+document.getElementById('tprGo').addEventListener('click',()=>{
+  const w=W[Math.floor(Math.random()*W.length)];
+  document.getElementById('tprIc').textContent=w[2];document.getElementById('tprW').textContent=w[0];
+  document.getElementById('simonTag').textContent=simon?(Math.random()<.65?'Simon says...':'(no Simon!)'):'';
+  speak((simon&&document.getElementById('simonTag').textContent.startsWith('Simon')?'Simon says ':'')+w[0]);
+  let n=3;const t=document.getElementById('tprT');t.textContent='3';clearInterval(tprTimer);
+  tprTimer=setInterval(()=>{n--;t.textContent=n>0?String(n):'👏 '+w[1];if(n<=0)clearInterval(tprTimer);},1000);
+});
+
+/* what's missing */
+let setIdx=[],gone=[];
+const mgrid=document.getElementById('mgrid');
+function newSet(){setIdx=shuffleArr(W.map((_,i)=>i)).slice(0,6);gone=[];renderSet();}
+function renderSet(){mgrid.innerHTML='';setIdx.forEach((wi,i)=>{const w=W[wi];const d=document.createElement('div');d.className='mini'+(gone.includes(i)?' gone':'');d.style.setProperty('--c',col(i));d.innerHTML='<div class="ic">'+w[2]+'</div><div class="w">'+w[0]+'</div>';mgrid.appendChild(d);});}
+document.getElementById('hideOne').addEventListener('click',()=>{const left=setIdx.map((_,i)=>i).filter(i=>!gone.includes(i));if(!left.length)return;gone.push(left[Math.floor(Math.random()*left.length)]);renderSet();});
+document.getElementById('revealOne').addEventListener('click',()=>{if(gone.length){const g=gone.pop();speak(W[setIdx[g]][0]);}renderSet();});
+document.getElementById('newSet').addEventListener('click',newSet);
+newSet();
+
+/* match */
+const match=document.getElementById('match');let msel=null,mdone=0;
+function newMatch(){
+  const pick=shuffleArr(W.map((_,i)=>i)).slice(0,6);mdone=0;msel=null;document.getElementById('mstars').textContent='';
+  const tiles=shuffleArr(pick.flatMap(i=>[{k:i,t:'e'},{k:i,t:'t'}]));
+  match.innerHTML='';
+  tiles.forEach(tl=>{const b=document.createElement('button');b.type='button';b.className='tile '+tl.t;b.dataset.k=tl.k;b.textContent=tl.t==='e'?W[tl.k][2]:W[tl.k][0];
+    b.addEventListener('click',()=>{
+      if(b.classList.contains('done')||b===msel)return;
+      if(!msel){msel=b;b.classList.add('sel');return;}
+      if(msel.dataset.k===b.dataset.k&&msel.classList[1]!==b.classList[1]){msel.classList.remove('sel');msel.classList.add('done');b.classList.add('done');msel=null;mdone++;speak(W[tl.k][0]);document.getElementById('mstars').textContent='⭐'.repeat(mdone)+(mdone===6?' 🎉 All done!':'');}
+      else{const a=msel;a.classList.add('bad');b.classList.add('bad');setTimeout(()=>{a.classList.remove('bad','sel');b.classList.remove('bad');},500);msel=null;}
+    });match.appendChild(b);});
+}
+document.getElementById('mreset').addEventListener('click',newMatch);newMatch();
+
+/* quiz */
+let qans=0,qscore=0,qlock=false;
+function newQ(){
+  const idx=shuffleArr(W.map((_,i)=>i)).slice(0,3);qans=idx[Math.floor(Math.random()*3)];qlock=false;
+  document.getElementById('qic').textContent=W[qans][2];
+  const o=document.getElementById('qopts');o.innerHTML='';
+  idx.forEach((i,n)=>{const b=document.createElement('button');b.type='button';b.className='opt';b.textContent=(n+1)+'. '+W[i][0];
+    b.addEventListener('click',()=>{if(qlock)return;qlock=true;if(i===qans){b.classList.add('ok');qscore++;speak(W[i][0]);}else{b.classList.add('bad');[...o.children].find(x=>x.textContent.endsWith(W[qans][0])).classList.add('ok');}
+      document.getElementById('qscore').textContent='⭐ '+qscore;});
+    o.appendChild(b);});
+}
+document.getElementById('qnext').addEventListener('click',newQ);newQ();
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight')go(cur+1);else if(e.key==='ArrowLeft')go(cur-1);
+  else if(e.key===' '&&cur===0){e.preventDefault();flash.click();}
+});
+</script>
+
+</body>
+</html>
