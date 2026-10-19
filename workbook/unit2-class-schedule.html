@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Unit 2 Class Schedule</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@600;800&display=swap">
+</head>
+<body>
+<style>
+/* Layout: step tabs on top, one stage below; the schedule table mirrors the workbook's light-blue grid */
+:root{
+  --bg:#f1f7fb; --paper:#ffffff; --ink:#1b2a3a; --muted:#5f6c7b; --line:#cfe0ee; --head:#dff0fa;
+  --accent:#1f7a9c; --gold:#ffd166; --ok:#2e9e5b; --no:#d8484c; --peter:#e8f1ff; --annie:#fff0f3;
+  --display:'Baloo 2','Nunito',system-ui,sans-serif; --body:'Nunito','Segoe UI',system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:clamp(16px,1.6vw,22px);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px}
+.top{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px}
+.top h1{font:800 clamp(20px,2.4vw,32px) var(--display);margin:0 12px 0 0;text-wrap:balance}
+.tab{border:2px solid var(--line);background:var(--paper);color:var(--ink);font:800 .9em var(--body);padding:8px 14px;border-radius:999px;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--accent);color:#fff;border-color:var(--accent)}
+.step{display:none}.step.on{display:block}
+.card{background:var(--paper);border:2px solid var(--line);border-radius:18px;padding:clamp(14px,2vw,28px)}
+.btn{font:800 1em var(--body);padding:10px 18px;border-radius:12px;border:0;cursor:pointer;background:var(--accent);color:#fff}
+.btn.alt{background:var(--head);color:var(--ink)}
+button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.hint{color:var(--muted);font-size:.85em;margin:0}
+.teacher{margin-top:14px;border-left:5px solid var(--gold);padding:6px 12px;font-size:.9em;color:var(--muted);max-width:75ch}
+.teacher b{color:var(--ink)}
+.controls{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 0}
+/* read */
+.passage{font-size:1.3em;line-height:1.8;max-width:62ch;margin:0}
+.passage mark{background:var(--gold);border-radius:6px;padding:0 .2em}
+.days{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.dy{border:2px solid var(--line);background:var(--paper);border-radius:12px;padding:8px 14px;font:800 1.1em var(--display);cursor:pointer;color:var(--ink)}
+.dy.today{background:var(--gold);border-color:var(--gold)}
+.dy.tmr{background:var(--accent);color:#fff;border-color:var(--accent)}
+.subs{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:14px}
+.sub{border:2px solid var(--line);border-radius:14px;padding:10px;text-align:center;background:var(--paper);cursor:pointer;color:var(--ink);font-family:var(--body)}
+.sub .ic{font-size:2.2em;line-height:1.2}.sub .w{font:800 1em var(--display);display:block}
+.sub.say{outline:5px solid var(--accent)}
+/* schedule */
+.wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;max-width:60ch;font-size:1.05em}
+th,td{border:2px solid var(--line);padding:8px 10px;text-align:center}
+th{background:var(--head);font-family:var(--display);font-size:1.15em}
+td.t{font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:800}
+td.c{cursor:pointer}
+td.c.p{background:var(--peter)}td.c.a{background:var(--annie)}
+td.c .ic{font-size:2em;line-height:1.1}
+td.c .w{display:block;font:800 1em var(--display);visibility:hidden}
+td.c.show .w{visibility:visible}
+td.c.hit{outline:4px solid var(--gold);outline-offset:-4px}
+/* clock */
+.clock{font:800 clamp(40px,7vw,80px) var(--display);font-variant-numeric:tabular-nums;letter-spacing:.03em;text-align:center}
+.who{font-size:1.4em;text-align:center;min-height:1.6em;margin-top:6px}
+.who b{color:var(--accent)}
+/* quiz */
+.q-list{display:grid;gap:12px;max-width:72ch}
+.qi{background:var(--bg);border-radius:14px;padding:10px 14px}
+.qi .s{font-size:1.25em;margin-bottom:8px}
+.qi .opts{display:flex;flex-wrap:wrap;gap:8px}
+.opts button{font:800 1.05em var(--body);padding:8px 14px;border-radius:10px;border:3px solid var(--line);background:#fff;cursor:pointer;color:var(--ink)}
+.qi.done .opts button.ok{background:var(--ok);color:#fff;border-color:var(--ok)}
+.qi.done .opts button.pick:not(.ok){background:var(--no);color:#fff;border-color:var(--no)}
+.qi .why{display:none;background:#fff;border-radius:10px;padding:8px 12px;margin-top:8px}
+.qi.done .why{display:block}
+.score{font:800 1.5em var(--display);margin-top:14px}
+</style>
+
+<div class="top">
+  <h1>Unit 2 · Peter &amp; Annie's Friday</h1>
+  <button class="tab" role="tab" aria-selected="true" data-step="0" type="button">1 Read</button>
+  <button class="tab" role="tab" aria-selected="false" data-step="1" type="button">2 Schedule</button>
+  <button class="tab" role="tab" aria-selected="false" data-step="2" type="button">3 What time is it?</button>
+  <button class="tab" role="tab" aria-selected="false" data-step="3" type="button">4 Choose</button>
+  <span class="hint">鍵盤 ← → 換步驟</span>
+</div>
+
+<section class="step on" id="s0">
+  <div class="card">
+    <p class="passage">Peter and Annie are good friends. They go to the same school. Peter is in Class 503. Annie is in Class 514. <mark>Tomorrow is Friday.</mark> This is Peter and Annie's class schedule for Friday.</p>
+    <div class="days" id="days"></div>
+    <p class="hint" style="margin-top:8px">Tomorrow is Friday. So what day is <b>today</b>? Click it.</p>
+    <div class="subs" id="subs"></div>
+    <div class="controls"><button class="btn" type="button" id="randSub">Random subject! Say it fast</button></div>
+    <div class="teacher"><b>老師流程（閱讀 + 單字暖身，4 分鐘）</b>：先問 "Tomorrow is Friday. What day is today?" 學生點 Thursday，直接解第 1 題。接著點科目卡做 TPR（math 比算式、music 彈空氣吉他、PE 跑步、art 畫畫、science 看顯微鏡、social studies 轉地球儀、Chinese 翻書、English 比 ABC）。</div>
+  </div>
+</section>
+
+<section class="step" id="s1">
+  <div class="card">
+    <div class="wrap"><table id="sched"></table></div>
+    <div class="controls">
+      <button class="btn" type="button" id="showW">Show all words</button>
+      <button class="btn alt" type="button" id="hideW">Hide all words</button>
+    </div>
+    <div class="teacher"><b>老師流程（圖片→單字，4 分鐘）</b>：先只看圖，老師問 "What class does Peter have at 8:40?" 學生說出科目，再點格子揭曉單字。句型：<b>Peter has ___ class at ___.</b>／<b>Does Annie have PE class on Friday? Yes, she does. / No, she doesn't.</b></div>
+  </div>
+</section>
+
+<section class="step" id="s2">
+  <div class="card">
+    <div class="clock" id="clock">9:40</div>
+    <div class="who" id="who">It's nine forty on Friday. Who is in which class?</div>
+    <div class="controls" style="justify-content:center">
+      <button class="btn" type="button" id="newTime">New time</button>
+      <button class="btn alt" type="button" id="revTime">Reveal</button>
+    </div>
+    <div class="teacher"><b>老師流程（時間搶答，5 分鐘）</b>：按 New time 隨機出一個時間，學生看課表（可回第 2 步或看習作）搶答 "Peter is in ___ class. Annie is in ___ class."，再按 Reveal。碰到 10:10～10:30 要答 "It's cleaning time!"，碰到下課時間要答 "It's break time!"。這就是第 4 題的練習。</div>
+  </div>
+</section>
+
+<section class="step" id="s3">
+  <div class="card">
+    <div class="q-list" id="quiz"></div>
+    <div class="score" id="score">Score: 0 / 4</div>
+    <div class="controls"><button class="btn alt" type="button" id="qreset">Reset</button></div>
+    <div class="teacher"><b>老師流程（習作 E 題，分組搶答）</b>：每題先讓各組舉 A/B/C 牌再點答案，答案出現時會顯示證據。第 2、3 題提醒 "We don't know" 是陷阱：課表有寫，我們就知道。</div>
+  </div>
+</section>
+
+<script>
+const SUBJ={chinese:['Chinese','📖'],math:['math','➗'],music:['music','🎵'],english:['English','🔤'],science:['science','🔬'],art:['art','🎨'],social:['social studies','🗺️'],pe:['PE','⚽']};
+const SLOTS=[
+  {t:'8:40 ~ 9:20',s:520,e:560,p:'chinese',a:'math'},
+  {t:'9:30 ~ 10:10',s:570,e:610,p:'music',a:'english'},
+  {t:'10:10 ~ 10:30',s:610,e:630,clean:true},
+  {t:'10:30 ~ 11:10',s:630,e:670,p:'science',a:'art'},
+  {t:'11:20 ~ 12:00',s:680,e:720,p:'social',a:'pe'}
+];
+let cur=0;
+const tabs=[...document.querySelectorAll('.tab')];
+function go(n){if(n<0||n>3)return;cur=n;tabs.forEach(t=>t.setAttribute('aria-selected',String(+t.dataset.step===n)));document.querySelectorAll('.step').forEach((s,i)=>s.classList.toggle('on',i===n));}
+tabs.forEach(t=>t.addEventListener('click',()=>go(+t.dataset.step)));
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight')go(cur+1);else if(e.key==='ArrowLeft')go(cur-1);});
+
+/* read */
+const daysEl=document.getElementById('days');
+['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'].forEach(d=>{
+  const b=document.createElement('button');b.type='button';b.className='dy'+(d==='Friday'?' tmr':'');b.textContent=d==='Friday'?'Friday (tomorrow)':d;
+  b.addEventListener('click',()=>{[...daysEl.children].forEach(x=>x.classList.remove('today'));if(d==='Thursday'){b.classList.add('today');b.textContent='Thursday = today!';}});
+  daysEl.appendChild(b);
+});
+const subsEl=document.getElementById('subs');
+Object.values(SUBJ).forEach(([w,ic])=>{const b=document.createElement('button');b.type='button';b.className='sub';b.innerHTML='<div class="ic">'+ic+'</div><span class="w">'+w+'</span>';
+  b.addEventListener('click',()=>{[...subsEl.children].forEach(x=>x.classList.remove('say'));b.classList.add('say');});subsEl.appendChild(b);});
+document.getElementById('randSub').addEventListener('click',()=>{const k=[...subsEl.children];k.forEach(x=>x.classList.remove('say'));k[Math.floor(Math.random()*k.length)].classList.add('say');});
+
+/* schedule */
+const cell=(k,who)=>'<td class="c '+who+'" data-k="'+k+'"><div class="ic">'+SUBJ[k][1]+'</div><span class="w">'+SUBJ[k][0]+'</span></td>';
+document.getElementById('sched').innerHTML='<tr><th colspan="3">Friday</th></tr><tr><th>Time</th><th>Peter</th><th>Annie</th></tr>'+
+  SLOTS.map(s=>'<tr><td class="t">'+s.t+'</td>'+(s.clean?'<td colspan="2"><b>Cleaning Time</b></td>':cell(s.p,'p')+cell(s.a,'a'))+'</tr>').join('');
+document.querySelectorAll('td.c').forEach(td=>td.addEventListener('click',()=>td.classList.toggle('show')));
+document.getElementById('showW').addEventListener('click',()=>document.querySelectorAll('td.c').forEach(td=>td.classList.add('show')));
+document.getElementById('hideW').addEventListener('click',()=>document.querySelectorAll('td.c').forEach(td=>td.classList.remove('show')));
+
+/* clock */
+const TIMES=[520,530,545,555,580,590,600,615,625,640,650,665,685,695,710];
+const WORDS={8:'eight',9:'nine',10:'ten',11:'eleven',12:'twelve',0:"o'clock",5:'oh five',10:'ten',15:'fifteen',20:'twenty',25:'twenty-five',30:'thirty',35:'thirty-five',40:'forty',45:'forty-five',50:'fifty',55:'fifty-five'};
+const HW={8:'eight',9:'nine',10:'ten',11:'eleven',12:'twelve'};
+const MW={0:"o'clock",5:'oh five',10:'ten',15:'fifteen',20:'twenty',25:'twenty-five',30:'thirty',35:'thirty-five',40:'forty',45:'forty-five',50:'fifty',55:'fifty-five'};
+let curT=580;
+function fmt(m){const h=Math.floor(m/60),mm=m%60;return h+':'+String(mm).padStart(2,'0');}
+function words(m){const h=Math.floor(m/60),mm=m%60;return HW[h]+' '+MW[mm];}
+function showTime(){document.getElementById('clock').textContent=fmt(curT);document.getElementById('who').textContent="It's "+words(curT)+' on Friday. Who is in which class?';}
+document.getElementById('newTime').addEventListener('click',()=>{let t=curT;while(t===curT)t=TIMES[Math.floor(Math.random()*TIMES.length)];curT=t;showTime();});
+document.getElementById('revTime').addEventListener('click',()=>{
+  const s=SLOTS.find(x=>curT>=x.s&&curT<x.e);const w=document.getElementById('who');
+  if(!s)w.innerHTML="It's "+words(curT)+". <b>It's break time!</b>";
+  else if(s.clean)w.innerHTML="It's "+words(curT)+". <b>It's cleaning time!</b>";
+  else w.innerHTML="It's "+words(curT)+'. Peter is in <b>'+SUBJ[s.p][0]+'</b> class. Annie is in <b>'+SUBJ[s.a][0]+'</b> class.';
+});
+showTime();
+
+/* quiz */
+const Q=[
+  ["What day is today? It's ______.",['Tuesday','Wednesday','Thursday'],2,'"<b>Tomorrow is Friday.</b>" So today is Thursday.'],
+  ['Does Annie have social studies class on Friday?',['Yes, she does.',"No, she doesn't.","We don't know."],1,"Annie's Friday: math, English, art, PE. No social studies."],
+  ['Does Peter have PE class on Friday?',['Yes, he does.',"We don't know.","No, he doesn't."],2,"Peter's Friday: Chinese, music, science, social studies. No PE."],
+  ["It's nine forty on Friday. Annie is in ______ class.",['music','English','math'],1,'9:40 is in 9:30 ~ 10:10. Annie has <b>English</b> then. (Peter has music.)']
+];
+const quiz=document.getElementById('quiz');let done={};
+function renderQuiz(){
+  quiz.innerHTML='';done={};
+  Q.forEach(([s,opts,ans,why],i)=>{
+    const d=document.createElement('div');d.className='qi';
+    d.innerHTML='<div class="s">'+(i+1)+'. '+s+'</div><div class="opts">'+opts.map((o,j)=>'<button type="button" data-j="'+j+'" class="'+(j===ans?'ok':'')+'">'+'ABC'[j]+'. '+o+'</button>').join('')+'</div><div class="why">'+why+'</div>';
+    d.querySelectorAll('.opts button').forEach(b=>b.addEventListener('click',()=>{
+      if(done[i]!==undefined)return;b.classList.add('pick');done[i]=+b.dataset.j===ans;d.classList.add('done');
+      document.getElementById('score').textContent='Score: '+Object.values(done).filter(Boolean).length+' / 4';
+    }));
+    quiz.appendChild(d);
+  });
+  document.getElementById('score').textContent='Score: 0 / 4';
+}
+renderQuiz();
+document.getElementById('qreset').addEventListener('click',renderQuiz);
+</script>
+
+</body>
+</html>

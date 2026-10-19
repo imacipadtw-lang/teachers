@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Unit 2 Way to School</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@600;800&display=swap">
+</head>
+<body>
+<style>
+/* Layout: step tabs on top, one stage below; pictograph squares use the workbook's own five colors */
+:root{
+  --bg:#f2f7fd; --paper:#ffffff; --ink:#1b2a3a; --muted:#5f6c7b; --line:#d6e2ef;
+  --accent:#2457b8; --gold:#ffd166; --ok:#2e9e5b; --no:#d8484c;
+  --bus:#f3e58a; --mrt:#a9d6a4; --car:#a8d9ec; --foot:#f6c6dd; --bike:#b7aadb;
+  --display:'Baloo 2','Nunito',system-ui,sans-serif; --body:'Nunito','Segoe UI',system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:clamp(16px,1.6vw,22px);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px}
+.top{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px}
+.top h1{font:800 clamp(20px,2.4vw,32px) var(--display);margin:0 12px 0 0;text-wrap:balance}
+.tab{border:2px solid var(--line);background:var(--paper);color:var(--ink);font:800 .9em var(--body);padding:8px 14px;border-radius:999px;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--accent);color:#fff;border-color:var(--accent)}
+.step{display:none}.step.on{display:block}
+.card{background:var(--paper);border:2px solid var(--line);border-radius:18px;padding:clamp(14px,2vw,28px)}
+.btn{font:800 1em var(--body);padding:10px 18px;border-radius:12px;border:0;cursor:pointer;background:var(--accent);color:#fff}
+.btn.alt{background:var(--line);color:var(--ink)}
+button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.hint{color:var(--muted);font-size:.85em;margin:0}
+.teacher{margin-top:14px;border-left:5px solid var(--gold);padding:6px 12px;font-size:.9em;color:var(--muted);max-width:75ch}
+.teacher b{color:var(--ink)}
+.controls{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 0}
+/* warm-up cards */
+.modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.mode{border:0;border-radius:16px;padding:16px 10px;text-align:center;cursor:pointer;background:var(--c);color:var(--ink);font-family:var(--body)}
+.mode .ic{font-size:2.6em;line-height:1.2}
+.mode .ph{font:800 1.2em var(--display);display:block}
+.mode .tpr{display:block;font-size:.8em;color:var(--muted);margin-top:4px}
+.mode.say{outline:5px solid var(--accent)}
+/* pictograph */
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.lg{border:2px solid var(--line);background:var(--paper);border-radius:999px;padding:6px 12px 6px 8px;cursor:pointer;font:800 .95em var(--body);color:var(--ink);display:flex;align-items:center;gap:8px}
+.lg i{width:1.1em;height:1.1em;border-radius:4px;background:var(--c);display:inline-block}
+.lg.on{border-color:var(--accent);background:var(--bg)}
+.row{display:grid;grid-template-columns:4.2em 1fr;gap:10px;align-items:center;margin-bottom:8px}
+.day{font:800 1.05em var(--display);border:2px solid var(--line);background:var(--paper);border-radius:10px;padding:6px 4px;cursor:pointer;color:var(--ink)}
+.sq{display:grid;grid-template-columns:repeat(25,minmax(0,1fr));gap:3px;min-width:0}
+.sq i{aspect-ratio:1;border-radius:3px;display:block;background:var(--c)}
+.sq.filter i:not(.hl){opacity:.15}
+.counts{grid-column:2;display:flex;flex-wrap:wrap;gap:6px;font-size:.9em}
+.counts span{background:var(--c,var(--bg));border-radius:8px;padding:3px 8px}
+.counts .wx{background:var(--gold)}
+.total{font:800 1.2em var(--display);margin-top:10px;min-height:1.5em}
+/* fill in */
+.story{font-size:1.25em;line-height:2;max-width:62ch;margin:0}
+.blank{display:inline-block;min-width:5.5em;border:0;border-bottom:3px solid var(--ink);background:var(--bg);padding:0 .5em;font:800 1em var(--body);color:var(--accent);cursor:pointer;vertical-align:baseline}
+.blank.sel{background:var(--gold)}
+.blank.right{border-bottom-color:var(--ok);color:var(--ok)}
+.blank.wrong{border-bottom-color:var(--no);color:var(--no)}
+.bank{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.chip{border:2px solid var(--line);background:var(--paper);border-radius:999px;padding:6px 14px;font:800 1.05em var(--body);cursor:pointer;color:var(--ink)}
+.hintbox{margin-top:10px;background:var(--bg);border-radius:10px;padding:8px 12px;min-height:1.5em}
+/* our class */
+.tally{display:grid;gap:10px;max-width:60ch}
+.tr{display:grid;grid-template-columns:7em auto 2em auto 1fr;gap:8px;align-items:center}
+.tr .lb{font:800 1.05em var(--display)}
+.tr button{width:2.2em;height:2.2em;border-radius:50%;border:2px solid var(--line);background:var(--paper);font:800 1.2em var(--body);cursor:pointer;color:var(--ink)}
+.tr .n{text-align:center;font:800 1.3em var(--display);font-variant-numeric:tabular-nums}
+.bar{height:1.4em;border-radius:8px;background:var(--c);width:var(--w,0%);min-width:0;transition:width .25s}
+.sent{font-size:1.2em;line-height:1.7;margin-top:14px;max-width:62ch}
+@media (prefers-reduced-motion:reduce){.bar{transition:none}}
+</style>
+
+<div class="top">
+  <h1>Unit 2 · The Way They Go to School</h1>
+  <button class="tab" role="tab" aria-selected="true" data-step="0" type="button">1 Warm-up</button>
+  <button class="tab" role="tab" aria-selected="false" data-step="1" type="button">2 Pictograph</button>
+  <button class="tab" role="tab" aria-selected="false" data-step="2" type="button">3 Fill in</button>
+  <button class="tab" role="tab" aria-selected="false" data-step="3" type="button">4 Our Class</button>
+  <span class="hint">鍵盤 ← → 換步驟</span>
+</div>
+
+<section class="step on" id="s0">
+  <div class="card">
+    <div class="modes" id="modes"></div>
+    <div class="controls"><button class="btn" type="button" id="randomMode">Random! Say it fast</button></div>
+    <div class="teacher"><b>老師流程（TPR 暖身，3 分鐘）</b>：點一張卡，全班一起做動作並大聲說 "by bus"。按 Random 會隨機亮一張，看誰最快說出來。注意 <b>on foot</b> 不是 by foot。</div>
+  </div>
+</section>
+
+<section class="step" id="s1">
+  <div class="card">
+    <div class="legend" id="legend"></div>
+    <div id="chart"></div>
+    <div class="total" id="total"></div>
+    <div class="teacher"><b>老師流程（圖表閱讀，5 分鐘）</b>：點上面的交通方式，只留那個顏色，請學生數 "How many students go to school by car on Monday?"。點星期幾會顯示該天的數字與天氣。<b>Thursday 的天氣沒寫</b>，請學生從圖表推理："It's windy and cloudy, like Tuesday." 也可以問 "Why do many students walk on Friday?" (It's sunny.)</div>
+  </div>
+</section>
+
+<section class="step" id="s2">
+  <div class="card">
+    <p class="story">There are twenty-five students in Molly's class. They go to school in different ways depending on the weather. For example, it's sunny on Monday and Friday. Many students go to school <button class="blank" type="button" data-ans="on foot" data-hint="Look at Monday and Friday. Which color has many squares (besides purple)?">1</button> or by bike. It's windy and cloudy on Tuesday. Eight students go to school <button class="blank" type="button" data-ans="by bus" data-hint="Tuesday: which color has 8 squares?">2</button> and <button class="blank" type="button" data-ans="five" data-hint="Tuesday: count the green (MRT) squares.">3</button> students go to school by metro. It's rainy on Wednesday. <button class="blank" type="button" data-ans="eight" data-hint="Wednesday: count the blue (car) squares.">4</button> students go to school by car, and only <button class="blank" type="button" data-ans="one" data-hint="Wednesday: count the pink (on foot) squares.">5</button> student goes to school on foot. No one goes to school <button class="blank" type="button" data-ans="by bike" data-hint="Wednesday: which color is missing?">6</button>.</p>
+    <div class="bank" id="bank"></div>
+    <div class="hintbox" id="hintbox">Click a blank, then click a word.</div>
+    <div class="controls">
+      <button class="btn" type="button" id="check">Check</button>
+      <button class="btn alt" type="button" id="answers">Show answers</button>
+      <button class="btn alt" type="button" id="clear">Clear</button>
+    </div>
+    <div class="teacher"><b>老師流程（習作 E 題，全班合作）</b>：點空格會出現提示，請學生回到圖表找證據再選字。先全班一起做第 1、2 題示範，3～6 題分組搶答。寫完再按 Check。</div>
+  </div>
+</section>
+
+<section class="step" id="s3">
+  <div class="card">
+    <p class="hint" style="font-size:1.1em;margin-bottom:10px">Ask: "How do you go to school?" Raise your hand!</p>
+    <div class="tally" id="tally"></div>
+    <div class="sent" id="sent"></div>
+    <div class="controls"><button class="btn alt" type="button" id="tclear">Clear</button></div>
+    <div class="teacher"><b>老師流程（CLT 個人化任務，5 分鐘）</b>：老師依序問五種方式，學生舉手，老師按 + 計數。下面會自動產生句子，請學生跟著唸，注意 <b>one student goes</b> 與 <b>No one goes</b> 的句型。</div>
+  </div>
+</section>
+
+<script>
+const MODES=[
+  {k:'bus',label:'by bus',ic:'🚌',c:'var(--bus)',tpr:'拉吊環'},
+  {k:'mrt',label:'by MRT (by metro)',short:'by metro',ic:'🚇',c:'var(--mrt)',tpr:'抓扶桿'},
+  {k:'car',label:'by car',ic:'🚗',c:'var(--car)',tpr:'轉方向盤'},
+  {k:'foot',label:'on foot',ic:'🚶',c:'var(--foot)',tpr:'原地走路'},
+  {k:'bike',label:'by bike',ic:'🚲',c:'var(--bike)',tpr:'踩踏板'}
+];
+const DAYS=[
+  {d:'Mon.',full:'Monday',w:'sunny ☀️',c:[2,3,4,7,9]},
+  {d:'Tue.',full:'Tuesday',w:'windy and cloudy 🌬️',c:[8,5,9,2,1]},
+  {d:'Wed.',full:'Wednesday',w:'rainy 🌧️',c:[9,7,8,1,0]},
+  {d:'Thur.',full:'Thursday',w:'? Guess!',c:[8,5,7,3,2]},
+  {d:'Fri.',full:'Friday',w:'sunny ☀️',c:[0,4,3,10,8]}
+];
+let cur=0;
+const tabs=[...document.querySelectorAll('.tab')];
+function go(n){
+  if(n<0||n>3)return;cur=n;
+  tabs.forEach(t=>t.setAttribute('aria-selected',String(+t.dataset.step===n)));
+  document.querySelectorAll('.step').forEach((s,i)=>s.classList.toggle('on',i===n));
+}
+tabs.forEach(t=>t.addEventListener('click',()=>go(+t.dataset.step)));
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight')go(cur+1);else if(e.key==='ArrowLeft')go(cur-1);});
+
+/* warm-up */
+const modesEl=document.getElementById('modes');
+MODES.forEach((m,i)=>{
+  const b=document.createElement('button');b.type='button';b.className='mode';b.style.setProperty('--c',m.c);
+  b.innerHTML='<div class="ic">'+m.ic+'</div><span class="ph">'+m.label+'</span><span class="tpr">TPR: '+m.tpr+'</span>';
+  b.addEventListener('click',()=>{[...modesEl.children].forEach(x=>x.classList.remove('say'));b.classList.add('say');});
+  modesEl.appendChild(b);
+});
+document.getElementById('randomMode').addEventListener('click',()=>{
+  const kids=[...modesEl.children];kids.forEach(x=>x.classList.remove('say'));
+  kids[Math.floor(Math.random()*kids.length)].classList.add('say');
+});
+
+/* pictograph */
+const legend=document.getElementById('legend'),chart=document.getElementById('chart'),total=document.getElementById('total');
+let filter=null;
+MODES.forEach((m,mi)=>{
+  const b=document.createElement('button');b.type='button';b.className='lg';
+  b.innerHTML='<i style="--c:'+m.c+'"></i>'+m.label;
+  b.addEventListener('click',()=>{
+    filter=filter===mi?null:mi;
+    [...legend.children].forEach((x,i)=>x.classList.toggle('on',i===filter));
+    document.querySelectorAll('.sq').forEach(sq=>{
+      sq.classList.toggle('filter',filter!==null);
+      sq.querySelectorAll('i').forEach(c=>c.classList.toggle('hl',filter!==null&&c.dataset.m===String(filter)));
+    });
+    if(filter===null){total.textContent='';return;}
+    const sum=DAYS.reduce((a,d)=>a+d.c[filter],0);
+    total.textContent='This week: '+sum+' students go to school '+(m.short||m.label)+'. '+DAYS.map(d=>d.d+' '+d.c[filter]).join(' · ');
+  });
+  legend.appendChild(b);
+});
+DAYS.forEach((day,di)=>{
+  const row=document.createElement('div');row.className='row';
+  let cells='';day.c.forEach((n,mi)=>{for(let i=0;i<n;i++)cells+='<i data-m="'+mi+'" style="--c:'+MODES[mi].c+'"></i>';});
+  row.innerHTML='<button class="day" type="button">'+day.d+'</button><div class="sq">'+cells+'</div><div class="counts" hidden></div>';
+  const cnt=row.querySelector('.counts');
+  row.querySelector('.day').addEventListener('click',()=>{
+    cnt.hidden=!cnt.hidden;
+    if(!cnt.hidden)cnt.innerHTML='<span class="wx">'+day.full+': '+day.w+'</span>'+MODES.map((m,mi)=>'<span style="--c:'+m.c+'"><b>'+day.c[mi]+'</b> '+(m.short||m.label)+'</span>').join('');
+  });
+  chart.appendChild(row);
+});
+
+/* fill in */
+const WORDS=['on foot','by bus','by car','by bike','by metro','five','six','eight','one','two','nine'];
+const bank=document.getElementById('bank'),hintbox=document.getElementById('hintbox');
+const blanks=[...document.querySelectorAll('.blank')];
+let sel=null;
+blanks.forEach((b,i)=>{b.dataset.n=i+1;b.addEventListener('click',()=>{
+  blanks.forEach(x=>x.classList.remove('sel'));b.classList.add('sel');sel=b;
+  hintbox.textContent='Hint '+(i+1)+': '+b.dataset.hint;
+});});
+WORDS.forEach(w=>{
+  const c=document.createElement('button');c.type='button';c.className='chip';c.textContent=w;
+  c.addEventListener('click',()=>{
+    if(!sel){hintbox.textContent='Click a blank first.';return;}
+    sel.textContent=w;sel.classList.remove('right','wrong');
+  });
+  bank.appendChild(c);
+});
+document.getElementById('check').addEventListener('click',()=>{
+  let ok=0;
+  blanks.forEach(b=>{
+    const filled=b.textContent.trim().toLowerCase(),ans=b.dataset.ans;
+    const right=filled===ans||(ans==='by bike'&&filled==='by bike');
+    b.classList.toggle('right',right);b.classList.toggle('wrong',!right);if(right)ok++;
+  });
+  hintbox.textContent=ok+' / 6 correct!';
+});
+document.getElementById('answers').addEventListener('click',()=>{
+  blanks.forEach((b,i)=>{let a=b.dataset.ans;if(i===3)a='Eight';b.textContent=a;b.classList.add('right');b.classList.remove('wrong');});
+  hintbox.textContent='Answers: 1 on foot · 2 by bus · 3 five · 4 Eight · 5 one · 6 by bike';
+});
+document.getElementById('clear').addEventListener('click',()=>{
+  blanks.forEach(b=>{b.textContent=b.dataset.n;b.classList.remove('right','wrong','sel');});sel=null;
+  hintbox.textContent='Click a blank, then click a word.';
+});
+
+/* our class */
+const tally=document.getElementById('tally'),sent=document.getElementById('sent');
+const counts=[0,0,0,0,0];
+function renderTally(){
+  const max=Math.max(1,...counts);
+  tally.innerHTML='';
+  MODES.forEach((m,i)=>{
+    const r=document.createElement('div');r.className='tr';
+    r.innerHTML='<span class="lb">'+m.ic+' '+(m.short||m.label)+'</span><button type="button" data-d="-1">−</button><span class="n">'+counts[i]+'</span><button type="button" data-d="1">+</button><div class="bar" style="--c:'+m.c+';--w:'+(counts[i]/max*100)+'%"></div>';
+    r.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{counts[i]=Math.max(0,counts[i]+ +b.dataset.d);renderTally();}));
+    tally.appendChild(r);
+  });
+  const totalN=counts.reduce((a,b)=>a+b,0);
+  sent.innerHTML=(totalN?'There are <b>'+totalN+'</b> students in our class.<br>':'')+MODES.map((m,i)=>{
+    const n=counts[i],way=m.short||m.label;
+    if(n===0)return 'No one goes to school <b>'+way+'</b>.';
+    if(n===1)return '<b>One</b> student goes to school <b>'+way+'</b>.';
+    return '<b>'+n+'</b> students go to school <b>'+way+'</b>.';
+  }).join('<br>');
+}
+renderTally();
+document.getElementById('tclear').addEventListener('click',()=>{counts.fill(0);renderTally();});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Unit 1 Kelly's Class</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&family=Nunito:wght@600;800&display=swap">
+</head>
+<body>
+<style>
+/* Layout: step tabs on top, one stage below; bar chart drawn with the workbook's yellow bars */
+:root{
+  --bg:#eef3fb; --paper:#fffdf5; --ink:#1e2a47; --muted:#66708a; --line:#d9e0ef;
+  --accent:#5b4ea8; --bar:#f3df7c; --gold:#ffd166; --ok:#2e9e5b; --no:#d8484c; --sky:#d6ecf7;
+  --display:'Fredoka','Nunito',system-ui,sans-serif; --body:'Nunito','Segoe UI',system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:clamp(16px,1.6vw,22px);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px}
+.top{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px}
+.top h1{font:700 clamp(20px,2.4vw,32px) var(--display);margin:0 12px 0 0;text-wrap:balance}
+.tab{border:2px solid var(--line);background:var(--paper);color:var(--ink);font:800 .9em var(--body);padding:8px 14px;border-radius:999px;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--accent);color:#fff;border-color:var(--accent)}
+.step{display:none}.step.on{display:block}
+.card{background:var(--paper);border:2px solid var(--line);border-radius:18px;padding:clamp(14px,2vw,28px)}
+.btn{font:800 1em var(--body);padding:10px 18px;border-radius:12px;border:0;cursor:pointer;background:var(--accent);color:#fff}
+.btn.alt{background:var(--sky);color:var(--ink)}
+button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.hint{color:var(--muted);font-size:.85em;margin:0}
+.teacher{margin-top:14px;border-left:5px solid var(--gold);padding:6px 12px;font-size:.9em;color:var(--muted);max-width:75ch}
+.teacher b{color:var(--ink)}
+.controls{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 0}
+/* reading */
+.passage{font-size:1.3em;line-height:1.8;max-width:62ch;margin:0}
+.passage .nm{font-weight:800;color:var(--accent);cursor:pointer;border-bottom:3px solid transparent}
+.passage .nm.lit{background:var(--gold);border-radius:6px}
+.passage .ct{font-weight:800}
+.passage .ct.lit{background:var(--sky);border-radius:6px}
+/* match */
+.match{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:60ch}
+.col{display:grid;gap:8px;align-content:start}
+.pill{border:2px solid var(--line);background:#fff;border-radius:12px;padding:10px;font:800 1.15em var(--body);cursor:pointer;color:var(--ink);text-align:center}
+.pill.sel{border-color:var(--accent);background:var(--sky)}
+.pill.done{background:var(--ok);color:#fff;border-color:var(--ok)}
+.pill.shake{background:var(--no);color:#fff;border-color:var(--no)}
+/* chart */
+.chart{display:grid;gap:8px;max-width:60ch}
+.cr{display:grid;grid-template-columns:6.5em 1fr 2.5em;gap:10px;align-items:center}
+.cr .lb{font:800 1.1em var(--display);text-align:right}
+.cr .track{height:1.6em;background:repeating-linear-gradient(90deg,transparent 0 calc(20% - 2px),var(--line) calc(20% - 2px) 20%);border:2px solid var(--line);border-radius:4px;cursor:pointer}
+.cr .fill{height:100%;width:calc(var(--n)/5*100%);background:var(--bar);transition:width .3s}
+.cr.hide .fill{width:0}
+.cr .n{font:800 1.2em var(--display);text-align:center;font-variant-numeric:tabular-nums}
+.cr.hide .n{visibility:hidden}
+.axis{display:grid;grid-template-columns:6.5em 1fr 2.5em;gap:10px;max-width:60ch}
+.axis div{display:flex;justify-content:space-between;font:800 1em var(--display);padding:0 0 0 20%}
+.ask{font-size:1.25em;margin-top:14px;min-height:1.6em}
+/* quiz */
+.q-list{display:grid;gap:12px;max-width:72ch}
+.qi{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;background:var(--bg);border-radius:14px;padding:10px 14px}
+.qi .s{font-size:1.3em}.qi .ox{display:flex;gap:8px}
+.ox button{font:700 1.2em var(--display);width:2.4em;height:2.4em;border-radius:50%;border:3px solid var(--line);background:#fff;cursor:pointer;color:var(--ink)}
+.ox button.pick{border-color:var(--ink)}
+.qi.right .ox button.pick{background:var(--ok);color:#fff;border-color:var(--ok)}
+.qi.wrong .ox button.pick{background:var(--no);color:#fff;border-color:var(--no)}
+.qi .why{grid-column:1/-1;display:none;background:#fff;border-radius:10px;padding:8px 12px;font-size:1.05em}
+.qi.right .why,.qi.wrong .why{display:block}
+.score{font:700 1.5em var(--display);margin-top:14px}
+@media (prefers-reduced-motion:reduce){.cr .fill{transition:none}}
+</style>
+
+<div class="top">
+  <h1>Unit 1 · Kelly's Class</h1>
+  <button class="tab" role="tab" aria-selected="true" data-step="0" type="button">1 Read</button>
+  <button class="tab" role="tab" aria-selected="false" data-step="1" type="button">2 Who is from where?</button>
+  <button class="tab" role="tab" aria-selected="false" data-step="2" type="button">3 Chart</button>
+  <button class="tab" role="tab" aria-selected="false" data-step="3" type="button">4 T or F</button>
+  <span class="hint">鍵盤 ← → 換步驟</span>
+</div>
+
+<section class="step on" id="s0">
+  <div class="card">
+    <p class="passage" id="passage">Hi, my name is <span class="nm" data-c="Taiwan">Kelly</span>. I'm eleven years old. My classmates are from different countries. No one is from the same country as me.<br><br>
+    <span class="nm" data-c="the USA">Andy</span>, <span class="nm" data-c="the USA">Ben</span>, <span class="nm" data-c="the USA">Jack</span>, and <span class="nm" data-c="the USA">Leo</span> are from <span class="ct">the USA</span>. They play together all day. <span class="nm" data-c="Australia">Ella</span> is from <span class="ct">Australia</span>. She likes koalas, and I like koalas, too. <span class="nm" data-c="Japan">Tracy</span> is from <span class="ct">Japan</span>. We have art class together on Friday. We can both draw very well!</p>
+    <div class="controls"><button class="btn alt" type="button" id="clearLit">Clear</button></div>
+    <div class="teacher"><b>老師流程（閱讀策略，4 分鐘）</b>：先問 "How many names can you find?"，點名字會亮起來，再點國家配對。追問：Where is Kelly from? (The text doesn't say! Look at the chart: Taiwan has only 1 student, and no one is from the same country as Kelly.) 這是推論題，讓學生當偵探。生字：different / same / as / together / both。</div>
+  </div>
+</section>
+
+<section class="step" id="s1">
+  <div class="card">
+    <div class="match"><div class="col" id="names"></div><div class="col" id="countries"></div></div>
+    <div class="controls"><button class="btn alt" type="button" id="mreset">Reset</button></div>
+    <div class="teacher"><b>老師流程（配對遊戲，3 分鐘）</b>：點左邊名字，再點右邊國家。答對變綠，答錯變紅再試。全班一起唸 "<b>Andy is from the USA.</b>" 四個美國男孩可以請四位同學站起來當他們。</div>
+  </div>
+</section>
+
+<section class="step" id="s2">
+  <div class="card">
+    <div class="chart" id="chart"></div>
+    <div class="axis"><span></span><div><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div><span></span></div>
+    <div class="ask" id="ask">Click a bar: "How many students are from ___?"</div>
+    <div class="controls">
+      <button class="btn" type="button" id="hideBars">Hide bars (guess!)</button>
+      <button class="btn alt" type="button" id="showBars">Show all</button>
+      <button class="btn alt" type="button" id="sumBtn">How many students in total?</button>
+    </div>
+    <div class="teacher"><b>老師流程（圖表閱讀，4 分鐘）</b>：先按 Hide bars，老師問 "How many students are from the USA?" 學生猜，再點那一列揭曉。最後按總數鈕，讓學生先用加法算一次（3+2+2+3+2+1+3+4）再揭曉 20，直接連到第 4 題。</div>
+  </div>
+</section>
+
+<section class="step" id="s3">
+  <div class="card">
+    <div class="q-list" id="quiz"></div>
+    <div class="score" id="score">Score: 0 / 4</div>
+    <div class="controls"><button class="btn alt" type="button" id="qreset">Reset</button></div>
+    <div class="teacher"><b>老師流程（習作 E 題，全班投票）</b>：唸題目，學生用手比 T 或 F，老師點答案，證據句會出現。第 3 題故意把國家對調，請學生說出正確句子 "Ella is from Australia, and Tracy is from Japan."</div>
+  </div>
+</section>
+
+<script>
+let cur=0;
+const tabs=[...document.querySelectorAll('.tab')];
+function go(n){if(n<0||n>3)return;cur=n;tabs.forEach(t=>t.setAttribute('aria-selected',String(+t.dataset.step===n)));document.querySelectorAll('.step').forEach((s,i)=>s.classList.toggle('on',i===n));}
+tabs.forEach(t=>t.addEventListener('click',()=>go(+t.dataset.step)));
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight')go(cur+1);else if(e.key==='ArrowLeft')go(cur-1);});
+
+/* reading */
+const nms=[...document.querySelectorAll('.passage .nm')],cts=[...document.querySelectorAll('.passage .ct')];
+nms.forEach(n=>n.addEventListener('click',()=>{n.classList.toggle('lit');cts.forEach(c=>c.classList.toggle('lit',nms.some(x=>x.classList.contains('lit')&&x.dataset.c===c.textContent)));}));
+document.getElementById('clearLit').addEventListener('click',()=>{nms.concat(cts).forEach(x=>x.classList.remove('lit'));});
+
+/* match */
+const PEOPLE=[['Andy','the USA'],['Ben','the USA'],['Jack','the USA'],['Leo','the USA'],['Ella','Australia'],['Tracy','Japan'],['Kelly','Taiwan']];
+const CTRY=['the USA','Australia','Japan','Taiwan'];
+const namesEl=document.getElementById('names'),ctEl=document.getElementById('countries');
+let selName=null;
+function renderMatch(){
+  namesEl.innerHTML='';ctEl.innerHTML='';selName=null;
+  PEOPLE.forEach(([n,c])=>{const b=document.createElement('button');b.type='button';b.className='pill';b.textContent=n;b.dataset.c=c;
+    b.addEventListener('click',()=>{if(b.classList.contains('done'))return;[...namesEl.children].forEach(x=>x.classList.remove('sel'));b.classList.add('sel');selName=b;});namesEl.appendChild(b);});
+  CTRY.forEach(c=>{const b=document.createElement('button');b.type='button';b.className='pill';b.textContent=c;
+    b.addEventListener('click',()=>{if(!selName)return;
+      if(selName.dataset.c===c){selName.classList.remove('sel');selName.classList.add('done');selName.textContent=selName.textContent+' → '+c;selName=null;}
+      else{selName.classList.add('shake');setTimeout(()=>selName&&selName.classList.remove('shake'),500);}
+    });ctEl.appendChild(b);});
+}
+renderMatch();
+document.getElementById('mreset').addEventListener('click',renderMatch);
+
+/* chart */
+const DATA=[['Australia',3],['India',2],['Japan',2],['Singapore',3],['Spain',2],['Taiwan',1],['the UK',3],['the USA',4]];
+const chart=document.getElementById('chart'),ask=document.getElementById('ask');
+DATA.forEach(([c,n])=>{
+  const r=document.createElement('div');r.className='cr';
+  r.innerHTML='<span class="lb">'+c+'</span><div class="track"><div class="fill" style="--n:'+n+'"></div></div><span class="n">'+n+'</span>';
+  r.querySelector('.track').addEventListener('click',()=>{r.classList.remove('hide');ask.innerHTML='<b>'+n+'</b> student'+(n>1?'s are':' is')+' from <b>'+c+'</b>.';});
+  chart.appendChild(r);
+});
+document.getElementById('hideBars').addEventListener('click',()=>{document.querySelectorAll('.cr').forEach(r=>r.classList.add('hide'));ask.textContent='Guess: How many students are from the USA?';});
+document.getElementById('showBars').addEventListener('click',()=>{document.querySelectorAll('.cr').forEach(r=>r.classList.remove('hide'));});
+document.getElementById('sumBtn').addEventListener('click',()=>{ask.innerHTML=DATA.map(d=>d[1]).join(' + ')+' = <b>20</b>. There are <b>twenty</b> students in Kelly\'s class.';});
+
+/* quiz */
+const Q=[
+  ['Andy is from the UK. 🇬🇧','F','"Andy, Ben, Jack, and Leo are from <b>the USA</b>."'],
+  ['Kelly is from Taiwan. 🇹🇼','T','"No one is from the same country as me." Taiwan has only <b>1</b> student on the chart, so that one is Kelly.'],
+  ['Ella is from Japan, and Tracy is from Australia.','F','"Ella is from <b>Australia</b>." "Tracy is from <b>Japan</b>." The countries are switched.'],
+  ["There are twenty students in Kelly's class.",'T','3+2+2+3+2+1+3+4 = <b>20</b>.']
+];
+const quiz=document.getElementById('quiz');let done={};
+function renderQuiz(){
+  quiz.innerHTML='';done={};
+  Q.forEach(([s,a,why],i)=>{
+    const d=document.createElement('div');d.className='qi';
+    d.innerHTML='<div class="s">'+(i+1)+'. '+s+'</div><div class="ox"><button type="button" data-a="T">T</button><button type="button" data-a="F">F</button></div><div class="why">'+why+'</div>';
+    d.querySelectorAll('.ox button').forEach(b=>b.addEventListener('click',()=>{
+      if(done[i]!==undefined)return;b.classList.add('pick');done[i]=b.dataset.a===a;d.classList.add(done[i]?'right':'wrong');
+      document.getElementById('score').textContent='Score: '+Object.values(done).filter(Boolean).length+' / 4';
+    }));
+    quiz.appendChild(d);
+  });
+  document.getElementById('score').textContent='Score: 0 / 4';
+}
+renderQuiz();
+document.getElementById('qreset').addEventListener('click',renderQuiz);
+</script>
+
+</body>
+</html>
