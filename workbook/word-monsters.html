@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{color-scheme:light}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Word Monsters</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@700;900&display=swap">
+</head>
+<body>
+<script>(function(){try{if(localStorage.getItem("wb_ok")!=="1")location.replace("index.html");}catch(e){}})();</script>
+<style>
+/* Layout: game tabs on top, one big stage; every monster is an original procedurally drawn SVG creature that acts out its word */
+:root{
+  --bg:#fffaf0; --paper:#ffffff; --ink:#2b2346; --muted:#6c6680; --line:#f3e3c3;
+  --red:#ff6b6b; --yellow:#ffd93d; --green:#6bcb77; --blue:#4d96ff; --purple:#b388ff; --pink:#ff8fab; --teal:#4ecdc4;
+  --display:'Baloo 2','Nunito',system-ui,sans-serif; --body:'Nunito','Segoe UI',system-ui,sans-serif;
+  color-scheme:light;
+}
+html,body{height:100%}
+body{margin:0;color:var(--ink);font-family:var(--body);font-size:clamp(16px,1.7vw,24px);
+  background:radial-gradient(circle at 8% 12%,#ffe3ee 0,transparent 32%),radial-gradient(circle at 92% 18%,#dcefff 0,transparent 32%),radial-gradient(circle at 50% 105%,#fff1c2 0,transparent 40%),var(--bg);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px}
+#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:50}
+.top{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.top h1{font:800 clamp(24px,2.8vw,38px) var(--display);margin:0 10px 0 0;text-wrap:balance}
+.tab{border:3px solid var(--line);background:var(--paper);color:var(--ink);font:900 .95em var(--body);padding:8px 16px;border-radius:999px;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.step{display:none}.step.on{display:block}
+.card{background:var(--paper);border:3px solid var(--line);border-radius:28px;padding:clamp(14px,2vw,28px)}
+.btn{font:900 1.05em var(--body);padding:12px 22px;border-radius:16px;border:0;cursor:pointer;background:var(--blue);color:#fff;box-shadow:0 5px 0 rgba(0,0,0,.12)}
+.btn.y{background:var(--yellow);color:var(--ink)}.btn.g{background:var(--green);color:var(--ink)}.btn.r{background:var(--red)}.btn.p{background:var(--purple);color:var(--ink)}
+.btn.sm{font-size:.85em;padding:8px 14px;box-shadow:0 3px 0 rgba(0,0,0,.12)}
+.btn:active{transform:translateY(3px);box-shadow:none}
+button:focus-visible{outline:4px solid var(--blue);outline-offset:3px}
+.hint{color:var(--muted);font-size:.85em;margin:0}
+.teacher{margin-top:14px;border-left:6px solid var(--yellow);padding:6px 12px;font-size:.88em;color:var(--muted);max-width:75ch}
+.teacher b{color:var(--ink)}
+.controls{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 0;justify-content:center}
+.mon svg{width:100%;height:auto;display:block;overflow:visible}
+.bob{animation:bob 1.8s ease-in-out infinite}
+/* hatch */
+.hatch{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:center}
+.hatch .pet{width:min(100%,420px);margin:auto;cursor:pointer;background:none;border:0;padding:0}
+.hatch .info{text-align:center;min-width:0}
+.hatch .emo{font-size:clamp(44px,7vw,84px);line-height:1.1;min-height:1.1em}
+.hatch .w{font:800 clamp(40px,7vw,80px) var(--display);line-height:1.1;min-height:1.1em}
+.hatch .zh{font:900 clamp(26px,4vw,46px) var(--body);min-height:1.2em}
+.hatch .act{color:var(--muted);font-size:1.05em;min-height:1.4em;margin-top:6px}
+.hatch .ask{font:800 1.4em var(--display);color:var(--purple);min-height:1.4em}
+.wobble{animation:wobble .5s ease-in-out}
+.popin{animation:pop .5s cubic-bezier(.3,1.6,.5,1)}
+/* catch */
+.hud{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;font:800 1.2em var(--display);font-variant-numeric:tabular-nums;margin-bottom:8px}
+.hud span b{color:var(--red)}
+.bar{height:14px;background:var(--line);border-radius:7px;max-width:720px;margin:0 auto 12px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--green);border-radius:7px}
+.holes{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:720px;margin:auto}
+.hole{position:relative;aspect-ratio:1;max-width:100%;border-radius:40% 40% 50% 50%;background:radial-gradient(ellipse at 50% 85%,#8d6e4b 0,#5b4634 60%,#3e2f23 100%);overflow:hidden;border:0;padding:0;cursor:pointer}
+.hole .mon{position:absolute;left:10%;width:80%;bottom:-110%;transition:bottom .28s cubic-bezier(.3,1.4,.5,1)}
+.hole.up .mon{bottom:4%}
+.hole .lbl{position:absolute;left:0;right:0;top:5%;text-align:center;font:800 clamp(18px,2.6vw,34px) var(--display);color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.4);opacity:0;transition:opacity .2s;z-index:1}
+.hole.up .lbl{opacity:1}
+.hole.caught .mon{animation:pop .4s}
+.msg{text-align:center;font:800 1.5em var(--display);min-height:1.5em;margin-top:10px}
+/* boss */
+.bossWrap{display:grid;grid-template-columns:1fr 1.2fr;gap:20px;align-items:center}
+.boss{width:min(100%,380px);margin:auto}
+.hp{height:22px;background:var(--line);border-radius:11px;overflow:hidden;border:3px solid var(--ink)}
+.hp i{display:block;height:100%;background:linear-gradient(90deg,var(--red),#ff9f43);width:100%;transition:width .3s}
+.hpl{font:800 1.1em var(--display);text-align:center;margin:4px 0 8px}
+.boss.hit{animation:hit .4s}.boss.faint{animation:faint .8s forwards}
+.qmon{width:min(100%,250px);margin:auto}
+.qask{font:800 1.3em var(--display);text-align:center;color:var(--purple)}
+.opts{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:8px}
+.opt{font:800 clamp(22px,3vw,36px) var(--display);padding:12px 24px;border-radius:18px;border:4px solid var(--line);background:var(--paper);cursor:pointer;color:var(--ink);min-width:5.5em}
+.opt.ok{background:var(--green);border-color:var(--green)}
+.opt.bad{background:var(--red);border-color:var(--red);color:#fff}
+.teams{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:12px;font:800 1.3em var(--display);align-items:center}
+.teams button{font:800 1em var(--display);border:0;border-radius:14px;padding:8px 18px;cursor:pointer;color:#fff}
+/* book */
+.book{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}
+.bk{border:3px solid var(--line);border-radius:18px;background:var(--paper);padding:8px;text-align:center;cursor:pointer;color:var(--ink);font-family:var(--body)}
+.bk .mon{width:86%;margin:auto}
+.bk .w{font:800 1.05em var(--display);display:block}.bk .zh{font-size:.85em;color:var(--muted)}
+.bk.locked .mon{filter:brightness(0);opacity:.25}
+.bk.locked .w{color:var(--muted)}
+.bk.locked .zh{visibility:hidden}
+.count{font:800 1.4em var(--display);text-align:center;margin-bottom:10px}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-10px) rotate(2deg)}}
+@keyframes wobble{0%,100%{transform:rotate(0)}25%{transform:rotate(-14deg)}75%{transform:rotate(14deg)}}
+@keyframes pop{0%{transform:scale(0)}70%{transform:scale(1.15)}100%{transform:scale(1)}}
+@keyframes hit{0%,100%{transform:translateX(0)}20%{transform:translateX(-16px) rotate(-4deg)}40%{transform:translateX(14px) rotate(4deg)}60%{transform:translateX(-8px)}80%{transform:translateX(6px)}}
+@keyframes faint{to{transform:rotate(80deg) translateY(30px);opacity:.35}}
+@media (max-width:720px){.hatch,.bossWrap{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<canvas id="fx"></canvas>
+<div class="top">
+  <h1>Word Monsters 單字怪獸</h1>
+  <button class="tab" role="tab" aria-selected="true" data-step="0" type="button">🥚 Hatch</button>
+  <button class="tab" role="tab" aria-selected="false" data-step="1" type="button">🎯 Catch!</button>
+  <button class="tab" role="tab" aria-selected="false" data-step="2" type="button">⚔️ Boss</button>
+  <button class="tab" role="tab" aria-selected="false" data-step="3" type="button">📖 Book</button>
+  <span class="hint">← → 換遊戲 · 空白鍵 = 點蛋</span>
+</div>
+
+<section class="step on" id="s0">
+  <div class="card">
+    <div class="hatch">
+      <button class="pet" type="button" id="pet" aria-label="egg"></button>
+      <div class="info">
+        <div class="ask" id="hAsk">Tap the egg! 🥚</div>
+        <div class="w" id="hW"></div>
+        <div class="zh" id="hZh"></div>
+        <div class="emo" id="hEmo"></div>
+        <div class="act" id="hAct"></div>
+      </div>
+    </div>
+    <div class="controls">
+      <button class="btn y" type="button" id="hNext">Next egg 🥚</button>
+      <button class="btn g" type="button" id="hSay">🔊 Say it</button>
+    </div>
+    <div class="teacher"><b>老師流程（PPP 呈現，8 分鐘）</b>：點蛋 → 怪獸孵出來並<b>做出那個動作</b>，問 "What is it doing?" 讓學生猜 → 再點一次出現單字、中文、動作說明。全班唸三次（大聲、小聲、怪獸聲）並模仿怪獸做動作。每孵一隻就收進圖鑑。</div>
+  </div>
+</section>
+
+<section class="step" id="s1">
+  <div class="card">
+    <div class="hud"><span>Round <b id="cRound">0</b>/10</span><span>Caught <b id="cScore">0</b></span><span>Combo <b id="cCombo">0</b> 🔥</span></div>
+    <div class="bar"><i id="cBar"></i></div>
+    <div class="holes" id="holes"></div>
+    <div class="msg" id="cMsg">Press Start. A monster pops up doing an action: say the word and do it too. Tap it to catch!</div>
+    <div class="controls">
+      <button class="btn r" type="button" id="cStart">Start! 🎯</button>
+      <button class="btn sm" type="button" id="cStop">Stop</button>
+    </div>
+    <div class="teacher"><b>老師流程（TPR 抓怪，5 分鐘）</b>：怪獸從洞裡冒出來做動作並唸單字，全班 4 秒內大聲說 + 跟著做，老師確認大家做對就點怪獸抓住牠（Combo 累積）。沒抓到就跑掉。10 回合結算星星。可讓一組學生上台當「抓怪手」。</div>
+  </div>
+</section>
+
+<section class="step" id="s2">
+  <div class="card">
+    <div class="bossWrap">
+      <div>
+        <div class="hp"><i id="hp"></i></div>
+        <div class="hpl" id="hpl">HP 10 / 10</div>
+        <div class="mon boss bob" id="boss"></div>
+      </div>
+      <div>
+        <div class="qask">What is it doing?</div>
+        <div class="mon qmon" id="qMon"></div>
+        <div class="opts" id="qOpts"></div>
+        <div class="msg" id="qMsg"></div>
+        <div class="teams">
+          <button type="button" id="tRed" style="background:var(--red)">🔴 Red +1</button><span id="sRed">0</span>
+          <button type="button" id="tBlue" style="background:var(--blue)">🔵 Blue +1</button><span id="sBlue">0</span>
+        </div>
+      </div>
+    </div>
+    <div class="controls">
+      <button class="btn" type="button" id="qNext">Next attack ▶</button>
+      <button class="btn p sm" type="button" id="qNew">New boss</button>
+    </div>
+    <div class="teacher"><b>老師流程（魔王戰，6 分鐘）</b>：看小怪獸做的動作，從 3 個字選對的。答對 = 打中魔王掉 1 點 HP；答錯魔王會笑。分紅藍兩隊輪流作答，答對的隊伍老師按 +1。HP 歸零魔王倒下，全班勝利。</div>
+  </div>
+</section>
+
+<section class="step" id="s3">
+  <div class="card">
+    <div class="count" id="bCount"></div>
+    <div class="book" id="book"></div>
+    <div class="controls">
+      <button class="btn y sm" type="button" id="bAll">Unlock all</button>
+      <button class="btn sm" type="button" id="bReset">Lock all</button>
+    </div>
+    <div class="teacher"><b>老師流程（圖鑑複習）</b>：孵過、抓過、打中過的怪獸會點亮並做動作，沒遇過的是黑影。點任何一隻會發音，請全班一起唸並做動作。下課前看集了幾隻，下次課繼續收集。</div>
+  </div>
+</section>
+
+<script>
+const W=[
+ ['reuse','再利用','♻️','把東西再拿起來用一次'],['rest','休息','😴','雙手合十放臉頰旁'],['repeat','重複','🔁','手在空中畫圈圈'],
+ ['run','跑','🏃','原地跑步'],['put','放','📥','把東西輕輕放下'],['prepare','準備','🎒','收拾書包'],
+ ['pick','挑選','👆','手指點一點選一個'],['pay','付','💰','把錢遞出去'],['write','寫','✏️','在空中寫字'],
+ ['clean','清潔','🧹','掃地'],['find','找到','🔍','手當望遠鏡找一找'],['hurt','傷害','🤕','摸摸受傷的手臂'],
+ ['help','幫助','🤝','伸手拉人一把'],['miss','想念','💭','手放心口嘆氣'],['need','需要','🙏','雙手合十要東西'],
+ ['want to','想要','⭐','舉手大喊「我要！」'],['try','嘗試','💪','握拳加油'],['have to','必須','⏰','指著手錶'],
+ ['wash hands','洗手','🧼','搓搓手'],['wear a mask','戴口罩','😷','把口罩戴上']
+];
+const PAL=[['#ff6b6b','#ffc2c2'],['#ffd93d','#fff3b0'],['#6bcb77','#c4f2c9'],['#4d96ff','#bcd6ff'],['#b388ff','#e0d2ff'],['#ff8fab','#ffd6e1'],['#4ecdc4','#bdf1ec'],['#ff9f43','#ffdcb8']];
+const INK='#2b2346',RED='#ff6b6b',YEL='#ffd93d',GRN='#6bcb77',BLU='#4d96ff',SKY='#bfe6ff';
+function rng(seed){let a=(seed*2654435761)>>>0;return()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)/4294967296;};}
+const f=n=>(+n).toFixed(1);
+/* SMIL helpers: never put a static transform on the same element as an animateTransform */
+const rot=(vals,dur,x,y,extra='')=>`<animateTransform attributeName="transform" type="rotate" values="${vals.map(v=>v+' '+f(x)+' '+f(y)).join(';')}" dur="${dur}s" repeatCount="indefinite" ${extra}/>`;
+const mv=(vals,dur,extra='')=>`<animateTransform attributeName="transform" type="translate" values="${vals}" dur="${dur}s" repeatCount="indefinite" ${extra}/>`;
+const fade=(vals,dur,extra='')=>`<animate attributeName="opacity" values="${vals}" dur="${dur}s" repeatCount="indefinite" ${extra}/>`;
+const star=(x,y,fill,anim='')=>`<g transform="translate(${f(x)} ${f(y)})"><g opacity="0">${anim}<path d="M0 -9 L2.6 -2.8 L9 -2.8 L3.8 1.3 L5.6 8 L0 4 L-5.6 8 L-3.8 1.3 L-9 -2.8 L-2.6 -2.8 Z" fill="${fill}" stroke="${INK}" stroke-width="2"/></g></g>`;
+const drop=(x,y,fill,dur,begin)=>`<g transform="translate(${f(x)} ${f(y)})"><g opacity="0">${mv('0 0;0 22',dur,`begin="${begin}s"`)}${fade('1;1;0',dur,`begin="${begin}s"`)}<path d="M0 -8 q-6 8 0 13 q6 -5 0 -13" fill="${fill}" stroke="${INK}" stroke-width="2"/></g></g>`;
+const bubble=(x,y,r,fill,dur,begin)=>`<g transform="translate(${f(x)} ${f(y)})"><g opacity="0">${mv('0 0;0 -30',dur,`begin="${begin}s"`)}${fade('0;1;0',dur,`begin="${begin}s"`)}<circle r="${r}" fill="${fill}" stroke="#fff" stroke-width="2"/></g></g>`;
+function arm(P,hx,hy,anim='',extra=''){const [sx,sy]=P.s;return `<g>${anim}<line x1="${f(sx)}" y1="${f(sy)}" x2="${f(hx)}" y2="${f(hy)}" stroke="${INK}" stroke-width="17" stroke-linecap="round"/><line x1="${f(sx)}" y1="${f(sy)}" x2="${f(hx)}" y2="${f(hy)}" stroke="${P.c}" stroke-width="11" stroke-linecap="round"/><circle cx="${f(hx)}" cy="${f(hy)}" r="8" fill="${P.light}" stroke="${INK}" stroke-width="3"/>${extra}</g>`;}
+const L=P=>({s:P.sL,c:P.c,light:P.light}),R=P=>({s:P.sR,c:P.c,light:P.light});
+const defArmL=P=>arm(L(P),P.sL[0]-22,P.sL[1]+22),defArmR=P=>arm(R(P),P.sR[0]+22,P.sR[1]+22);
+const ACT={
+ 'run':P=>({lean:12,bodyAnim:mv('0 0;0 -8;0 0',.4),mouth:'open',feet:'alt',
+   arms:arm(L(P),P.sL[0]-22,P.sL[1]+20,rot([35,-35,35],.4,...P.sL))+arm(R(P),P.sR[0]+22,P.sR[1]+20,rot([-35,35,-35],.4,...P.sR)),
+   behind:`<g>${fade('1;.2;1',.4)}${[-12,6,24].map(d=>`<line x1="${f(P.cx-P.rx-36)}" y1="${f(P.cy+d)}" x2="${f(P.cx-P.rx-10)}" y2="${f(P.cy+d)}" stroke="${INK}" stroke-width="4" stroke-linecap="round"/>`).join('')}</g>`}),
+ 'rest':P=>({eyes:'closed',mouth:'o',bodyAnim:rot([-3,3,-3],2.4,P.cx,P.cy+P.ry),
+   front:[0,.8,1.6].map((b,k)=>`<g transform="translate(${f(P.cx+P.rx*.55+k*10)} ${f(P.ty-4-k*6)})"><g opacity="0">${mv('0 0;0 -34',2.4,`begin="${b}s"`)}${fade('0;1;0',2.4,`begin="${b}s"`)}<text font-family="'Baloo 2',sans-serif" font-weight="800" font-size="${14+k*7}" fill="${BLU}" stroke="${INK}" stroke-width="1">z</text></g></g>`).join('')}),
+ 'repeat':P=>({bodyAnim:mv('0 0;0 -6;0 0',.7),
+   front:`<g>${rot([0,360],1.4,P.cx,P.ty-24)}<circle cx="${P.cx}" cy="${f(P.ty-24)}" r="16" fill="none" stroke="${BLU}" stroke-width="5" stroke-dasharray="22 8"/><path d="M${P.cx+16} ${f(P.ty-33)} l7 10 l-13 3 z" fill="${BLU}"/><path d="M${P.cx-16} ${f(P.ty-15)} l-7 -10 l13 -3 z" fill="${BLU}"/></g>`}),
+ 'put':P=>({mouth:'smile',arms:defArmL(P)+arm(R(P),P.sR[0]+26,P.sR[1]+4,rot([-80,25,25,-80],2.2,...P.sR,'keyTimes="0;.45;.75;1"'),`<rect x="${f(P.sR[0]+14)}" y="${f(P.sR[1]-20)}" width="24" height="22" rx="3" fill="${YEL}" stroke="${INK}" stroke-width="3"/><line x1="${f(P.sR[0]+14)}" y1="${f(P.sR[1]-12)}" x2="${f(P.sR[0]+38)}" y2="${f(P.sR[1]-12)}" stroke="${INK}" stroke-width="2"/>`),
+   front:`<rect x="${f(P.cx+P.rx-4)}" y="${f(P.cy+40)}" width="44" height="7" rx="3" fill="#a0785a" stroke="${INK}" stroke-width="2"/><rect x="${f(P.cx+P.rx+30)}" y="${f(P.cy+46)}" width="7" height="34" fill="#a0785a" stroke="${INK}" stroke-width="2"/>`}),
+ 'prepare':P=>({mouth:'smile',behind:`<rect x="${f(P.cx+P.rx-24)}" y="${f(P.cy-34)}" width="36" height="48" rx="11" fill="${RED}" stroke="${INK}" stroke-width="3"/><rect x="${f(P.cx+P.rx-16)}" y="${f(P.cy-40)}" width="20" height="10" rx="5" fill="${RED}" stroke="${INK}" stroke-width="3"/>`,
+   arms:defArmL(P)+arm(R(P),P.sR[0]+8,P.sR[1]-32),
+   front:[[`<rect x="-9" y="-7" width="18" height="14" rx="2" fill="${BLU}" stroke="${INK}" stroke-width="2"/>`,0],[`<rect x="-2" y="-11" width="5" height="22" rx="1" fill="${YEL}" stroke="${INK}" stroke-width="2"/>`,.6],[`<circle r="7" fill="${GRN}" stroke="${INK}" stroke-width="2"/>`,1.2]].map(([sh,b])=>`<g opacity="0">${mv(`${f(P.cx-P.rx-24)} ${f(P.cy-60)};${f(P.cx+P.rx-6)} ${f(P.cy-44)}`,1.8,`begin="${b}s"`)}${fade('1;1;0',1.8,`begin="${b}s"`)}${sh}</g>`).join('')}),
+ 'pick':P=>{const ay=P.cy+P.ry*.55;return{mouth:'smile',arms:defArmL(P)+arm(R(P),P.cx+26,ay-20,rot([-25,0,25,0],2.4,...P.sR)),
+   front:[[-32,RED],[0,GRN],[32,YEL]].map(([dx,cl],k)=>`<g transform="translate(${f(P.cx+dx)} ${f(ay)})"><g>${k===1?mv('0 0;0 -14;0 0;0 -14',2.4):''}<circle r="11" fill="${cl}" stroke="${INK}" stroke-width="3"/><line x1="0" y1="-11" x2="2" y2="-17" stroke="${INK}" stroke-width="3" stroke-linecap="round"/></g></g>`).join('')};},
+ 'pay':P=>({mouth:'smile',arms:defArmL(P)+arm(R(P),P.sR[0]+28,P.sR[1]+2),
+   front:`<rect x="186" y="${f(P.cy-16)}" width="30" height="56" rx="6" fill="#4ecdc4" stroke="${INK}" stroke-width="3"/><g transform="translate(${f(P.sR[0]+30)} ${f(P.sR[1]-2)})"><g>${mv('0 0;46 -16',1.4)}${fade('1;1;0',1.4)}<circle r="10" fill="${YEL}" stroke="${INK}" stroke-width="3"/><text x="-4.5" y="4.5" font-family="'Baloo 2',sans-serif" font-weight="800" font-size="13" fill="${INK}">$</text></g></g>`}),
+ 'write':P=>{const py=P.cy+P.ry*.22;return{mouth:'smile',
+   front:`<rect x="${f(P.cx-32)}" y="${f(py)}" width="64" height="40" rx="3" fill="#fff" stroke="${INK}" stroke-width="3"/><path d="M${f(P.cx-22)} ${f(py+14)} q8 -7 16 0 t16 0 t16 0 M${f(P.cx-22)} ${f(py+28)} q8 -7 16 0 t16 0" fill="none" stroke="${BLU}" stroke-width="3" stroke-linecap="round" stroke-dasharray="120" stroke-dashoffset="120"><animate attributeName="stroke-dashoffset" values="120;0" dur="1.6s" repeatCount="indefinite"/></path>`,
+   arms:arm(L(P),P.cx-30,py+2)+arm(R(P),P.cx+16,py+12,rot([-7,7,-7],.55,...P.sR),`<line x1="${f(P.cx+16)}" y1="${f(py+12)}" x2="${f(P.cx+2)}" y2="${f(py+24)}" stroke="${YEL}" stroke-width="7" stroke-linecap="round"/><line x1="${f(P.cx+4)}" y1="${f(py+22)}" x2="${f(P.cx-1)}" y2="${f(py+27)}" stroke="${INK}" stroke-width="5" stroke-linecap="round"/>`)};},
+ 'clean':P=>{const px=P.cx+8,py=P.cy-22,by=P.cy+P.ry+6;return{mouth:'smile',
+   front:`<g>${rot([-22,22,-22],.9,px,py)}<line x1="${f(px)}" y1="${f(py)}" x2="${f(px-22)}" y2="${f(by)}" stroke="#a0785a" stroke-width="7" stroke-linecap="round"/><path d="M${f(px-36)} ${f(by-2)} l28 0 l8 20 l-44 0 z" fill="${YEL}" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/></g>${[0,.3,.6].map(b=>`<g transform="translate(${f(P.cx-P.rx-16+b*40)} ${f(by+16)})"><g opacity="0">${fade('0;1;0',.9,`begin="${b}s"`)}<circle r="5" fill="#d8d2c4"/></g></g>`).join('')}`,
+   arms:arm(L(P),px-3,py+10)+arm(R(P),px+6,py+28)};},
+ 'find':P=>{const hx=P.sR[0]+10,hy=P.sR[1]-28;return{mouth:'o',
+   arms:defArmL(P)+arm(R(P),hx,hy,rot([-30,15,-30],1.6,...P.sR),`<line x1="${f(hx)}" y1="${f(hy)}" x2="${f(hx+4)}" y2="${f(hy-12)}" stroke="${INK}" stroke-width="6" stroke-linecap="round"/><circle cx="${f(hx+8)}" cy="${f(hy-26)}" r="15" fill="rgba(200,230,255,.65)" stroke="${INK}" stroke-width="4"/>`),
+   front:star(P.cx-P.rx-16,P.cy+P.ry-8,YEL,fade('0;1;1;0',1.6))};},
+ 'hurt':P=>({eyes:'x',mouth:'wavy',bodyAnim:mv('0 0;-3 0;3 0;0 0',.25),
+   front:`<g transform="rotate(-30 ${f(P.cx-P.rx*.3)} ${f(P.ty+14)})"><rect x="${f(P.cx-P.rx*.3-13)}" y="${f(P.ty+10)}" width="26" height="8" rx="3" fill="#fff" stroke="${INK}" stroke-width="2"/></g><g transform="rotate(30 ${f(P.cx-P.rx*.3)} ${f(P.ty+14)})"><rect x="${f(P.cx-P.rx*.3-13)}" y="${f(P.ty+10)}" width="26" height="8" rx="3" fill="#fff" stroke="${INK}" stroke-width="2"/></g>${drop(P.cx-P.rx*.42,P.ey+16,SKY,.9,0)}${drop(P.cx+P.rx*.42,P.ey+16,SKY,.9,.45)}`}),
+ 'help':P=>{const bx=P.cx-P.rx-20,by=P.cy+P.ry-16;return{mouth:'smile',
+   arms:arm(L(P),bx+14,by-22,rot([0,-18,-18,0],2.2,...P.sL))+defArmR(P),
+   front:`<g transform="translate(${f(bx)} ${f(by)})"><g>${mv('0 0;0 -14;0 -14;0 0',2.2)}<g transform="rotate(-15)"><circle r="19" fill="#ff8fab" stroke="${INK}" stroke-width="3"/><circle cx="-6" cy="-4" r="4.5" fill="#fff" stroke="${INK}" stroke-width="2"/><circle cx="6" cy="-4" r="4.5" fill="#fff" stroke="${INK}" stroke-width="2"/><circle cx="-5" cy="-3" r="2" fill="${INK}"/><circle cx="7" cy="-3" r="2" fill="${INK}"/><path d="M-6 6 q6 6 12 0" fill="none" stroke="${INK}" stroke-width="2.5" stroke-linecap="round"/></g></g></g>`};},
+ 'miss':P=>{const bx=P.cx+P.rx*.9,by=P.ty-30;return{eyes:'sad',mouth:'frown',bodyAnim:rot([-2,2,-2],2.6,P.cx,P.cy+P.ry),
+   front:`<circle cx="${f(P.cx+P.rx*.5)}" cy="${f(P.ty+4)}" r="4" fill="#fff" stroke="${INK}" stroke-width="2"/><circle cx="${f(P.cx+P.rx*.68)}" cy="${f(P.ty-9)}" r="6" fill="#fff" stroke="${INK}" stroke-width="2"/><ellipse cx="${f(bx)}" cy="${f(by)}" rx="26" ry="19" fill="#fff" stroke="${INK}" stroke-width="3"/><g transform="translate(${f(bx)} ${f(by+1)})"><g><animateTransform attributeName="transform" type="scale" values="1;1.25;1" dur="1s" repeatCount="indefinite"/><path d="M0 7 C-10 -2 -8 -12 0 -7 C8 -12 10 -2 0 7Z" fill="${RED}" stroke="${INK}" stroke-width="2"/></g></g>`};},
+ 'need':P=>{const hy=P.cy+P.ry*.3,bx=P.cx+P.rx*.85,by=P.ty-22;return{eyes:'big',mouth:'o',bodyAnim:mv('0 0;0 -4;0 0',.8),
+   arms:arm(L(P),P.cx-7,hy)+arm(R(P),P.cx+7,hy),
+   front:`<circle cx="${f(P.cx+P.rx*.55)}" cy="${f(P.ty+2)}" r="4" fill="#fff" stroke="${INK}" stroke-width="2"/><ellipse cx="${f(bx)}" cy="${f(by)}" rx="17" ry="17" fill="#fff" stroke="${INK}" stroke-width="3"/><g transform="translate(${f(bx)} ${f(by)})"><g><animateTransform attributeName="transform" type="scale" values="1;1.3;1" dur=".8s" repeatCount="indefinite"/><text x="-6" y="9" font-family="'Baloo 2',sans-serif" font-weight="800" font-size="26" fill="${RED}">!</text></g></g>`};},
+ 'want to':P=>({mouth:'open',bodyAnim:mv('0 0;0 -8;0 0',.4),
+   arms:defArmL(P)+arm(R(P),P.sR[0]+6,P.sR[1]-42,rot([-12,12,-12],.4,...P.sR)),
+   front:star(P.sR[0]+24,P.sR[1]-66,YEL,fade('0;1;0',1.2))+star(P.sR[0]-12,P.sR[1]-74,YEL,fade('0;1;0',1.2,'begin=".4s"'))+star(P.sR[0]+40,P.sR[1]-44,YEL,fade('0;1;0',1.2,'begin=".8s"'))+`<ellipse cx="${f(P.cx-P.rx*.75)}" cy="${f(P.ty-22)}" rx="22" ry="15" fill="#fff" stroke="${INK}" stroke-width="3"/><text x="${f(P.cx-P.rx*.75-15)}" y="${f(P.ty-16)}" font-family="'Baloo 2',sans-serif" font-weight="800" font-size="16" fill="${INK}">Me!</text>`}),
+ 'try':P=>{const ry2=P.cy+P.ry-8;return{mouth:'grit',
+   front:`<g transform="translate(${f(P.cx)} ${f(ry2)})"><g>${mv('0 0;0 -3;0 0;0 -2;0 0',.3)}<ellipse rx="36" ry="22" fill="#9aa0a6" stroke="${INK}" stroke-width="3"/><ellipse cx="-10" cy="-6" rx="9" ry="5" fill="#b8bec5"/></g></g>${drop(P.cx-P.rx*.5,P.ty+12,SKY,.8,0)}${drop(P.cx+P.rx*.5,P.ty+8,SKY,.8,.4)}`,
+   arms:arm(L(P),P.cx-32,ry2-10)+arm(R(P),P.cx+32,ry2-10)};},
+ 'have to':P=>{const hx=P.sL[0]-24,hy=P.sL[1]+2,kx=hx-2,ky=hy-28;return{mouth:'o',
+   arms:arm(L(P),hx,hy,'',`<g>${rot([-10,10,-10],.15,kx,ky)}<circle cx="${f(kx-11)}" cy="${f(ky-13)}" r="5" fill="${RED}" stroke="${INK}" stroke-width="2"/><circle cx="${f(kx+11)}" cy="${f(ky-13)}" r="5" fill="${RED}" stroke="${INK}" stroke-width="2"/><circle cx="${f(kx)}" cy="${f(ky)}" r="16" fill="#fff" stroke="${INK}" stroke-width="4"/><line x1="${f(kx)}" y1="${f(ky)}" x2="${f(kx)}" y2="${f(ky-10)}" stroke="${INK}" stroke-width="3" stroke-linecap="round"/><line x1="${f(kx)}" y1="${f(ky)}" x2="${f(kx+8)}" y2="${f(ky+3)}" stroke="${INK}" stroke-width="3" stroke-linecap="round"/></g>`)+arm(R(P),P.sR[0]+6,P.sR[1]-40),
+   front:`<g opacity="0">${fade('0;1;1;0',.6)}<text x="${f(P.sR[0]+2)}" y="${f(P.sR[1]-52)}" font-family="'Baloo 2',sans-serif" font-weight="800" font-size="34" fill="${RED}" stroke="${INK}" stroke-width="1.5">!</text></g>`};},
+ 'wash hands':P=>{const hy=P.cy+P.ry*.35;return{mouth:'smile',
+   arms:arm(L(P),P.cx-9,hy,rot([-6,6,-6],.35,...P.sL))+arm(R(P),P.cx+9,hy,rot([6,-6,6],.35,...P.sR)),
+   front:[[-22,0],[-8,.4],[8,.8],[22,1.2],[0,.2]].map(([dx,b])=>bubble(P.cx+dx,hy-8,5+Math.abs(dx)%7,'rgba(190,225,255,.9)',1.4,b)).join('')+drop(P.cx-4,hy-40,SKY,.7,0)+drop(P.cx+6,hy-44,SKY,.7,.35)+`<rect x="${f(P.cx+24)}" y="${f(hy+4)}" width="26" height="14" rx="5" fill="#ff8fab" stroke="${INK}" stroke-width="3"/>`};},
+ 'wear a mask':P=>{const my=P.my,kt='keyTimes="0;.3;.85;1"';return{mouth:'open',
+   front:`<g>${mv('0 46;0 0;0 0;0 46',3,kt)}<line x1="${f(P.cx-26)}" y1="${f(my-6)}" x2="${f(P.cx-P.rx+2)}" y2="${f(P.ey)}" stroke="${INK}" stroke-width="2.5"/><line x1="${f(P.cx+26)}" y1="${f(my-6)}" x2="${f(P.cx+P.rx-2)}" y2="${f(P.ey)}" stroke="${INK}" stroke-width="2.5"/><rect x="${f(P.cx-27)}" y="${f(my-12)}" width="54" height="30" rx="9" fill="${SKY}" stroke="${INK}" stroke-width="3"/><path d="M${f(P.cx-20)} ${f(my-2)} h40 M${f(P.cx-20)} ${f(my+6)} h40" stroke="#8fc8ee" stroke-width="2"/></g>`,
+   arms:`<g><line x1="${f(P.sL[0])}" y1="${f(P.sL[1])}" x2="${f(P.cx-30)}" y2="${f(my+4)}" stroke="${INK}" stroke-width="17" stroke-linecap="round"><animate attributeName="y2" values="${f(my+50)};${f(my+4)};${f(my+4)};${f(my+50)}" dur="3s" repeatCount="indefinite" ${kt}/></line><line x1="${f(P.sL[0])}" y1="${f(P.sL[1])}" x2="${f(P.cx-30)}" y2="${f(my+4)}" stroke="${P.c}" stroke-width="11" stroke-linecap="round"><animate attributeName="y2" values="${f(my+50)};${f(my+4)};${f(my+4)};${f(my+50)}" dur="3s" repeatCount="indefinite" ${kt}/></line><circle cx="${f(P.cx-30)}" cy="${f(my+4)}" r="8" fill="${P.light}" stroke="${INK}" stroke-width="3"><animate attributeName="cy" values="${f(my+50)};${f(my+4)};${f(my+4)};${f(my+50)}" dur="3s" repeatCount="indefinite" ${kt}/></circle></g>`+
+     `<g><line x1="${f(P.sR[0])}" y1="${f(P.sR[1])}" x2="${f(P.cx+30)}" y2="${f(my+4)}" stroke="${INK}" stroke-width="17" stroke-linecap="round"><animate attributeName="y2" values="${f(my+50)};${f(my+4)};${f(my+4)};${f(my+50)}" dur="3s" repeatCount="indefinite" ${kt}/></line><line x1="${f(P.sR[0])}" y1="${f(P.sR[1])}" x2="${f(P.cx+30)}" y2="${f(my+4)}" stroke="${P.c}" stroke-width="11" stroke-linecap="round"><animate attributeName="y2" values="${f(my+50)};${f(my+4)};${f(my+4)};${f(my+50)}" dur="3s" repeatCount="indefinite" ${kt}/></line><circle cx="${f(P.cx+30)}" cy="${f(my+4)}" r="8" fill="${P.light}" stroke="${INK}" stroke-width="3"><animate attributeName="cy" values="${f(my+50)};${f(my+4)};${f(my+4)};${f(my+50)}" dur="3s" repeatCount="indefinite" ${kt}/></circle></g>`,
+   armsFirst:true};},
+ 'reuse':P=>{const hx=P.sR[0]+16,hy=P.sR[1]-12;return{mouth:'smile',
+   arms:defArmL(P)+arm(R(P),hx,hy,rot([0,-12,0],1.2,...P.sR),`<rect x="${f(hx-7)}" y="${f(hy-36)}" width="14" height="32" rx="4" fill="#4ecdc4" stroke="${INK}" stroke-width="3"/><rect x="${f(hx-4)}" y="${f(hy-44)}" width="8" height="10" rx="2" fill="#4ecdc4" stroke="${INK}" stroke-width="3"/>`),
+   front:`<g>${rot([0,360],2.2,P.cx,P.ty-26)}<circle cx="${P.cx}" cy="${f(P.ty-26)}" r="17" fill="none" stroke="${GRN}" stroke-width="5" stroke-dasharray="20 14"/>${[0,120,240].map(a=>`<path transform="rotate(${a} ${P.cx} ${f(P.ty-26)})" d="M${P.cx+17} ${f(P.ty-36)} l7 11 l-14 3 z" fill="${GRN}"/>`).join('')}</g>`};}
+};
+function monsterSVG(i,act){
+  const r=rng(i+11),[c,light]=PAL[i%PAL.length];
+  const rx=58+r()*18,ry=52+r()*26,cx=100,cy=112,ty=cy-ry;
+  const eyesN=1+Math.floor(r()*3),top=Math.floor(r()*4),spots=Math.floor(r()*5),mouthR=Math.floor(r()*3);
+  const ey=cy-ry*.25,er=11+r()*5,my=cy+ry*.12;
+  const P={cx,cy,rx,ry,ty,ey,er,my,c,light,sL:[cx-rx+8,cy-2],sR:[cx+rx-8,cy-2]};
+  const A=(act!=null&&ACT[W[act][0]])?ACT[W[act][0]](P):{};
+  let s=`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="g${i}" cx="35%" cy="28%" r="80%"><stop offset="0" stop-color="${light}"/><stop offset="1" stop-color="${c}"/></radialGradient></defs>`;
+  s+=`<ellipse cx="100" cy="188" rx="${f(rx*.95)}" ry="8" fill="rgba(0,0,0,.14)"/>`;
+  s+=`<g transform="rotate(${A.lean||0} ${cx} ${cy})"><g>${A.bodyAnim||''}`;
+  s+=A.behind||'';
+  if(top===1)s+=`<path d="M${f(cx-rx*.45)} ${f(ty+14)} l-16 -34 l30 10 z" fill="${light}" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/><path d="M${f(cx+rx*.45)} ${f(ty+14)} l16 -34 l-30 10 z" fill="${light}" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>`;
+  if(top===2)s+=`<ellipse cx="${f(cx-rx*.6)}" cy="${f(ty+8)}" rx="14" ry="24" fill="${c}" stroke="${INK}" stroke-width="3" transform="rotate(-25 ${f(cx-rx*.6)} ${f(ty+8)})"/><ellipse cx="${f(cx+rx*.6)}" cy="${f(ty+8)}" rx="14" ry="24" fill="${c}" stroke="${INK}" stroke-width="3" transform="rotate(25 ${f(cx+rx*.6)} ${f(ty+8)})"/>`;
+  if(top===3)s+=`<path d="M${cx} ${f(ty+4)} q-6 -22 10 -30" fill="none" stroke="${INK}" stroke-width="3"/><circle cx="${cx+10}" cy="${f(ty-26)}" r="9" fill="${light}" stroke="${INK}" stroke-width="3"/>`;
+  const fy=cy+ry-2;
+  [[cx-rx*.45,[30,-30,30]],[cx+rx*.45,[-30,30,-30]]].forEach(([fx,v])=>{const foot=`<ellipse cx="${f(fx)}" cy="${f(fy)}" rx="17" ry="10" fill="${c}" stroke="${INK}" stroke-width="3"/>`;s+=A.feet==='alt'?`<g>${rot(v,.4,fx,fy-14)}${foot}</g>`:foot;});
+  s+=`<ellipse cx="${cx}" cy="${cy}" rx="${f(rx)}" ry="${f(ry)}" fill="url(#g${i})" stroke="${INK}" stroke-width="4"/>`;
+  s+=`<ellipse cx="${cx}" cy="${f(cy+ry*.4)}" rx="${f(rx*.5)}" ry="${f(ry*.35)}" fill="${light}" opacity=".75"/>`;
+  for(let k=0;k<spots;k++){const a=r()*6.28,d=r()*.6;s+=`<circle cx="${f(cx+Math.cos(a)*rx*d)}" cy="${f(cy-ry*.3+Math.sin(a)*ry*d*.5)}" r="${f(4+r()*5)}" fill="${light}" opacity=".6"/>`;}
+  const xs=eyesN===1?[cx]:eyesN===2?[cx-rx*.35,cx+rx*.35]:[cx-rx*.42,cx,cx+rx*.42];
+  xs.forEach((x,k)=>{const yy=(eyesN===3&&k===1)?ey-14:ey,Rr=A.eyes==='big'?er*1.3:er;
+    if(A.eyes==='closed'){s+=`<path d="M${f(x-Rr)} ${f(yy)} q${f(Rr)} ${f(Rr*.9)} ${f(2*Rr)} 0" fill="none" stroke="${INK}" stroke-width="4" stroke-linecap="round"/>`;return;}
+    if(A.eyes==='x'){s+=`<path d="M${f(x-8)} ${f(yy-8)} l16 16 M${f(x+8)} ${f(yy-8)} l-16 16" stroke="${INK}" stroke-width="4" stroke-linecap="round"/>`;return;}
+    s+=`<circle cx="${f(x)}" cy="${f(yy)}" r="${f(Rr)}" fill="#fff" stroke="${INK}" stroke-width="3"/><circle cx="${f(x+2)}" cy="${f(yy+2)}" r="${f(Rr*.45)}" fill="${INK}"/><circle cx="${f(x-2)}" cy="${f(yy-3)}" r="${f(Rr*.18)}" fill="#fff"/>`;
+    if(A.eyes==='big')s+=`<circle cx="${f(x+5)}" cy="${f(yy+5)}" r="${f(Rr*.12)}" fill="#fff"/>`;
+    if(A.eyes==='sad'){const l=x<cx;s+=`<line x1="${f(x-Rr)}" y1="${f(yy-Rr-(l?4:11))}" x2="${f(x+Rr)}" y2="${f(yy-Rr-(l?11:4))}" stroke="${INK}" stroke-width="4" stroke-linecap="round"/>`;}
+  });
+  const m=A.mouth||['smile','open','teeth'][mouthR];
+  if(m==='smile')s+=`<path d="M${cx-16} ${f(my)} q16 18 32 0" fill="none" stroke="${INK}" stroke-width="4" stroke-linecap="round"/>`;
+  if(m==='open')s+=`<ellipse cx="${cx}" cy="${f(my+6)}" rx="14" ry="10" fill="${INK}"/><ellipse cx="${cx}" cy="${f(my+11)}" rx="7" ry="5" fill="#ff8fab"/>`;
+  if(m==='teeth')s+=`<path d="M${cx-18} ${f(my)} q18 20 36 0" fill="none" stroke="${INK}" stroke-width="4" stroke-linecap="round"/><rect x="${cx-9}" y="${f(my+1)}" width="7" height="8" fill="#fff" stroke="${INK}" stroke-width="2"/><rect x="${cx+2}" y="${f(my+1)}" width="7" height="8" fill="#fff" stroke="${INK}" stroke-width="2"/>`;
+  if(m==='o')s+=`<circle cx="${cx}" cy="${f(my+6)}" r="6" fill="${INK}"/>`;
+  if(m==='frown')s+=`<path d="M${cx-14} ${f(my+10)} q14 -14 28 0" fill="none" stroke="${INK}" stroke-width="4" stroke-linecap="round"/>`;
+  if(m==='grit')s+=`<rect x="${cx-17}" y="${f(my)}" width="34" height="11" rx="3" fill="#fff" stroke="${INK}" stroke-width="3"/><path d="M${cx-8} ${f(my)} v11 M${cx} ${f(my)} v11 M${cx+8} ${f(my)} v11" stroke="${INK}" stroke-width="2"/>`;
+  if(m==='wavy')s+=`<path d="M${cx-16} ${f(my+5)} q4 -7 8 0 t8 0 t8 0 t8 0" fill="none" stroke="${INK}" stroke-width="4" stroke-linecap="round"/>`;
+  s+=`<circle cx="${f(cx-rx*.55)}" cy="${f(my-2)}" r="7" fill="#ff8fab" opacity=".6"/><circle cx="${f(cx+rx*.55)}" cy="${f(my-2)}" r="7" fill="#ff8fab" opacity=".6"/>`;
+  const arms=A.arms||(defArmL(P)+defArmR(P));
+  s+=A.armsFirst?arms+(A.front||''):(A.front||'')+arms;
+  return s+'</g></g></svg>';
+}
+function eggSVG(i){const [c,light]=PAL[i%PAL.length];return `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><ellipse cx="100" cy="188" rx="55" ry="8" fill="rgba(0,0,0,.14)"/><path d="M100 14 C148 14 168 82 168 122 C168 162 136 186 100 186 C64 186 32 162 32 122 C32 82 52 14 100 14 Z" fill="${light}" stroke="${INK}" stroke-width="4"/><circle cx="80" cy="70" r="12" fill="${c}"/><circle cx="125" cy="110" r="16" fill="${c}"/><circle cx="85" cy="140" r="10" fill="${c}"/><circle cx="130" cy="60" r="7" fill="${c}"/></svg>`;}
+const noMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function still(){if(noMotion)document.querySelectorAll('svg').forEach(s=>{try{s.pauseAnimations();}catch(e){}});}
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+function speak(t){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='en-US';u.rate=.85;speechSynthesis.speak(u);}catch(e){}}
+let AC;function beep(fr,t,type,v){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.type=type||'sine';o.frequency.value=fr;g.gain.value=v||.2;o.connect(g);g.connect(AC.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+t);o.stop(AC.currentTime+t);}catch(e){}}
+const sfx={pop:()=>{beep(500,.1);setTimeout(()=>beep(850,.12),80);},hit:()=>beep(140,.22,'square',.25),wrong:()=>beep(110,.3,'sawtooth',.15),win:()=>[523,659,784,1047].forEach((fr,i)=>setTimeout(()=>beep(fr,.25),i*120))};
+/* confetti */
+const fx=document.getElementById('fx'),fctx=fx.getContext('2d');let parts=[],fxRun=false;
+function resize(){fx.width=innerWidth;fx.height=innerHeight;}addEventListener('resize',resize);resize();
+const CC=['#ff6b6b','#ffd93d','#6bcb77','#4d96ff','#b388ff','#ff8fab'];
+function confetti(n,x,y){if(noMotion)return;x=x??innerWidth/2;y=y??innerHeight/2;for(let i=0;i<n;i++)parts.push({x,y,vx:(Math.random()-.5)*16,vy:-Math.random()*14-5,c:CC[i%6],s:6+Math.random()*7,rot:Math.random()*6.28,life:70+Math.random()*30});if(!fxRun){fxRun=true;requestAnimationFrame(tick);}}
+function tick(){fctx.clearRect(0,0,fx.width,fx.height);parts=parts.filter(p=>p.life>0);parts.forEach(p=>{p.vy+=.45;p.x+=p.vx;p.y+=p.vy;p.rot+=.15;p.life--;fctx.save();fctx.translate(p.x,p.y);fctx.rotate(p.rot);fctx.fillStyle=p.c;fctx.fillRect(-p.s/2,-p.s/2,p.s,p.s*.6);fctx.restore();});if(parts.length)requestAnimationFrame(tick);else fxRun=false;}
+/* tabs */
+let cur=0;const tabs=[...document.querySelectorAll('.tab')];
+function go(n){if(n<0||n>3)return;cur=n;tabs.forEach(t=>t.setAttribute('aria-selected',String(+t.dataset.step===n)));document.querySelectorAll('.step').forEach((s,i)=>s.classList.toggle('on',i===n));}
+tabs.forEach(t=>t.addEventListener('click',()=>go(+t.dataset.step)));
+/* book */
+const got=new Set();const book=document.getElementById('book');
+function renderBook(){book.innerHTML='';W.forEach((w,i)=>{const b=document.createElement('button');b.type='button';b.className='bk'+(got.has(i)?'':' locked');b.innerHTML='<div class="mon">'+monsterSVG(i,got.has(i)?i:null)+'</div><span class="w">'+(got.has(i)?w[0]:'???')+'</span><span class="zh">'+w[1]+'</span>';b.addEventListener('click',()=>{if(got.has(i))speak(w[0]);});book.appendChild(b);});document.getElementById('bCount').textContent='Collected: '+got.size+' / '+W.length+(got.size===W.length?' 🏆':'');still();}
+function unlock(i){if(!got.has(i)){got.add(i);renderBook();}}
+document.getElementById('bAll').addEventListener('click',()=>{W.forEach((_,i)=>got.add(i));renderBook();confetti(120);sfx.win();});
+document.getElementById('bReset').addEventListener('click',()=>{got.clear();renderBook();});
+renderBook();
+/* hatch */
+let hi=0,hs=0;const pet=document.getElementById('pet');
+function pickEgg(){const left=W.map((_,i)=>i).filter(i=>!got.has(i));const pool=left.length?left:W.map((_,i)=>i);hi=pool[Math.floor(Math.random()*pool.length)];hs=0;drawHatch();}
+function drawHatch(){
+  const w=W[hi];pet.className='pet';
+  if(hs===0){pet.innerHTML=eggSVG(hi);pet.classList.add('bob');document.getElementById('hAsk').textContent='Tap the egg! 🥚';['hEmo','hW','hZh','hAct'].forEach(id=>document.getElementById(id).textContent='');}
+  else if(hs===1){pet.innerHTML='<div class="mon popin">'+monsterSVG(hi,hi)+'</div>';document.getElementById('hAsk').textContent='What is it doing? 🤔';}
+  else{pet.innerHTML='<div class="mon">'+monsterSVG(hi,hi)+'</div>';document.getElementById('hAsk').textContent='';document.getElementById('hEmo').textContent=w[2];document.getElementById('hW').textContent=w[0];document.getElementById('hZh').textContent=w[1];document.getElementById('hAct').textContent='動作：'+w[3];}
+  still();
+}
+pet.addEventListener('click',()=>{
+  if(hs===0){pet.classList.remove('bob');pet.classList.add('wobble');sfx.pop();setTimeout(()=>{hs=1;drawHatch();},450);}
+  else if(hs===1){hs=2;drawHatch();speak(W[hi][0]);unlock(hi);const r=pet.getBoundingClientRect();confetti(60,r.left+r.width/2,r.top+r.height/2);}
+  else speak(W[hi][0]);
+});
+document.getElementById('hNext').addEventListener('click',pickEgg);
+document.getElementById('hSay').addEventListener('click',()=>speak(W[hi][0]));
+pickEgg();
+/* catch */
+const holes=document.getElementById('holes');const H=[];
+for(let i=0;i<9;i++){const b=document.createElement('button');b.type='button';b.className='hole';b.innerHTML='<div class="lbl"></div><div class="mon"></div>';b.addEventListener('click',()=>catchIt(b));holes.appendChild(b);H.push(b);}
+let cRound=0,cScore=0,cCombo=0,cTimer=null,cRunning=false,cActive=null,cWord=0;
+const cBar=document.getElementById('cBar');
+function hud(){document.getElementById('cRound').textContent=cRound;document.getElementById('cScore').textContent=cScore;document.getElementById('cCombo').textContent=cCombo;}
+function popNext(){
+  if(!cRunning)return;
+  if(cRound>=10){cRunning=false;const stars=cScore>=9?'⭐⭐⭐':cScore>=6?'⭐⭐':'⭐';document.getElementById('cMsg').textContent='Finished! Caught '+cScore+' / 10 '+stars;confetti(150);sfx.win();return;}
+  cRound++;hud();cWord=Math.floor(Math.random()*W.length);const h=H[Math.floor(Math.random()*9)];cActive=h;
+  h.querySelector('.mon').innerHTML=monsterSVG(cWord,cWord);h.querySelector('.lbl').textContent=W[cWord][0];h.classList.remove('caught');h.classList.add('up');still();
+  speak(W[cWord][0]);document.getElementById('cMsg').textContent=W[cWord][0]+'  '+W[cWord][2]+'  Say it and do it!';
+  cBar.style.transition='none';cBar.style.width='100%';void cBar.offsetWidth;cBar.style.transition='width 4s linear';cBar.style.width='0%';
+  cTimer=setTimeout(()=>{h.classList.remove('up');cActive=null;cCombo=0;hud();document.getElementById('cMsg').textContent='It ran away! 💨';sfx.wrong();setTimeout(popNext,700);},4000);
+}
+function catchIt(h){
+  if(!cRunning||h!==cActive)return;clearTimeout(cTimer);cActive=null;cScore++;cCombo++;hud();unlock(cWord);
+  h.classList.add('caught');sfx.pop();const r=h.getBoundingClientRect();confetti(40,r.left+r.width/2,r.top+r.height/2);
+  cBar.style.transition='none';document.getElementById('cMsg').textContent='Caught! '+W[cWord][0]+' ✅';
+  setTimeout(()=>{h.classList.remove('up');setTimeout(popNext,500);},500);
+}
+document.getElementById('cStart').addEventListener('click',()=>{clearTimeout(cTimer);H.forEach(h=>h.classList.remove('up'));cRound=0;cScore=0;cCombo=0;cRunning=true;hud();popNext();});
+document.getElementById('cStop').addEventListener('click',()=>{cRunning=false;clearTimeout(cTimer);H.forEach(h=>h.classList.remove('up'));cBar.style.transition='none';cBar.style.width='0%';document.getElementById('cMsg').textContent='Stopped.';});
+hud();
+/* boss */
+let hp=10,bossSeed=777,qAns=0,qLock=false,sRed=0,sBlue=0;
+const bossEl=document.getElementById('boss');
+function drawBoss(){bossEl.className='mon boss bob';bossEl.innerHTML=monsterSVG(bossSeed,null);document.getElementById('hp').style.width=(hp*10)+'%';document.getElementById('hpl').textContent='HP '+hp+' / 10';}
+function newQ(){
+  const idx=shuffle(W.map((_,i)=>i)).slice(0,3);qAns=idx[Math.floor(Math.random()*3)];qLock=false;
+  document.getElementById('qMon').innerHTML=monsterSVG(qAns,qAns);document.getElementById('qMsg').textContent='';still();
+  const o=document.getElementById('qOpts');o.innerHTML='';
+  idx.forEach((i,n)=>{const b=document.createElement('button');b.type='button';b.className='opt';b.textContent=(n+1)+'. '+W[i][0];b.dataset.i=i;
+    b.addEventListener('click',()=>{
+      if(qLock||hp<=0)return;qLock=true;
+      if(i===qAns){b.classList.add('ok');hp--;unlock(i);speak(W[i][0]);sfx.hit();bossEl.classList.remove('bob');bossEl.classList.add('hit');document.getElementById('hp').style.width=(hp*10)+'%';document.getElementById('hpl').textContent='HP '+hp+' / 10';
+        if(hp<=0){bossEl.classList.remove('hit');bossEl.classList.add('faint');document.getElementById('qMsg').textContent='🏆 You win! The boss fainted!';confetti(200);setTimeout(sfx.win,300);}
+        else{document.getElementById('qMsg').textContent='💥 Hit!';setTimeout(()=>{bossEl.classList.remove('hit');bossEl.classList.add('bob');},450);}
+      }else{b.classList.add('bad');[...o.children].find(x=>+x.dataset.i===qAns).classList.add('ok');sfx.wrong();document.getElementById('qMsg').textContent='😜 The boss laughs! It\'s "'+W[qAns][0]+'".';}
+    });o.appendChild(b);});
+}
+document.getElementById('qNext').addEventListener('click',newQ);
+document.getElementById('qNew').addEventListener('click',()=>{hp=10;bossSeed=700+Math.floor(Math.random()*90);drawBoss();newQ();});
+document.getElementById('tRed').addEventListener('click',()=>{sRed++;document.getElementById('sRed').textContent=sRed;});
+document.getElementById('tBlue').addEventListener('click',()=>{sBlue++;document.getElementById('sBlue').textContent=sBlue;});
+drawBoss();newQ();
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight')go(cur+1);else if(e.key==='ArrowLeft')go(cur-1);else if(e.key===' '&&cur===0){e.preventDefault();pet.click();}});
+</script>
+
+</body>
+</html>

@@ -1,13 +1,42 @@
 <!doctype html>
 <html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>English Workbook Activities</title>
+<title>習作互動教學頁</title>
 <style>
-:root{color-scheme:light}body{margin:0;background:#f4f7fb;color:#1b2a3a;font-family:'Nunito','Segoe UI',system-ui,sans-serif;padding:24px max(16px,env(safe-area-inset-left));}
+:root{color-scheme:light}body{margin:0;min-height:100vh;background:#f4f7fb;color:#1b2a3a;font-family:'Nunito','Segoe UI',system-ui,sans-serif;padding:24px max(16px,env(safe-area-inset-left));box-sizing:border-box}
 h1{font-size:clamp(24px,4vw,40px);margin:0 0 6px}p{color:#5f6c7b;margin:0 0 20px}
-ul{list-style:none;padding:0;margin:0;display:grid;gap:12px;max-width:60ch}
+ul{list-style:none;padding:0;margin:0 0 20px;display:grid;gap:12px;max-width:60ch}
 li{background:#fff;border:2px solid #d6e2ef;border-radius:14px;padding:14px 18px;display:grid;gap:4px}
 a{color:#1f5fb8;text-decoration:none;font-size:1.25em}a:hover{text-decoration:underline}span{color:#5f6c7b}
+form{display:flex;gap:10px;flex-wrap:wrap;max-width:60ch}
+input{font:inherit;font-size:1.3em;padding:10px 14px;border:2px solid #d6e2ef;border-radius:12px;min-width:0;flex:1}
+button{font:inherit;font-weight:800;font-size:1.1em;padding:10px 22px;border:0;border-radius:12px;background:#1f5fb8;color:#fff;cursor:pointer}
+button.alt{background:#d6e2ef;color:#1b2a3a}
+#err{color:#d8484c;font-weight:700;min-height:1.4em;margin-top:8px}
 </style></head><body>
-<h1>習作互動教學頁</h1><p>點進去投影上課用，鍵盤 ← → 換步驟。</p>
-<ul><li><a href="grade3-action-words.html"><b>Grade 3 Action Words</b></a><span>三年級 20 個動作單字：翻卡、TPR、消失卡、配對、小測驗</span></li><li><a href="unit1-video-call.html"><b>Unit 1 Video Call</b></a><span>Gina & Neal 視訊對話（O/X）</span></li><li><a href="unit1-kelly-class.html"><b>Unit 1 Kelly's Class</b></a><span>Kelly 的班級（T/F + 長條圖）</span></li><li><a href="unit2-way-to-school.html"><b>Unit 2 Way to School</b></a><span>上學方式（圖表填空）</span></li><li><a href="unit2-class-schedule.html"><b>Unit 2 Class Schedule</b></a><span>Peter & Annie 課表（選擇題）</span></li></ul>
+<h1>習作互動教學頁</h1>
+<div id="lock">
+  <p>請輸入密碼</p>
+  <form id="f"><input type="password" id="pw" autocomplete="off" placeholder="密碼" autofocus><button type="submit">進入</button></form>
+  <p id="err"></p>
+</div>
+<div id="list" hidden>
+  <p>點進去投影上課用，鍵盤 ← → 換步驟。</p>
+  <ul><li><a href="word-monsters.html"><b>Word Monsters 單字怪獸</b></a><span>三年級 20 個動作單字：怪獸親自做動作，孵蛋、抓怪、魔王戰、圖鑑</span></li><li><a href="grade3-action-words.html"><b>Grade 3 Action Words</b></a><span>三年級 20 個動作單字：翻卡、TPR、消失卡、配對、小測驗</span></li><li><a href="unit1-video-call.html"><b>Unit 1 Video Call</b></a><span>Gina & Neal 視訊對話（O/X）</span></li><li><a href="unit1-kelly-class.html"><b>Unit 1 Kelly's Class</b></a><span>Kelly 的班級（T/F + 長條圖）</span></li><li><a href="unit2-way-to-school.html"><b>Unit 2 Way to School</b></a><span>上學方式（圖表填空）</span></li><li><a href="unit2-class-schedule.html"><b>Unit 2 Class Schedule</b></a><span>Peter & Annie 課表（選擇題）</span></li></ul>
+  <button type="button" class="alt" id="out">登出</button>
+</div>
+<script>
+const HASH="153c575ab7b2e5336412515df7647251739324534f4f748dd7e36b9bfddb58c8";
+const lock=document.getElementById('lock'),list=document.getElementById('list');
+function show(ok){lock.hidden=ok;list.hidden=!ok;}
+try{show(localStorage.getItem('wb_ok')==='1');}catch(e){show(false);}
+async function sha(s){const h=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return [...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,'0')).join('');}
+document.getElementById('f').addEventListener('submit',async e=>{
+  e.preventDefault();const err=document.getElementById('err');
+  if(!window.crypto||!crypto.subtle){err.textContent='請用 https 網址開啟這個頁面。';return;}
+  const v=document.getElementById('pw').value.trim();
+  if(await sha(v)===HASH){try{localStorage.setItem('wb_ok','1');}catch(x){}err.textContent='';show(true);}
+  else{err.textContent='密碼錯誤，請再試一次。';document.getElementById('pw').select();}
+});
+document.getElementById('out').addEventListener('click',()=>{try{localStorage.removeItem('wb_ok');}catch(e){}document.getElementById('pw').value='';show(false);});
+</script>
 </body></html>
