@@ -1,0 +1,431 @@
+{
+"l01": {
+"spk": "amber",
+"text": "Let's go here!",
+"dur": 0.83,
+"slow": 1.11
+},
+"l02": {
+"spk": "teddy",
+"text": "OK. Let's book the tickets.",
+"dur": 1.62,
+"slow": 1.92
+},
+"l03": {
+"spk": "teddy",
+"text": "What day is today?",
+"dur": 1.09,
+"slow": 1.3
+},
+"l04": {
+"spk": "mia",
+"text": "It's Friday.",
+"dur": 1.15,
+"slow": 1.32
+},
+"l05": {
+"spk": "teddy",
+"text": "Friday. Done! Let's go!",
+"dur": 1.43,
+"slow": 1.66
+},
+"l06": {
+"spk": "all",
+"text": "It's awesome!",
+"dur": 0.96,
+"slow": 1.13
+},
+"l07": {
+"spk": "boy",
+"text": "Hola.",
+"dur": 0.79,
+"slow": 0.94
+},
+"l08": {
+"spk": "rocky",
+"text": "Hola.",
+"dur": 0.58,
+"slow": 0.7
+},
+"l09": {
+"spk": "edison",
+"text": "Let's go watch football.",
+"dur": 1.71,
+"slow": 1.98
+},
+"l10": {
+"spk": "mia",
+"text": "Good idea!",
+"dur": 1.02,
+"slow": 1.26
+},
+"l11": {
+"spk": "edison",
+"text": "Is it Wednesday today?",
+"dur": 1.64,
+"slow": 1.96
+},
+"l12": {
+"spk": "amber",
+"text": "No, it isn't. It's Friday.",
+"dur": 1.64,
+"slow": 2.01
+},
+"l13": {
+"spk": "edison",
+"text": "TGIF! There's a football game today.",
+"dur": 3.31,
+"slow": 3.9
+},
+"l14": {
+"spk": "staff",
+"text": "Have a good time.",
+"dur": 1.32,
+"slow": 1.62
+},
+"l15": {
+"spk": "mia",
+"text": "Thank you.",
+"dur": 1.0,
+"slow": 1.13
+},
+"l16": {
+"spk": "all",
+"text": "Big G, little O. Go! Go! Go!",
+"dur": 2.26,
+"slow": 2.86
+},
+"l17": {
+"spk": "amber",
+"text": "Good job!",
+"dur": 0.75,
+"slow": 1.0
+},
+"c_welcome": {
+"spk": "coach",
+"text": "Welcome to Friday Quest! Listen carefully, and clear all five worlds before time runs out.",
+"dur": 5.87
+},
+"c_w1": {
+"spk": "coach",
+"text": "World one: the ticket booth. Listen. Which day is it? Tap the ticket.",
+"dur": 4.1
+},
+"c_w2": {
+"spk": "coach",
+"text": "World two: the calendar bridge. Look at the calendar. Listen to the question, and tap the right answer.",
+"dur": 5.87
+},
+"c_w3": {
+"spk": "coach",
+"text": "World three: stadium run. Listen, and go to the right place.",
+"dur": 3.84
+},
+"c_w4": {
+"spk": "coach",
+"text": "World four: echo cave. Listen, and tap the best reply.",
+"dur": 3.75
+},
+"c_w5": {
+"spk": "coach",
+"text": "Boss world: story tower. Listen to the story. Then put the pictures in order.",
+"dur": 4.76
+},
+"c_listen": {
+"spk": "coach",
+"text": "Listen.",
+"dur": 0.77
+},
+"c_again": {
+"spk": "coach",
+"text": "Listen again.",
+"dur": 0.98
+},
+"c_great": {
+"spk": "coach",
+"text": "Great job!",
+"dur": 0.94
+},
+"c_awesome": {
+"spk": "coach",
+"text": "Awesome!",
+"dur": 0.79
+},
+"c_excellent": {
+"spk": "coach",
+"text": "Excellent!",
+"dur": 0.85
+},
+"c_perfect": {
+"spk": "coach",
+"text": "Perfect!",
+"dur": 0.81
+},
+"c_notquite": {
+"spk": "coach",
+"text": "Not quite. Listen again.",
+"dur": 1.54
+},
+"c_tryagain": {
+"spk": "coach",
+"text": "Try again!",
+"dur": 0.92
+},
+"c_levelup": {
+"spk": "coach",
+"text": "Level up!",
+"dur": 0.87
+},
+"c_boss": {
+"spk": "coach",
+"text": "Boss time!",
+"dur": 0.92
+},
+"c_hurry": {
+"spk": "coach",
+"text": "One minute left! Hurry!",
+"dur": 1.37
+},
+"c_timesup": {
+"spk": "coach",
+"text": "Time's up!",
+"dur": 0.83
+},
+"c_win": {
+"spk": "coach",
+"text": "You did it! Quest complete!",
+"dur": 1.6
+},
+"c_lose": {
+"spk": "coach",
+"text": "So close! Try again next time.",
+"dur": 2.05
+},
+"c_clear": {
+"spk": "coach",
+"text": "World clear!",
+"dur": 0.94
+},
+"day_monday_a": {
+"spk": "mia",
+"text": "It's Monday.",
+"dur": 1.05,
+"slow": 1.3
+},
+"day_monday_b": {
+"spk": "edison",
+"text": "It's Monday.",
+"dur": 1.07,
+"slow": 1.34
+},
+"isit_monday_a": {
+"spk": "edison",
+"text": "Is it Monday today?",
+"dur": 1.56,
+"slow": 1.86
+},
+"isit_monday_b": {
+"spk": "teddy",
+"text": "Is it Monday today?",
+"dur": 1.15,
+"slow": 1.41
+},
+"no_monday": {
+"spk": "amber",
+"text": "No, it isn't. It's Monday.",
+"dur": 1.77,
+"slow": 2.09
+},
+"day_tuesday_a": {
+"spk": "mia",
+"text": "It's Tuesday.",
+"dur": 1.28,
+"slow": 1.45
+},
+"day_tuesday_b": {
+"spk": "edison",
+"text": "It's Tuesday.",
+"dur": 1.17,
+"slow": 1.39
+},
+"isit_tuesday_a": {
+"spk": "edison",
+"text": "Is it Tuesday today?",
+"dur": 1.56,
+"slow": 1.88
+},
+"isit_tuesday_b": {
+"spk": "teddy",
+"text": "Is it Tuesday today?",
+"dur": 1.26,
+"slow": 1.49
+},
+"no_tuesday": {
+"spk": "amber",
+"text": "No, it isn't. It's Tuesday.",
+"dur": 1.71,
+"slow": 2.11
+},
+"day_wednesday_a": {
+"spk": "mia",
+"text": "It's Wednesday.",
+"dur": 1.17,
+"slow": 1.39
+},
+"day_wednesday_b": {
+"spk": "edison",
+"text": "It's Wednesday.",
+"dur": 1.15,
+"slow": 1.43
+},
+"isit_wednesday_a": {
+"spk": "edison",
+"text": "Is it Wednesday today?",
+"dur": 1.64,
+"slow": 1.96
+},
+"isit_wednesday_b": {
+"spk": "teddy",
+"text": "Is it Wednesday today?",
+"dur": 1.26,
+"slow": 1.54
+},
+"no_wednesday": {
+"spk": "amber",
+"text": "No, it isn't. It's Wednesday.",
+"dur": 1.81,
+"slow": 2.2
+},
+"day_thursday_a": {
+"spk": "mia",
+"text": "It's Thursday.",
+"dur": 1.28,
+"slow": 1.41
+},
+"day_thursday_b": {
+"spk": "edison",
+"text": "It's Thursday.",
+"dur": 1.11,
+"slow": 1.43
+},
+"isit_thursday_a": {
+"spk": "edison",
+"text": "Is it Thursday today?",
+"dur": 1.49,
+"slow": 1.94
+},
+"isit_thursday_b": {
+"spk": "teddy",
+"text": "Is it Thursday today?",
+"dur": 1.28,
+"slow": 1.56
+},
+"no_thursday": {
+"spk": "amber",
+"text": "No, it isn't. It's Thursday.",
+"dur": 1.73,
+"slow": 2.11
+},
+"day_friday_a": {
+"spk": "mia",
+"text": "It's Friday.",
+"dur": 1.15,
+"slow": 1.32
+},
+"day_friday_b": {
+"spk": "edison",
+"text": "It's Friday.",
+"dur": 1.13,
+"slow": 1.34
+},
+"isit_friday_a": {
+"spk": "edison",
+"text": "Is it Friday today?",
+"dur": 1.6,
+"slow": 1.9
+},
+"isit_friday_b": {
+"spk": "teddy",
+"text": "Is it Friday today?",
+"dur": 1.22,
+"slow": 1.43
+},
+"no_friday": {
+"spk": "amber",
+"text": "No, it isn't. It's Friday.",
+"dur": 1.64,
+"slow": 2.01
+},
+"day_saturday_a": {
+"spk": "mia",
+"text": "It's Saturday.",
+"dur": 1.24,
+"slow": 1.37
+},
+"day_saturday_b": {
+"spk": "edison",
+"text": "It's Saturday.",
+"dur": 1.17,
+"slow": 1.43
+},
+"isit_saturday_a": {
+"spk": "edison",
+"text": "Is it Saturday today?",
+"dur": 1.56,
+"slow": 1.96
+},
+"isit_saturday_b": {
+"spk": "teddy",
+"text": "Is it Saturday today?",
+"dur": 1.22,
+"slow": 1.51
+},
+"no_saturday": {
+"spk": "amber",
+"text": "No, it isn't. It's Saturday.",
+"dur": 1.77,
+"slow": 2.13
+},
+"day_sunday_a": {
+"spk": "mia",
+"text": "It's Sunday.",
+"dur": 1.13,
+"slow": 1.28
+},
+"day_sunday_b": {
+"spk": "edison",
+"text": "It's Sunday.",
+"dur": 1.07,
+"slow": 1.32
+},
+"isit_sunday_a": {
+"spk": "edison",
+"text": "Is it Sunday today?",
+"dur": 1.47,
+"slow": 1.86
+},
+"isit_sunday_b": {
+"spk": "teddy",
+"text": "Is it Sunday today?",
+"dur": 1.24,
+"slow": 1.51
+},
+"no_sunday": {
+"spk": "amber",
+"text": "No, it isn't. It's Sunday.",
+"dur": 1.69,
+"slow": 2.07
+},
+"yes_itis": {
+"spk": "amber",
+"text": "Yes, it is.",
+"dur": 1.02,
+"slow": 1.34
+},
+"q_whatday_b": {
+"spk": "edison",
+"text": "What day is today?",
+"dur": 1.32,
+"slow": 1.54
+}
+}

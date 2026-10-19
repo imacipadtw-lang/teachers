@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Friday Quest 聽力闖關</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@700;900&display=swap">
+<style>
+/* Friday Quest · Unit 1 What Day Is Today? · 5-minute listening obby (Roblox-style blocky world) */
+:root{
+  --ink:#1d1a33;--paper:#fff;--muted:#5b5a7a;--line:#e3e6f3;
+  --sky1:#7fcdff;--sky2:#e6f7ff;--grass:#6bd35e;--grass2:#48b33c;--dirt:#b9773f;
+  --red:#ff5e5e;--yellow:#ffd93d;--green:#3ccf6a;--blue:#3d8bff;--purple:#9b6bff;--pink:#ff7bb0;--orange:#ff9a3d;--teal:#2ec4b6;
+  --display:'Baloo 2','Nunito','Segoe UI',system-ui,sans-serif;--body:'Nunito','Segoe UI',system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font-family:var(--body);color:var(--ink);background:linear-gradient(180deg,var(--sky1),var(--sky2) 70%,#fff8e1);overflow:hidden;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+[hidden]{display:none!important}
+button{font-family:inherit;cursor:pointer}
+button:disabled{cursor:default}
+#sky{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.cloud{position:absolute;left:-30%;background:#fff;border-radius:999px;opacity:.9;filter:drop-shadow(0 6px 0 rgba(0,0,0,.05));animation:drift linear infinite}
+.cloud::before,.cloud::after{content:"";position:absolute;background:#fff;border-radius:50%}
+.cloud::before{width:45%;height:120%;left:15%;top:-55%}.cloud::after{width:35%;height:90%;left:48%;top:-35%}
+@keyframes drift{from{transform:translateX(0)}to{transform:translateX(160vw)}}
+.screen{position:fixed;inset:0;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:max(12px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+.card{background:var(--paper);border-radius:28px;box-shadow:0 14px 0 rgba(0,0,0,.08),0 24px 60px rgba(20,40,90,.18);padding:clamp(16px,3vw,32px);max-width:min(92vw,720px);width:100%}
+h1{font-family:var(--display);font-size:clamp(28px,5vw,54px);margin:0;line-height:1.05;letter-spacing:-.5px}
+h2{font-family:var(--display);font-size:clamp(20px,3vw,30px);margin:0 0 8px}
+.logo{display:flex;align-items:center;gap:14px;justify-content:center;margin-bottom:10px}
+.logo .cube{width:54px;height:54px;border-radius:12px;background:linear-gradient(135deg,var(--red),#c8102e);box-shadow:inset -8px -8px 0 rgba(0,0,0,.18),0 6px 0 #8b0a1f;transform:rotate(-8deg);display:grid;place-items:center;font:900 30px var(--display);color:#fff}
+.tag{display:inline-block;background:#eef2ff;color:#3a4bb3;border-radius:999px;padding:4px 12px;font-weight:900;font-size:.85em}
+.sub{color:var(--muted);font-weight:700;margin:4px 0 0}
+/* ---------- gate / keypad ---------- */
+#gate .card{max-width:440px;text-align:center}
+#dots{display:flex;gap:14px;justify-content:center;margin:18px 0 12px}
+#dots i{width:22px;height:22px;border-radius:50%;border:3px solid #cfd6ea;display:block;transition:.15s}
+#dots i.on{background:var(--blue);border-color:var(--blue);transform:scale(1.15)}
+#dots.bad i{border-color:var(--red);background:#ffe3e3;animation:shake .4s}
+@keyframes shake{20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+#keys{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:300px;margin:0 auto}
+#keys button{font:900 26px var(--display);padding:14px 0;border:0;border-radius:16px;background:#f1f3fa;color:var(--ink);box-shadow:0 5px 0 #cfd6ea;transition:.08s}
+#keys button:active{transform:translateY(4px);box-shadow:0 1px 0 #cfd6ea}
+#keys button.go{background:var(--green);color:#fff;box-shadow:0 5px 0 #239a48}
+#keys button.del{background:#ffe9e9;color:var(--red);box-shadow:0 5px 0 #f3b9b9}
+#lockmsg{min-height:1.5em;font-weight:900;color:var(--red);margin-top:10px}
+/* ---------- lobby ---------- */
+#lobby .card{display:grid;grid-template-columns:1fr 1.2fr;gap:20px;align-items:center;max-width:min(94vw,860px)}
+@media (max-width:640px){#lobby .card{grid-template-columns:1fr}}
+.stagebox{display:grid;place-items:center;min-height:230px;background:radial-gradient(circle at 50% 80%,#d8ffd0,transparent 60%),#f3f8ff;border-radius:22px;position:relative;overflow:hidden}
+.stagebox .plat{position:absolute;bottom:22px;width:62%;height:26px;border-radius:10px;background:linear-gradient(var(--grass),var(--grass2));box-shadow:0 14px 0 var(--dirt)}
+.picker{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0 10px}
+.picker b{min-width:4.5em;font-size:.95em}
+.sw{width:38px;height:38px;border-radius:12px;border:3px solid transparent;box-shadow:0 4px 0 rgba(0,0,0,.12)}
+.sw.on{border-color:var(--ink);transform:scale(1.1)}
+.chip{border:3px solid #dfe4f5;background:#fff;border-radius:14px;padding:8px 12px;font-weight:900;font-size:1em;box-shadow:0 4px 0 #dfe4f5}
+.chip.on{border-color:var(--blue);background:#e9f1ff;box-shadow:0 4px 0 var(--blue)}
+.chip small{display:block;font-weight:700;color:var(--muted);font-size:.72em}
+#name{font:900 1.1em var(--body);padding:10px 14px;border:3px solid #dfe4f5;border-radius:14px;width:100%;max-width:260px}
+.big{font:900 clamp(20px,3vw,28px) var(--display);padding:14px 26px;border:0;border-radius:20px;color:#fff;background:linear-gradient(180deg,#4ad66d,#22b14c);box-shadow:0 8px 0 #167a33;transition:.08s;width:100%}
+.big:active{transform:translateY(6px);box-shadow:0 2px 0 #167a33}
+.big:disabled{filter:grayscale(.6);opacity:.8}
+.big.alt{background:linear-gradient(180deg,#5aa3ff,#2d6fe0);box-shadow:0 8px 0 #1b4ea6}
+.big.alt:active{box-shadow:0 2px 0 #1b4ea6}
+/* ---------- blocky avatar (pseudo-3D) ---------- */
+.avatar{--skin:#ffd34d;--shirt:#3d8bff;--pants:#2e3a8c;position:relative;width:96px;height:150px;transform-origin:50% 100%;animation:bob 2.4s ease-in-out infinite}
+.avatar>div{position:absolute;border-radius:8px;box-shadow:inset -10px -8px 0 rgba(0,0,0,.16),0 2px 0 rgba(0,0,0,.08)}
+.avatar .head{width:54px;height:50px;left:21px;top:0;background:var(--skin);z-index:3}
+.avatar .face{position:absolute;inset:0;border-radius:8px;box-shadow:none;background:none}
+.avatar .face::before,.avatar .face::after{content:"";position:absolute;top:18px;width:8px;height:12px;background:#222;border-radius:3px}
+.avatar .face::before{left:14px}.avatar .face::after{right:14px}
+.avatar .mouth{position:absolute;left:19px;top:34px;width:16px;height:6px;border-radius:0 0 10px 10px;background:#222;box-shadow:none}
+.avatar.f2 .mouth{height:9px;background:#d33;border:2px solid #222;border-top:0;left:17px;width:20px}
+.avatar.f3 .face::before,.avatar.f3 .face::after{height:4px;top:22px;width:11px}
+.avatar.f3 .mouth{width:22px;left:16px;height:8px}
+.avatar .torso{width:62px;height:52px;left:17px;top:52px;background:var(--shirt);z-index:2}
+.avatar .arm{width:18px;height:50px;top:54px;background:var(--skin);z-index:1}
+.avatar .arm.l{left:-2px;transform-origin:50% 0}.avatar .arm.r{right:-2px;transform-origin:50% 0}
+.avatar .leg{width:26px;height:46px;top:104px;background:var(--pants)}
+.avatar .leg.l{left:19px}.avatar .leg.r{left:51px}
+.avatar .hat{display:none;left:15px;top:-14px;width:66px;height:20px;border-radius:8px 8px 4px 4px;background:#333;z-index:4}
+.avatar.h1 .hat{display:block;background:linear-gradient(#ff5e5e,#d13b3b)}
+.avatar.h1 .hat::after{content:"";position:absolute;left:-10px;top:12px;width:86px;height:10px;border-radius:6px;background:#d13b3b}
+.avatar.h2 .hat{display:block;background:linear-gradient(#ffd93d,#e3b300);height:26px;top:-22px;clip-path:polygon(0 100%,50% 0,100% 100%)}
+.avatar.h3 .hat{display:block;background:#222;height:12px;top:-6px;left:12px;width:72px;border-radius:6px}
+.avatar.h3 .hat::after{content:"";position:absolute;left:14px;top:-16px;width:44px;height:18px;background:#222;border-radius:6px 6px 0 0}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.avatar.hop{animation:hop .6s cubic-bezier(.3,1.6,.5,1)}
+@keyframes hop{0%{transform:translateY(0) scaleX(1)}30%{transform:translateY(-70px) scaleX(.9)}60%{transform:translateY(0) scaleY(.9)}100%{transform:translateY(0)}}
+.avatar.cheer .arm.l{transform:rotate(160deg)}.avatar.cheer .arm.r{transform:rotate(-160deg)}
+.avatar.sad{filter:saturate(.6)}
+.avatar.sad .mouth{border-radius:10px 10px 0 0;top:36px}
+.avatar.run .leg.l{animation:runL .3s infinite}.avatar.run .leg.r{animation:runR .3s infinite}
+@keyframes runL{50%{transform:translateY(-10px)}}@keyframes runR{0%{transform:translateY(-10px)}50%{transform:none}}
+/* ---------- game ---------- */
+#game{justify-content:flex-start;padding-top:max(8px,env(safe-area-inset-top))}
+#hud{width:100%;max-width:1100px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.pill{background:#fff;border-radius:999px;padding:8px 16px;font-weight:900;font-size:clamp(15px,2vw,20px);box-shadow:0 5px 0 rgba(0,0,0,.08);display:flex;align-items:center;gap:8px}
+#timer{font:900 clamp(22px,3.4vw,36px) var(--display);letter-spacing:1px;min-width:5.2em;justify-content:center}
+#timer.warn{background:#fff3cd;color:#8a5a00}
+#timer.red{background:var(--red);color:#fff;animation:pulse .5s infinite}
+@keyframes pulse{50%{transform:scale(1.06)}}
+#map{display:flex;gap:6px}
+#map i{width:30px;height:30px;border-radius:9px;background:#dfe4f5;display:grid;place-items:center;font-style:normal;font-size:17px;transition:.2s}
+#map i.done{background:var(--green);color:#fff}#map i.now{background:var(--yellow);transform:scale(1.15);box-shadow:0 0 0 3px #fff,0 0 0 6px var(--yellow)}
+#coins{color:#9a6b00}
+#stage{position:relative;width:100%;max-width:1100px;flex:1;min-height:0;margin-top:8px;border-radius:30px;overflow:hidden;background:#fff;box-shadow:0 14px 0 rgba(0,0,0,.08),0 24px 60px rgba(20,40,90,.18);display:flex;flex-direction:column}
+#scene{position:relative;flex:1;min-height:150px;overflow:hidden;transition:background .4s}
+#scene.w1{background:linear-gradient(180deg,#ffe9a8,#ffd37a)}
+#scene.w2{background:linear-gradient(180deg,#bfe9ff,#7fc8ff)}
+#scene.w3{background:linear-gradient(180deg,#c9f7c3,#8fe28a)}
+#scene.w4{background:linear-gradient(180deg,#e4d4ff,#b89cff)}
+#scene.w5{background:linear-gradient(180deg,#ffd0d0,#ff9d9d)}
+#ground{position:absolute;left:0;right:0;bottom:0;height:46px;background:linear-gradient(var(--grass),var(--grass2));box-shadow:0 18px 0 var(--dirt) inset}
+#zname{position:absolute;left:14px;top:10px;max-width:56%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font:900 clamp(16px,2.4vw,26px) var(--display);background:rgba(255,255,255,.85);padding:6px 14px;border-radius:14px;z-index:5}
+#deco{position:absolute;inset:0;pointer-events:none}
+#deco .blk{position:absolute;border-radius:12px;box-shadow:inset -14px -12px 0 rgba(0,0,0,.14);display:grid;place-items:center;font-size:40px}
+#av{position:absolute;bottom:40px;left:12%;scale:.8;transform-origin:50% 100%;transition:left .7s cubic-bezier(.4,.1,.3,1);z-index:4}
+#bubble{position:absolute;left:50%;top:62px;transform:translateX(-50%);max-width:min(78%,640px);background:#fff;border-radius:22px;padding:12px 18px;font-weight:900;font-size:clamp(17px,2.6vw,28px);box-shadow:0 8px 0 rgba(0,0,0,.1);z-index:6;display:flex;align-items:center;gap:12px;text-align:left;transition:.2s}
+#bubble .who{min-width:46px;height:46px;padding:0 8px;border-radius:12px;display:grid;place-items:center;font:900 13px var(--display);color:#fff;flex:none;box-shadow:inset -6px -5px 0 rgba(0,0,0,.15)}
+#bubble.hidden{opacity:0;transform:translate(-50%,-10px)}
+#bubble .zh{display:block;font-size:.72em;color:var(--muted);font-weight:800}
+#listenBtn{position:absolute;right:14px;top:10px;z-index:7;border:0;border-radius:18px;padding:10px 16px;font:900 clamp(15px,2vw,20px) var(--display);background:var(--blue);color:#fff;box-shadow:0 6px 0 #1b4ea6;display:flex;align-items:center;gap:8px}
+#listenBtn:active{transform:translateY(4px);box-shadow:0 2px 0 #1b4ea6}
+#listenBtn:disabled{background:#b9c4e4;box-shadow:0 6px 0 #8e9bc2}
+#listenBtn .n{background:#fff;color:var(--blue);border-radius:999px;padding:0 8px;font-size:.8em}
+#listenBtn.playing{animation:pulse .6s infinite}
+#panel{background:#fff;padding:12px 16px max(12px,env(safe-area-inset-bottom));border-top:4px solid #eef1f8;overflow:auto;max-height:62%}
+#prompt{font:900 clamp(17px,2.4vw,24px) var(--display);margin:0 0 10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#prompt small{font:800 .75em var(--body);color:var(--muted)}
+#options{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
+#options.chat{grid-template-columns:1fr;max-width:720px}
+#options.tickets{grid-template-columns:repeat(auto-fit,minmax(165px,1fr))}
+.opt>span{overflow-wrap:anywhere}
+#options.map{grid-template-columns:repeat(auto-fit,minmax(120px,1fr))}
+.opt{position:relative;border:3px solid #e3e6f3;background:#fff;border-radius:18px;padding:12px 10px;font:900 clamp(16px,2.2vw,22px) var(--body);box-shadow:0 6px 0 #e3e6f3;transition:.1s;min-height:64px;display:flex;align-items:center;justify-content:center;gap:10px;text-align:center;color:var(--ink)}
+.opt .ic{font-size:1.6em;line-height:1}
+.opt .ab{display:block;font-size:.7em;color:var(--muted);font-weight:800}
+.opt:active{transform:translateY(4px);box-shadow:0 2px 0 #e3e6f3}
+.opt.ok{background:#e4ffe9;border-color:var(--green);box-shadow:0 6px 0 var(--green);animation:pop .4s}
+.opt.no{background:#ffe9e9;border-color:var(--red);box-shadow:0 6px 0 #f3b9b9;animation:shake .4s;opacity:.55}
+.opt:disabled{opacity:.6}
+.opt.no:disabled{opacity:.45}
+@keyframes pop{40%{transform:scale(1.06)}}
+.opt .spk{position:absolute;left:8px;top:8px;width:34px;height:34px;border-radius:50%;border:0;background:#eef2ff;color:var(--blue);font-size:17px;display:grid;place-items:center}
+.opt.chatline{justify-content:flex-start;padding-left:54px;text-align:left}
+.calendar{position:absolute;left:74%;top:52%;transform:translate(-50%,-50%);background:#fff;border-radius:18px;width:min(34%,200px);box-shadow:0 10px 0 rgba(0,0,0,.12);overflow:hidden;z-index:3;text-align:center}
+.calendar b{display:block;background:var(--red);color:#fff;font:900 18px var(--display);padding:6px}
+.calendar span{display:block;font:900 clamp(26px,5vw,56px)/1.1 var(--display);padding:8px 6px 4px}
+.calendar small{display:block;color:var(--muted);font-weight:900;padding-bottom:8px;font-size:1em}
+.bridge{position:absolute;left:8%;right:8%;bottom:70px;height:22px;display:flex;gap:8px;z-index:2}
+.bridge i{flex:1;background:#b9773f;border-radius:6px;box-shadow:0 6px 0 #7a4a22;transition:.3s}
+.bridge i.lit{background:var(--yellow);box-shadow:0 6px 0 #c99a00}
+.tower{position:absolute;left:50%;bottom:46px;transform:translateX(-50%);display:flex;flex-direction:column-reverse;align-items:center;gap:4px;z-index:3}
+.tower .tb{width:min(60vw,360px);background:#fff;border-radius:12px;padding:6px 12px;font-weight:900;font-size:clamp(14px,2vw,20px);box-shadow:0 5px 0 rgba(0,0,0,.12);animation:pop .4s;display:flex;gap:8px;align-items:center}
+.tower .tb .who{width:28px;height:28px;border-radius:8px;color:#fff;display:grid;place-items:center;font:900 11px var(--display);flex:none}
+.opt.used{visibility:hidden}
+#toast{position:absolute;left:50%;bottom:120px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:14px;font:900 clamp(15px,2vw,20px) var(--display);z-index:8;opacity:0;transition:.25s;pointer-events:none;white-space:nowrap}
+#toast.show{opacity:1;bottom:130px}
+.intro{position:absolute;inset:0;z-index:9;display:grid;place-items:center;background:rgba(255,255,255,.55);backdrop-filter:blur(3px)}
+.intro .box{background:#fff;border-radius:26px;padding:22px 28px;text-align:center;box-shadow:0 12px 0 rgba(0,0,0,.1);max-width:min(90%,560px)}
+.intro .ic{font-size:64px;line-height:1}
+.intro h3{font:900 clamp(22px,3.6vw,36px) var(--display);margin:6px 0}
+.intro p{margin:0 0 12px;font-weight:800;color:var(--muted)}
+.intro .en{color:var(--ink);font-size:1.05em}
+/* ---------- result ---------- */
+#result{z-index:20;background:rgba(10,12,40,.55);backdrop-filter:blur(4px)}
+#result .card{text-align:center;max-width:min(94vw,760px);max-height:94vh;overflow:auto}
+#result .ic{font-size:72px;line-height:1}
+#verdict{font:900 clamp(30px,6vw,60px)/1.1 var(--display);margin:6px 0}
+#verdict.win{color:#1a9b45}#verdict.lose{color:var(--red)}
+#verdict small{display:block;font-size:.5em;color:var(--muted)}
+#reward{margin:12px auto;padding:16px 20px;border-radius:22px;background:linear-gradient(135deg,#fff3b0,#ffd93d);border:4px dashed #c99a00;font:900 clamp(24px,4.6vw,44px)/1.2 var(--display);color:#6b4a00;animation:pop .6s;box-shadow:0 10px 0 #e0b400}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin:12px 0}
+.stat{background:#f4f6fc;border-radius:16px;padding:10px}
+.stat b{display:block;font:900 clamp(20px,3.5vw,30px) var(--display)}
+.stat span{font-weight:800;color:var(--muted);font-size:.9em}
+.worldrow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:8px 0}
+.worldrow div{background:#f4f6fc;border-radius:14px;padding:8px 10px;font-weight:900;min-width:92px}
+.worldrow div small{display:block;color:var(--muted);font-weight:800;font-size:.75em}
+.worldrow div.fail{opacity:.5}
+#review{text-align:left;margin:10px 0}
+#review h3{margin:8px 0 6px;font-size:1.1em}
+#review .line{display:flex;align-items:center;gap:10px;background:#f4f6fc;border-radius:14px;padding:8px 10px;margin:6px 0;font-weight:900}
+#review .line button{border:0;border-radius:50%;width:40px;height:40px;background:var(--blue);color:#fff;font-size:18px;flex:none}
+#review .line .zh{color:var(--muted);font-weight:800;font-size:.85em;display:block}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+.btnrow .big{width:auto;min-width:160px}
+/* ---------- teacher ---------- */
+#gear{position:fixed;right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));z-index:30;width:46px;height:46px;border-radius:50%;border:0;background:rgba(255,255,255,.9);box-shadow:0 5px 0 rgba(0,0,0,.12);font-size:22px}
+#teacher{position:fixed;inset:0;z-index:40;background:rgba(20,22,50,.5);display:flex;justify-content:flex-end}
+#teacher .sheet{background:#fff;width:min(100%,640px);height:100%;overflow:auto;padding:20px 22px max(20px,env(safe-area-inset-bottom));box-shadow:-10px 0 40px rgba(0,0,0,.2);font-size:15px;line-height:1.6}
+#teacher h2{display:flex;justify-content:space-between;align-items:center}
+#teacher h3{margin:18px 0 6px;font-size:1.1em;border-left:6px solid var(--blue);padding-left:10px}
+#teacher table{border-collapse:collapse;width:100%;font-size:.93em}
+#teacher td,#teacher th{border:1px solid #e3e6f3;padding:6px 8px;vertical-align:top;text-align:left}
+#teacher th{background:#f4f6fc}
+#teacher ul{padding-left:20px;margin:4px 0}
+#teacher .set{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0}
+#closeT{border:0;background:#eef2ff;border-radius:12px;padding:8px 14px;font-weight:900}
+#fx{position:fixed;inset:0;z-index:25;pointer-events:none}
+#srv{position:fixed;left:12px;top:max(8px,env(safe-area-inset-top));z-index:2;font-weight:900;color:#1b4ea6;background:rgba(255,255,255,.7);padding:4px 12px;border-radius:999px;font-size:13px}
+</style>
+</head>
+<body>
+<div id="sky"></div>
+<div id="srv">🟢 Private Server · Unit 1 What Day Is Today?</div>
+
+<!-- ===== GATE ===== -->
+<section id="gate" class="screen">
+  <div class="card">
+    <div class="logo"><div class="cube">F</div><h1>Friday Quest</h1></div>
+    <p class="sub">輸入遊戲密碼加入伺服器 · Enter the game code</p>
+    <div id="dots"><i></i><i></i><i></i><i></i></div>
+    <div id="keys"></div>
+    <div id="lockmsg" aria-live="polite"></div>
+  </div>
+</section>
+
+<!-- ===== LOBBY ===== -->
+<section id="lobby" class="screen" hidden>
+  <div class="card">
+    <div>
+      <div class="stagebox"><div class="plat"></div><div id="avPrev" class="avatar"><div class="hat"></div><div class="head"><div class="face"></div><div class="mouth"></div></div><div class="torso"></div><div class="arm l"></div><div class="arm r"></div><div class="leg l"></div><div class="leg r"></div></div></div>
+      <div class="picker"><b>衣服</b><span id="shirts"></span></div>
+      <div class="picker"><b>帽子</b><span id="hats"></span></div>
+      <div class="picker"><b>表情</b><span id="faces"></span></div>
+    </div>
+    <div>
+      <h2>👋 Welcome, Player!</h2>
+      <p class="sub">聽懂英文 → 做出正確動作 → 5 分鐘內闖完 5 個世界，就能跟老師換點卷卡！</p>
+      <div class="picker" style="margin-top:12px"><b>名字</b><input id="name" maxlength="12" placeholder="你的英文名字（可不填）" autocomplete="off"></div>
+      <div class="picker"><b>難度</b><span id="diff"></span></div>
+      <p class="sub" id="diffNote"></p>
+      <button class="big" id="play" disabled>載入語音中… <span id="loadpct">0%</span></button>
+      <p class="sub" style="font-size:.85em;margin-top:8px">⏱ 限時 <span id="limitTxt">5:00</span> · 🔊 請先把聲音打開</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== GAME ===== -->
+<section id="game" class="screen" hidden>
+  <div id="hud">
+    <div class="pill" id="timer">5:00</div>
+    <div class="pill" id="map"><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i></div>
+    <div class="pill" id="coins">🪙 <span id="coinN">0</span></div>
+    <div class="pill" id="pname">🧱 Player</div>
+  </div>
+  <div id="stage">
+    <div id="scene" class="w1">
+      <div id="zname">World 1</div>
+      <button id="listenBtn" type="button">🔊 Listen <span class="n" id="listenN"></span></button>
+      <div id="deco"></div>
+      <div id="ground"></div>
+      <div id="av" class="avatar"><div class="hat"></div><div class="head"><div class="face"></div><div class="mouth"></div></div><div class="torso"></div><div class="arm l"></div><div class="arm r"></div><div class="leg l"></div><div class="leg r"></div></div>
+      <div id="bubble" class="hidden"></div>
+      <div id="toast"></div>
+    </div>
+    <div id="panel">
+      <div id="prompt"></div>
+      <div id="options"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== RESULT ===== -->
+<section id="result" class="screen" hidden>
+  <div class="card">
+    <div class="ic" id="rIcon">🏆</div>
+    <div id="verdict">闖關成功！</div>
+    <div id="reward">請跟老師換點卷卡一張</div>
+    <div class="stats" id="stats"></div>
+    <div class="worldrow" id="worlds"></div>
+    <div id="review"></div>
+    <div class="btnrow"><button class="big" id="again">🔁 再玩一次</button><button class="big alt" id="home">🏠 回大廳</button></div>
+  </div>
+</section>
+
+<!-- ===== TEACHER ===== -->
+<button id="gear" title="老師面板 (T)">⚙️</button>
+<aside id="teacher" hidden>
+  <div class="sheet">
+    <h2>👩‍🏫 老師面板 <button id="closeT">關閉 ✕</button></h2>
+    <p>Friday Quest 是一個<b>純聽力</b>闖關遊戲：全程英語指令、先聽再看字、答對才前進、5 分鐘倒數。學生不需要會讀，就能用「聽懂 → 做動作」證明理解。</p>
+
+    <h3>⚙️ 設定（存在這台裝置）</h3>
+    <div class="set"><b>限時</b><span id="setTime"></span></div>
+    <div class="set"><b>預設難度</b><span id="setDiff"></span></div>
+    <div class="set"><b>答對門檻</b> 每一關必須全部答對才能前進（答錯可重聽重答，錯誤會扣星）。成功＝5 分鐘內闖完 5 關。</div>
+
+    <h3>📘 108 課綱對應（英語文領域・第三學習階段）</h3>
+    <table>
+      <tr><th style="width:9em">核心素養</th><td><b>英-E-B1</b> 具備入門的聽、說、讀、寫英語文能力。在引導下，能運用所學、字詞及句型進行簡易日常溝通。<br><b>英-E-A2</b> 具備理解簡易英語文訊息的能力，能運用基本邏輯思考策略提升學習效能。<br><b>英-E-A1</b> 具備認真專注的特質及良好的學習習慣，嘗試運用基本的學習策略，強化個人英語文能力。<br><b>英-E-C3</b> 認識國內外主要節慶習俗及風土民情（Hola／TGIF／足球賽文化）。</td></tr>
+      <tr><th>學習表現（聽）</th><td><b>1-Ⅲ-6</b> 能聽懂課堂中所學的字詞（World 1 星期字詞）<br><b>1-Ⅲ-9</b> 能聽懂簡易句型的句子（World 1・2：It's ___. / Is it ___ today?）<br><b>1-Ⅲ-8</b> 能聽懂簡易的日常生活用語（World 3・4：Let's go… / Good idea! / Thank you.）<br><b>1-Ⅲ-10</b> 能聽懂簡易的日常生活對話（World 4・5：對話回應與排序）<br><b>1-Ⅲ-3</b> 能聽辨句子的語調（World 2 Yes/No 問句上揚語調）</td></tr>
+      <tr><th>學習表現（態度）</th><td><b>6-Ⅲ-2</b> 樂於參與課堂中各類練習活動，不畏犯錯（答錯不淘汰，重聽再試）</td></tr>
+    </table>
+
+    <h3>🧠 理論依據 → 遊戲怎麼做</h3>
+    <table>
+      <tr><th style="width:11em">理論</th><th>在遊戲中的落實</th></tr>
+      <tr><td>可理解輸入 i+1（Krashen, 1985）</td><td>全部語音為課文句型，再延伸到 7 個星期的新組合；圖像＋情境提供理解線索，初級模式提供放慢語速版本。</td></tr>
+      <tr><td>全身反應法 TPR（Asher, 1969）</td><td>World 3 聽指令讓角色「走到」正確地點；不需口說或閱讀即可展示理解。</td></tr>
+      <tr><td>後設認知聽力教學（Vandergrift &amp; Goh, 2012）</td><td>先聽（預測／辨識）→ 答題後才顯示文字（驗證）→ 結算頁「複習清單」重聽答錯句（反思）。</td></tr>
+      <tr><td>由下而上解碼（Field, 2008）</td><td>World 1 星期字詞最小差異（Tuesday / Thursday、Monday / Sunday），挑戰模式混入干擾。</td></tr>
+      <tr><td>任務型教學 TBLT（Willis, 1996；Ellis, 2003）</td><td>每一關都是真實任務：訂票、看月曆回答、找地點、接話、排對話順序。</td></tr>
+      <tr><td>遊戲式學習（Gee, 2003；Plass, Homer &amp; Kinzer, 2015）</td><td>失敗成本低（可重試）、能力區間挑戰（三種難度）、即時回饋、成就（星星／金幣／點卷卡）。</td></tr>
+      <tr><td>自我決定理論（Deci &amp; Ryan）</td><td>自主（自選角色／難度）、勝任（看得見的進度與星星）、關聯（跟老師換卡、同學比星星）。</td></tr>
+      <tr><td>心流（Csikszentmihalyi, 1990）</td><td>明確目標、5 分鐘倒數、難度剛好，讓學生專注投入。</td></tr>
+      <tr><td>回饋力量（Hattie &amp; Timperley, 2007）／測驗效應（Roediger &amp; Karpicke, 2006）</td><td>每題立即對錯＋正確範例再播一次；多次提取練習比重複聽講更能保留。</td></tr>
+      <tr><td>雙碼理論與多媒體學習（Paivio；Mayer）</td><td>語音＋圖像同步呈現，文字延後出現，避免學生「用讀代替聽」。</td></tr>
+    </table>
+
+    <h3>🗺️ 五個世界（約 5 分鐘）</h3>
+    <ul>
+      <li><b>World 1 售票亭 Which Day?</b>：聽 "It's Friday." 點正確的日期票（3 題，挑戰模式顯示縮寫 Mon./Tue.…）</li>
+      <li><b>World 2 月曆橋 Yes or No?</b>：看月曆、聽 "Is it Wednesday today?"，選 "Yes, it is." 或 "No, it isn't. It's Friday."（4 塊木板）</li>
+      <li><b>World 3 球場衝刺 Let's go!</b>：聽 "Let's go watch football." 把角色送到正確地點（4 題）</li>
+      <li><b>World 4 回音洞 Reply!</b>：聽一句話，選最合適的回應（4 題，每個選項可按 🔊 試聽）</li>
+      <li><b>Boss 故事塔 Story Tower</b>：聽一段 4～5 句對話，把卡片依順序疊成塔</li>
+    </ul>
+
+    <h3>🏫 建議教學流程</h3>
+    <ul>
+      <li><b>課前 2 分鐘</b>：看課本圖，用英語問 Where are they? What day is it? 讓學生預測。</li>
+      <li><b>課中</b>：投影示範 World 1 一題 → 學生分組輪流用平板闖關（每人 5 分鐘）→ 成功者憑畫面向老師換點卷卡。</li>
+      <li><b>差異化</b>：初級＝放慢語速、可無限重聽、答後顯示中文；標準＝重聽 2 次；挑戰＝重聽 1 次、縮寫、更多干擾選項。</li>
+      <li><b>課後／延伸</b>：結算頁「複習清單」重聽答錯的句子並跟讀；請學生改編 "Is it ___ today?" 互相出題（聽 → 說 的活化）。</li>
+    </ul>
+
+    <h3>📊 評量</h3>
+    <ul>
+      <li>結算頁顯示：用時、星星（每關 0 錯＝3★、1 錯＝2★、其他＝1★）、首次答對率、重聽次數——可作形成性評量紀錄。</li>
+      <li>點卷卡規則（預設）：5 分鐘內闖完 5 關＝1 張。老師可自訂：15★ 滿星再加 1 張、挑戰模式成功加 1 張。</li>
+    </ul>
+    <p style="color:var(--muted);font-size:.9em">語音：Kokoro 神經網路語音（Apache-2.0）預錄 mp3，每位角色不同聲音；若語音檔載入失敗會自動改用裝置內建語音。快捷鍵：T 老師面板、Esc 關閉。</p>
+  </div>
+</aside>
+<canvas id="fx"></canvas>
+
+<script>
+/* ============================================================ data ============================================================ */
+const MAN={"l01":{"s":"amber","t":"Let's go here!","d":0.83,"sl":1},"l02":{"s":"teddy","t":"OK. Let's book the tickets.","d":1.62,"sl":1},"l03":{"s":"teddy","t":"What day is today?","d":1.09,"sl":1},"l04":{"s":"mia","t":"It's Friday.","d":1.15,"sl":1},"l05":{"s":"teddy","t":"Friday. Done! Let's go!","d":1.43,"sl":1},"l06":{"s":"all","t":"It's awesome!","d":0.92,"sl":1},"l07":{"s":"boy","t":"Hola.","d":0.65,"sl":1},"l08":{"s":"rocky","t":"Hola.","d":0.64,"sl":1},"l09":{"s":"edison","t":"Let's go watch football.","d":1.37,"sl":1},"l10":{"s":"mia","t":"Good idea!","d":0.87,"sl":1},"l11":{"s":"edison","t":"Is it Wednesday today?","d":1.36,"sl":1},"l12":{"s":"amber","t":"No, it isn't. It's Friday.","d":1.9,"sl":1},"l13":{"s":"edison","t":"TGIF! There's a football game today.","d":2.49,"sl":1},"l14":{"s":"staff","t":"Have a good time.","d":1.13,"sl":1},"l15":{"s":"mia","t":"Thank you.","d":0.78,"sl":1},"l16":{"s":"all","t":"Big G, little O. Go! Go! Go!","d":2.56,"sl":1},"l17":{"s":"amber","t":"Good job!","d":0.79,"sl":1},"c_welcome":{"s":"coach","t":"Welcome to Friday Quest! Listen carefully, and clear all five worlds before time runs out.","d":5.43},"c_w1":{"s":"coach","t":"World one: the ticket booth. Listen. Which day is it? Tap the ticket.","d":5.26},"c_w2":{"s":"coach","t":"World two: the calendar bridge. Look at the calendar. Listen to the question, and tap the right answer.","d":6.68},"c_w3":{"s":"coach","t":"World three: stadium run. Listen, and go to the right place.","d":4.13},"c_w4":{"s":"coach","t":"World four: echo cave. Listen, and tap the best reply.","d":4.39},"c_w5":{"s":"coach","t":"Boss world: story tower. Listen to the story. Then put the pictures in order.","d":5.48},"c_listen":{"s":"coach","t":"Listen.","d":0.54},"c_again":{"s":"coach","t":"Listen again.","d":0.96},"c_great":{"s":"coach","t":"Great job!","d":0.84},"c_awesome":{"s":"coach","t":"Awesome!","d":0.78},"c_excellent":{"s":"coach","t":"Excellent!","d":0.87},"c_perfect":{"s":"coach","t":"Perfect!","d":0.73},"c_notquite":{"s":"coach","t":"Not quite. Listen again.","d":1.75},"c_tryagain":{"s":"coach","t":"Try again!","d":0.79},"c_levelup":{"s":"coach","t":"Level up!","d":0.84},"c_boss":{"s":"coach","t":"Boss time!","d":0.86},"c_hurry":{"s":"coach","t":"One minute left! Hurry!","d":1.79},"c_timesup":{"s":"coach","t":"Time's up!","d":0.84},"c_win":{"s":"coach","t":"You did it! Quest complete!","d":1.96},"c_lose":{"s":"coach","t":"So close! Try again next time.","d":1.95},"c_clear":{"s":"coach","t":"World clear!","d":0.92},"day_monday_a":{"s":"mia","t":"It's Monday.","d":1.05,"sl":1},"day_monday_b":{"s":"edison","t":"It's Monday.","d":1.01,"sl":1},"isit_monday_a":{"s":"edison","t":"Is it Monday today?","d":1.26,"sl":1},"isit_monday_b":{"s":"teddy","t":"Is it Monday today?","d":1.17,"sl":1},"no_monday":{"s":"amber","t":"No, it isn't. It's Monday.","d":1.72,"sl":1},"day_tuesday_a":{"s":"mia","t":"It's Tuesday.","d":1.1,"sl":1},"day_tuesday_b":{"s":"edison","t":"It's Tuesday.","d":1.03,"sl":1},"isit_tuesday_a":{"s":"edison","t":"Is it Tuesday today?","d":1.33,"sl":1},"isit_tuesday_b":{"s":"teddy","t":"Is it Tuesday today?","d":1.2,"sl":1},"no_tuesday":{"s":"amber","t":"No, it isn't. It's Tuesday.","d":1.8,"sl":1},"day_wednesday_a":{"s":"mia","t":"It's Wednesday.","d":1.1,"sl":1},"day_wednesday_b":{"s":"edison","t":"It's Wednesday.","d":1.07,"sl":1},"isit_wednesday_a":{"s":"edison","t":"Is it Wednesday today?","d":1.36,"sl":1},"isit_wednesday_b":{"s":"teddy","t":"Is it Wednesday today?","d":1.24,"sl":1},"no_wednesday":{"s":"amber","t":"No, it isn't. It's Wednesday.","d":1.83,"sl":1},"day_thursday_a":{"s":"mia","t":"It's Thursday.","d":1.1,"sl":1},"day_thursday_b":{"s":"edison","t":"It's Thursday.","d":1.03,"sl":1},"isit_thursday_a":{"s":"edison","t":"Is it Thursday today?","d":1.36,"sl":1},"isit_thursday_b":{"s":"teddy","t":"Is it Thursday today?","d":1.19,"sl":1},"no_thursday":{"s":"amber","t":"No, it isn't. It's Thursday.","d":1.76,"sl":1},"day_friday_a":{"s":"mia","t":"It's Friday.","d":1.15,"sl":1},"day_friday_b":{"s":"edison","t":"It's Friday.","d":1.05,"sl":1},"isit_friday_a":{"s":"edison","t":"Is it Friday today?","d":1.36,"sl":1},"isit_friday_b":{"s":"teddy","t":"Is it Friday today?","d":1.2,"sl":1},"no_friday":{"s":"amber","t":"No, it isn't. It's Friday.","d":1.9,"sl":1},"day_saturday_a":{"s":"mia","t":"It's Saturday.","d":1.12,"sl":1},"day_saturday_b":{"s":"edison","t":"It's Saturday.","d":1.09,"sl":1},"isit_saturday_a":{"s":"edison","t":"Is it Saturday today?","d":1.44,"sl":1},"isit_saturday_b":{"s":"teddy","t":"Is it Saturday today?","d":1.27,"sl":1},"no_saturday":{"s":"amber","t":"No, it isn't. It's Saturday.","d":1.85,"sl":1},"day_sunday_a":{"s":"mia","t":"It's Sunday.","d":1.13,"sl":1},"day_sunday_b":{"s":"edison","t":"It's Sunday.","d":1.07,"sl":1},"isit_sunday_a":{"s":"edison","t":"Is it Sunday today?","d":1.47,"sl":1},"isit_sunday_b":{"s":"teddy","t":"Is it Sunday today?","d":1.24,"sl":1},"no_sunday":{"s":"amber","t":"No, it isn't. It's Sunday.","d":1.69,"sl":1},"yes_itis":{"s":"amber","t":"Yes, it is.","d":1.02,"sl":1},"q_whatday_b":{"s":"edison","t":"What day is today?","d":1.32,"sl":1}};
+const ZH={"l01":"我們一起去這裡吧！","l02":"好。我們來訂票吧。","l03":"今天星期幾？","l04":"今天星期五。","l05":"星期五。完成！我們走吧！","l06":"太讚了！","l07":"嗨。","l08":"嗨。","l09":"我們去看足球吧。","l10":"好主意！","l11":"今天是星期三嗎？","l12":"不，不是。今天是星期五。","l13":"謝天謝地今天是星期五！今天有足球賽。","l14":"祝你們玩得開心。","l15":"謝謝。","l16":"大 G，小 o。加油！加油！加油！","l17":"做得好！","yes_itis":"是的。","q_whatday_b":"今天星期幾？"};
+const DAYS=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+const DAYZH={Monday:"星期一",Tuesday:"星期二",Wednesday:"星期三",Thursday:"星期四",Friday:"星期五",Saturday:"星期六",Sunday:"星期日"};
+const ABBR={Monday:"Mon.",Tuesday:"Tue.",Wednesday:"Wed.",Thursday:"Thu.",Friday:"Fri.",Saturday:"Sat.",Sunday:"Sun."};
+const DAYNUM={Monday:1,Tuesday:2,Wednesday:3,Thursday:4,Friday:5,Saturday:6,Sunday:7};
+DAYS.forEach(d=>{ZH["day_"+d.toLowerCase()+"_a"]=ZH["day_"+d.toLowerCase()+"_b"]="今天"+DAYZH[d]+"。";ZH["isit_"+d.toLowerCase()+"_a"]=ZH["isit_"+d.toLowerCase()+"_b"]="今天是"+DAYZH[d]+"嗎？";ZH["no_"+d.toLowerCase()]="不，不是。今天"+DAYZH[d]+"。";});
+const CAST={amber:{n:"Amber",c:"#ff7bb0"},teddy:{n:"Teddy",c:"#3d8bff"},mia:{n:"Mia",c:"#9b6bff"},edison:{n:"Edison",c:"#ff9a3d"},rocky:{n:"Rocky",c:"#2ec4b6"},boy:{n:"Boy",c:"#6bd35e"},abu:{n:"Abu",c:"#c8a000"},staff:{n:"Staff",c:"#5b5a7a"},all:{n:"ALL",c:"#ff5e5e"},coach:{n:"Coach",c:"#1d1a33"}};
+const HASH="83dc43165893ab3ef4fd4f053c20f727ae60adff961e37e7d765332b3d496ae9";
+const DIFFS={easy:{label:"初級",note:"放慢語速・可無限重聽・答對後顯示中文",replays:Infinity,slow:true,zh:true},normal:{label:"標準",note:"正常語速・每題可重聽 2 次",replays:2,slow:false,zh:false},hard:{label:"挑戰",note:"正常語速・每題只能重聽 1 次・縮寫與更多干擾選項",replays:1,slow:false,zh:false}};
+const SHIRTS=["#3d8bff","#ff5e5e","#3ccf6a","#ffd93d","#9b6bff","#ff7bb0"];
+const AUDIO_BASE="audio/friday-quest/";
+const $=s=>document.querySelector(s);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const rnd=n=>Math.floor(Math.random()*n);
+const pick=a=>a[rnd(a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+let CFG={time:300,diff:"normal"};
+try{Object.assign(CFG,JSON.parse(localStorage.getItem("fq_cfg")||"{}"))}catch(e){}
+if(![180,300,420,600].includes(CFG.time))CFG.time=300;
+if(!DIFFS[CFG.diff])CFG.diff="normal";
+const saveCfg=()=>{try{localStorage.setItem("fq_cfg",JSON.stringify(CFG))}catch(e){}};
+
+/* ============================================================ audio ============================================================ */
+const AU={ctx:null,buf:{},active:new Set(),loaded:0,total:0,fallback:false};
+function ensureCtx(){try{if(!AU.ctx){const C=window.AudioContext||window.webkitAudioContext;if(C)AU.ctx=new C()}if(AU.ctx&&AU.ctx.state==="suspended")AU.ctx.resume()}catch(e){}}
+function decode(ab){return new Promise((res,rej)=>{try{const p=AU.ctx.decodeAudioData(ab,res,rej);if(p&&p.then)p.then(res,rej)}catch(e){rej(e)}})}
+async function loadClip(key){if(key in AU.buf)return AU.buf[key];if(!AU.ctx){AU.buf[key]=null;return null}
+  try{const r=await fetch(AUDIO_BASE+key+".mp3");if(!r.ok)throw new Error(r.status);AU.buf[key]=await decode(await r.arrayBuffer())}catch(e){AU.buf[key]=null}
+  return AU.buf[key]}
+async function preloadAll(onProgress){const keys=[];for(const k in MAN){keys.push(k);if(MAN[k].sl)keys.push(k+"_slow")}
+  AU.total=keys.length;AU.loaded=0;let i=0;
+  const worker=async()=>{while(i<keys.length){const k=keys[i++];await loadClip(k);AU.loaded++;onProgress(AU.loaded/AU.total)}};
+  await Promise.all([0,1,2,3,4,5].map(worker));
+  const ok=keys.filter(k=>AU.buf[k]).length;AU.fallback=ok<keys.length*0.5;return ok}
+function stopAll(){AU.active.forEach(s=>{try{s.stop()}catch(e){}});AU.active.clear();try{if(window.speechSynthesis)speechSynthesis.cancel()}catch(e){}}
+function ttsVoice(){try{const vs=speechSynthesis.getVoices();const pref=["Samantha","Google US English","Microsoft Aria","Microsoft Jenny","Karen","Daniel","Moira"];for(const p of pref){const v=vs.find(v=>v.name.includes(p)&&/^en/i.test(v.lang));if(v)return v}return vs.find(v=>/^en[-_]US/i.test(v.lang))||vs.find(v=>/^en/i.test(v.lang))||null}catch(e){return null}}
+function ttsSpeak(text,slow){return new Promise(res=>{try{if(!window.speechSynthesis){res();return}const u=new SpeechSynthesisUtterance(text);u.lang="en-US";u.rate=slow?0.8:0.95;const v=ttsVoice();if(v)u.voice=v;let done=false;const fin=()=>{if(!done){done=true;res()}};u.onend=fin;u.onerror=fin;setTimeout(fin,Math.max(1500,text.length*120));speechSynthesis.speak(u)}catch(e){res()}})}
+// play one clip id; resolves when finished. slow=true uses the slowed variant when available.
+function play(id,slow){return new Promise(res=>{const m=MAN[id];const key=(slow&&m&&m.sl)?id+"_slow":id;const b=AU.buf[key];
+  if(!b||!AU.ctx){ttsSpeak(m?m.t:id,slow).then(res);return}
+  try{const s=AU.ctx.createBufferSource();s.buffer=b;s.connect(AU.ctx.destination);let done=false;const fin=()=>{if(!done){done=true;AU.active.delete(s);res()}};s.onended=fin;AU.active.add(s);s.start();setTimeout(fin,b.duration*1000+200)}catch(e){res()}})}
+async function playSeq(ids,slow,gap){for(let i=0;i<ids.length;i++){if(G.over||G.seqToken!==playSeq.token)return;await play(ids[i],slow);if(i<ids.length-1)await sleep(gap==null?380:gap)}}
+/* synthesized sound effects (no files needed) */
+function sfx(kind){if(!AU.ctx)return;const c=AU.ctx,t=c.currentTime;const g=c.createGain();g.connect(c.destination);
+  const tone=(f,st,d,type,vol)=>{const o=c.createOscillator();o.type=type||"square";o.frequency.setValueAtTime(f,t+st);const gg=c.createGain();gg.gain.setValueAtTime(0,t+st);gg.gain.linearRampToValueAtTime(vol||.18,t+st+.01);gg.gain.exponentialRampToValueAtTime(.001,t+st+d);o.connect(gg);gg.connect(g);o.start(t+st);o.stop(t+st+d+.05)};
+  switch(kind){case"key":tone(660,0,.08,"square",.08);break;case"ok":tone(880,0,.1,"square",.12);tone(1320,.1,.18,"square",.12);break;case"coin":tone(1047,0,.09,"square",.12);tone(1568,.09,.22,"square",.12);break;
+    case"no":tone(220,0,.18,"sawtooth",.12);tone(180,.15,.25,"sawtooth",.1);break;case"hop":tone(400,0,.12,"triangle",.12);tone(800,.06,.1,"triangle",.1);break;case"tick":tone(1200,0,.04,"square",.07);break;
+    case"fanfare":[523,659,784,1047].forEach((f,i)=>tone(f,i*.12,.3,"square",.14));tone(1319,.5,.6,"square",.14);break;case"lose":[440,370,311,262].forEach((f,i)=>tone(f,i*.2,.35,"sawtooth",.12));break;
+    case"level":[660,880,1100].forEach((f,i)=>tone(f,i*.08,.2,"triangle",.14));break}}
+
+/* ============================================================ gate ============================================================ */
+let code="";
+async function sha(s){const h=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s));return [...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,"0")).join("")}
+function drawDots(){[...$("#dots").children].forEach((d,i)=>d.classList.toggle("on",i<code.length))}
+(function buildKeys(){const k=$("#keys");["1","2","3","4","5","6","7","8","9","⌫","0","GO"].forEach(x=>{const b=document.createElement("button");b.type="button";b.textContent=x;if(x==="GO")b.className="go";if(x==="⌫")b.className="del";b.addEventListener("click",()=>key(x));k.appendChild(b)})})();
+function key(x){ensureCtx();sfx("key");$("#dots").classList.remove("bad");if(x==="⌫"){code=code.slice(0,-1)}else if(x==="GO"){check();return}else if(code.length<4){code+=x}drawDots();if(code.length===4)check()}
+async function check(){if(code.length<4)return;const msg=$("#lockmsg");
+  if(!window.crypto||!crypto.subtle){msg.textContent="請用 https 網址開啟這個頁面。";return}
+  const ok=(await sha(code))===HASH;
+  if(ok){msg.textContent="";try{localStorage.setItem("wb_ok","1")}catch(e){}sfx("ok");toLobby()}
+  else{msg.textContent="密碼錯誤，再試一次 ✖";$("#dots").classList.add("bad");sfx("no");code="";setTimeout(drawDots,350)}}
+document.addEventListener("keydown",e=>{if(e.key==="t"||e.key==="T"){if(!/input/i.test(e.target.tagName))toggleTeacher()}
+  if(e.key==="Escape"&&!$("#teacher").hidden)toggleTeacher();
+  if($("#gate").hidden)return;if(/^[0-9]$/.test(e.key))key(e.key);else if(e.key==="Backspace")key("⌫");else if(e.key==="Enter")key("GO")});
+
+/* ============================================================ lobby / avatar ============================================================ */
+const AV={shirt:0,hat:0,face:1,name:""};
+try{Object.assign(AV,JSON.parse(localStorage.getItem("fq_av")||"{}"));AV.name=localStorage.getItem("fq_name")||""}catch(e){}
+function applyAvatar(el){el.style.setProperty("--shirt",SHIRTS[AV.shirt]||SHIRTS[0]);el.className="avatar h"+AV.hat+" f"+AV.face}
+let preloadStarted=false;
+function toLobby(){$("#gate").hidden=true;$("#result").hidden=true;$("#game").hidden=true;$("#lobby").hidden=false;renderLobby();
+  if(!preloadStarted){preloadStarted=true;ensureCtx();
+    preloadAll(p=>{$("#loadpct").textContent=Math.round(p*100)+"%"}).then(()=>{const b=$("#play");b.disabled=false;b.innerHTML=AU.fallback?"▶ PLAY（使用裝置語音）":"▶ PLAY 開始闖關"})}}
+function renderLobby(){const sh=$("#shirts");sh.innerHTML="";SHIRTS.forEach((c,i)=>{const b=document.createElement("button");b.type="button";b.className="sw"+(i===AV.shirt?" on":"");b.style.background=c;b.setAttribute("aria-label","衣服 "+(i+1));b.onclick=()=>{AV.shirt=i;sfx("key");renderLobby()};sh.appendChild(b)});
+  const hats=[["無",0],["🧢 帽子",1],["🎉 派對帽",2],["🎩 高帽",3]];const hh=$("#hats");hh.innerHTML="";hats.forEach(([l,v])=>{const b=document.createElement("button");b.type="button";b.className="chip"+(v===AV.hat?" on":"");b.textContent=l;b.onclick=()=>{AV.hat=v;sfx("key");renderLobby()};hh.appendChild(b)});
+  const faces=[["🙂",1],["😄",2],["😎",3]];const ff=$("#faces");ff.innerHTML="";faces.forEach(([l,v])=>{const b=document.createElement("button");b.type="button";b.className="chip"+(v===AV.face?" on":"");b.textContent=l;b.onclick=()=>{AV.face=v;sfx("key");renderLobby()};ff.appendChild(b)});
+  const df=$("#diff");df.innerHTML="";Object.keys(DIFFS).forEach(k=>{const b=document.createElement("button");b.type="button";b.className="chip"+(k===CFG.diff?" on":"");b.innerHTML="<span>"+DIFFS[k].label+"</span>";b.onclick=()=>{CFG.diff=k;saveCfg();sfx("key");renderLobby()};df.appendChild(b)});
+  $("#diffNote").textContent=DIFFS[CFG.diff].note;$("#limitTxt").textContent=fmt(CFG.time);
+  $("#name").value=AV.name;applyAvatar($("#avPrev"));try{localStorage.setItem("fq_av",JSON.stringify({shirt:AV.shirt,hat:AV.hat,face:AV.face}))}catch(e){}
+  renderSettings()}
+$("#name").addEventListener("input",e=>{AV.name=e.target.value.trim();try{localStorage.setItem("fq_name",AV.name)}catch(e){}});
+$("#play").addEventListener("click",()=>{ensureCtx();startGame()});
+function fmt(s){s=Math.max(0,s);return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
+
+/* ============================================================ teacher panel ============================================================ */
+function toggleTeacher(){const t=$("#teacher");t.hidden=!t.hidden;if(!t.hidden)renderSettings()}
+$("#gear").addEventListener("click",toggleTeacher);$("#closeT").addEventListener("click",toggleTeacher);
+function renderSettings(){const st=$("#setTime");st.innerHTML="";[[180,"3 分鐘"],[300,"5 分鐘（預設）"],[420,"7 分鐘"],[600,"10 分鐘"]].forEach(([v,l])=>{const b=document.createElement("button");b.type="button";b.className="chip"+(v===CFG.time?" on":"");b.textContent=l;b.onclick=()=>{CFG.time=v;saveCfg();renderSettings();$("#limitTxt").textContent=fmt(CFG.time)};st.appendChild(b)});
+  const sd=$("#setDiff");sd.innerHTML="";Object.keys(DIFFS).forEach(k=>{const b=document.createElement("button");b.type="button";b.className="chip"+(k===CFG.diff?" on":"");b.textContent=DIFFS[k].label;b.onclick=()=>{CFG.diff=k;saveCfg();renderSettings();if(!$("#lobby").hidden)renderLobby()};sd.appendChild(b)})}
+
+/* ============================================================ game core ============================================================ */
+const G={over:false,won:false,world:0,coins:0,stats:[],missed:[],endAt:0,timerId:null,warned:false,lastTick:-1,seqToken:0,replaysLeft:0,current:null,resolver:null,startedAt:0};
+window.__fq=G;
+const WORLDS=[
+  {id:"w1",name:"World 1 · 售票亭 Which Day?",icon:"🎟️",coach:"c_w1",zh:"聽日期，點正確的票",en:"Listen. Which day is it? Tap the ticket."},
+  {id:"w2",name:"World 2 · 月曆橋 Yes or No?",icon:"📅",coach:"c_w2",zh:"看月曆、聽問題，選正確回答",en:"Look at the calendar. Listen, and tap the right answer."},
+  {id:"w3",name:"World 3 · 球場衝刺 Let's go!",icon:"⚽",coach:"c_w3",zh:"聽指令，走到正確的地方",en:"Listen, and go to the right place."},
+  {id:"w4",name:"World 4 · 回音洞 Reply!",icon:"💬",coach:"c_w4",zh:"聽一句話，選最好的回應",en:"Listen, and tap the best reply."},
+  {id:"w5",name:"BOSS · 故事塔 Story Tower",icon:"🏰",coach:"c_w5",zh:"聽完整段對話，依順序疊卡片",en:"Listen to the story. Then put the cards in order."}
+];
+const D=()=>DIFFS[CFG.diff];
+function toast(t){const el=$("#toast");el.textContent=t;el.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove("show"),1300)}
+function bubble(id,showText){const b=$("#bubble");if(!id){b.className="hidden";return}const m=MAN[id],who=CAST[m.s]||CAST.coach;
+  b.innerHTML='<span class="who" style="background:'+who.c+'">'+esc(who.n)+'</span><span>'+(showText?esc(m.t):"🔊 …")+(showText&&D().zh&&ZH[id]?'<span class="zh">'+esc(ZH[id])+'</span>':"")+'</span>';b.className=""}
+function setListen(n){G.replaysLeft=n;const b=$("#listenBtn");b.disabled=n<=0;$("#listenN").textContent=n===Infinity?"∞":String(n)}
+$("#listenBtn").addEventListener("click",async()=>{if(G.over||!G.current||G.replaysLeft<=0||G.busy)return;if(G.replaysLeft!==Infinity)setListen(G.replaysLeft-1);G.stats[G.world].listens++;await playPrompt(G.current)});
+async function playPrompt(r){stopAll();const tok=++G.seqToken;playSeq.token=tok;const b=$("#listenBtn");b.classList.add("playing");
+  if(r.seq)await playSeq(r.seq,D().slow,500);else{bubble(r.clip,false);await play(r.clip,D().slow)}
+  if(tok===G.seqToken)b.classList.remove("playing")}
+function hud(){$("#timer").textContent=fmt(Math.ceil((G.endAt-Date.now())/1000));$("#coinN").textContent=G.coins;[...$("#map").children].forEach((i,k)=>{i.className=k<G.world?"done":k===G.world?"now":"";i.textContent=k<G.world?"✓":String(k+1)})}
+function addCoins(n){G.coins+=n;$("#coinN").textContent=G.coins}
+function avatarDo(cls,ms){const a=$("#av");a.classList.remove("hop","cheer","sad","run");void a.offsetWidth;a.classList.add(cls);if(ms)setTimeout(()=>a.classList.remove(cls),ms)}
+function startTimer(){G.endAt=Date.now()+CFG.time*1000;G.warned=false;G.lastTick=-1;clearInterval(G.timerId);G.timerId=setInterval(tick,200);tick()}
+function tick(){if(G.over)return;const rem=Math.max(0,Math.ceil((G.endAt-Date.now())/1000));const t=$("#timer");t.textContent=fmt(rem);t.className="pill"+(rem<=10?" red":rem<=60?" warn":"");
+  if(rem<=60&&!G.warned){G.warned=true;toast("⏰ 剩 1 分鐘！Hurry!");if(AU.active.size===0)play("c_hurry")}
+  if(rem<=10&&rem!==G.lastTick){G.lastTick=rem;sfx("tick")}
+  if(rem<=0)endGame(false)}
+async function startGame(){stopAll();G.over=false;G.won=false;G.world=0;G.coins=0;G.stats=WORLDS.map(()=>({first:0,total:0,mistakes:0,listens:0,cleared:false}));G.missed=[];G.current=null;G.busy=false;G.startedAt=Date.now();
+  $("#lobby").hidden=true;$("#result").hidden=true;$("#game").hidden=false;applyAvatar($("#av"));$("#pname").textContent="🧱 "+(AV.name||"Player");$("#coinN").textContent="0";
+  startTimer();hud();
+  $("#srv").hidden=true;
+  for(let w=0;w<WORLDS.length;w++){G.world=w;hud();const passed=await runWorld(w);if(passed)G.stats[w].cleared=true;if(G.over)return;if(!passed)return;
+    if(w<WORLDS.length-1){sfx("level");toast("🎉 World Clear!");avatarDo("cheer",1200);await play(w===WORLDS.length-2?"c_boss":"c_clear");await sleep(300)}}
+  if(!G.over)endGame(true)}
+function endGame(won){if(G.over)return;G.over=true;G.won=won;clearInterval(G.timerId);stopAll();G.seqToken++;if(G.resolver){const r=G.resolver;G.resolver=null;r(null)}
+  $("#options").querySelectorAll("button").forEach(b=>b.disabled=true);
+  const used=Math.min(CFG.time,Math.round((Date.now()-G.startedAt)/1000));const stars=G.stats.map(s=>s.cleared?(s.mistakes===0?3:s.mistakes===1?2:1):0);const totStar=stars.reduce((a,b)=>a+b,0);
+  const first=G.stats.reduce((a,s)=>a+s.first,0),tot=G.stats.reduce((a,s)=>a+s.total,0),listens=G.stats.reduce((a,s)=>a+s.listens,0);
+  $("#rIcon").textContent=won?"🏆":"⏰";const v=$("#verdict");v.innerHTML=won?"闖關成功！<small>Quest Complete!</small>":"時間到！闖關失敗<small>Time's up! So close!</small>";v.className=won?"win":"lose";
+  $("#reward").hidden=!won;if(won)$("#reward").textContent="請跟老師換點卷卡一張";
+  $("#stats").innerHTML='<div class="stat"><b>'+fmt(used)+'</b><span>用時 Time</span></div><div class="stat"><b>⭐ '+totStar+'</b><span>/ 15 星</span></div><div class="stat"><b>'+(tot?Math.round(first/tot*100):0)+'%</b><span>首次答對率</span></div><div class="stat"><b>'+listens+'</b><span>重聽次數</span></div><div class="stat"><b>🪙 '+G.coins+'</b><span>金幣</span></div>';
+  $("#worlds").innerHTML=WORLDS.map((w,i)=>'<div class="'+(G.stats[i].cleared?"":"fail")+'">'+w.icon+" "+(i<4?"World "+(i+1):"Boss")+"<small>"+(G.stats[i].cleared?"⭐".repeat(stars[i]):"未完成")+"</small></div>").join("");
+  const rv=$("#review");const miss=[...new Set(G.missed)];rv.innerHTML=miss.length?"<h3>🎧 複習清單（答錯過的句子，按 🔊 再聽一次並跟著說）</h3>"+miss.map(id=>'<div class="line"><button type="button" data-id="'+id+'">🔊</button><span>'+esc(MAN[id].t)+'<span class="zh">'+esc(ZH[id]||"")+'</span></span></div>').join(""):(won?"<p class='sub'>沒有答錯的句子，太厲害了！</p>":"");
+  rv.querySelectorAll("button").forEach(b=>b.onclick=()=>{stopAll();play(b.dataset.id,true)});
+  $("#game").hidden=true;$("#result").hidden=false;
+  if(won){sfx("fanfare");confetti();(async()=>{await play("l16");await play("l17");await play("c_win")})()}else{sfx("lose");play("c_timesup").then(()=>play("c_lose"))}}
+$("#again").addEventListener("click",()=>{ensureCtx();startGame()});
+$("#home").addEventListener("click",()=>{stopAll();$("#srv").hidden=false;toLobby()});
+
+/* ---- generic round: one clip (or sequence) + options; must answer correctly to proceed ---- */
+function renderOptions(opts,layout,onPick){const box=$("#options");box.className=layout||"";box.innerHTML="";
+  opts.forEach(o=>{const b=document.createElement("button");b.type="button";b.className="opt"+(o.cls?" "+o.cls:"");b.dataset.id=o.id;b.innerHTML=o.html;
+    if(o.spk){const s=document.createElement("button");s.type="button";s.className="spk";s.textContent="🔊";s.setAttribute("aria-label","聽這個選項");s.onclick=ev=>{ev.stopPropagation();if(G.over)return;G.stats[G.world].listens++;stopAll();G.seqToken++;play(o.spk,D().slow)};b.appendChild(s)}
+    b.onclick=()=>onPick(o,b);box.appendChild(b)})}
+async function ask(r){ // r={clip|seq, options:[{id,html,correct,spk,cls}], layout, prompt, onCorrect(o), zhText}
+  if(G.over)return false;G.current=r;G.roundN=(G.roundN||0)+1;setListen(D().replays);$("#prompt").innerHTML=r.prompt;const st=G.stats[G.world];st.total++;let tries=0;
+  const answered=new Promise(res=>{G.resolver=res;
+    renderOptions(r.options,r.layout,async(o,btn)=>{if(G.over||G.busy||btn.disabled)return;G.busy=true;tries++;stopAll();G.seqToken++;$("#listenBtn").classList.remove("playing");
+      if(o.correct){if(tries===1){st.first++;addCoins(10)}else addCoins(5);btn.classList.add("ok");sfx("coin");avatarDo("hop",700);
+        if(r.clip)bubble(r.clip,true);
+        if(r.onCorrect)await r.onCorrect(o);
+        await play(pick(["c_great","c_awesome","c_excellent","c_perfect"]));await sleep(250);G.busy=false;if(G.resolver){const f=G.resolver;G.resolver=null;f(true)}}
+      else{st.mistakes++;if(r.clip)G.missed.push(r.clip);btn.classList.add("no");btn.disabled=true;sfx("no");avatarDo("sad",900);toast("再聽一次 Listen again");
+        await play("c_notquite");if(G.over){G.busy=false;return}await sleep(150);G.busy=false;playPrompt(r)}})});
+  await sleep(350);if(G.over)return false;playPrompt(r);
+  const ok=await answered;G.current=null;return ok===true}
+function setScene(w,decoHtml){const s=$("#scene");s.className=WORLDS[w].id;$("#zname").textContent=WORLDS[w].name;$("#deco").innerHTML=decoHtml||"";bubble(null);$("#av").style.left="12%";$("#options").innerHTML="";$("#prompt").textContent=""}
+async function intro(w){const W=WORLDS[w];const el=document.createElement("div");el.className="intro";el.innerHTML='<div class="box"><div class="ic">'+W.icon+'</div><h3>'+esc(W.name)+'</h3><p class="en">'+esc(W.en)+'</p><p>'+esc(W.zh)+'</p><button class="big" type="button" style="width:auto;padding:10px 30px">GO ▶</button></div>';
+  $("#scene").appendChild(el);let done=false;const fin=()=>{if(!done){done=true;el.remove()}};el.querySelector("button").onclick=()=>{stopAll();G.seqToken++;fin()};
+  const tok=++G.seqToken;playSeq.token=tok;await play(W.coach);if(!done&&tok===G.seqToken)await sleep(400);fin()}
+
+/* ============================================================ worlds ============================================================ */
+async function runWorld(w){setScene(w);await intro(w);if(G.over)return false;
+  return !!(await [world1,world2,world3,world4,world5][w]())}
+
+/* World 1 · ticket booth: listen "It's Friday." -> tap the day ticket */
+async function world1(){setScene(0,'<div class="blk" style="left:62%;top:18%;width:150px;height:120px;background:#ff9a3d">🎟️</div><div class="blk" style="left:80%;top:48%;width:70px;height:70px;background:#ffd93d">🏷️</div>');
+  const others=shuffle(DAYS.filter(d=>d!=="Friday"));const answers=["Friday",others[0],others[1]];
+  for(let i=0;i<answers.length;i++){const ans=answers[i];const clip="day_"+ans.toLowerCase()+"_"+(i%2?"b":"a");
+    let days;if(CFG.diff==="easy"){const near={Tuesday:"Thursday",Thursday:"Tuesday",Monday:"Sunday",Sunday:"Monday",Friday:"Thursday",Wednesday:"Tuesday",Saturday:"Sunday"}[ans];days=shuffle([ans,near,...shuffle(DAYS.filter(d=>d!==ans&&d!==near)).slice(0,2)])}else days=DAYS.slice();
+    const ok=await ask({clip,prompt:'🎟️ 第 '+(i+1)+' 張票 <small>Which day is it? 聽到哪一天？</small>',layout:"tickets",
+      options:days.map(d=>({id:d,correct:d===ans,html:'<span class="ic">'+["🌙","🔥","💧","🌳","⭐","🪐","☀️"][DAYNUM[d]-1]+'</span><span>'+(CFG.diff==="hard"?ABBR[d]:d)+'</span>'}))});
+    if(!ok)return false;$("#av").style.left=(12+(i+1)*18)+"%"}
+  return true}
+
+/* World 2 · calendar bridge: see calendar, hear "Is it Wednesday today?" -> Yes, it is. / No, it isn't. It's Friday. */
+async function world2(){const rounds=[{d:"Friday",q:"Wednesday"}];while(rounds.length<4){const d=pick(DAYS);const q=Math.random()<0.45?d:pick(DAYS.filter(x=>x!==d));rounds.push({d,q})}
+  setScene(1,'<div class="bridge">'+'<i></i>'.repeat(4)+'</div><div class="calendar" id="cal"></div>');
+  for(let i=0;i<rounds.length;i++){const {d,q}=rounds[i];const yes=d===q;const clip="isit_"+q.toLowerCase()+"_"+(i%2?"b":"a");
+    $("#cal").innerHTML="<b>TODAY</b><span>"+ABBR[d].replace(".","").toUpperCase()+"</span><small>"+d+"</small>";
+    const opts=[{id:"yes",correct:yes,html:"✅ Yes, it is.",spk:"yes_itis"},{id:"no",correct:!yes,html:"❌ No, it isn't. It's "+d+".",spk:"no_"+d.toLowerCase()}];
+    if(CFG.diff==="hard"){const x=yes?pick(DAYS.filter(z=>z!==d)):q;opts.push({id:"no2",correct:false,html:"❌ No, it isn't. It's "+x+".",spk:"no_"+x.toLowerCase()})}
+    const ok=await ask({clip,prompt:'📅 木板 '+(i+1)+' / 4 <small>看月曆，聽問題，選正確的回答</small>',layout:"chat",options:shuffle(opts).map(o=>({...o,cls:"chatline"})),
+      onCorrect:async o=>{const plank=$("#scene").querySelectorAll(".bridge i")[i];if(plank)plank.classList.add("lit");sfx("hop");$("#av").style.left=(12+(i+1)*14)+"%";await sleep(700);bubble(o.spk,true);await play(o.spk,D().slow)}});
+    if(!ok)return false}
+  return true}
+
+/* World 3 · stadium run (TPR): hear a command, send the avatar to the right place */
+async function world3(){const places={pin:{ic:"📍",label:"here",left:"18%"},booth:{ic:"🎟️",label:"tickets",left:"36%"},stadium:{ic:"⚽",label:"football",left:"54%"},cheer:{ic:"📣",label:"cheer",left:"86%"}};
+  if(CFG.diff==="hard")places.snack={ic:"🍔",label:"snack bar",left:"70%"};
+  const cmds=shuffle([{clip:"l01",to:"pin"},{clip:"l02",to:"booth"},{clip:"l09",to:"stadium"},{clip:"l16",to:"cheer"}]);
+  setScene(2,Object.keys(places).map(k=>'<div class="blk" style="left:'+places[k].left+';top:22%;width:74px;height:74px;background:#fff;box-shadow:0 8px 0 rgba(0,0,0,.12)">'+places[k].ic+'</div>').join(""));
+  for(let i=0;i<cmds.length;i++){const c=cmds[i];const keys=shuffle(Object.keys(places));
+    const ok=await ask({clip:c.clip,prompt:'⚽ 指令 '+(i+1)+' / 4 <small>Listen, and go! 聽到什麼就去哪裡</small>',layout:"map",
+      options:keys.map(k=>({id:k,correct:k===c.to,html:'<span class="ic">'+places[k].ic+'</span><span>'+places[k].label+'</span>'})),
+      onCorrect:async()=>{avatarDo("run",700);$("#av").style.left=places[c.to].left;sfx("hop");await sleep(750);if(c.to==="cheer")avatarDo("cheer",1000)}});
+    if(!ok)return false}
+  return true}
+
+/* World 4 · echo cave: hear a line, choose the best reply (options have their own 🔊) */
+async function world4(){const pairs=[{a:"l03",b:"l04"},{a:"l09",b:"l10"},{a:"l14",b:"l15"},{a:"l07",b:"l08"},{a:"l11",b:"l12"},{a:"l01",b:"l02"}];
+  const pool=["l04","l10","l15","l08","l12","l02","l14","l17","l06"];const rounds=shuffle(pairs).slice(0,4);
+  setScene(3,'<div class="blk" style="left:60%;top:14%;width:200px;height:150px;background:#6a4bd8;border-radius:120px 120px 20px 20px">🕳️</div>');
+  for(let i=0;i<rounds.length;i++){const p=rounds[i];const n=CFG.diff==="hard"?3:2;const ds=shuffle(pool.filter(x=>x!==p.b&&MAN[x].t!==MAN[p.b].t)).slice(0,n);
+    const opts=shuffle([p.b,...ds]).map(id=>({id,correct:id===p.b,html:'<span>'+esc(MAN[id].t)+'</span>',spk:id,cls:"chatline"}));
+    const ok=await ask({clip:p.a,prompt:'💬 回應 '+(i+1)+' / 4 <small>What do you say? 選最合適的回答</small>',layout:"chat",options:opts,
+      onCorrect:async()=>{await sleep(700);bubble(p.b,true);await play(p.b,D().slow)}});
+    if(!ok)return false}
+  return true}
+
+/* World 5 · boss: hear a 4-5 line story once, stack the cards in order */
+async function world5(){const segs=[["l09","l10","l11","l12"],["l01","l02","l03","l04"]];let seq=pick(segs);if(CFG.diff==="hard")seq=seq.concat(seq[0]==="l09"?["l13"]:["l05"]);
+  setScene(4,'<div class="tower" id="tower"></div><div class="blk" style="left:78%;top:12%;width:90px;height:90px;background:#ff5e5e">👾</div>');
+  const st=G.stats[4];st.total+=seq.length;const r={seq,prompt:'🏰 BOSS <small>先聽完整段，再依順序點卡片疊成塔（'+seq.length+' 張）</small>'};G.current=r;G.roundN=(G.roundN||0)+1;setListen(D().replays);
+  let next=0,firstTryAll=true,locked=false;
+  const done=new Promise(res=>{G.resolver=res;
+    renderOptions(shuffle(seq).map(id=>({id,html:'<span class="who" style="display:grid;place-items:center;width:30px;height:30px;border-radius:8px;color:#fff;font:900 11px var(--display);background:'+CAST[MAN[id].s].c+'">'+CAST[MAN[id].s].n+'</span><span>'+esc(MAN[id].t)+'</span>',cls:"chatline"})),"chat",async(o,btn)=>{
+      if(G.over||locked||btn.disabled)return;locked=true;stopAll();G.seqToken++;$("#listenBtn").classList.remove("playing");
+      if(o.id===seq[next]){btn.disabled=true;btn.classList.add("ok");setTimeout(()=>btn.classList.add("used"),300);sfx("coin");st.first+= (firstTryAll?1:0);addCoins(10);
+        const t=$("#tower");const tb=document.createElement("div");tb.className="tb";tb.innerHTML='<span class="who" style="background:'+CAST[MAN[o.id].s].c+'">'+CAST[MAN[o.id].s].n+'</span><span>'+esc(MAN[o.id].t)+'</span>';t.appendChild(tb);
+        next++;firstTryAll=true;
+        if(next>=seq.length){G.stats[4].cleared=true;avatarDo("cheer",2000);locked=false;if(G.resolver){const f=G.resolver;G.resolver=null;f(true)}return}
+        play(o.id,D().slow);locked=false}
+      else{st.mistakes++;firstTryAll=false;G.missed.push(seq[next]);btn.classList.add("no");sfx("no");avatarDo("sad",900);toast("不是這張，再聽一次");play("c_notquite");setTimeout(()=>{btn.classList.remove("no");locked=false},600)}})});
+  await sleep(350);if(G.over)return;playPrompt(r);
+  const ok=await done;G.current=null;if(ok!==true)return false;
+  $("#prompt").innerHTML="🎉 Story complete! <small>Big G, little o. Go! Go! Go!</small>";if(!G.over)endGame(true);return true}
+
+/* ============================================================ fx ============================================================ */
+function confetti(){const c=$("#fx"),x=c.getContext("2d");c.width=innerWidth;c.height=innerHeight;const P=[];const cols=["#ff5e5e","#ffd93d","#3ccf6a","#3d8bff","#9b6bff","#ff7bb0"];
+  for(let i=0;i<160;i++)P.push({x:Math.random()*c.width,y:-20-Math.random()*c.height*.5,r:6+Math.random()*8,c:pick(cols),v:2+Math.random()*4,a:Math.random()*6.3,s:(Math.random()-.5)*.2});
+  let t0=performance.now();(function f(now){x.clearRect(0,0,c.width,c.height);P.forEach(p=>{p.y+=p.v;p.a+=p.s;x.save();x.translate(p.x,p.y);x.rotate(p.a);x.fillStyle=p.c;x.fillRect(-p.r/2,-p.r/2,p.r,p.r*.6);x.restore()});if(now-t0<4200)requestAnimationFrame(f);else x.clearRect(0,0,c.width,c.height)})(t0)}
+(function clouds(){const c=$("#sky");for(let i=0;i<7;i++){const d=document.createElement("div");d.className="cloud";const w=90+Math.random()*160;d.style.width=w+"px";d.style.height=w*.34+"px";d.style.top=(Math.random()*55)+"vh";d.style.animationDuration=(45+Math.random()*50)+"s";d.style.animationDelay=(-Math.random()*70)+"s";c.appendChild(d)}})();
+if(window.speechSynthesis)try{speechSynthesis.getVoices()}catch(e){}
+</script>
+</body>
+</html>
