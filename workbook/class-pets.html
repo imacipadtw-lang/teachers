@@ -2,7 +2,10 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="班級夥伴">
 <title>班級夥伴 Class Pets 🐾 上課加分養成</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -13,7 +16,7 @@ body{font-family:"Nunito","Varela Round","Noto Sans TC","PingFang TC","Microsoft
 .cloud:before,.cloud:after{content:"";position:absolute;background:#fff;border-radius:50%}
 .cloud:before{width:11vw;height:11vw;left:3vw;top:-5vw}.cloud:after{width:8vw;height:8vw;right:3vw;top:-3vw}
 @keyframes drift{from{transform:translateX(0)}to{transform:translateX(160vw)}}
-#gl{position:fixed;inset:0;z-index:50;pointer-events:none}
+#gl{position:fixed;inset:0;width:100%;height:100%;z-index:50;pointer-events:none}
 header{display:none}
 .hrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .hrow .sp{flex:1}
@@ -38,25 +41,26 @@ select,button{font:inherit;font-weight:800;border:0;border-radius:16px;cursor:po
 .tb{font-size:clamp(12px,1.1vw,16px);padding:6px 12px;background:#fff;box-shadow:0 3px 0 #d9e3ea;color:#334}
 .tb:active,.chip:active{transform:translateY(2px);box-shadow:none}
 #grid{position:relative;z-index:3;flex:1;min-height:0;display:grid;gap:10px;padding:10px 12px 10px}
+@media (max-height:500px){#grid{gap:6px;padding:6px 8px 6px}.card{border-radius:16px}.nm{font-size:clamp(13px,3.2vh,22px);padding-bottom:4px;gap:5px}.lv{padding:1px 7px}.pick{width:26px;height:26px;font-size:13px;top:6px;left:8px}.badge{font-size:clamp(11px,3vh,18px);padding:2px 9px;top:5px;right:5px}.evo b{font-size:clamp(16px,6vh,40px)}.evo span{font-size:clamp(11px,3vh,18px);padding:2px 10px}.evo{padding-top:4%}.zz{font-size:clamp(14px,4vh,28px)}#gear,#undoF{width:28px;height:28px;font-size:14px}}
 .card{position:relative;display:flex;flex-direction:column;background:rgba(255,255,255,.92);border-radius:26px;box-shadow:0 8px 0 rgba(0,0,0,.06),0 10px 30px rgba(30,80,60,.12);overflow:hidden;cursor:pointer;min-height:0;transition:transform .15s}
 .card:active{transform:scale(.97)}
 .card.flash:after{content:"";position:absolute;inset:0;background:#fff;animation:fl .9s ease-out forwards;z-index:5;pointer-events:none}
 @keyframes fl{0%{opacity:0}15%{opacity:1}100%{opacity:0}}
 .view{flex:1;min-height:0}
-.nm{text-align:center;font-size:clamp(20px,2.6vw,40px);font-weight:900;padding:0 10px 10px;display:flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap}
+.nm{text-align:center;font-size:clamp(16px,2.6vw,40px);font-weight:900;padding:0 10px 10px;display:flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap}
 .lv{font-size:.6em;opacity:.85;background:#ff9b3d;color:#fff;border-radius:999px;padding:2px 11px;box-shadow:0 2px 0 #d97a1f}
 .bar{display:none}
 .bar i{display:block;height:100%;flex:1;background:#edf2f7;border-radius:99px;transition:background .3s}
 .bar i.f{background:linear-gradient(90deg,#4ade80,#22c55e)}
 .stg{display:none;text-align:center;font-size:clamp(11px,1.0vw,15px);color:#8a97a8;font-weight:800;padding:0 8px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.badge{position:absolute;top:10px;right:12px;z-index:4;font-size:clamp(18px,2.4vw,34px);font-weight:900;color:#fff;background:#2ecc71;border-radius:999px;padding:4px 14px;box-shadow:0 4px 0 #1e9e55;opacity:0;transform:scale(.4);pointer-events:none}
+.badge{position:absolute;top:8px;right:8px;z-index:4;font-size:clamp(13px,2vw,30px);font-weight:900;color:#fff;background:#2ecc71;border-radius:999px;padding:3px 12px;white-space:nowrap;max-width:calc(100% - 16px);overflow:hidden;text-overflow:ellipsis;box-shadow:0 4px 0 #1e9e55;opacity:0;transform:scale(.4);pointer-events:none}
 .badge.neg{background:#e74c3c;box-shadow:0 4px 0 #a93226}
 .badge.show{animation:pop .5s cubic-bezier(.3,1.6,.5,1) forwards}
 .badge.hide{animation:fade .5s ease forwards}
 @keyframes pop{to{opacity:1;transform:scale(1)}}@keyframes fade{from{opacity:1;transform:scale(1)}to{opacity:0;transform:scale(.6)}}
 .pick{position:absolute;top:10px;left:12px;z-index:4;width:34px;height:34px;border-radius:50%;background:#fff;box-shadow:0 2px 0 #d9e3ea;font-size:17px;display:flex;align-items:center;justify-content:center;opacity:.35}
-#gear{position:fixed;right:10px;bottom:10px;z-index:9;width:40px;height:40px;border-radius:50%;background:#fff;opacity:.35;font-size:20px;box-shadow:0 2px 0 #d9e3ea}#gear:hover{opacity:1}
-#undoF{position:fixed;right:58px;bottom:10px;z-index:9;width:40px;height:40px;border-radius:50%;background:#fff;opacity:.35;font-size:20px;box-shadow:0 2px 0 #d9e3ea}#undoF:hover{opacity:1}
+#gear{position:fixed;right:8px;top:6px;z-index:9;width:40px;height:40px;border-radius:50%;background:#fff;opacity:.35;font-size:20px;box-shadow:0 2px 0 #d9e3ea}#gear:hover{opacity:1}
+#undoF{position:fixed;right:52px;top:6px;z-index:9;width:40px;height:40px;border-radius:50%;background:#fff;opacity:.35;font-size:20px;box-shadow:0 2px 0 #d9e3ea}#undoF:hover{opacity:1}
 .pick:hover{opacity:1}
 .evo{position:absolute;inset:0;z-index:6;display:none;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:9%;gap:6px;text-align:center;pointer-events:none;background:rgba(255,255,255,.35)}
 .evo.on{display:flex;animation:evoIn 2.6s ease forwards}
@@ -406,7 +410,7 @@ function setPet(v,spId,stage,frac){
  const sp=SPECIES.find(s=>s.id===spId)||SPECIES[0];
  v.pet=buildPet(sp,stage,frac);v.pet.g.position.x=0;
  v.scene.add(v.pet.g);
- const H=3.6;v.cam.position.set(0,1.75,7.2);v.cam.lookAt(0,1.55,0);v.cam.userData.H=H;v.gsCur=v.pet.gs;
+ const H=3.6;v.cam.position.set(0,1.7,6.5);v.cam.lookAt(0,1.5,0);v.cam.userData.H=H;v.gsCur=v.pet.gs;
  v.scene.userData.shadow.scale.setScalar(v.pet.gs||1);
 }
 function removeView(v){const i=views.indexOf(v);if(i>=0)views.splice(i,1);if(v.pet)disposeGroup(v.pet.g);}
@@ -543,10 +547,12 @@ const cards={};
 function stageText(d){const p=d.pts,s=stageOf(p),st=STAGES[s];let t=`${st.ico} ${st.zh} ${st.en}`;if(s===0)t+=" · 點一下就醒來";else if(STAGES[s+1])t+=` · 再 ${STAGES[s+1].min-p} 分進化`;else t+=p>=MAX_PTS?" · 今日滿分！":" · 最強英雄！";if(d.total)t+=` · 累計 ${d.total+p}`;return t;}
 function todayLabel(){const d=new Date();const w="日一二三四五六"[d.getDay()];$("#today").textContent=`📅 ${d.getMonth()+1}/${d.getDate()} 星期${w} · 今天`;}
 todayLabel();
+function layoutGrid(n){const portrait=innerHeight>innerWidth;const cols=portrait?(n<=2?1:2):(n<=4?2:n<=6?3:4);grid.style.gridTemplateColumns=`repeat(${cols},1fr)`;grid.style.gridAutoRows="1fr";}
+window.addEventListener("resize",()=>layoutGrid(Object.keys(cards).length));
 function renderGrade(){
  for(const k in cards){removeView(cards[k].v);}for(const k in cards)delete cards[k];grid.innerHTML="";
  const list=ROSTER.filter(r=>r[1]===S.grade);const n=list.length;
- const cols=n<=4?2:n<=6?3:4;grid.style.gridTemplateColumns=`repeat(${cols},1fr)`;grid.style.gridAutoRows="1fr";
+ layoutGrid(n);
  list.forEach(r=>{const k=key(r),d=stu(k);
   const c=document.createElement("div");c.className="card";c.dataset.k=k;
   c.innerHTML=`<div class="badge"></div><button class="pick" title="選夥伴">🎨</button><div class="view"></div><div class="nm"><span class="n">${r[0]}</span><span class="lv">${d.pts} 歲</span></div><div class="bar">${"<i></i>".repeat(STAGES.length)}</div><div class="stg"></div><div class="evo"><b>✨ 進化！</b><span></span></div><div class="sad">💧</div><div class="zz">💤</div><div class="max">🏆 今天已經滿分 30！</div><div class="conf"></div>`;
