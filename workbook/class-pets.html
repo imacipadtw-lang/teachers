@@ -158,7 +158,7 @@ select,button{font:inherit;font-weight:800;border:0;border-radius:16px;cursor:po
   <div class="btns"><button id="exportBtn">⬇ 匯出 JSON</button><button id="importBtn">⬆ 匯入 JSON</button><input type="file" id="importFile" accept="application/json" class="hidden"></div>
   <div class="help">
     <h3>成長規則（每天重來一次）</h3>
-    每點一次 +1 分＝長大 1 歲，而且每一歲都有新技能動畫（伸懶腰、翻身、拍手、爬、躲貓貓、站、走、揮手、跳、轉圈、跑、跳舞、踢、後空翻、側翻、飛毛腿、秀肌肉、出拳、英雄姿勢、能量爆發、飛、空中翻圈、雷射眼、落地重擊、勝利、終極英雄），夥伴會先用英語說、再用中文說（I can walk! → 我會走路了！；⚙️ 裡可切換只英／只中）。一天 30 歲就是滿級。😴 0 歲躺著睡覺吸奶嘴 → 👶 1–4 歲寶寶 → 🐾 5–9 歲爬行 → 🧒 10–16 歲小朋友 → 🧑 17–24 歲少年 → 🦸 25–30 歲超級英雄。每天凌晨自動歸零，昨天的分數加進「累計」。夥伴每次加分都會用英語鼓勵（真人感語音），全班都變英雄時整頁慶祝。
+    每點一次 +1 分＝長大 1 歲，而且每一歲都有新技能動畫（伸懶腰、翻身、拍手、爬、躲貓貓、站、走、揮手、跳、轉圈、跑、跳舞、踢、後空翻、側翻、飛毛腿、秀肌肉、出拳、英雄姿勢、能量爆發、飛、空中翻圈、雷射眼、落地重擊、勝利、終極英雄），夥伴會先用英語說、再用中文說（I can walk! → 我會走路了！），中文用裝置的台灣國語聲音（iPhone 的「美佳」），而且有一半機率是驚喜句（「老師都嚇一跳！」「你是小天才！」…20 句隨機）；⚙️ 裡可切換只英／只中。一天 30 歲就是滿級。😴 0 歲躺著睡覺吸奶嘴 → 👶 1–4 歲寶寶 → 🐾 5–9 歲爬行 → 🧒 10–16 歲小朋友 → 🧑 17–24 歲少年 → 🦸 25–30 歲超級英雄。每天凌晨自動歸零，昨天的分數加進「累計」。夥伴每次加分都會用英語鼓勵（真人感語音），全班都變英雄時整頁慶祝。
     <h3>每天都不一樣</h3>
     每個學生固定一隻自己選的夥伴（卡片左上 🎨 選，想換隨時可換）：8 隻日系插畫原創夥伴（狐狸、水獺、熊貓、柯基、兔子、貓咪、小貓熊、企鵝，每隻 6 個成長階段的圖）、12 隻 3D 立體款（每天換造型），或自己上傳一張圖片。
     <h3>玩法</h3>
@@ -181,11 +181,13 @@ select,button{font:inherit;font-weight:800;border:0;border-radius:16px;cursor:po
 <script>
 "use strict";
 /* ================= data ================= */
-const ROSTER=[["褚品寬",1,"男"],["羅尹璐",1,"女"],["張敏歆",2,"女"],["藍宥鈞",2,"男"],["范鈞惟",3,"男"],["江睿宸",3,"男"],["賴其廷",3,"男"],["韋奕誠",3,"男"],["全芮妡",3,"女"],["黃韵喬",3,"女"],["葉宥妡",3,"女"],["褚振諺",3,"男"],["廖憫愛",4,"女"],["陳楷欣",4,"女"],["吳則熹",4,"男"],["吳俊緯",4,"男"],["吳俊享",4,"男"],["范鈞凱",5,"男"],["陳楷叡",5,"男"],["林瑄",5,"女"],["熊苡均",5,"女"],["黃香媛",5,"女"],["黃婕恩",5,"女"],["江庭宇",5,"男"],["李奇優",6,"女"],["呂馨緹",6,"女"],["葉家云",6,"女"],["葉家睿",6,"男"]];
+const ROSTER=[["褚品寬",1,"男"],["羅尹璐",1,"女"],["張敏歆",2,"女"],["藍宥鈞",2,"男"],["范鈞惟",3,"男"],["江睿宸",3,"男"],["賴其廷",3,"男"],["韋奕誠",3,"男"],["全芮妡",3,"女"],["黃韵喬",3,"女"],["葉宥妡",3,"女"],["褚振諺",3,"男"],["廖憫愛",4,"女"],["陳楷欣",4,"女"],["吳則熹",4,"男"],["吳俊緯",4,"男"],["吳俊享",4,"男"],["范鈞凱",5,"男"],["陳楷叡",5,"男"],["林瑄",5,"女"],["熊苡均",5,"女"],["黃香媛",5,"女"],["黃婕恩",5,"女"],["江庭宇",6,"男"],["李奇優",6,"女"],["呂馨緹",6,"女"],["葉家云",6,"女"],["葉家睿",6,"男"]];
 const GRADES=["一","二","三","四","五","六"];
 const STAGES=[{min:0,zh:"睡覺寶寶",en:"Sleepy Baby",ico:"😴"},{min:1,zh:"寶寶",en:"Baby",ico:"👶"},{min:5,zh:"爬行",en:"Crawler",ico:"🐾"},{min:10,zh:"小朋友",en:"Kid",ico:"🧒"},{min:17,zh:"少年",en:"Teen",ico:"🧑"},{min:25,zh:"超級英雄",en:"Super Hero",ico:"🦸"}];
 const EVO_SAY={1:"hatch",2:"crawl",3:"stand",4:"teen",5:"hero"};
 const ACTS=[["sleep","睡覺"],["yawn","醒來伸懶腰"],["roll","翻身"],["clap","拍拍手"],["bounce","坐著彈跳"],["crawl","會爬了"],["crawlfast","爬得好快"],["peek","躲貓貓"],["standtry","想站起來"],["standup","站起來了"],["walk","會走路了"],["wave","揮手打招呼"],["jump","會跳了"],["spin","轉圈圈"],["run","會跑步了"],["dance","跳舞"],["kick","踢球"],["flip","後空翻"],["cartwheel","側翻"],["highjump","跳超高"],["runfast","飛毛腿"],["muscle","秀肌肉"],["punch","出拳"],["pose","英雄姿勢"],["powerup","能量爆發"],["fly","會飛了"],["flyloop","空中翻圈"],["laser","雷射眼"],["groundpound","落地重擊"],["victory","勝利歡呼"],["ultimate","終極英雄"]];
+const ZH={a0:"好想睡覺喔。",a1:"我醒來了，伸個懶腰！",a2:"我會翻身了！",a3:"我會拍拍手了！",a4:"坐著跳一跳，好好玩！",a5:"我會爬了！",a6:"你看我爬得好快！",a7:"躲貓貓，看到你了！",a8:"我想站起來！",a9:"我站起來了！",a10:"我會走路了！",a11:"大家好，跟你們打招呼！",a12:"我會跳了！",a13:"轉圈圈，轉圈圈！",a14:"我會跑步了！",a15:"一起來跳舞！",a16:"我會踢球了！",a17:"後空翻！",a18:"側翻！",a19:"跳得好高！",a20:"我是飛毛腿！",a21:"我好強壯！",a22:"出拳！出拳！",a23:"英雄姿勢！",a24:"能量爆發！",a25:"我會飛了！",a26:"空中翻圈圈！",a27:"雷射眼！",a28:"落地重擊！",a29:"勝利！",a30:"我是終極英雄！",great_job:"做得好！",awesome:"太棒了！",well_done:"真厲害！",super:"超級棒！",you_did_it:"你做到了！",keep_going:"繼續加油！",fantastic:"太厲害了！",excellent:"非常好！",brilliant:"好聰明！",way_to_go:"就是這樣！",hatch:"哈囉，我在這裡！",crawl:"你看，我會爬了！",stand:"我站起來了！",teen:"我變強了！",hero:"我現在是英雄了！",max:"三十分，完美的一天！",minus:"哎呀，再試一次。",pick:"很高興認識你！",all_hero:"我們都是英雄！",hello:"大家好！"};
+const FUN=["哇！太神了吧！","老師都嚇一跳！","你是小天才！","哇塞，厲害到爆！","全班都在看你喔！","再來一次，我還要長大！","好棒好棒，給你一百分！","哇，閃閃發光！","我長高了，你看到了嗎？","耶！今天最棒的就是你！","太帥了吧！","我好開心，謝謝你！","你是我的英雄！","哇，超級無敵厲害！","我要變強，我要變強！","噢耶！又長大一歲！","嘿嘿，我越來越帥了！","哇，掌聲鼓勵！","太酷了，再一次！","你今天表現超級好！"];
 const PRAISE=["great_job","awesome","well_done","super","you_did_it","keep_going","fantastic","excellent","brilliant","way_to_go"];
 const LINES={great_job:"Great job!",awesome:"Awesome!",well_done:"Well done!",super:"Super!",you_did_it:"You did it!",keep_going:"Keep going!",fantastic:"Fantastic!",excellent:"Excellent!",brilliant:"Brilliant!",way_to_go:"Way to go!",hatch:"Hello! I'm here!",crawl:"Look! I can crawl!",stand:"I can stand up!",teen:"I'm getting stronger!",hero:"I'm a hero now!",max:"Thirty points! Perfect day!",minus:"Oops. Let's try again.",pick:"Nice to meet you!",all_hero:"We are all heroes!",hello:"Hello, class!",a0:"Zzz... so sleepy.",a1:"I'm awake! Stretch!",a2:"I can roll over!",a3:"I can clap!",a4:"Bouncy, bouncy!",a5:"I can crawl!",a6:"Look at me go!",a7:"Peek-a-boo!",a8:"I'm trying to stand!",a9:"I can stand up!",a10:"I can walk!",a11:"Hello, everyone!",a12:"I can jump!",a13:"Spin, spin, spin!",a14:"I can run!",a15:"Let's dance!",a16:"I can kick!",a17:"Backflip!",a18:"Cartwheel!",a19:"So high!",a20:"I'm super fast!",a21:"I'm strong!",a22:"Pow! Pow!",a23:"Hero pose!",a24:"Power up!",a25:"I can fly!",a26:"Loop the loop!",a27:"Laser eyes!",a28:"Ground pound!",a29:"Victory!",a30:"I'm the ultimate hero!"};
 const MAX_PTS=30;
@@ -248,11 +250,15 @@ const SILENT="data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEw
 function unlockAudio(){if(unlocked)return;unlocked=true;player.src=SILENT;player.volume=0;player.play().catch(()=>{}).finally(()=>{player.volume=1;});}
 document.addEventListener("pointerdown",unlockAudio,{once:true});
 let voiceOk=null;fetch(AUDIO_DIR+"manifest.json").then(r=>r.ok?r.json():null).then(j=>{voiceOk=j||false;}).catch(()=>{voiceOk=false;});
-function say(k){if(S.muted||!LINES[k])return;const mode=S.lang||"both";
- const seq=[];if(mode!=="zh")seq.push(k);if(mode!=="en")seq.push(k+"_zh");
- if(!voiceOk){fallbackSay(k);return;}
- const next=()=>{const key=seq.shift();if(!key){speaking=false;return;}if(!voiceOk[key]){next();return;}speaking=true;player.src=AUDIO_DIR+key+".mp3";player.onended=next;player.play().catch(()=>{speaking=false;if(key===k)fallbackSay(k);});};
- next();}
+let zhVoice=null;function pickZhVoice(){try{const vs=speechSynthesis.getVoices();zhVoice=vs.find(v=>/zh[-_]TW/i.test(v.lang)&&/Mei-Jia|美佳|Premium|Enhanced|Siri/i.test(v.name))||vs.find(v=>/zh[-_]TW/i.test(v.lang))||vs.find(v=>/Hsiao|Yating|Taiwan/i.test(v.name))||null;}catch(e){}}
+if(window.speechSynthesis){pickZhVoice();speechSynthesis.onvoiceschanged=pickZhVoice;}
+function sayZh(text){if(!text||!window.speechSynthesis)return;if(!zhVoice)pickZhVoice();if(!zhVoice)return; /* 沒有台灣腔就不講中文 */
+ try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.voice=zhVoice;u.lang="zh-TW";u.rate=1.0;u.pitch=1.05;speechSynthesis.speak(u);}catch(e){}}
+function say(k,zhText){if(S.muted||!LINES[k])return;const mode=S.lang||"both";const zh=zhText===undefined?ZH[k]:zhText;
+ const doZh=()=>{speaking=false;if(mode!=="en"&&zh)sayZh(zh);};
+ if(mode==="zh"){doZh();return;}
+ if(voiceOk&&voiceOk[k]){speaking=true;player.src=AUDIO_DIR+k+".mp3";player.onended=doZh;player.play().catch(()=>{speaking=false;fallbackSay(k);setTimeout(doZh,1200);});return;}
+ fallbackSay(k);setTimeout(doZh,1200);}
 function fallbackSay(k){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(LINES[k]);u.lang="en-US";u.rate=.95;const vs=speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang));u.voice=vs.find(v=>/Natural|Online|Premium|Enhanced/i.test(v.name))||vs.find(v=>/Google US|Samantha|Ana|Aria/i.test(v.name))||vs[0]||null;speechSynthesis.speak(u);}catch(e){}}
 const praise=()=>PRAISE[Math.floor(Math.random()*PRAISE.length)];
 
@@ -604,7 +610,7 @@ function award(k,it,silent){
   const ev=c.el.querySelector(".evo");ev.querySelector("b").textContent=s1===1?"👶 醒來了！":s1===2?"🐾 會爬了！":s1===3?"🧒 站起來了！":s1===5?"🦸 變成英雄！":"✨ 進化！";ev.querySelector("span").textContent=`${STAGES[s1].ico} ${STAGES[s1].zh} ${STAGES[s1].en}`;flashCls(ev,"on");
   setTimeout(()=>{setPet(c.v,d.sp,s1,fracOf(next));doAct(c.v,next);c.el.classList.remove("flash");say("a"+next);},450);
   if(s1===5)checkAllHero();
- }else{if(!silent)SFX.plus();if(!silent)say("a"+next);const ng=STP[s1].gs*(.82+.36*fracOf(next));c.v.pet.gs=ng;doAct(c.v,next);if(next===MAX_PTS){confetti(c.el);flashCls(c.el.querySelector(".max"),"on");}}
+ }else{if(!silent)SFX.plus();if(!silent){say("a"+next,Math.random()<.55?FUN[Math.floor(Math.random()*FUN.length)]:undefined);}const ng=STP[s1].gs*(.82+.36*fracOf(next));c.v.pet.gs=ng;doAct(c.v,next);if(next===MAX_PTS){confetti(c.el);flashCls(c.el.querySelector(".max"),"on");}}
 }
 $("#allBtn").addEventListener("click",()=>{const it={l:"加分",e:"⭐",p:1};const ks=Object.keys(cards);ks.forEach((k,i)=>setTimeout(()=>award(k,it,i>0),i*140));toast(`全班 ${it.e}${it.l} ${it.p>0?"+":""}${it.p}`);});
 $("#undoBtn").addEventListener("click",undo);
