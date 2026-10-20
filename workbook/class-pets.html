@@ -14,16 +14,16 @@ body{font-family:"Nunito","Varela Round","Noto Sans TC","PingFang TC","Microsoft
 .cloud:before{width:11vw;height:11vw;left:3vw;top:-5vw}.cloud:after{width:8vw;height:8vw;right:3vw;top:-3vw}
 @keyframes drift{from{transform:translateX(0)}to{transform:translateX(160vw)}}
 #gl{position:fixed;inset:0;z-index:50;pointer-events:none}
-header{position:relative;z-index:3;flex:none;display:flex;flex-direction:column;gap:8px;padding:10px 18px 4px}
+header{position:relative;z-index:3;flex:none;display:flex;flex-direction:column;gap:6px;padding:6px 14px 0}
 .hrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .hrow .sp{flex:1}
-h1{margin:0;font-size:clamp(20px,2.4vw,34px);font-weight:900;letter-spacing:.5px;color:#1d7a55;text-shadow:0 2px 0 #fff}
+h1{margin:0;font-size:clamp(16px,1.6vw,24px);font-weight:900;letter-spacing:.5px;color:#1d7a55;text-shadow:0 2px 0 #fff}
 h1 small{font-size:.55em;color:#5a7;font-weight:800;margin-left:6px}
 select,button{font:inherit;font-weight:800;border:0;border-radius:16px;cursor:pointer}
-#grade{font-size:clamp(18px,1.9vw,26px);padding:8px 16px;background:#fff;color:#1d7a55;box-shadow:0 3px 0 #bfe5d1;appearance:none;-webkit-appearance:none;padding-right:42px;
+#grade{font-size:clamp(14px,1.4vw,20px);padding:6px 14px;background:#fff;color:#1d7a55;box-shadow:0 3px 0 #bfe5d1;appearance:none;-webkit-appearance:none;padding-right:42px;
  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpath d='M5 8l5 5 5-5' fill='none' stroke='%231d7a55' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
-#today{font-size:clamp(14px,1.5vw,22px);font-weight:900;color:#fff;background:#ff8c42;border-radius:999px;padding:8px 18px;box-shadow:0 3px 0 #d96d2a;white-space:nowrap}
-.total{font-size:clamp(14px,1.5vw,22px);font-weight:900;color:#1d7a55;background:#fff;border-radius:999px;padding:8px 18px;box-shadow:0 3px 0 #bfe5d1;white-space:nowrap}
+#today{font-size:clamp(12px,1.1vw,16px);font-weight:900;color:#fff;background:#ff8c42;border-radius:999px;padding:6px 14px;box-shadow:0 3px 0 #d96d2a;white-space:nowrap}
+.total{font-size:clamp(12px,1.1vw,16px);font-weight:900;color:#1d7a55;background:#fff;border-radius:999px;padding:6px 14px;box-shadow:0 3px 0 #bfe5d1;white-space:nowrap}
 #allHero{position:fixed;inset:0;z-index:25;display:none;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:16vh;gap:10px;background:rgba(255,255,255,.55);pointer-events:none;text-align:center}
 #allHero.on{display:flex;animation:evoIn 5.2s ease forwards}
 #allHero b{font-size:clamp(40px,7vw,110px);color:#ff7a00;text-shadow:0 4px 0 #fff,0 10px 30px rgba(255,122,0,.4);animation:bounce .6s infinite alternate}
@@ -35,20 +35,20 @@ select,button{font:inherit;font-weight:800;border:0;border-radius:16px;cursor:po
 .chip.neg b{background:#fdecec;color:#c0392b}
 .chip.on{border-color:#2ecc71;background:#f0fff6;transform:translateY(-2px)}
 .chip.on.neg{border-color:#e74c3c}
-.tb{font-size:clamp(14px,1.4vw,20px);padding:8px 14px;background:#fff;box-shadow:0 3px 0 #d9e3ea;color:#334}
+.tb{font-size:clamp(12px,1.1vw,16px);padding:6px 12px;background:#fff;box-shadow:0 3px 0 #d9e3ea;color:#334}
 .tb:active,.chip:active{transform:translateY(2px);box-shadow:none}
-#grid{position:relative;z-index:3;flex:1;min-height:0;display:grid;gap:14px;padding:6px 18px 16px}
+#grid{position:relative;z-index:3;flex:1;min-height:0;display:grid;gap:10px;padding:6px 12px 10px}
 .card{position:relative;display:flex;flex-direction:column;background:rgba(255,255,255,.92);border-radius:26px;box-shadow:0 8px 0 rgba(0,0,0,.06),0 10px 30px rgba(30,80,60,.12);overflow:hidden;cursor:pointer;min-height:0;transition:transform .15s}
 .card:active{transform:scale(.97)}
 .card.flash:after{content:"";position:absolute;inset:0;background:#fff;animation:fl .9s ease-out forwards;z-index:5;pointer-events:none}
 @keyframes fl{0%{opacity:0}15%{opacity:1}100%{opacity:0}}
 .view{flex:1;min-height:0}
-.nm{text-align:center;font-size:clamp(18px,2.2vw,32px);font-weight:900;padding:0 10px 2px;display:flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap}
+.nm{text-align:center;font-size:clamp(20px,2.6vw,40px);font-weight:900;padding:0 10px 0;display:flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap}
 .lv{font-size:.78em;background:#ff9b3d;color:#fff;border-radius:999px;padding:2px 11px;box-shadow:0 2px 0 #d97a1f}
-.bar{height:10px;margin:2px 16px 4px;background:#edf2f7;border-radius:99px;overflow:hidden;display:flex;gap:2px}
+.bar{display:none;height:10px;margin:2px 16px 4px;background:#edf2f7;border-radius:99px;overflow:hidden;display:flex;gap:2px}
 .bar i{display:block;height:100%;flex:1;background:#edf2f7;border-radius:99px;transition:background .3s}
 .bar i.f{background:linear-gradient(90deg,#4ade80,#22c55e)}
-.stg{text-align:center;font-size:clamp(11px,1.15vw,16px);color:#6b7a8c;font-weight:800;padding:0 8px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stg{text-align:center;font-size:clamp(11px,1.0vw,15px);color:#8a97a8;font-weight:800;padding:0 8px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .badge{position:absolute;top:10px;right:12px;z-index:4;font-size:clamp(18px,2.4vw,34px);font-weight:900;color:#fff;background:#2ecc71;border-radius:999px;padding:4px 14px;box-shadow:0 4px 0 #1e9e55;opacity:0;transform:scale(.4);pointer-events:none}
 .badge.neg{background:#e74c3c;box-shadow:0 4px 0 #a93226}
 .badge.show{animation:pop .5s cubic-bezier(.3,1.6,.5,1) forwards}
@@ -65,6 +65,9 @@ select,button{font:inherit;font-weight:800;border:0;border-radius:16px;cursor:po
 .conf{position:absolute;inset:0;z-index:5;pointer-events:none;overflow:hidden}
 .conf i{position:absolute;top:-10px;width:10px;height:14px;border-radius:3px;animation:cf 1.6s ease-in forwards}
 @keyframes cf{to{transform:translateY(120vh) rotate(720deg);opacity:.6}}
+.zz{position:absolute;right:16%;top:18%;font-size:clamp(22px,3vw,44px);z-index:6;pointer-events:none;display:none;animation:zz 2.2s ease-in-out infinite}
+.card.sleep .zz{display:block}
+@keyframes zz{0%{opacity:0;transform:translateY(10px) scale(.7)}40%{opacity:1}100%{opacity:0;transform:translateY(-24px) scale(1.15)}}
 .sad{position:absolute;left:50%;top:14%;transform:translateX(-50%);z-index:6;font-size:clamp(22px,3vw,44px);opacity:0;pointer-events:none}
 .sad.on{animation:sadAnim 1.8s ease forwards}
 @keyframes sadAnim{0%{opacity:0}20%{opacity:1}100%{opacity:0;transform:translate(-50%,30px)}}
@@ -110,15 +113,13 @@ select,button{font:inherit;font-weight:800;border:0;border-radius:16px;cursor:po
     <div id="today"></div>
     <div id="total" class="total"></div>
     <span class="sp"></span>
+    <button class="tb" id="allBtn" title="全班都 +1">👥 全班 +1</button>
     <button class="tb" id="undoBtn" title="復原上一步 (Z)">↩ 復原</button>
     <button class="tb" id="muteBtn" title="靜音 (M)">🔊</button>
     <button class="tb" id="fsBtn" title="全螢幕 (F)">⛶</button>
     <button class="tb" id="cfgBtn" title="老師設定 (T)">⚙️</button>
   </div>
-  <div class="hrow">
-    <div id="items"></div>
-    <button class="tb" id="allBtn" title="全班都加">👥 全班一起加</button>
-  </div>
+  <div id="items" class="hidden"></div>
 </header>
 <main id="grid"></main>
 
@@ -132,20 +133,18 @@ select,button{font:inherit;font-weight:800;border:0;border-radius:16px;cursor:po
 <div class="modal" id="cfgModal"><div class="box">
   <button class="x" id="cfgX">✕</button>
   <h2>⚙️ 老師設定</h2>
-  <b>加分項目</b>（圖示 / 名稱 / 分數，負數＝扣分；預設每項 +1）
-  <div id="cfgItems"></div>
-  <div class="btns"><button id="addItem">＋ 新增項目</button><button class="go" id="saveItems">💾 儲存項目</button></div>
+  <div id="cfgItems" class="hidden"></div><button id="addItem" class="hidden"></button><button id="saveItems" class="hidden"></button>
   <b>本班</b>
   <div class="btns"><button id="randAll">🎲 全班隨機換夥伴</button><button class="warn" id="resetGrade">🗑 今天分數歸零</button></div>
   <b>備份</b>（分數存在這台電腦的瀏覽器；換電腦請先匯出再匯入）
   <div class="btns"><button id="exportBtn">⬇ 匯出 JSON</button><button id="importBtn">⬆ 匯入 JSON</button><input type="file" id="importFile" accept="application/json" class="hidden"></div>
   <div class="help">
     <h3>成長規則（每天重來一次）</h3>
-    每按一次 +1 分，Lv.＝今天的分數，一天 30 分就是滿級。🥚 蛋 0 分 → 👶 寶寶（含奶嘴）1–4 分 → 🐾 爬行 5–9 分 → 🧒 站起來 10–16 分 → 🧑 少年 17–24 分 → 🦸 英雄 25 分以上。每天凌晨自動歸零，昨天的分數加進「累計」。夥伴每次加分都會用英語鼓勵（真人感語音），全班都變英雄時整頁慶祝。
+    每點一次 +1 分＝長大 1 歲，一天 30 歲就是滿級。😴 0 歲躺著睡覺吸奶嘴 → 👶 1–4 歲寶寶 → 🐾 5–9 歲爬行 → 🧒 10–16 歲小朋友 → 🧑 17–24 歲少年 → 🦸 25–30 歲超級英雄。每天凌晨自動歸零，昨天的分數加進「累計」。夥伴每次加分都會用英語鼓勵（真人感語音），全班都變英雄時整頁慶祝。
     <h3>每天都不一樣</h3>
     12 隻原創夥伴每天自動換「今日限定造型」（配色、帽子、披風都不同），學生每天可以重新選（卡片左上 🎨）；每隻的舞步也不同。
     <h3>玩法</h3>
-    先點上方加分項目，再點學生卡片；「👥 全班」一次全加；按錯按 ↩ 復原。鍵盤：1–9 切換項目、Z 復原、M 靜音、F 全螢幕、T 設定。
+    點學生的夥伴就 +1 並且長大一次；「👥 全班 +1」一次全加；按錯按 ↩ 復原。鍵盤：Z 復原、M 靜音、F 全螢幕、T 設定。
     <h3>教學依據</h3>
     代幣制度與立即回饋（Token economy, Kazdin）；每天歸零＝每天都有新機會，避免落後學生放棄（Growth mindset, Dweck）；可見的成長與「進化」里程碑提升持續動機（Goal-gradient effect；Deci &amp; Ryan 自我決定理論：自選夥伴＝自主感、升級＝勝任感）；全班同步加分促進班級凝聚（Group contingency）；扣分不會低於 0，避免懲罰取代獎勵。
   </div>
@@ -166,7 +165,7 @@ select,button{font:inherit;font-weight:800;border:0;border-radius:16px;cursor:po
 /* ================= data ================= */
 const ROSTER=[["褚品寬",1,"男"],["羅尹璐",1,"女"],["張敏歆",2,"女"],["藍宥鈞",2,"男"],["范鈞惟",3,"男"],["江睿宸",3,"男"],["賴其廷",3,"男"],["韋奕誠",3,"男"],["全芮妡",3,"女"],["黃韵喬",3,"女"],["葉宥妡",3,"女"],["褚振諺",3,"男"],["廖憫愛",4,"女"],["陳楷欣",4,"女"],["吳則熹",4,"男"],["吳俊緯",4,"男"],["吳俊享",4,"男"],["范鈞凱",5,"男"],["陳楷叡",5,"男"],["林瑄",5,"女"],["熊苡均",5,"女"],["黃香媛",5,"女"],["黃婕恩",5,"女"],["江庭宇",5,"男"],["李奇優",6,"女"],["呂馨緹",6,"女"],["葉家云",6,"女"],["葉家睿",6,"男"]];
 const GRADES=["一","二","三","四","五","六"];
-const STAGES=[{min:0,zh:"蛋",en:"Egg",ico:"🥚"},{min:1,zh:"寶寶",en:"Baby",ico:"👶"},{min:5,zh:"爬行",en:"Crawler",ico:"🐾"},{min:10,zh:"站起來",en:"Kid",ico:"🧒"},{min:17,zh:"少年",en:"Teen",ico:"🧑"},{min:25,zh:"英雄",en:"Hero",ico:"🦸"}];
+const STAGES=[{min:0,zh:"睡覺寶寶",en:"Sleepy Baby",ico:"😴"},{min:1,zh:"寶寶",en:"Baby",ico:"👶"},{min:5,zh:"爬行",en:"Crawler",ico:"🐾"},{min:10,zh:"小朋友",en:"Kid",ico:"🧒"},{min:17,zh:"少年",en:"Teen",ico:"🧑"},{min:25,zh:"超級英雄",en:"Super Hero",ico:"🦸"}];
 const EVO_SAY={1:"hatch",2:"crawl",3:"stand",4:"teen",5:"hero"};
 const PRAISE=["great_job","awesome","well_done","super","you_did_it","keep_going","fantastic","excellent","brilliant","way_to_go"];
 const LINES={great_job:"Great job!",awesome:"Awesome!",well_done:"Well done!",super:"Super!",you_did_it:"You did it!",keep_going:"Keep going!",fantastic:"Fantastic!",excellent:"Excellent!",brilliant:"Brilliant!",way_to_go:"Way to go!",hatch:"Hello! I'm here!",crawl:"Look! I can crawl!",stand:"I can stand up!",teen:"I'm getting stronger!",hero:"I'm a hero now!",max:"Thirty points! Perfect day!",minus:"Oops. Let's try again.",pick:"Nice to meet you!",all_hero:"We are all heroes!",hello:"Hello, class!"};
@@ -251,7 +250,7 @@ function mesh(geo,c,x,y,z,sx,sy,sz,outline,glow){const m=new THREE.Mesh(geo,mat(
 const sph=(c,x,y,z,r,sx=1,sy=1,sz=1,ol,glow)=>mesh(SG,c,x,y,z,r*sx,r*sy,r*sz,ol,glow);
 
 /* stage proportions: 0 egg 1 baby(sit) 2 crawl 3 kid 4 teen 5 hero */
-const STP={1:{R:.62,B:.36,bsy:1.0,leg:.12,arm:.26,pose:"sit",gs:.85},2:{R:.52,B:.44,bsy:1.2,leg:.22,arm:.3,pose:"crawl",gs:.95},3:{R:.56,B:.40,bsy:1.12,leg:.22,arm:.32,pose:"stand",gs:1.0},4:{R:.54,B:.44,bsy:1.28,leg:.30,arm:.38,pose:"stand",gs:1.1},5:{R:.54,B:.49,bsy:1.4,leg:.37,arm:.44,pose:"stand",gs:1.2}};
+const STP={0:{R:.62,B:.36,bsy:1.0,leg:.12,arm:.26,pose:"sleep",gs:.72},1:{R:.62,B:.36,bsy:1.0,leg:.12,arm:.26,pose:"sit",gs:.8},2:{R:.52,B:.44,bsy:1.2,leg:.22,arm:.3,pose:"crawl",gs:.95},3:{R:.56,B:.40,bsy:1.12,leg:.22,arm:.32,pose:"stand",gs:1.05},4:{R:.54,B:.44,bsy:1.28,leg:.30,arm:.38,pose:"stand",gs:1.15},5:{R:.54,B:.49,bsy:1.4,leg:.37,arm:.44,pose:"stand",gs:1.2}};
 
 function buildEgg(sp){
  const g=new THREE.Group(),P={pose:"egg"};const cs=costume(SPECIES.indexOf(sp));
@@ -260,17 +259,16 @@ function buildEgg(sp){
  [-1,1].forEach(sg=>{g.add(sph(0x4a3328,sg*.19,.72,.5,.085,1,.22,.4));g.add(sph(0xff9fb8,sg*.3,.6,.45,.07,1,.6,.4));});
  g.add(sph(0x4a3328,0,.58,.53,.03,1.4,.6,.5));
  g.add(sph(cs.accent,0,.08,0,.62,1,.17,1,true)); // cozy blanket
- g.scale.setScalar(.9);
- return {g,P,height:1.45*.9,stage:0,sp,gs:.9};
+ g.scale.setScalar(.7);
+ return {g,P,height:1.45*.7,stage:0,sp,gs:.7};
 }
 
 function buildPet(sp,stage,frac){
- if(stage===0)return buildEgg(sp);
  const st=STP[stage],R=st.R,B=st.B,bsy=st.bsy,leg=st.leg,arm=st.arm,pose=st.pose;
  const cs=costume(SPECIES.indexOf(sp));const AC2=cs.accent,AC3=cs.accent2;
- const g=new THREE.Group(),P={pose};
+ const crawl=pose==="crawl",sleep=pose==="sleep",sit=pose==="sit"||sleep;
+ const g0=new THREE.Group(),P={pose};const g=sleep?new THREE.Group():g0;if(sleep){g0.add(g);g.rotation.x=-.62;g.position.set(0,.3,.05);}
  const limbC=sp.limb||sp.body;
- const crawl=pose==="crawl",sit=pose==="sit";
  const bodyY=sit?B*bsy*.95:crawl?B*.8:leg+B*bsy*.9;
  // body
  P.body=sph(sp.body,0,bodyY,0,B,.95,bsy,.85,true);g.add(P.body);P.bodyY=bodyY;P.bsy=bsy;
@@ -322,7 +320,8 @@ function buildPet(sp,stage,frac){
   const ey1=sph(0x2a2230,ex,ey,ez,eyeR,1,1.15,.9);ey1.material=flat(0x2a2230);hg.add(ey1);
   const h1=sph(0xffffff,ex+sg*eyeR*.3,ey+eyeR*.35,ez+eyeR*.7,eyeR*.36);h1.material=flat(0xffffff);hg.add(h1);
   const h2=sph(0xffffff,ex-sg*eyeR*.25,ey-eyeR*.4,ez+eyeR*.75,eyeR*.16);h2.material=flat(0xffffff);hg.add(h2);
-  const lid=sph(sp.body,ex,ey+eyeR*.05,ez+eyeR*.05,eyeR*1.12,1,1.1,.9);lid.visible=false;hg.add(lid);P.lids.push(lid);
+  const lid=sph(sp.body,ex,ey+eyeR*.05,ez+eyeR*.05,eyeR*1.12,1,1.1,.9);lid.visible=sleep;hg.add(lid);P.lids.push(lid);
+  if(sleep){hg.add(sph(0x4a3328,ex,ey-eyeR*.15,ez+eyeR*1.05,eyeR*.9,1,.18,.3));}
   hg.add(sph(0xff9fb8,sg*R*.62,-R*.16,R*.7,R*.13,1,.62,.35));
   if(sp.whiskers){[-.08,.08].forEach(dy=>{const w=mesh(BOX,0x6b5a55,sg*R*.65,-R*.22+dy*R,R*.72,R*.5,R*.02,R*.02);w.rotation.z=sg*dy*2;w.rotation.y=sg*.5;hg.add(w);});}
  });
@@ -340,7 +339,7 @@ function buildPet(sp,stage,frac){
   PASTEL.forEach((c,i)=>hg.add(sph(c,(i-2.5)*R*.17,R*.78-Math.abs(i-2.5)*R*.06,-R*.35-i*R*.03,R*.16,1,1.1,.9)));}
  if(sp.tuft){[-.2,0,.2].forEach((x,i)=>hg.add(sph(sp.body,x*R,R*.95+(i===1?R*.12:0),0,R*.12,.8,1.4,.8)));}
  /* ===== accessories by stage (daily costume) ===== */
- if(stage===1){ // pacifier + bib
+ if(stage<=1){ // pacifier + bib
   hg.add(mesh(TOR,AC2,0,-R*.33,R*1.0,R*.13));hg.add(sph(0xffffff,0,-R*.33,R*1.0,R*.07));
   g.add(sph(0xffffff,0,bodyY+B*bsy*.4,B*.7,B,.5,.42,.25));
   const bn=mesh(CYL,AC3,0,R*.75,-R*.1,R*.72,R*.25,R*.72,true);hg.add(bn);hg.add(sph(0xffffff,0,R*1.0,-R*.1,R*.1)); // bonnet
@@ -349,6 +348,7 @@ function buildPet(sp,stage,frac){
   g.add(sph(0xffffff,0,B*.55,B*.1,B,.75,.5,.75));
   hg.add(sph(AC2,R*.45,R*.75,R*.3,R*.13,1.4,.7,.7));
  }
+ if(sleep){g0.add(sph(cs.accent2,0,.1,0,.95,1,.2,.85,true));g0.add(sph(0xfff0f5,0,.82,-.42,.5,1,.5,.5,true));const bk=mesh(BOX,AC2,0,.5,.45,1.15,.08,.75,true);bk.rotation.x=-.35;g0.add(bk);}
  if(stage>=3)addHat(hg,R,cs);
  if(stage===3){const sc=mesh(CG,AC2,0,bodyY+B*bsy*.55,B*.72,B*.5,B*.42,B*.22);sc.rotation.x=Math.PI;g.add(sc);}
  if(stage>=4){
@@ -359,8 +359,10 @@ function buildPet(sp,stage,frac){
  }
  if(stage===4){[-1,1].forEach((sg,i)=>{const wb=mesh(TOR2,AC3,0,-arm*.72,0,B*.3,B*.3,B*.3);wb.rotation.x=Math.PI/2;P.arms[i].add(wb);});}
  if(stage===5){
-  hg.add(mesh(OCT,0xff4d6d,0,R*1.0,R*.45,R*.09,R*.12,R*.09,false,true));
+  const mk=mesh(BOX,AC3,0,R*.1,R*.72,R*1.25,R*.42,R*.22,true);hg.add(mk); // eye mask
   P.arms.forEach(a=>a.add(sph(0xffd166,0,.05,0,B*.33,1,.8,1,true)));
+  const belt=mesh(TOR2,0xffd166,0,bodyY-B*bsy*.35,0,B*.98,B*.98,B*1.2);belt.rotation.x=Math.PI/2;g.add(belt);g.add(mesh(OCT,0xffd166,0,bodyY-B*bsy*.35,B*.95,B*.12,B*.14,B*.08,false,true));
+  P.legs.forEach(l=>l.add(sph(AC3,0,-leg*.6,B*.05,1,B*.34,leg*.5,B*.36)));
   g.add(mesh(OCT,0x3ec6ff,0,bodyY+B*bsy*.25,B*.84,B*.14,B*.18,B*.08,false,true));
   const wg=new THREE.Group();wg.position.set(0,-arm*.95,.02);P.arms[1].add(wg);
   if(sp.weapon==="sword"){wg.rotation.x=-.5;wg.add(mesh(BOX,0x8ae9ff,0,.55,0,.06,1.0,.015,false,true));wg.add(mesh(BOX,0xffd166,0,.05,0,.26,.06,.06));wg.add(mesh(CYL,0x6b3e26,0,-.12,0,.035,.26,.035));}
@@ -368,9 +370,9 @@ function buildPet(sp,stage,frac){
   P.aura=[];for(let i=0;i<8;i++){const s=sph(0xffe08a,0,0,0,.055,1,1,1,false,true);g.add(s);P.aura.push(s);}
   const halo=mesh(TOR2,0xffd166,0,.03,0,B*1.9,B*1.9,.3,false,true);halo.rotation.x=Math.PI/2;g.add(halo);P.halo=halo;
  }
- const gs=st.gs*(1+.1*frac);g.scale.setScalar(gs);
+ const gs=st.gs*(.82+.36*frac);g0.scale.setScalar(gs);
  const height=(crawl?headY+R*1.0+R*.5:headY+R*1.0+(sp.ear==="long"?R*.9:R*.45)+(stage===5?R*.25:0))*gs;
- return {g,P,height,stage,sp,gs};
+ return {g:g0,P,height,stage,sp,gs};
 }
 function addHat(hg,R,cs){const A=cs.accent,A2=cs.accent2;
  switch(cs.hat){
@@ -399,7 +401,7 @@ function setPet(v,spId,stage,frac){
  const sp=SPECIES.find(s=>s.id===spId)||SPECIES[0];
  v.pet=buildPet(sp,stage,frac);v.pet.g.position.x=0;
  v.scene.add(v.pet.g);
- const H=v.pet.height;v.cam.position.set(0,H*.68,H*1.9+.45);v.cam.lookAt(0,H*.57,0);v.cam.userData.H=H;
+ const H=3.6;v.cam.position.set(0,1.75,7.2);v.cam.lookAt(0,1.55,0);v.cam.userData.H=H;v.gsCur=v.pet.gs;
  v.scene.userData.shadow.scale.setScalar(v.pet.gs||1);
 }
 function removeView(v){const i=views.indexOf(v);if(i>=0)views.splice(i,1);if(v.pet)disposeGroup(v.pet.g);}
@@ -419,7 +421,7 @@ function animate(v,dt){
  // jump
  let y=0,sy=1,x=0,rz=0;
  if(v.jumpT<v.jumpDur){v.jumpT+=dt;const u=Math.min(1,v.jumpT/v.jumpDur);y=v.jumpH*Math.sin(Math.PI*u);sy=1+.18*Math.sin(Math.PI*u)*(u<.5?1:-.6);}
- else if(v.nextHop>0){v.nextHop-=dt;if(v.nextHop<=0){v.jumpT=0;v.jumpDur=.55;v.jumpH=crawl?.1:.22;v.nextHop=3+Math.random()*6;}}
+ else if(v.nextHop>0&&P.pose!=="sleep"){v.nextHop-=dt;if(v.nextHop<=0){v.jumpT=0;v.jumpDur=.55;v.jumpH=crawl?.1:.22;v.nextHop=3+Math.random()*6;}}
  if(v.wob>0)v.wob-=dt;
  // dance routines (each species different)
  if(dancing){const D=sp.dance;
@@ -432,9 +434,10 @@ function animate(v,dt){
   else if(D==="clap"){y+=.05*Math.abs(Math.sin(t*6));}
   else if(D==="peck"){x=.06*Math.sin(t*9);}
  }
- const gs=p.gs||1;
+ v.gsCur=v.gsCur===undefined?p.gs:v.gsCur+(p.gs-v.gsCur)*Math.min(1,dt*4);const gs=v.gsCur;
  g.position.set(x,y,0);g.rotation.z=rz;g.scale.set(gs/Math.sqrt(sy),gs*sy,gs/Math.sqrt(sy));
  const sh=v.scene.userData.shadow;sh.position.x=x;sh.scale.setScalar(gs*(1-y*.5));sh.material.opacity=.16*(1-y*.5);
+if(P.pose==="sleep"){P.body.userData.b??(P.body.userData.b=P.body.scale.y);P.body.scale.y=P.body.userData.b*(1+.04*Math.sin(t*1.6));P.head.rotation.z=.08*Math.sin(t*.8);P.arms.forEach((a,i)=>a.rotation.z=a.userData.base+(i?1:-1)*.08*Math.sin(t*1.6));if(P.tail)P.tail.rotation.y=.2*Math.sin(t*1.2);return;}
  if(P.pose==="egg"){const amp=.07+(v.wob>0?.22:0)+(dancing?.12:0);g.rotation.z=Math.sin(t*(v.wob>0?14:dancing?8:3.2))*amp;g.rotation.x=Math.cos(t*2.1)*amp*.4;g.rotation.y=v.rot;return;}
  // idle parts
  P.body.userData.b??(P.body.userData.b=P.body.scale.y);P.body.scale.y=P.body.userData.b*(1+.025*Math.sin(t*2.3));
@@ -463,7 +466,7 @@ function animate(v,dt){
  else{v.nextBlink-=dt;if(v.nextBlink<=0){v.blink=.13;v.nextBlink=2+Math.random()*3.5;P.lids.forEach(l=>l.visible=true);}}
  const open=v.cheer>0||dancing?1:0;P.mouth.scale.y+=((open?P.mouth.scale.x*1.4:P.mouth.scale.x*.35)-P.mouth.scale.y)*Math.min(1,dt*12);
 }
-function doCheer(v,big){v.cheer=v.cheerDur=big?1.4:1.1;v.cheerFrom=v.rot;v.cheerTo=Math.ceil(v.rot/6.2832)*6.2832+6.2832;v.jumpT=0;v.jumpDur=big?.9:.7;v.jumpH=big?.75:.5;v.wob=.9;v.dance=0;}
+function doCheer(v,big){if(v.pet&&v.pet.P.pose==="sleep"){v.wob=.9;return;}v.cheer=v.cheerDur=big?1.4:1.1;v.cheerFrom=v.rot;v.cheerTo=Math.ceil(v.rot/6.2832)*6.2832+6.2832;v.jumpT=0;v.jumpDur=big?.9:.7;v.jumpH=big?.75:.5;v.wob=.9;v.dance=0;}
 function doSad(v){v.sad=1.8;v.wob=.6;v.dance=0;}
 
 let last=performance.now();
@@ -486,7 +489,7 @@ gradeSel.addEventListener("change",()=>{S.grade=+gradeSel.value;save();renderGra
 function renderItems(){itemsEl.innerHTML="";S.items.forEach((it,i)=>{const b=document.createElement("button");b.className="chip"+(it.p<0?" neg":"")+(i===S.item?" on":"");b.innerHTML=`${it.e} ${it.l} <b>${it.p>0?"+":""}${it.p}</b>`;b.addEventListener("click",()=>{S.item=i;save();renderItems();SFX.tap();});itemsEl.appendChild(b);});}
 if(S.item>=S.items.length)S.item=0;renderItems();
 const cards={};
-function stageText(d){const p=d.pts,s=stageOf(p),st=STAGES[s];let t=`${st.ico} ${st.zh} ${st.en}`;if(s===0)t+=" · 加 1 分就孵化";else if(STAGES[s+1])t+=` · 再 ${STAGES[s+1].min-p} 分進化`;else t+=p>=MAX_PTS?" · 今日滿分！":" · 最強英雄！";if(d.total)t+=` · 累計 ${d.total+p}`;return t;}
+function stageText(d){const p=d.pts,s=stageOf(p),st=STAGES[s];let t=`${st.ico} ${st.zh} ${st.en}`;if(s===0)t+=" · 點一下就醒來";else if(STAGES[s+1])t+=` · 再 ${STAGES[s+1].min-p} 分進化`;else t+=p>=MAX_PTS?" · 今日滿分！":" · 最強英雄！";if(d.total)t+=` · 累計 ${d.total+p}`;return t;}
 function todayLabel(){const d=new Date();const w="日一二三四五六"[d.getDay()];$("#today").textContent=`📅 ${d.getMonth()+1}/${d.getDate()} 星期${w} · 今天`;}
 todayLabel();
 function renderGrade(){
@@ -495,16 +498,16 @@ function renderGrade(){
  const cols=n<=4?2:n<=6?3:4;grid.style.gridTemplateColumns=`repeat(${cols},1fr)`;grid.style.gridAutoRows="1fr";
  list.forEach(r=>{const k=key(r),d=stu(k);
   const c=document.createElement("div");c.className="card";c.dataset.k=k;
-  c.innerHTML=`<div class="badge"></div><button class="pick" title="選夥伴">🎨</button><div class="view"></div><div class="nm"><span class="n">${r[0]}</span><span class="lv">Lv.${d.pts}</span></div><div class="bar">${"<i></i>".repeat(STAGES.length)}</div><div class="stg"></div><div class="evo"><b>✨ 進化！</b><span></span></div><div class="sad">💧</div><div class="max">🏆 今天已經滿分 30！</div><div class="conf"></div>`;
+  c.innerHTML=`<div class="badge"></div><button class="pick" title="選夥伴">🎨</button><div class="view"></div><div class="nm"><span class="n">${r[0]}</span><span class="lv">${d.pts} 歲</span></div><div class="bar">${"<i></i>".repeat(STAGES.length)}</div><div class="stg"></div><div class="evo"><b>✨ 進化！</b><span></span></div><div class="sad">💧</div><div class="zz">💤</div><div class="max">🏆 今天已經滿分 30！</div><div class="conf"></div>`;
   grid.appendChild(c);
   const v=makeView(c.querySelector(".view"),d.sp,stageOf(d.pts),fracOf(d.pts));
   cards[k]={el:c,v,r};updateCard(k);
-  c.addEventListener("click",e=>{if(e.target.closest(".pick"))return;award(k,S.items[S.item]);});
+  c.addEventListener("click",e=>{if(e.target.closest(".pick"))return;award(k,{l:"加分",e:"⭐",p:1});});
   c.querySelector(".pick").addEventListener("click",e=>{e.stopPropagation();openPick(k);});
  });
  save();
 }
-function updateCard(k){const d=stu(k),c=cards[k].el;c.querySelector(".lv").textContent="Lv."+d.pts;const s=stageOf(d.pts);c.querySelectorAll(".bar i").forEach((i,j)=>i.classList.toggle("f",j<=s&&s>0));c.querySelector(".stg").textContent=stageText(d);updateTotal();}
+function updateCard(k){const d=stu(k),c=cards[k].el;c.querySelector(".lv").textContent=d.pts+" 歲";const s=stageOf(d.pts);c.querySelectorAll(".bar i").forEach((i,j)=>i.classList.toggle("f",j<=s&&s>0));c.querySelector(".stg").textContent=stageText(d);c.classList.toggle("sleep",d.pts===0);updateTotal();}
 function updateTotal(){const ks=Object.keys(cards);const tot=ks.reduce((a,k)=>a+stu(k).pts,0);const heroes=ks.filter(k=>stageOf(stu(k).pts)===5).length;$("#total").textContent=`⭐ 全班今天 ${tot} 分 · 🦸 ${heroes}/${ks.length}`;}
 function checkAllHero(){const ks=Object.keys(cards);if(!ks.length||!ks.every(k=>stageOf(stu(k).pts)===5))return;const flag=S.grade+"_"+todayStr();S.celebrated=S.celebrated||{};if(S.celebrated[flag])return;S.celebrated[flag]=1;save();setTimeout(()=>{const o=$("#allHero");o.classList.add("on");confetti(o);SFX.evolve();say("all_hero");ks.forEach((k,i)=>setTimeout(()=>doCheer(cards[k].v,true),i*120));setTimeout(()=>o.classList.remove("on"),5200);},900);}
 let badgeTimers={};
@@ -525,12 +528,12 @@ function award(k,it,silent){
  if(s1!==s0){ // evolve
   if(!silent)SFX.evolve();
   c.v.wob=1.2;c.el.classList.add("flash");confetti(c.el);
-  const ev=c.el.querySelector(".evo");ev.querySelector("b").textContent=s1===1?"🐣 孵化了！":s1===2?"🐾 會爬了！":s1===3?"🧒 站起來了！":s1===5?"🦸 變成英雄！":"✨ 進化！";ev.querySelector("span").textContent=`${STAGES[s1].ico} ${STAGES[s1].zh} ${STAGES[s1].en}`;flashCls(ev,"on");
+  const ev=c.el.querySelector(".evo");ev.querySelector("b").textContent=s1===1?"👶 醒來了！":s1===2?"🐾 會爬了！":s1===3?"🧒 站起來了！":s1===5?"🦸 變成英雄！":"✨ 進化！";ev.querySelector("span").textContent=`${STAGES[s1].ico} ${STAGES[s1].zh} ${STAGES[s1].en}`;flashCls(ev,"on");
   setTimeout(()=>{setPet(c.v,d.sp,s1,fracOf(next));doCheer(c.v,true);c.el.classList.remove("flash");say(EVO_SAY[s1]);},450);
   if(s1===5)checkAllHero();
- }else{if(!silent)SFX.plus();if(!silent)say(next===MAX_PTS?"max":praise());const ng=STP[s1].gs*(1+.1*fracOf(next));c.v.pet.gs=ng;doCheer(c.v,false);if(next===MAX_PTS){confetti(c.el);flashCls(c.el.querySelector(".max"),"on");}}
+ }else{if(!silent)SFX.plus();if(!silent)say(next===MAX_PTS?"max":praise());const ng=STP[s1].gs*(.82+.36*fracOf(next));c.v.pet.gs=ng;doCheer(c.v,false);if(next===MAX_PTS){confetti(c.el);flashCls(c.el.querySelector(".max"),"on");}}
 }
-$("#allBtn").addEventListener("click",()=>{const it=S.items[S.item];const ks=Object.keys(cards);ks.forEach((k,i)=>setTimeout(()=>award(k,it,i>0),i*140));toast(`全班 ${it.e}${it.l} ${it.p>0?"+":""}${it.p}`);});
+$("#allBtn").addEventListener("click",()=>{const it={l:"加分",e:"⭐",p:1};const ks=Object.keys(cards);ks.forEach((k,i)=>setTimeout(()=>award(k,it,i>0),i*140));toast(`全班 ${it.e}${it.l} ${it.p>0?"+":""}${it.p}`);});
 $("#undoBtn").addEventListener("click",undo);
 function undo(){const u=UNDO.pop();if(!u){toast("沒有可復原的動作");return;}const d=stu(u.k);d.pts=u.prev;save();if(cards[u.k]){const c=cards[u.k];setPet(c.v,d.sp,stageOf(d.pts),fracOf(d.pts));updateCard(u.k);}toast("已復原");SFX.tap();}
 $("#muteBtn").addEventListener("click",()=>{S.muted=!S.muted;save();$("#muteBtn").textContent=S.muted?"🔇":"🔊";});
