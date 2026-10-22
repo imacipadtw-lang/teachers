@@ -29,7 +29,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans TC","
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
 label.l{display:block;font-weight:700;margin-bottom:8px;font-size:15px}
 label.l small{font-weight:400;color:var(--muted);margin-left:6px}
-input[type=text]{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;font-size:16px;background:#fff}
+select,input[type=text]{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;font-size:16px;background:#fff}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .opt{position:relative}
 .opt input{position:absolute;opacity:0;inset:0}
@@ -84,8 +84,15 @@ pre.copy{white-space:pre-wrap;background:#fff;border:1px dashed var(--line);bord
 <!-- 點餐 -->
 <div id="vForm">
   <form id="f" class="card" onsubmit="return submitOrder(event)">
-    <label class="l" for="name">姓名</label>
-    <input type="text" id="name" name="name" placeholder="請填姓名（同名再填會覆蓋舊的）" required maxlength="20" autocomplete="name">
+    <label class="l" for="nameSel">姓名</label>
+    <select id="nameSel" name="nameSel" required onchange="onNameSel()">
+      <option value="" disabled selected>請選擇姓名</option>
+      <option>簡玉惠</option><option>郭玉雪</option><option>劉佳雯</option><option>林家玉</option><option>陳佳君</option>
+      <option>黃羽瑄</option><option>林繼于</option><option>李致德</option><option>陳怡璇</option><option>黃詠裕</option>
+      <option>廖恒慈</option><option>陳怡伶</option><option>許聖欣</option><option>詹可德</option><option>吳韻如</option>
+      <option value="__other">其他（自行填寫）</option>
+    </select>
+    <input type="text" id="name" name="name" class="hide" style="margin-top:8px" placeholder="請填姓名" maxlength="20" autocomplete="name">
 
     <label class="l" style="margin-top:16px">飲料 <small>四選一</small></label>
     <div class="grid">
@@ -144,13 +151,21 @@ function show(v){
   if(v==='list') load();
 }
 
+function onNameSel(){
+  const other = $('#nameSel').value==='__other';
+  $('#name').classList.toggle('hide', !other);
+  $('#name').required = other;
+  if(other) $('#name').focus();
+}
+
 function msg(el, text, kind){ el.textContent=text; el.className='msg '+kind; }
 
 async function submitOrder(e){
   e.preventDefault();
   const f = e.target;
+  const sel = f.nameSel.value;
   const data = {
-    name: f.name.value.trim(),
+    name: (sel==='__other' ? f.name.value : sel).trim(),
     drink: f.drink.value,
     temp: f.temp.value,
     note: f.note.value.trim()
@@ -219,7 +234,11 @@ async function copyText(){
 
 function esc(s){ return String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
-try{ const n=localStorage.getItem('drink_name'); if(n) $('#name').value=n; }catch(_){}
+try{ const n=localStorage.getItem('drink_name'); if(n){
+  const sel=$('#nameSel'); const has=[...sel.options].some(o=>o.value===n);
+  if(has){ sel.value=n; } else { sel.value='__other'; $('#name').value=n; }
+  onNameSel();
+} }catch(_){}
 if(location.hash==='#list') show('list');
 </script>
 </body>
