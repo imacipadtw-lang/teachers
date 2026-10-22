@@ -6,27 +6,69 @@
 <title>10/28 雙語研習 飲料訂單</title>
 <style>
 :root{
-  --bg:#f6efe6; --card:#fffdf9; --ink:#2b221b; --muted:#7a6a5c;
-  --brand:#6b3f2a; --brand-2:#a46a4a; --line:#e5d8c9;
+  --bg:#f3e9dc; --card:#fffdf9; --ink:#2b221b; --muted:#7a6a5c;
+  --brand:#5a3321; --brand-2:#a46a4a; --line:#e5d8c9; --cream:#fbf4ea;
+  --awn:#b8392a; --awn2:#fff6ee; --wood:#7a4a30; --wood2:#5a3321; --glass:#eaf3f7;
   --hot:#c9542f; --cold:#2f7fc1; --ok:#2e7d4f;
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;line-height:1.5}
-.wrap{max-width:560px;margin:0 auto;padding:16px 16px 48px}
-.hero{background:var(--brand);color:#fff;border-radius:18px;padding:20px 20px 18px;margin-bottom:14px}
-.hero .k{font-size:13px;opacity:.85;letter-spacing:.08em}
-.hero h1{margin:4px 0 10px;font-size:24px;line-height:1.25}
-.hero .meta{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:14px;opacity:.95}
-.lect{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:14px}
-.lect .t{font-size:13px;color:var(--muted)}
-.lect .name{font-size:18px;font-weight:700;margin:2px 0}
-.lect .name em{font-style:normal;font-weight:500;font-size:14px;color:var(--brand-2);margin-left:6px}
-.lect .org{font-size:14px;color:var(--muted)}
-.lect .topic{margin-top:8px;font-size:15px;font-weight:600;color:var(--brand)}
+body{margin:0;color:var(--ink);font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;line-height:1.5;
+  background:linear-gradient(180deg,#cfe6f3 0,#e9f1f5 220px,var(--bg) 420px,var(--bg) 100%)}
+.wrap{max-width:560px;margin:0 auto;padding:18px 16px 48px}
+
+/* ── 店面 ───────────────────── */
+.shop{position:relative;margin:0 0 18px}
+.shop .cloud{position:absolute;top:-6px;background:#fff;border-radius:999px;opacity:.9}
+.shop .cloud:before,.shop .cloud:after{content:"";position:absolute;background:#fff;border-radius:50%}
+.shop .c1{left:4%;width:70px;height:20px}.shop .c1:before{left:14px;top:-10px;width:28px;height:28px}.shop .c1:after{left:36px;top:-6px;width:20px;height:20px}
+.shop .c2{right:6%;top:10px;width:54px;height:16px}.shop .c2:before{left:10px;top:-8px;width:22px;height:22px}.shop .c2:after{left:28px;top:-5px;width:16px;height:16px}
+.facade{position:relative;background:var(--cream);border:3px solid var(--wood);border-radius:14px 14px 10px 10px;margin-top:38px;padding:0 0 14px;
+  box-shadow:0 14px 30px rgba(90,51,33,.18),inset 0 0 0 6px #f4e6d5}
+.sign{position:absolute;left:50%;top:-40px;transform:translateX(-50%);background:var(--wood2);color:#f6e7c9;border:3px solid #3f2216;border-radius:10px;
+  padding:6px 18px 7px;text-align:center;white-space:nowrap;box-shadow:0 4px 0 #3f2216}
+.sign .en{display:block;font-size:11px;letter-spacing:.22em;opacity:.8}
+.sign .zh{display:block;font-size:19px;font-weight:800;letter-spacing:.06em}
+.sign:before,.sign:after{content:"";position:absolute;top:-12px;width:3px;height:12px;background:#3f2216}
+.sign:before{left:22px}.sign:after{right:22px}
+.awning{height:46px;margin:30px 10px 0;border-radius:8px 8px 0 0;position:relative;
+  background:repeating-linear-gradient(90deg,var(--awn) 0 26px,var(--awn2) 26px 52px);border:3px solid var(--wood);border-bottom:0}
+.awning:after{content:"";position:absolute;left:-3px;right:-3px;bottom:-14px;height:16px;
+  background:radial-gradient(circle at 13px 0,transparent 12px,var(--awn) 12.5px) 0 0/26px 16px repeat-x,radial-gradient(circle at 13px 0,transparent 12px,var(--awn2) 12.5px) 26px 0/52px 16px repeat-x}
+.awning:after{background:
+  radial-gradient(circle at 13px -2px,transparent 12px,var(--awn) 13px) 0 0/52px 16px repeat-x,
+  radial-gradient(circle at 13px -2px,transparent 12px,var(--awn2) 13px) 26px 0/52px 16px repeat-x}
+.front{display:grid;grid-template-columns:1fr 92px;gap:12px;padding:26px 14px 0}
+.window{background:var(--glass);border:3px solid var(--wood);border-radius:8px;padding:12px 14px;position:relative;
+  box-shadow:inset 0 0 0 5px #fff,inset 0 18px 30px rgba(255,255,255,.7)}
+.window:before{content:"";position:absolute;inset:8px;border:1px solid rgba(90,51,33,.18);border-radius:4px;pointer-events:none}
+.poster{background:#fffaf0;border:1px solid #e6d2b5;border-radius:6px;padding:10px 12px;box-shadow:0 2px 6px rgba(0,0,0,.08);transform:rotate(-1deg)}
+.poster .t{font-size:11px;color:var(--brand-2);letter-spacing:.14em;font-weight:700}
+.poster .name{font-size:19px;font-weight:800;margin:1px 0;color:var(--brand)}
+.poster .name em{font-style:normal;font-weight:500;font-size:13px;color:var(--brand-2);margin-left:6px}
+.poster .org{font-size:12px;color:var(--muted)}
+.poster .topic{margin-top:6px;font-size:13.5px;font-weight:600;color:var(--ink);line-height:1.4}
+.poster .tape{position:absolute;top:-8px;left:50%;transform:translateX(-50%) rotate(2deg);width:56px;height:16px;background:rgba(255,230,150,.75)}
+.door{background:linear-gradient(180deg,#8a5638,#6a3f28);border:3px solid var(--wood);border-radius:40px 40px 6px 6px;position:relative;min-height:150px}
+.door:before{content:"";position:absolute;left:10px;right:10px;top:12px;height:48px;background:var(--glass);border-radius:30px 30px 6px 6px;border:2px solid #3f2216}
+.door .knob{position:absolute;right:12px;top:92px;width:10px;height:10px;border-radius:50%;background:#f1c55b;box-shadow:0 0 0 2px #3f2216}
+.door .open{position:absolute;left:50%;top:66px;transform:translateX(-50%) rotate(-3deg);background:#f6e7c9;color:var(--brand);font-size:11px;font-weight:800;padding:3px 8px;border-radius:4px;border:1px solid #3f2216;white-space:nowrap;line-height:1.2;text-align:center}
+.door .open small{display:block;font-size:9px;font-weight:600;letter-spacing:.06em}
+.plank{margin:14px 14px 0;background:var(--wood2);color:#f6e7c9;border-radius:8px;padding:8px 12px;font-size:13px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.plank b{color:#ffd98a}
+.menu-board{margin:12px 14px 0;background:#2d3a33;color:#f3efe3;border:4px solid var(--wood);border-radius:8px;padding:10px 12px 8px;font-size:13px}
+.menu-board .h{font-size:11px;letter-spacing:.2em;color:#cfe3d2;text-align:center;margin-bottom:4px}
+.menu-board .items{display:flex;justify-content:space-around;flex-wrap:wrap;gap:4px 10px;font-weight:700}
+.menu-board .items span:before{content:"✦ ";color:#f1c55b}
+.menu-board .s{font-size:11px;color:#cfe3d2;text-align:center;margin-top:4px}
+.pavement{height:10px;margin:0 2px;background:repeating-linear-gradient(90deg,#cbb8a2 0 28px,#bda78f 28px 30px);border-radius:0 0 8px 8px;border:2px solid #a8927a;border-top:0}
+.supply{text-align:center;font-size:12px;color:var(--muted);margin-top:10px}
+.supply b{color:var(--brand)}
+
+/* ── 表單 ───────────────────── */
 .tabs{display:flex;gap:6px;margin:6px 0 14px}
 .tabs button{flex:1;padding:10px;border:1px solid var(--line);background:#fff;border-radius:12px;font-size:15px;color:var(--muted)}
 .tabs button.on{background:var(--brand);color:#fff;border-color:var(--brand);font-weight:700}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 6px 18px rgba(90,51,33,.06)}
 label.l{display:block;font-weight:700;margin-bottom:8px;font-size:15px}
 label.l small{font-weight:400;color:var(--muted);margin-left:6px}
 select,input[type=text]{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;font-size:16px;background:#fff}
@@ -34,7 +76,7 @@ select,input[type=text]{width:100%;padding:12px;border:1px solid var(--line);bor
 .opt{position:relative}
 .opt input{position:absolute;opacity:0;inset:0}
 .opt span{display:block;text-align:center;padding:16px 8px;border:2px solid var(--line);border-radius:14px;font-size:17px;font-weight:600;background:#fff}
-.opt span b{display:block;font-size:26px;margin-bottom:2px}
+.opt span b{display:block;font-size:28px;margin-bottom:2px}
 .opt input:checked+span{border-color:var(--brand);background:#fbf1e8;color:var(--brand)}
 .opt.hot input:checked+span{border-color:var(--hot);background:#fdeee8;color:var(--hot)}
 .opt.cold input:checked+span{border-color:var(--cold);background:#e9f2fb;color:var(--cold)}
@@ -58,22 +100,38 @@ th{color:var(--muted);font-weight:500;font-size:12px}
 .foot{font-size:12px;color:var(--muted);text-align:center;margin-top:18px}
 pre.copy{white-space:pre-wrap;background:#fff;border:1px dashed var(--line);border-radius:12px;padding:12px;font-size:14px;font-family:inherit}
 .hide{display:none}
+@media (max-width:380px){.front{grid-template-columns:1fr 72px}.sign .zh{font-size:16px}}
 </style>
 </head>
 <body>
 <div class="wrap">
 
-<div class="hero">
-  <div class="k">南投縣草屯鎮土城國小｜115學年度雙語生活化研習</div>
-  <h1>10/28 研習飲料訂單</h1>
-  <div class="meta"><span>10/28（三）13:30–16:30</span><span>土城國小 檔案室</span></div>
-</div>
-
-<div class="lect">
-  <div class="t">第一場講師</div>
-  <div class="name">陳淑珠<em>副教授</em></div>
-  <div class="org">國立雲林科技大學應用外語系</div>
-  <div class="topic">從數位到互動：生成式 AI 在雙語課堂的應用與實踐</div>
+<div class="shop">
+  <div class="cloud c1"></div><div class="cloud c2"></div>
+  <div class="facade">
+    <div class="sign"><span class="en">BILINGUAL WORKSHOP CAFÉ</span><span class="zh">10/28 研習飲料店</span></div>
+    <div class="awning"></div>
+    <div class="front">
+      <div class="window">
+        <div class="poster">
+          <div class="tape"></div>
+          <div class="t">第一場講師</div>
+          <div class="name">陳淑珠<em>副教授</em></div>
+          <div class="org">國立雲林科技大學應用外語系</div>
+          <div class="topic">從數位到互動：生成式 AI 在雙語課堂的應用與實踐</div>
+        </div>
+      </div>
+      <div class="door"><div class="open">OPEN<small>13:30–16:30</small></div><div class="knob"></div></div>
+    </div>
+    <div class="menu-board">
+      <div class="h">TODAY'S MENU</div>
+      <div class="items"><span>美式咖啡</span><span>拿鐵咖啡</span><span>英式奶茶</span><span>水果茶</span></div>
+      <div class="s">每款皆可選 冷 ／ 熱</div>
+    </div>
+    <div class="plank"><span>📅 <b>10/28（三）</b> 13:30–16:30</span><span>📍 土城國小 檔案室</span></div>
+  </div>
+  <div class="pavement"></div>
+  <div class="supply">飲料由 <b>露易莎咖啡 Louisa Coffee</b> 供應｜南投縣草屯鎮土城國小 115學年度雙語生活化研習</div>
 </div>
 
 <div class="tabs">
