@@ -1088,7 +1088,7 @@ function renderLine(loading){
   if(!L.on){ h = `<p>教務組還在設定 LINE 通知，請過幾天再來看看。</p>`; }
   else if(L.bound){
     h = `<div class="line-ok"><strong>✅ 已綁定</strong>LINE：${esc(L.dn||"（未顯示名稱）")}${L.at?`，${esc(L.at)} 綁定`:""}
-      <ul><li>每天早上 7:30，當天有代課或調課會私訊您</li><li>在 LINE 打「今天」「明天」可以隨時查詢</li></ul></div>
+      <ul><li>每天早上 7:30，當天有代課或調課會私訊您</li><li>在 LINE 點「今天」「一週」「一個月」，或打日期（例如 11/2）隨時查詢</li></ul></div>
       <p style="margin-top:12px"><button class="btn ghost small" type="button" id="lineUnbind">解除綁定（不再收到通知）</button></p>`;
   } else {
     const left = Math.max(0, Math.round((lineUI.until - Date.now())/1000));
