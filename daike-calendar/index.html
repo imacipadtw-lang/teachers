@@ -201,6 +201,31 @@ button.pill:hover{border-color:var(--sky);color:#fff}
 /* ---------- 每月報表（管理者） ---------- */
 .monthly{background:rgba(17,34,58,.94);border:1px solid var(--line);border-left:5px solid var(--sky);border-radius:var(--r);padding:14px 16px;margin-bottom:16px}
 .monthly h3{margin:0;font-size:16px}
+/* 會計總覽：每月一頁看完 */
+.acct{margin-top:14px;border-top:1px solid var(--line-2);padding-top:12px}
+.acct-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.acct-head h4{margin:0;font-size:15px}
+.acct-head span{font-size:12px;color:var(--ink-3)}
+.acct-kpi{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1px;margin:10px 0;background:var(--line);border-radius:10px;overflow:hidden}
+.acct-kpi div{background:rgba(14,29,49,.95);padding:10px 12px}
+.acct-kpi .k{font-size:12px;color:#A9C2D7}
+.acct-kpi b{display:block;font-family:var(--digits);font-size:24px;line-height:1.2;color:#fff;font-variant-numeric:tabular-nums}
+.acct-kpi b small{font-family:var(--font);font-size:12.5px;color:#C9DAE8;margin-left:3px;font-weight:600}
+.acct-kpi .total{background:linear-gradient(160deg,rgba(92,200,240,.22),rgba(14,29,49,.95))}
+.acct-chk{font-size:13.5px;margin:2px 0 10px;display:flex;gap:6px 16px;flex-wrap:wrap}
+.acct-chk .ok{color:var(--c-tutor);font-weight:700}
+.acct-chk .bad{color:var(--rose);font-weight:700}
+.acct-chk .w{color:var(--amber)}
+.acct-cols{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:14px}
+.acct table{width:100%;border-collapse:collapse;font-size:13.5px;font-variant-numeric:tabular-nums}
+.acct caption{text-align:left;font-weight:700;font-size:13px;color:var(--ink-2);padding-bottom:4px}
+.acct th,.acct td{padding:6px 8px;border-bottom:1px solid var(--line-2);text-align:right;white-space:nowrap}
+.acct th{font-size:12px;color:var(--ink-3);font-weight:700;background:rgba(23,44,71,.55)}
+.acct th:first-child,.acct td:first-child{text-align:left}
+.acct tfoot td{font-weight:800;border-top:2px solid var(--line);border-bottom:0}
+.acct td.fl{color:var(--rose);font-weight:700}
+.acct .scroll{overflow-x:auto}
+@media (max-width:820px){.acct-kpi{grid-template-columns:repeat(2,minmax(0,1fr))}.acct-kpi .total{grid-column:1/-1}.acct-cols{grid-template-columns:1fr}}
 .monthly p{margin:4px 0 10px;color:var(--ink-2);font-size:13.5px}
 .monthly .mrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .monthly select{width:auto;padding:9px 36px 9px 12px;font-size:15px;border-radius:10px}
@@ -297,6 +322,9 @@ main{container-type:inline-size}
 .ev .fl{font-size:13px;font-weight:700;color:var(--rose);margin-top:2px}
 .ev .x{font-size:12px;color:var(--ink-3)}
 .ev .rep{margin-top:4px;border:0;background:none;padding:2px 0;color:var(--sky-deep);font-size:13px;text-decoration:underline;text-underline-offset:3px}
+.ev .fixd{font-size:12.5px;color:var(--amber);margin-top:3px}
+.ev .fixbtn{margin-top:5px;border:1px solid var(--line);background:rgba(17,34,58,.7);color:var(--sky-deep);font-size:13px;font-weight:700;padding:3px 13px;border-radius:999px}
+.ev .fixbtn:hover,.ev .fixbtn:focus-visible{border-color:var(--sky);color:#fff;outline:none;box-shadow:0 0 0 3px var(--sky-soft)}
 .panel .ev{margin:10px 16px}
 
 /* ---------- 側欄 ---------- */
@@ -328,6 +356,37 @@ main{container-type:inline-size}
 .modal-card .sub{margin:0 0 6px;color:var(--ink-2)}
 .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:10px}
 .modal.block{z-index:80;background:rgba(40,6,16,.7)}
+/* 管理者修改 */
+.fix-card{width:min(560px,100%);max-height:calc(100vh - 32px);overflow:auto}
+.fix-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+.fix-grid .wide{grid-column:1/-1}
+.fix-grid label{margin:12px 0 5px}
+.fix-grid input,.fix-grid select{padding:10px 12px}
+.fix-grid .chg label{color:var(--amber)}
+.fix-grid .chg input,.fix-grid .chg select{border-color:var(--amber);box-shadow:0 0 0 3px var(--amber-soft)}
+@media (max-width:520px){.fix-grid{grid-template-columns:1fr}}
+.fix-now{background:var(--amber-soft);border:1px solid rgba(242,194,107,.35);border-radius:10px;padding:8px 12px;font-size:13.5px;margin:10px 0 0}
+.fix-now.bad{background:var(--rose-soft);border-color:rgba(242,140,165,.45)}
+.fix-now ul{margin:6px 0 0;padding-left:18px}
+.fix-diff{width:100%;border-collapse:collapse;margin:14px 0 4px;font-size:15px}
+.fix-diff th,.fix-diff td{padding:9px 10px;border-bottom:1px solid var(--line-2);text-align:left;vertical-align:top}
+.fix-diff th{font-size:12.5px;color:var(--ink-3);font-weight:700}
+.fix-diff td.old{color:var(--ink-3);text-decoration:line-through}
+.fix-diff td.new{color:var(--sky-deep);font-weight:800}
+.fix-tip{font-size:13px;color:var(--ink-2);margin:10px 0 0}
+.fix-acts{flex-wrap:wrap;justify-content:flex-start}
+.fix-acts .r{display:flex;gap:10px;margin-left:auto}
+.btn.dghost{background:transparent;color:var(--rose);border-color:rgba(242,140,165,.5)}
+.btn.dghost:hover{background:var(--rose-soft);border-color:var(--rose);color:var(--rose);box-shadow:none}
+.fixes{background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--amber);border-radius:var(--r);padding:12px 16px;margin-bottom:16px}
+.fixes h3{margin:0;font-size:16px}
+.fixes ul{margin:6px 0 0;padding:0}
+.fixes li{list-style:none;padding:8px 0;border-top:1px dashed var(--line);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;font-size:14px;align-items:start}
+.fixes .st{font-size:12.5px;color:var(--ink-3)}
+.fixes .st.wait{color:var(--amber)}
+.fixes .st.done{color:var(--c-tutor)}
+.fixes li button{border:1px solid var(--line);background:transparent;color:var(--ink-2);border-radius:8px;padding:4px 10px;font-size:13px}
+.fixes li button:hover{border-color:var(--sky);color:#fff}
 .block-card{width:min(480px,100%);border:2px solid var(--rose);box-shadow:0 0 0 6px rgba(239,122,155,.18),0 24px 60px rgba(0,0,0,.5);animation:pop .22s cubic-bezier(.2,.9,.3,1.2),shake .38s ease .05s}
 .block-card h2{color:var(--rose)}
 #blockList{margin:8px 0 6px;padding-left:20px;line-height:1.6;font-weight:600}
@@ -671,6 +730,17 @@ main{container-type:inline-size}
   </form>
 </div>
 
+<!-- 管理者：修改一筆紀錄 -->
+<div class="modal" id="fixModal" hidden>
+  <div class="modal-card fix-card" role="dialog" aria-modal="true" aria-labelledby="fixTitle">
+    <h2 id="fixTitle" tabindex="-1">修改這筆紀錄</h2>
+    <p class="sub" id="fixSub"></p>
+    <div id="fixBody"></div>
+    <div class="err" id="fixErr" role="alert"></div>
+    <div class="modal-actions fix-acts" id="fixActs"></div>
+  </div>
+</div>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <div class="loading" id="loading"><div><span class="spin" aria-hidden="true"></span><div>讀取中…<small id="loadingHint"></small></div></div></div>
 
@@ -958,18 +1028,31 @@ async function api(params){
   if (!API_URL) throw new Error("網頁還沒連上資料表：請教務組把 Apps Script 網址填進 index.html 的 API_URL。");
   const u = new URL(API_URL);
   for (const [k,v] of Object.entries(params)) if (v!=null && v!=="") u.searchParams.set(k, v);
-  u.searchParams.set("_", Date.now());
-  const r = await fetch(u, {redirect:"follow"});
-  if (!r.ok) throw new Error("連不到伺服器（"+r.status+"），請稍後再試");
-  return r.json();
+  // Google 偶爾會短暫回 404／5xx 或斷線：自動再試 2 次（讀資料可以放心重試）
+  for (let i = 0; ; i++) {
+    u.searchParams.set("_", Date.now());
+    let r = null;
+    try { r = await fetch(u, {redirect:"follow"}); } catch (e) { if (i >= 2) throw new Error("網路連不上，請確認網路後再試"); }
+    if (r && r.ok) return r.json();
+    if (r && !(r.status === 404 || r.status === 429 || r.status >= 500)) throw new Error("連不到伺服器（"+r.status+"），請稍後再試");
+    if (i >= 2) throw new Error("伺服器暫時沒有回應（Google 那邊），已自動重試 3 次，請過一分鐘再試");
+    await new Promise(ok => setTimeout(ok, 1200 * (i + 1)));
+  }
 }
 const fetchData = (name, h, as, fresh) => api({action:"data", name, h, as, fresh: fresh ? "1" : ""});
 async function apiPost(body){
   if (DEMO) return demoPost(body);
   if (!API_URL) throw new Error("網頁還沒連上資料表");
   // 用純文字送 JSON，瀏覽器不會先做跨網域預檢，Apps Script 可以直接收
-  const r = await fetch(API_URL, {method:"POST", body: JSON.stringify(body)});
-  if (!r.ok) throw new Error("連不到伺服器（"+r.status+"），請稍後再試");
+  // 送資料只在 404 時自動重試；每個請求帶一個編號（rid），伺服器看到同一個編號就回上次的結果，不會重複登記
+  let r;
+  const payload = JSON.stringify(Object.assign({rid: "r" + Date.now().toString(36) + Math.random().toString(36).slice(2, 10)}, body));
+  for (let i = 0; ; i++) {
+    r = await fetch(API_URL, {method:"POST", body: payload});
+    if (r.status !== 404 || i >= 2) break;
+    await new Promise(ok => setTimeout(ok, 1200 * (i + 1)));
+  }
+  if (!r.ok) throw new Error(r.status === 404 ? "伺服器暫時沒有回應（Google 那邊），已自動重試 3 次，請過一分鐘再試" : "連不到伺服器（"+r.status+"），請稍後再試");
   try { return JSON.parse(await r.text()); }
   catch(e){ throw new Error("後端程式還沒更新：請教務組把新版 Code.gs 貼到 Apps Script 並重新部署"); }
 }
@@ -1203,6 +1286,7 @@ function applyData(d){
   $("#openReport").hidden = state.role==="admin";
   state.reports = d.reports || []; state.notify = d.notify;
   state.off = d.off || {}; state.audit = d.audit || []; state.typhoon = d.typhoon || null; state.heli = d.heli || state.heli || [];
+  state.fixes = d.fixes || []; state.leaveTypes = d.leaveTypes || null;
   renderReports();
   renderAdmin(); renderBoard(); renderAlerts(); renderRange(); renderMonthly(); renderYear(); renderList(); renderPanel(null);
   if (state.role==="admin") setTimeout(prefetchMeta, 300);          // 先把排課要用的資料準備好
@@ -1310,7 +1394,10 @@ function evRow(e){
   const about = `${md(e.date)} ${d.p}｜${d.w}｜${d.f}`;
   const repBtn = state.role==="teacher" ? `<button type="button" class="rep" data-date="${esc(e.date)}" data-about="${esc(about)}">這筆有錯？回報</button>` : "";
   const fl = (e.flags||[]).map(f=>`<div class="fl">⚠ ${esc(f)}</div>`).join("");
-  return `<div class="ev t-${e.type}${fl?" flag":""}"><div class="p"><span class="k">${KIND[e.type]||""}</span>${esc(d.p)}</div><div class="w">${esc(d.w)}</div><div class="f">${esc(d.f)}</div>${fl}${e.stamp?`<div class="stp${e.stamp.indexOf("已核章完成")===0?"":" wait"}">${e.stamp.indexOf("已核章完成")===0?"✓ ":"⏳ "}${esc(e.stamp)}</div>`:""}${e.note?`<div class="x">備註：${esc(e.note)}</div>`:""}${repBtn}</div>`;
+  const fr = state.role==="admin" ? fixRef(e) : null;
+  const fixBtn = fr ? `<button type="button" class="fixbtn" data-fix="${esc(fr.key)}" aria-label="修改這筆：${esc(md(e.date)+" "+d.p)}">修改</button>` : "";
+  const fixd = e.fix ? `<div class="fixd">✎ ${state.role==="admin" ? "已修正："+esc(e.fix.text)+(e.fix.pending?"（Excel 還沒改）":"") : "教務組已更正這筆資料"}</div>` : "";
+  return `<div class="ev t-${e.type}${fl?" flag":""}"><div class="p"><span class="k">${KIND[e.type]||""}</span>${esc(d.p)}</div><div class="w">${esc(d.w)}</div><div class="f">${esc(d.f)}</div>${fl}${fixd}${e.stamp?`<div class="stp${e.stamp.indexOf("已核章完成")===0?"":" wait"}">${e.stamp.indexOf("已核章完成")===0?"✓ ":"⏳ "}${esc(e.stamp)}</div>`:""}${e.note?`<div class="x">備註：${esc(e.note)}</div>`:""}${repBtn}${fixBtn}</div>`;
 }
 
 /* 月曆格子用：每一節分開寫，寫出班級、科目、誰代誰、誰領多少錢 */
@@ -1460,7 +1547,7 @@ function termMonths(){                       // 本學期包含的月份 [[年, 
 /* ================================================================
  * 排調代課（管理者）：填寫時即時檢查衝突，儲存後寫進雲端表格
  * ================================================================ */
-const LEAVES = ["公假","差假","事假","病假","喪假","產假","其他"];
+const LEAVES = ["公假","差假","身心假","事假","家庭照顧假","病假","喪假","產假","其他"];   // 身心假＝身心調適假；代課費一律學校支出；「其他」要寫備註
 const CLASSES = ["一甲","二甲","三甲","四甲","五甲","六甲","低年級","中年級","高年級"];
 const todayYmd = () => ymd(new Date());
 const newSwapRow = () => ({cls:"",fromDate:"",fromPeriod:"",fromSubject:"",toDate:"",toPeriod:"",toSubject:"",partner:"",auto:{}});
@@ -1557,8 +1644,9 @@ function missingOf(kind, r){
   if(kind==="swap"){ if(!plan.swap.teacher) m.push("申請人"); if(!r.cls) m.push("班級"); if(!r.fromDate) m.push("原日期"); if(!r.fromPeriod) m.push("原節次");
     if(!r.toDate) m.push("調整後日期"); if(!r.toPeriod) m.push("調整後節次"); if(!r.partner) m.push("調(代)課教師"); }
   else if(kind==="sub"){ if(!r.leaver) m.push("請假老師"); if(!r.date) m.push("日期"); if(!r.period) m.push("節次"); if(!r.cls) m.push("班級"); if(!r.sub) m.push("代課老師");
-    if(r.sub && r.sub===r.leaver) m.push("（代課老師不能是請假老師本人）"); }
-  else { if(!r.sub) m.push("代導師"); }
+    if(r.sub && r.sub===r.leaver) m.push("（代課老師不能是請假老師本人）");
+    if(r.leaveType==="其他" && !String(r.note||"").trim()) m.push("備註（假別選「其他」要寫明是什麼假）"); }
+  else { if(!r.sub) m.push("代導師"); if(r.leaveType==="其他" && !String(r.note||"").trim()) m.push("備註（假別選「其他」要寫明是什麼假）"); }
   return m;
 }
 function termOf(kind, r){                    // 不在本學期的日期
@@ -1638,7 +1726,7 @@ function renderPlan(){
       <div><label for="pLeaver">請假老師</label><select id="pLeaver" data-k="u.leaver">${teacherOpts(U.leaver)}</select></div>
       <div><label for="pLeave">假別</label><select id="pLeave" data-k="u.leaveType">${LEAVES.map(l=>opt(l,l,U.leaveType)).join("")}</select></div>
       <div><label for="pDate">日期</label><input type="date" id="pDate" data-k="u.date" value="${esc(U.date)}" min="${state.term.from}" max="${state.term.to}"><div class="dow-tag" data-dow="u.date"></div></div>
-      <div><label for="pNote">備註</label><input id="pNote" data-k="u.note" value="${esc(U.note)}" placeholder="選填"></div></div>
+      <div><label for="pNote">備註</label><input id="pNote" data-k="u.note" value="${esc(U.note)}" placeholder="${U.leaveType==="其他"?"假別選「其他」一定要寫，例如：公傷假":"選填"}"></div></div>
       <p class="hintline">先選請假老師和日期，再按「帶入這天的課」。代課老師清單會把那一節有空的老師排在前面。</p>
       <button type="button" class="btn ghost small" id="fillDay" ${U.leaver&&U.date?"":"disabled"}>帶入${esc(U.leaver||"請假老師")}這天的課</button>
       <div style="height:12px"></div>`;
@@ -1799,6 +1887,154 @@ document.addEventListener("keydown", e=>{
  * 回報問題（老師）＋ 回覆（教務組）
  * ================================================================ */
 let repCtx = {date:"", about:""};
+/* ---------- 管理者：直接修改一筆紀錄（原始的 Excel 不動，修正記在「管理者修正」分頁） ---------- */
+const FIXF = {
+  "代課":   [["date","日期","date"],["period","節次","period"],["cls","班級","text"],["subject","科目","text"],["leaver","請假老師","who"],["leaveType","假別","leave"],["sub","代課老師","who0"],["note","備註","note"]],
+  "代導師": [["date","日期","date"],["cls","班級","text"],["leaver","請假導師","who"],["leaveType","假別","leave"],["sub","代導師","who0"],["days","日數","days"],["note","備註","note"]],
+  "調課":   [["teacher","申請人","who"],["partner","調(代)課教師","who"],["cls","調課班級","text"],["fromDate","原日期","date"],["fromPeriod","原節次","period"],["fromSubject","原科目","text"],["toDate","調整後日期","date0"],["toPeriod","調整後節次","period0"],["toSubject","調整後科目","text"]]
+};
+const fixKind = e => e.type==="swap" ? "調課" : (e.type==="tutor"||e.type==="tutorLeave") ? "代導師" : "代課";
+function fixRef(e){
+  if(!e || !e.id || /^調課第/.test(e.id)) return null;          // 沒有序號的分不出是哪一列，不能改
+  const kind = fixKind(e), src = kind==="調課" ? "表單" : (e.src==="Excel" ? "Excel" : "網頁");
+  return {kind, src, id:e.id, key:[kind,src,e.id].join("|")};
+}
+function fixRec(e){
+  const kind = fixKind(e);
+  if(kind==="調課") return {teacher:e.teacher||"", partner:e.partner||"", cls:e.cls||"", fromDate:e.fromDate||"", fromPeriod:String(e.fromPeriod||""), fromSubject:e.fromSubject||"",
+                            toDate:e.toDate||"", toPeriod:String(e.toPeriod||""), toSubject:e.toSubject||""};
+  const isSub = e.type==="sub" || e.type==="tutor";
+  const r = {date:e.date, cls:e.cls||"", leaver:(isSub?e.other:e.who)||"", sub:(isSub?e.who:e.other)||"", leaveType:e.leaveType||"", note:e.note||""};
+  if(kind==="代課") Object.assign(r, {period:String(e.period||""), subject:e.subject||""}); else r.days = String(e.days||1);
+  return r;
+}
+const fx = {ref:null, ev:null, orig:null, cur:null, step:"edit", op:"save", issues:[], doneText:""};
+const fxTrim = v => String(v ?? "").trim();
+function fixChanges(){ const out = {}; for(const [k] of FIXF[fx.ref.kind]) if(fxTrim(fx.cur[k]) !== fxTrim(fx.orig[k])) out[k] = fxTrim(fx.cur[k]); return out; }
+function fixShow(k, v){ v = fxTrim(v); if(!v) return "（空白）"; if(/^(date|fromDate|toDate)$/.test(k)) return md(v); if(/eriod$/.test(k)) return `第 ${v} 節`; if(k==="days") return v+" 日"; return v; }
+function fixCheck(){                                             // 和後端一樣的基本檢查（後端還會再檢查一次）
+  const c = fx.cur, k = fx.ref.kind, m = [];
+  if(k==="調課"){
+    if(!c.teacher) m.push("請選申請人"); if(!c.partner) m.push("請選調(代)課教師"); if(c.teacher && c.teacher===c.partner) m.push("申請人和調(代)課教師不能是同一人");
+    if(!c.fromDate) m.push("請填原日期"); if(!c.fromPeriod) m.push("請選原節次");
+    if(c.toDate && !c.toPeriod) m.push("請選調整後節次"); if(!c.toDate && c.toPeriod) m.push("有調整後節次就要填調整後日期");
+  } else {
+    if(!c.leaver) m.push(k==="代課"?"請選請假老師":"請選請假導師"); if(c.sub && c.sub===c.leaver) m.push("請假和代課的不能是同一位老師");
+    if(!c.date) m.push("請填日期"); if(k==="代課" && !c.period) m.push("請選節次");
+    if(k==="代導師" && !(+c.days > 0 && +c.days <= 10)) m.push("日數要是 0.5～10");
+    if(c.leaveType==="其他" && !fxTrim(c.note)) m.push("假別選「其他」，請在備註寫明是什麼假");
+  }
+  ["date","fromDate","toDate"].forEach(d => { if(c[d] && c[d]!==fx.orig[d] && !inTerm(c[d])) m.push(`日期 ${md(c[d])} 不在本學期`); });
+  return m;
+}
+function fixField(k, label, t){
+  const v = fx.cur[k] ?? "", cls = (fxTrim(v)!==fxTrim(fx.orig[k]) ? "chg " : "") + (t==="note" ? "wide" : ""), id = "fx-"+k;
+  const names = blank => (blank ? `<option value="">${t==="who0" ? "（還沒安排）" : "（請選擇）"}</option>` : "")
+    + state.teachers.map(n => `<option ${n===v?"selected":""}>${esc(n)}</option>`).join("") + (v && !state.teachers.includes(v) ? `<option selected>${esc(v)}</option>` : "");
+  let ctl;
+  if(t==="date" || t==="date0") ctl = `<input type="date" id="${id}" data-fk="${k}" value="${esc(v)}" min="${esc(state.term.from)}" max="${esc(state.term.to)}">`;
+  else if(t==="period" || t==="period0") ctl = `<select id="${id}" data-fk="${k}">${t==="period0" || !v ? `<option value="">${t==="period0"?"（沒有）":"（請選擇）"}</option>` : ""}${[1,2,3,4,5,6,7,8].map(n => `<option ${String(n)===String(v)?"selected":""}>${n}</option>`).join("")}</select>`;
+  else if(t==="who" || t==="who0") ctl = `<select id="${id}" data-fk="${k}">${names(t==="who0" || !v)}</select>`;
+  else if(t==="leave"){ const L = ((state.leaveTypes && state.leaveTypes.length) ? state.leaveTypes : LEAVES).slice(); if(v && !L.includes(v)) L.push(v); if(!v) L.unshift("");
+    ctl = `<select id="${id}" data-fk="${k}">${L.map(l => `<option value="${esc(l)}" ${l===v?"selected":""}>${l?esc(l):"（請選擇）"}</option>`).join("")}</select>`; }
+  else if(t==="days") ctl = `<input type="number" id="${id}" data-fk="${k}" value="${esc(v)}" min="0.5" max="10" step="0.5" inputmode="decimal">`;
+  else ctl = `<input id="${id}" data-fk="${k}" value="${esc(v)}" maxlength="${t==="note"?100:30}" autocomplete="off"${t==="note" ? ` placeholder="${fx.cur.leaveType==="其他" ? "假別選「其他」一定要寫，例如：公傷假" : "可以不寫"}"` : ""}>`;
+  return `<div class="${cls.trim()}"><label for="${id}">${label}</label>${ctl}</div>`;
+}
+function renderFix(){
+  const r = fx.ref, e = fx.ev, srcName = r.src==="Excel" ? "Excel" : r.src==="表單" ? "調課登記" : "網頁／照片登記";
+  $("#fixTitle").textContent = fx.step==="done" ? "完成" : fx.step==="edit" ? "修改這筆紀錄" : fx.op==="delete" ? "確認刪除這筆" : "確認修改";
+  $("#fixSub").textContent = `${r.kind}・序號 ${r.id}（來源：${srcName}）`;
+  let body = "", acts = "";
+  if(fx.step==="edit"){
+    body = (e.fix ? `<div class="fix-now">✎ 這筆已經修正過：${esc(e.fix.text)}${e.fix.pending?"（Excel 還沒改）":""}</div>` : "")
+      + `<div class="fix-grid">${FIXF[r.kind].map(([k,l,t]) => fixField(k,l,t)).join("")}</div>`
+      + `<p class="fix-tip">${r.src==="Excel" ? "Excel 原檔不會被改；網站、LINE、代課總表、月報表會用修改後的資料，之後 Excel 同步也不會蓋掉。" : "修改後網站、LINE、代課總表、月報表會一起更新。"}</p>`;
+    acts = `<button type="button" class="btn dghost" data-fxa="delete">刪除這筆</button>${e.fix ? `<button type="button" class="btn ghost" data-fxa="undo">還原成原本</button>` : ""}`
+      + `<span class="r"><button type="button" class="btn ghost" data-fxa="close">取消</button><button type="button" class="btn" data-fxa="next">下一步：確認</button></span>`;
+  } else if(fx.step==="confirm" && fx.op==="delete"){
+    const d = describe(e) || {p:"", w:""};
+    body = `<div class="about">${esc(md(e.date))} ${esc(d.p)}｜${esc(d.w)}</div><p class="fix-tip">刪除後網站、LINE、代課總表、月報表都不再算這筆（Excel 原檔不會被改）。之後可以在「已修正的資料」按「還原」找回來。</p>`;
+    acts = `<span class="r"><button type="button" class="btn ghost" data-fxa="back">返回</button><button type="button" class="btn danger" data-fxa="save">確認刪除</button></span>`;
+  } else if(fx.step==="confirm"){
+    const ch = fixChanges(), L = {}; FIXF[r.kind].forEach(([k,l]) => L[k] = l);
+    body = `<table class="fix-diff"><thead><tr><th scope="col">欄位</th><th scope="col">原本</th><th scope="col">改成</th></tr></thead><tbody>`
+      + Object.keys(ch).map(k => `<tr><td>${esc(L[k])}</td><td class="old">${esc(fixShow(k, fx.orig[k]))}</td><td class="new">${esc(fixShow(k, ch[k]))}</td></tr>`).join("")
+      + `</tbody></table><p class="fix-tip">按「確認修改」立刻生效。如果是今天的課、而且換了人、時間或班級，有綁定 LINE 的老師會收到異動通知（7:30～17:00）。</p>`;
+    acts = `<span class="r"><button type="button" class="btn ghost" data-fxa="back">返回修改</button><button type="button" class="btn" data-fxa="save">確認修改</button></span>`;
+  } else {
+    body = `<p style="font-size:16px;font-weight:700;margin:12px 0 0">✓ ${esc(fx.doneText)}</p>`
+      + (fx.issues.length ? `<div class="fix-now bad">⚠ 修改後發現要注意：<ul>${fx.issues.map(i => `<li>${esc(i)}</li>`).join("")}</ul></div>` : "")
+      + (r.src==="Excel" && fx.op!=="undo" ? `<p class="fix-tip">提醒：有空時把 Excel 也改成一樣，網站上的「Excel 還沒改」提醒就會自動消失。</p>` : "");
+    acts = `<span class="r"><button type="button" class="btn" data-fxa="close">完成</button></span>`;
+  }
+  $("#fixBody").innerHTML = body; $("#fixActs").innerHTML = acts;
+}
+function openFix(key){
+  const e = state.events.find(x => { const r = fixRef(x); return r && r.key===key; });
+  if(!e) return toast("找不到這筆紀錄，請重新整理");
+  Object.assign(fx, {ref:fixRef(e), ev:e, orig:fixRec(e), step:"edit", op:"save", issues:[], doneText:""});
+  fx.cur = Object.assign({}, fx.orig);
+  fx.back = document.activeElement;
+  $("#fixErr").textContent = ""; renderFix(); $("#fixModal").hidden = false;
+  setTimeout(() => $("#fixTitle").focus(), 60);                  // 焦點放標題（手機不會一打開就跳出鍵盤）
+}
+function closeFix(){ $("#fixModal").hidden = true; if(fx.back && fx.back.isConnected && fx.back.focus) try{ fx.back.focus(); }catch(e){} }
+function fixInput(e){
+  const k = e.target.dataset.fk; if(!k) return;
+  fx.cur[k] = e.target.value;
+  e.target.parentElement.classList.toggle("chg", fxTrim(fx.cur[k]) !== fxTrim(fx.orig[k]));
+  if(k==="leaveType"){ const n = $("#fx-note"); if(n) n.placeholder = fx.cur.leaveType==="其他" ? "假別選「其他」一定要寫，例如：公傷假" : "可以不寫"; }
+  $("#fixErr").textContent = "";
+}
+$("#fixBody").addEventListener("input", fixInput);
+$("#fixBody").addEventListener("change", fixInput);
+async function fixSend(op, ref, data){
+  const body = {action:"fix", name:state.cred.name, h:state.cred.h, kind:ref.kind, src:ref.src, id:ref.id, op};
+  if(data) body.data = data;
+  const d = await apiPost(body);
+  if(!d.ok) throw new Error(d.error || "修改失敗");
+  return d;
+}
+$("#fixActs").addEventListener("click", async e => {
+  const a = e.target.closest("[data-fxa]"); if(!a) return;
+  const act = a.dataset.fxa;
+  if(act==="close") return closeFix();
+  if(act==="back"){ fx.step = "edit"; fx.op = "save"; $("#fixErr").textContent = ""; renderFix(); return; }
+  if(act==="delete"){ fx.op = "delete"; fx.step = "confirm"; $("#fixErr").textContent = ""; renderFix(); return; }
+  if(act==="next"){
+    fx.op = "save";
+    const m = fixCheck();
+    if(m.length){ $("#fixErr").textContent = m.join("；"); return; }
+    if(!Object.keys(fixChanges()).length){ $("#fixErr").textContent = "還沒有修改任何欄位"; return; }
+    fx.step = "confirm"; renderFix(); return;
+  }
+  if(act==="undo"){ if(!confirm("把這筆還原成原本的資料？")) return; fx.op = "undo"; }
+  a.disabled = true; busy(true);
+  try{
+    const d = await fixSend(fx.op, fx.ref, fx.op==="save" ? fixChanges() : null);
+    fx.doneText = fx.op==="delete" ? "已刪除這筆" : fx.op==="undo" ? "已還原成原本的資料" : (d.undone ? d.text : "已修改：" + d.text);
+    fx.issues = d.issues || []; fx.step = "done"; $("#fixErr").textContent = ""; renderFix();
+    await reload(true, true);
+  }catch(err){ $("#fixErr").textContent = err.message; a.disabled = false; if(fx.op==="undo") fx.op = "save"; }
+  finally{ busy(false); }
+});
+$("#fixModal").addEventListener("click", e => { if(e.target.id==="fixModal") closeFix(); });
+document.addEventListener("keydown", e => { if(e.key==="Escape" && !$("#fixModal").hidden) closeFix(); });
+document.addEventListener("click", async e => {
+  const b = e.target.closest("[data-fix]");
+  if(b){ e.stopPropagation(); openFix(b.dataset.fix); return; }
+  const u = e.target.closest("[data-fixundo]");
+  if(u){
+    const [kind, src, id] = u.dataset.fixundo.split("|");
+    if(!confirm(`把 ${kind} ${id} 還原成原本的資料？`)) return;
+    busy(true);
+    try{ await fixSend("undo", {kind, src, id}); toast("已還原"); await reload(true, true); }
+    catch(err){ toast("還原失敗：" + err.message); }
+    finally{ busy(false); }
+  }
+});
+
 function openReport(date, about){
   repCtx = {date:date||"", about:about||""};
   $("#repForm").reset(); $("#repErr").textContent="";
@@ -1972,7 +2208,7 @@ function renderAlerts(){
   if(state.role !== "admin"){ box.innerHTML = ""; return; }
   const a = state.audit || [], t = state.typhoon;
   const typh = `<p class="typh">颱風假自動檢查：${t ? esc(t.at) + "　" + (t.ok ? "正常，" : "沒有成功，") + esc(t.msg) : "還沒開始（請在資料表按「代課工具 → 開始自動處理」）"}。颱風假也可以自己寫在資料表「假日與停班停課」分頁。</p>`;
-  if(!a.length){ box.innerHTML = `<div class="alerts ok"><h3>資料檢查 <span class="tag">✓ 沒有發現衝堂或重複登錄</span></h3>${typh}</div>`; return; }
+  if(!a.length){ box.innerHTML = `<div class="alerts ok"><h3>資料檢查 <span class="tag">✓ 沒有發現衝堂或重複登錄</span></h3>${typh}</div>` + fixesCard(); return; }
   const kd = {dup:"重複", clash:"衝堂", leave:"請假", off:"假日", weekend:"日期", dow:"日期"};
   const li = i => `<li class="${i.kind}"><span class="kd">${kd[i.kind]||"提醒"}</span><span>${esc(i.msg)}</span></li>`;
   const n = a.filter(i=>i.kind==="clash"||i.kind==="leave").length, d = a.filter(i=>i.kind==="dup").length;
@@ -1980,7 +2216,17 @@ function renderAlerts(){
       ${n?`<span class="tag">衝堂 ${n}</span>`:""}${d?`<span class="tag">重複登錄 ${d}</span>`:""}</h3>
     <ul>${a.slice(0,6).map(li).join("")}</ul>
     ${a.length>6?`<details><summary style="font-size:13px;color:var(--ink-2);cursor:pointer;padding-top:6px">其餘 ${a.length-6} 個</summary><ul>${a.slice(6).map(li).join("")}</ul></details>`:""}
-    <p class="typh">重複登錄：網頁只算一次，請到 Excel 刪掉多的那一列。衝堂：請確認是否改請其他老師代課。有新的問題會自動通知您。</p>${typh}</div>`;
+    <p class="typh">重複登錄：網頁只算一次，請到 Excel 刪掉多的那一列（或在那筆紀錄按「修改」→「刪除這筆」）。衝堂：請確認是否改請其他老師代課。有新的問題會自動通知您。</p>${typh}</div>` + fixesCard();
+}
+/* 管理者修正清單 */
+function fixesCard(){
+  const F = state.fixes || [];
+  if(state.role !== "admin" || !F.length) return "";
+  const wait = F.filter(f => f.warn || /還沒改/.test(f.state)).length;
+  return `<div class="fixes"><h3>已修正的資料（${F.length} 筆${wait ? `，${wait} 筆要留意` : ""}）</h3><ul>${F.map(f => `<li><div><b>${esc(f.no)}</b>　${esc(f.kind)} ${esc(f.id)}｜${esc(f.text)}
+      <div class="st ${f.warn || /還沒改/.test(f.state) ? "wait" : "done"}">${esc(f.state)}・${esc(f.by)} ${esc(f.at)}</div></div>
+      <button type="button" data-fixundo="${esc([f.kind, f.src, f.id].join("|"))}" aria-label="還原 ${esc(f.no)}">還原</button></li>`).join("")}</ul>
+    <p class="typh">Excel 原檔不會被改。有空時把 Excel 也改成一樣，提醒會自動變成「Excel 已改成一樣」；按「還原」可以回到原本的資料。</p></div>`;
 }
 
 /* ---------- 範圍（整學期／每個月） ---------- */
@@ -2004,7 +2250,7 @@ function tableRows(evs){
     const fee = e.type==="swap" ? 0 : feeOf(e);
     const payee = e.type==="sub"||e.type==="tutor" ? e.who : (e.type==="leave"||e.type==="tutorLeave") ? (e.other||"") : "";
     const subj = e.type==="swap" ? "" : (tutorish ? "導師" : (e.subject||""));
-    const note = [].concat(e.flags||[], e.note ? ["備註：" + e.note] : []).join("；");
+    const note = [].concat(e.flags||[], e.note ? ["備註：" + e.note] : [], e.fix ? [state.role==="admin" && e.fix.text ? "管理者已修正：" + e.fix.text : "教務組已更正這筆資料"] : []).join("；");
     return { date:`${d.getMonth()+1}/${d.getDate()}`, dow:DOW[d.getDay()], per: e.period ? `第${e.period}節` : (tutorish ? "全日" : ""),
              kind, cls: e.cls||"", subj, what: x.w + (e.type==="swap" ? "（" + x.f + "）" : ""), leave: e.type==="swap" ? "" : (e.leaveType||""),
              fee: fee, payee, note, e };
@@ -2134,7 +2380,7 @@ async function printSign(r){
   names.forEach(n => {
     const list = by[n].sort((a,b) => a.date.localeCompare(b.date) || (+a.period||0) - (+b.period||0)), s = sum(list);
     const rows = list.map((e,i) => { const d = new Date(e.date+"T00:00:00"), fee = feeOf(e);
-      return `<tr><td>${i+1}</td><td>${d.getMonth()+1}/${d.getDate()}</td><td>${DOW[d.getDay()]}</td><td>${e.type==="tutor" ? "全日" : "第" + esc(e.period) + "節"}</td><td>${esc(e.cls)}</td><td>${e.type==="tutor" ? "代理導師" : esc(e.subject||"")}</td><td>${esc(e.other)}</td><td>${esc(e.leaveType||"")}</td><td class="r">${e.type==="tutor" ? RATE_TUTOR : (e.rate||RATE_SUB)}</td><td class="r">${e.nofee ? "0" : fee.toLocaleString("zh-TW")}</td><td class="l">${esc([...(e.flags||[]), e.stamp].filter(Boolean).join("；"))}</td></tr>`; }).join("");
+      return `<tr><td>${i+1}</td><td>${d.getMonth()+1}/${d.getDate()}</td><td>${DOW[d.getDay()]}</td><td>${e.type==="tutor" ? "全日" : "第" + esc(e.period) + "節"}</td><td>${esc(e.cls)}</td><td>${e.type==="tutor" ? "代理導師" : esc(e.subject||"")}</td><td>${esc(e.other)}</td><td>${esc(e.leaveType||"")}</td><td class="r">${e.type==="tutor" ? RATE_TUTOR : (e.rate||RATE_SUB)}</td><td class="r">${e.nofee ? "0" : fee.toLocaleString("zh-TW")}</td><td class="l">${esc([...(e.flags||[]), e.stamp, e.fix ? "教務組已更正（" + e.fix.text + "）" : ""].filter(Boolean).join("；"))}</td></tr>`; }).join("");
     html += `<div class="sheet"><h1>${roc}　代課節數簽收確認單</h1>
       <p class="sub">南投縣草屯鎮土城國民小學　教師：<b>${esc(n)}</b></p>
       <div class="meta"><span>代課 ${s.n} 節、代導師 ${s.d} 日</span><span>列印日期：${printedAt()}</span></div>
@@ -2160,11 +2406,234 @@ function renderMonthly(){
     <div class="mrow"><select id="mSel" aria-label="月份">${months.map(v => `<option value="${v}" ${v===pick?"selected":""}>${+v.slice(0,4)-1911} 年 ${+v.slice(5)} 月</option>`).join("")}</select>
       <button class="btn" type="button" id="mSign">老師簽收單（列印／PDF）</button>
       <button class="btn" type="button" id="mAcct">出納會計月報表（列印／PDF）</button>
+      <button class="btn ghost" type="button" id="mAcctX">出納會計 Excel（可填扣款）</button>
       <button class="btn ghost" type="button" id="mExcel">本月明細 Excel</button></div>
-    <div class="steps"><span><b>1</b>月底印簽收單</span><span><b>2</b>請老師核對、簽名</span><span><b>3</b>有錯就改資料表，再印一次</span><span><b>4</b>印月報表送出納、會計</span></div></div>`;
+    <div class="steps"><span><b>1</b>月底印簽收單</span><span><b>2</b>請老師核對、簽名</span><span><b>3</b>有錯就在網站按「修改」，再印一次</span><span><b>4</b>印月報表送出納、會計</span></div>
+    <div class="acct" id="acctBox" aria-live="polite"></div></div>`;
+  $("#mSel").onchange = () => renderAcct($("#mSel").value);
+  renderAcct(pick);
   $("#mSign").onclick = () => printSign($("#mSel").value);
   $("#mAcct").onclick = () => printAcct($("#mSel").value);
   $("#mExcel").onclick = () => { $("#rangeSel").value = $("#mSel").value; $("#dlExcel").click(); };
+  $("#mAcctX").onclick = () => acctExcel($("#mSel").value);
+}
+/* 會計總覽：選定月份的金額，依老師、依假別；同一份資料用三種方式加總互相核對 */
+function acctOf(evs, r){
+  const heli = state.heli || [], T = {}, L = {};
+  const inM = evs.filter(e => e.date.startsWith(r));
+  let n = 0, fee = 0, days = 0, tfee = 0, voidN = 0, flagN = 0, fixN = 0, recSum = 0;
+  const who = name => (T[name] ||= {b:0, c:0, d:0, amt:0, td:0, tamt:0, flags:0});
+  const lt = e => (L[e.leaveType || "（未填假別）"] ||= {n:0, days:0, amt:0});
+  inM.filter(e => e.type==="sub").forEach(e => {
+    if(e.fix) fixN++;
+    if(e.nofee){ voidN++; return; }
+    const rate = e.rate || RATE_SUB, t = who(e.who);
+    if(rate !== RATE_SUB) t.d++; else if(heli.includes(e.who)) t.c++; else t.b++;
+    t.amt += rate; n++; fee += rate; recSum += feeOf(e);
+    const x = lt(e); x.n++; x.amt += rate;
+    if((e.flags||[]).length){ t.flags++; flagN++; }
+  });
+  inM.filter(e => e.type==="tutor").forEach(e => {
+    if(e.fix) fixN++;
+    if(e.nofee){ voidN++; return; }
+    const dd = +e.days || 1, t = who(e.who);
+    t.td += dd; t.tamt += RATE_TUTOR * dd; days += dd; tfee += RATE_TUTOR * dd; recSum += feeOf(e);
+    const x = lt(e); x.days += dd; x.amt += RATE_TUTOR * dd;
+    if((e.flags||[]).length){ t.flags++; flagN++; }
+  });
+  const byTeacher = Object.values(T).reduce((s,t) => s + t.amt + t.tamt, 0), byLeave = Object.values(L).reduce((s,x) => s + x.amt, 0);
+  const unassigned = inM.filter(e => (e.type==="leave" || e.type==="tutorLeave") && !e.other).length;
+  return {T, L, n, fee, days, tfee, total: fee + tfee, byTeacher, byLeave, recSum, voidN, flagN, fixN, unassigned};
+}
+function renderAcct(r){
+  const box = $("#acctBox"); if(!box) return;
+  if(!isAll()){ box.innerHTML = `<p class="hint" style="margin:0">會計總覽看的是全校：上方「查看哪位老師」切回「全校總覽」就會出現。</p>`; return; }
+  const A = acctOf(state.events, r), roc = `${+r.slice(0,4)-1911} 年 ${+r.slice(5,7)} 月`, f = v => Number(v).toLocaleString("zh-TW");
+  const okAll = A.total === A.byTeacher && A.total === A.recSum && A.total === A.byLeave;
+  const names = Object.keys(A.T).sort((a,b) => ((state.heli||[]).includes(a) - (state.heli||[]).includes(b)) || a.localeCompare(b, "zh-Hant"));
+  const leaves = Object.entries(A.L).sort((a,b) => b[1].amt - a[1].amt);
+  if(!names.length){ box.innerHTML = `<div class="acct-head"><h4>${roc} 會計總覽</h4></div><p class="hint" style="margin:6px 0 0">這個月沒有要發的代課費、代導費。</p>`; return; }
+  box.innerHTML = `<div class="acct-head"><h4>${roc} 會計總覽</h4><span>依目前資料即時計算${$("#updated").textContent ? "・" + esc($("#updated").textContent) : ""}</span></div>
+    <div class="acct-kpi">
+      <div><span class="k">代課</span><b>${f(A.n)}<small>節</small></b></div>
+      <div><span class="k">代課費</span><b>${f(A.fee)}<small>元</small></b></div>
+      <div><span class="k">代導師</span><b>${f(A.days)}<small>日</small></b></div>
+      <div><span class="k">代導費</span><b>${f(A.tfee)}<small>元</small></b></div>
+      <div class="total"><span class="k">應發合計（${names.length} 人）</span><b>${f(A.total)}<small>元</small></b></div></div>
+    <div class="acct-chk">
+      <span class="${okAll ? "ok" : "bad"}">${okAll ? "✓" : "✗"} 核對：依老師 ${f(A.byTeacher)}＝逐筆明細 ${f(A.recSum)}＝依假別 ${f(A.byLeave)}${okAll ? "，三方一致" : "，不一致，請先不要送出"}</span>
+      ${A.flagN ? `<span class="w">⚠ 待確認 ${A.flagN} 筆</span>` : `<span>無待確認</span>`}
+      ${A.voidN ? `<span>不計費 ${A.voidN} 筆</span>` : ""}${A.fixN ? `<span>管理者修正 ${A.fixN} 筆</span>` : ""}${A.unassigned ? `<span class="w">還沒安排代課 ${A.unassigned} 筆</span>` : ""}</div>
+    <div class="acct-cols">
+      <div class="scroll"><table><caption>依老師（和出納會計月報表同一套算法）</caption>
+        <thead><tr><th scope="col">姓名</th><th scope="col">一般 405</th><th scope="col">代課他人 405</th><th scope="col">合班 608</th><th scope="col">代導師</th><th scope="col">應領（元）</th><th scope="col">待確認</th></tr></thead>
+        <tbody>${names.map(nm => { const t = A.T[nm]; return `<tr><td>${esc(nm)}</td><td>${t.b || "–"}</td><td>${t.c || "–"}</td><td>${t.d || "–"}</td><td>${t.td ? t.td + " 日" : "–"}</td><td><b>${f(t.amt + t.tamt)}</b></td><td class="${t.flags ? "fl" : ""}">${t.flags ? "⚠ " + t.flags : "–"}</td></tr>`; }).join("")}</tbody>
+        <tfoot><tr><td>合計 ${names.length} 人</td><td>${names.reduce((s,n) => s + A.T[n].b, 0)}</td><td>${names.reduce((s,n) => s + A.T[n].c, 0)}</td><td>${names.reduce((s,n) => s + A.T[n].d, 0)}</td><td>${A.days} 日</td><td>${f(A.byTeacher)}</td><td>${A.flagN || "–"}</td></tr></tfoot></table></div>
+      <div class="scroll"><table><caption>依假別</caption>
+        <thead><tr><th scope="col">假別</th><th scope="col">代課節數</th><th scope="col">代導日數</th><th scope="col">金額（元）</th></tr></thead>
+        <tbody>${leaves.map(([k,x]) => `<tr><td>${esc(k)}</td><td>${x.n || "–"}</td><td>${x.days || "–"}</td><td><b>${f(x.amt)}</b></td></tr>`).join("")}</tbody>
+        <tfoot><tr><td>合計</td><td>${A.n}</td><td>${A.days}</td><td>${f(A.byLeave)}</td></tr></tfoot></table></div>
+    </div>`;
+}
+/* 出納會計 Excel：印領清冊（含勞健保、所得稅、補充保費等扣款欄，填了會自動算實領）＋逐節明細＋代理導師費＋核對
+ * 金額都用公式（例：=3*405），會計室打開就看得到怎麼算；四張表的合計互相核對。 */
+async function acctExcel(r){
+  let all;
+  try{ all = await allEvents(); } catch(err){ toast("讀取失敗：" + err.message); return; }
+  const inM = all.filter(e => e.date.startsWith(r)), A = acctOf(all, r), heli = state.heli || [];
+  const subs = inM.filter(e => e.type==="sub").sort((a,b) => a.date.localeCompare(b.date) || (+a.period||0) - (+b.period||0));
+  const tutors = inM.filter(e => e.type==="tutor").sort((a,b) => a.date.localeCompare(b.date));
+  if(!subs.length && !tutors.length){ toast(`${rangeLabel(r)}沒有代課紀錄`); return; }
+  busy(true);
+  try{
+    await loadExcelJS();
+    const SCHOOL = "南投縣草屯鎮土城國民小學", y = +r.slice(0,4), rocY = y - 1911, mon = +r.slice(5,7), last = new Date(y, mon, 0).getDate(), mm = String(mon).padStart(2,"0");
+    const period = `${rocY}/${mm}/01－${rocY}/${mm}/${last}`;
+    const wb = new ExcelJS.Workbook(); wb.creator = "代課查詢系統"; wb.created = new Date();
+    const FN = "Microsoft JhengHei", thin = {style:"thin", color:{argb:"FF000000"}}, med = {style:"medium", color:{argb:"FF000000"}};
+    const NUM = '#,##0;-#,##0;"-"', HEAD = {type:"pattern", pattern:"solid", fgColor:{argb:"FFDCE6F1"}}, TOT = {type:"pattern", pattern:"solid", fgColor:{argb:"FFF2F2F2"}};
+    const font = (o) => Object.assign({name:FN, size:11}, o||{});
+    const center = {horizontal:"center", vertical:"middle", wrapText:true};
+    const boxAll = (ws, r1, c1, r2, c2) => { for(let i=r1;i<=r2;i++) for(let j=c1;j<=c2;j++) ws.getCell(i,j).border = {top: i===r1?med:thin, bottom: i===r2?med:thin, left: j===c1?med:thin, right: j===c2?med:thin}; };
+    const page = {paperSize:9, orientation:"landscape", fitToPage:true, fitToWidth:1, fitToHeight:0, horizontalCentered:true, margins:{left:.4, right:.4, top:.5, bottom:.5, header:.2, footer:.2}};
+    const title = (ws, ncol, sub) => {
+      ws.mergeCells(1,1,1,ncol); ws.getCell(1,1).value = SCHOOL; ws.getCell(1,1).font = font({size:16, bold:true}); ws.getCell(1,1).alignment = center;
+      ws.mergeCells(2,1,2,ncol); ws.getCell(2,1).value = sub; ws.getCell(2,1).font = font({size:14, bold:true}); ws.getCell(2,1).alignment = center;
+      ws.mergeCells(3,1,3,ncol); ws.getCell(3,1).value = `資料年月：＿＿＿　梯次：＿＿　計薪期間：${period}　　列印日期：${printedAt()}`; ws.getCell(3,1).font = font({size:10}); ws.getCell(3,1).alignment = {horizontal:"left"};
+      ws.getRow(1).height = 24; ws.getRow(2).height = 22;
+    };
+    // ---------- 1. 印領清冊（代課鐘點費） ----------
+    const s1 = wb.addWorksheet("印領清冊", {pageSetup: Object.assign({printTitlesRow:"4:5"}, page), views:[{state:"frozen", ySplit:5, xSplit:1}]});
+    s1.columns = [11,13,13,13,12,8,8,8,12,8,8,8,9,9,9,9,12,24].map(w => ({width:w}));
+    title(s1, 18, `${mon}月校內代課鐘點費印領清冊`);
+    const H1 = [[1,1,2,1,"員工姓名"],[4,2,4,4,"實　支　現　金　給　與"],[4,5,5,5,"小計(A)"],[4,6,4,8,"機關補助(B)"],[4,9,5,9,"請領金額\n(A+B)"],[4,10,4,16,"應　扣　項　目"],[4,17,5,17,"實領金額"],[4,18,5,18,"備註"]];
+    H1.forEach(([r1,c1,r2,c2,t]) => { const rr = r1===1 ? 4 : r1; s1.mergeCells(rr, c1, r2===2 ? 5 : r2, c2); s1.getCell(rr, c1).value = t; });
+    ["鐘點費\n405元","代課他人\n405元","合班非協同\n608元"].forEach((t,i) => s1.getCell(5, 2+i).value = t);
+    ["勞保","勞退","健保"].forEach((t,i) => s1.getCell(5, 6+i).value = t);
+    ["勞保","勞退","健保","所得稅","補充保費","其他扣款","小計"].forEach((t,i) => s1.getCell(5, 10+i).value = t);
+    for(let rr=4; rr<=5; rr++) for(let c=1; c<=18; c++){ const cell = s1.getCell(rr,c); cell.font = font({bold:true, size:10}); cell.alignment = center; cell.fill = HEAD; }
+    s1.getRow(4).height = 20; s1.getRow(5).height = 32;
+    const names = Object.keys(A.T).filter(n => A.T[n].b + A.T[n].c + A.T[n].d > 0)
+      .sort((a,b) => (heli.includes(a) - heli.includes(b)) || a.localeCompare(b, "zh-Hant"));
+    let row = 6;
+    names.forEach(n => {
+      const t = A.T[n], dAmt = t.amt - (t.b + t.c) * RATE_SUB;
+      const money = (cnt, rate, amt) => cnt ? (amt === cnt * rate ? {formula: `${cnt}*${rate}`, result: amt} : amt) : null;
+      const R = s1.getRow(row);
+      R.getCell(1).value = n;
+      R.getCell(2).value = money(t.b, RATE_SUB, t.b * RATE_SUB); R.getCell(3).value = money(t.c, RATE_SUB, t.c * RATE_SUB); R.getCell(4).value = money(t.d, 608, dAmt);
+      R.getCell(5).value = {formula: `SUM(B${row}:D${row})`, result: t.amt};
+      R.getCell(9).value = {formula: `E${row}+SUM(F${row}:H${row})`, result: t.amt};
+      R.getCell(16).value = {formula: `SUM(J${row}:O${row})`, result: 0};
+      R.getCell(17).value = {formula: `I${row}-P${row}`, result: t.amt};
+      const fl = subs.filter(e => e.who===n && !e.nofee && (e.flags||[]).length).length;
+      R.getCell(18).value = fl ? `有 ${fl} 筆待確認（見逐節明細）` : null;
+      R.height = 24; row++;
+    });
+    const r0 = 6, r1 = row - 1;
+    s1.getRow(row).getCell(1).value = "以下空白"; s1.getRow(row).height = 20; row++;
+    const tr = row, TR = s1.getRow(tr);
+    TR.getCell(1).value = `共 ${names.length} 人`;
+    for(let c=2; c<=17; c++){ const L = String.fromCharCode(64+c); TR.getCell(c).value = {formula: `SUM(${L}${r0}:${L}${r1})`}; }
+    TR.eachCell({includeEmpty:true}, (cell, c) => { if(c<=18){ cell.font = font({bold:true}); cell.fill = TOT; } });
+    for(let i=r0; i<=tr; i++) for(let c=1; c<=18; c++){ const cell = s1.getCell(i,c); if(c>=2 && c<=17) cell.numFmt = NUM; if(!cell.font || !cell.font.bold) cell.font = font(); cell.alignment = c===1 ? {horizontal:"center", vertical:"middle"} : c===18 ? {vertical:"middle", wrapText:true} : {horizontal:"right", vertical:"middle"}; }
+    [5,9,17].forEach(c => { for(let i=r0; i<=tr; i++) s1.getCell(i,c).font = font({bold:true}); });
+    boxAll(s1, 4, 1, tr, 18);
+    const subTotal = names.reduce((s,n) => s + A.T[n].amt, 0);
+    row = tr + 1;
+    s1.getRow(row).height = 26;
+    s1.mergeCells(row, 1, row, 12); s1.getCell(row,1).value = `實領合計新臺幣（大寫）：${bigNum(subTotal)}`; s1.getCell(row,1).font = font({bold:true, size:12}); s1.getCell(row,1).alignment = {vertical:"bottom"};
+    s1.mergeCells(row, 13, row, 18); s1.getCell(row,13).value = "（表內若填了扣款，實領金額會自動重算，大寫請依實領合計更正）"; s1.getCell(row,13).font = font({size:9, color:{argb:"FF666666"}});
+    row++;
+    s1.mergeCells(row, 1, row, 18);
+    s1.getCell(row,1).value = "註：1. 依代課紀錄逐節計算，明細見「逐節明細」工作表；一般教師代課列「鐘點費 405 元」，合理員額教師代課他人列「代課他人 405 元」；合班每節 608 元（405×1.5＝607.5 進位），代協同老師的課與一般班級每節 405 元。2. 重複登錄只算一次；颱風假、國定假日當天，以及由其他經費支應的紀錄不列入。3. 機關補助及應扣項目（勞保、勞退、健保、所得稅、補充保費、其他扣款）由人事、出納依實際計算填入，實領金額會自動計算。";
+    s1.getCell(row,1).font = font({size:9}); s1.getCell(row,1).alignment = {wrapText:true, vertical:"top"}; s1.getRow(row).height = 42;
+    row += 2;
+    const sig = [["製表員",1,3],["出納員",4,5],["勞保承辦人",6,8],["總務主任",9,10],["人事管理員",11,13],["會計主任",14,16],["校長",17,18]];
+    sig.forEach(([t,c1,c2]) => { s1.mergeCells(row,c1,row,c2); s1.mergeCells(row+1,c1,row+1,c2); const h = s1.getCell(row,c1); h.value = t; h.font = font({bold:true}); h.alignment = center; h.fill = HEAD; });
+    s1.getRow(row+1).height = 46; boxAll(s1, row, 1, row+1, 18);
+    // ---------- 2. 逐節明細 ----------
+    const s2 = wb.addWorksheet("逐節明細", {pageSetup: Object.assign({printTitlesRow:"4:4"}, page), views:[{state:"frozen", ySplit:4}]});
+    s2.columns = [6,12,12,6,7,9,16,10,10,10,8,6,9,40].map(w => ({width:w}));
+    title(s2, 14, `${mon}月校內代課明細表（逐節）`);
+    const H2 = ["項次","序號","日期","星期","節次","班級","科目","請假教師","假別","代課教師","單價","計費","金額","說明"];
+    s2.getRow(4).values = H2; s2.getRow(4).eachCell(c => { c.font = font({bold:true, size:10}); c.alignment = center; c.fill = HEAD; }); s2.getRow(4).height = 22;
+    let q = 5;
+    subs.forEach((e,i) => {
+      const d = new Date(e.date+"T00:00:00"), rate = e.rate || RATE_SUB;
+      const note = [...(e.flags||[]), e.exempt ? "另案經費：" + e.exempt : "", e.fix ? "管理者已修正（" + e.fix.text + "）" : "", e.note ? "備註：" + e.note : ""].filter(Boolean).join("；");
+      const R = s2.getRow(q);
+      R.values = [i+1, e.id||"", `${rocY}/${String(d.getMonth()+1).padStart(2,"0")}/${String(d.getDate()).padStart(2,"0")}`, DOW[d.getDay()], `第${e.period}節`, e.cls||"", e.subject||"", e.other||"", e.leaveType||"", e.who, rate, e.nofee ? "否" : "是", null, note];
+      R.getCell(13).value = {formula: `IF(L${q}="是",K${q},0)`, result: e.nofee ? 0 : rate};
+      R.eachCell({includeEmpty:true}, (c, col) => { if(col<=14){ c.font = font({size:10, strike: !!e.nofee, color: e.nofee ? {argb:"FF888888"} : undefined}); c.alignment = col===14 || col===7 ? {vertical:"middle", wrapText:true} : col>=11 && col<=13 ? {horizontal:"right", vertical:"middle"} : {horizontal:"center", vertical:"middle"}; } });
+      if((e.flags||[]).length && !e.nofee) R.getCell(14).font = font({size:10, bold:true, color:{argb:"FFC0392B"}});
+      [11,13].forEach(c => R.getCell(c).numFmt = NUM);
+      q++;
+    });
+    const q0 = 5, q1 = q - 1, qt = q;
+    s2.mergeCells(qt, 1, qt, 12); s2.getCell(qt,1).value = "合計（劃線的不計費）"; s2.getCell(qt,13).value = subs.length ? {formula: `SUM(M${q0}:M${q1})`} : 0; s2.getCell(qt,13).numFmt = NUM;
+    s2.getRow(qt).eachCell({includeEmpty:true}, (c, col) => { if(col<=14){ c.font = font({bold:true}); c.fill = TOT; c.alignment = col===1 ? {horizontal:"center"} : {horizontal:"right"}; } });
+    boxAll(s2, 4, 1, qt, 14);
+    s2.mergeCells(qt+1, 1, qt+1, 14);
+    s2.getCell(qt+1, 1).value = {formula: `IF(M${qt}='印領清冊'!E${tr},"✓ 核對：本表合計 = 印領清冊小計(A)，相符","✗ 核對：本表合計和印領清冊小計(A)不符，請檢查")`};
+    s2.getCell(qt+1, 1).font = font({bold:true, color:{argb:"FF1E7B4F"}});
+    // ---------- 3. 代理導師費 ----------
+    let tTot = 0, tRow = 0;
+    if(tutors.length){
+      const s3 = wb.addWorksheet("代理導師費", {pageSetup: Object.assign({printTitlesRow:"4:4"}, page)});
+      s3.columns = [11,46,8,8,11,16,18].map(w => ({width:w}));
+      title(s3, 7, `${mon}月代理導師費印領清冊`);
+      s3.getRow(4).values = ["員工姓名","代理日期（代誰、班級）","日數","每日","金額","簽收","備註"];
+      s3.getRow(4).eachCell(c => { c.font = font({bold:true, size:10}); c.alignment = center; c.fill = HEAD; });
+      const tb = {}; tutors.forEach(e => (tb[e.who] ||= []).push(e));
+      let k = 5;
+      Object.keys(tb).sort((a,b) => a.localeCompare(b, "zh-Hant")).forEach(n => {
+        const list = tb[n], dd = list.filter(e => !e.nofee).reduce((s,e) => s + (+e.days||1), 0);
+        const R = s3.getRow(k);
+        R.values = [n, list.map(e => `${fmtMD(e.date)}（${e.other}，${e.cls}${e.nofee ? "，不計" : ""}）`).join("、"), dd, RATE_TUTOR, null, "", list.some(e => e.fix) ? "含管理者修正" : ""];
+        R.getCell(5).value = {formula: `C${k}*D${k}`, result: dd * RATE_TUTOR}; tTot += dd * RATE_TUTOR;
+        R.eachCell({includeEmpty:true}, (c, col) => { if(col<=7){ c.font = font({size:10, bold: col===1 || col===5}); c.alignment = col===2 ? {wrapText:true, vertical:"middle"} : col>=3 && col<=5 ? {horizontal:"right", vertical:"middle"} : {horizontal:"center", vertical:"middle"}; if(col>=4 && col<=5) c.numFmt = NUM; } });
+        R.height = 30; k++;
+      });
+      tRow = k;
+      s3.getRow(tRow).values = [`共 ${Object.keys(tb).length} 人`, "", {formula: `SUM(C5:C${k-1})`}, "", {formula: `SUM(E5:E${k-1})`}, "", ""];
+      s3.getRow(tRow).eachCell({includeEmpty:true}, (c, col) => { if(col<=7){ c.font = font({bold:true}); c.fill = TOT; if(col===5) c.numFmt = NUM; } });
+      boxAll(s3, 4, 1, tRow, 7);
+      s3.mergeCells(tRow+1, 1, tRow+1, 7); s3.getCell(tRow+1,1).value = `合計新臺幣（大寫）：${bigNum(tTot)}`; s3.getCell(tRow+1,1).font = font({bold:true, size:12});
+      const sr = tRow + 3;
+      [["製表員",1,1],["出納員",2,2],["人事管理員",3,4],["會計主任",5,5],["校長",6,7]].forEach(([t,c1,c2]) => { if(c2>c1){ s3.mergeCells(sr,c1,sr,c2); s3.mergeCells(sr+1,c1,sr+1,c2); } const h = s3.getCell(sr,c1); h.value = t; h.font = font({bold:true}); h.alignment = center; h.fill = HEAD; });
+      s3.getRow(sr+1).height = 46; boxAll(s3, sr, 1, sr+1, 7);
+    }
+    // ---------- 4. 核對 ----------
+    const s4 = wb.addWorksheet("核對", {pageSetup: Object.assign({}, page, {orientation:"portrait"})});
+    s4.columns = [34,16,16,40].map(w => ({width:w}));
+    title(s4, 4, `${mon}月代課鐘點費核對表`);
+    const ck = [["項目","金額（元）","",""],
+      ["印領清冊 小計(A)（代課鐘點費）", {formula: `'印領清冊'!E${tr}`, result: subTotal}, "", ""],
+      ["逐節明細 合計", {formula: `'逐節明細'!M${qt}`, result: subTotal}, {formula: `IF(B6=B5,"✓ 相符","✗ 不符")`}, "兩者應相等"],
+      ["代理導師費 合計", tutors.length ? {formula: `'代理導師費'!E${tRow}`, result: tTot} : 0, "", ""],
+      ["應發合計（代課費＋代導費）", {formula: "B5+B7", result: subTotal + tTot}, {formula: `IF(B8=${A.total},"✓ 和網站會計總覽一致","✗ 和網站會計總覽不一致")`}, `網站會計總覽：${A.total.toLocaleString("zh-TW")} 元`]];
+    ck.forEach((v,i) => { s4.getRow(4+i).values = v; });
+    s4.getRow(4).eachCell(c => { c.font = font({bold:true}); c.fill = HEAD; c.alignment = center; });
+    for(let i=5;i<=8;i++){ s4.getCell(i,2).numFmt = NUM; [1,2,3,4].forEach(c => s4.getCell(i,c).font = font({bold: c<=2 && i===8})); }
+    boxAll(s4, 4, 1, 8, 4);
+    s4.getRow(10).values = ["假別","代課節數","代導日數","金額（元）"];
+    s4.getRow(10).eachCell(c => { c.font = font({bold:true}); c.fill = HEAD; c.alignment = center; });
+    let z = 11; Object.entries(A.L).sort((a,b) => b[1].amt - a[1].amt).forEach(([k2,x]) => { s4.getRow(z).values = [k2, x.n, x.days, x.amt]; s4.getCell(z,4).numFmt = NUM; s4.getRow(z).eachCell(c => c.font = font()); z++; });
+    s4.getRow(z).values = ["合計", {formula: `SUM(B11:B${z-1})`}, {formula: `SUM(C11:C${z-1})`}, {formula: `SUM(D11:D${z-1})`}];
+    s4.getRow(z).eachCell(c => { c.font = font({bold:true}); c.fill = TOT; }); s4.getCell(z,4).numFmt = NUM;
+    boxAll(s4, 10, 1, z, 4);
+    s4.getCell(z+1,1).value = {formula: `IF(D${z}=B8,"✓ 依假別合計 = 應發合計","✗ 依假別合計和應發合計不符")`}; s4.getCell(z+1,1).font = font({bold:true});
+    s4.getCell(z+3,1).value = `另：不計費 ${A.voidN} 筆、待確認 ${A.flagN} 筆、管理者修正 ${A.fixN} 筆（詳見逐節明細說明欄）。產生時間：${new Date().toLocaleString("zh-TW",{hour12:false})}`;
+    s4.getCell(z+3,1).font = font({size:10, color:{argb:"FF555555"}});
+    const buf = await wb.xlsx.writeBuffer();
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([buf], {type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}));
+    a.download = `土城國小_${rocY}年${mon}月_校內代課鐘點費（出納會計）.xlsx`;
+    document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    toast("已下載出納會計 Excel");
+  }catch(err){ toast("產生失敗：" + err.message); }
+  finally{ busy(false); }
 }
 function landscape(on){                              // 月報表用橫式
   let st = document.getElementById("pageSize");
@@ -2214,7 +2683,7 @@ async function printAcct(r){
       <tr class="tot"><td>共 ${tn.length} 人</td><td></td><td>${TT}</td><td></td><td class="r">${f(TT*RATE_TUTOR)}</td><td colspan="2" class="l">新臺幣${bigNum(TT*RATE_TUTOR)}</td></tr></tbody></table>${stamp}</div>`;
   }
   const detail = subs.map((e,i) => { const d = new Date(e.date+"T00:00:00");
-    return `<tr${e.nofee?' style="color:#888;text-decoration:line-through"':""}><td>${i+1}</td><td class="nw">${esc(e.id||"")}</td><td class="nw">${roc}/${String(d.getMonth()+1).padStart(2,"0")}/${String(d.getDate()).padStart(2,"0")}</td><td>${DOW[d.getDay()]}</td><td class="nw">第${esc(e.period)}節</td><td class="nw">${esc(e.cls)}</td><td>${esc(e.subject||"")}</td><td class="nw">${esc(e.other)}</td><td class="nw">${esc(e.leaveType||"")}</td><td class="nw"><b>${esc(e.who)}</b></td><td class="r">${e.rate||RATE_SUB}</td><td class="r">${e.nofee?0:f(e.rate||RATE_SUB)}</td><td class="l" style="text-decoration:none">${esc((e.flags||[]).join("；"))}</td></tr>`; }).join("");
+    return `<tr${e.nofee?' style="color:#888;text-decoration:line-through"':""}><td>${i+1}</td><td class="nw">${esc(e.id||"")}</td><td class="nw">${roc}/${String(d.getMonth()+1).padStart(2,"0")}/${String(d.getDate()).padStart(2,"0")}</td><td>${DOW[d.getDay()]}</td><td class="nw">第${esc(e.period)}節</td><td class="nw">${esc(e.cls)}</td><td>${esc(e.subject||"")}</td><td class="nw">${esc(e.other)}</td><td class="nw">${esc(e.leaveType||"")}</td><td class="nw"><b>${esc(e.who)}</b></td><td class="r">${e.rate||RATE_SUB}</td><td class="r">${e.nofee?0:f(e.rate||RATE_SUB)}</td><td class="l" style="text-decoration:none">${esc([...(e.flags||[]), e.fix ? "管理者已修正（" + e.fix.text + "）" : ""].filter(Boolean).join("；"))}</td></tr>`; }).join("");
   html += `<div class="sheet land">${head(`${mon}月校內代課明細（逐節）`, "")}
     <table><thead><tr><th>序</th><th>序號</th><th>日期</th><th>星期</th><th>節次</th><th>班級</th><th>科目</th><th>請假教師</th><th>假別</th><th>代課教師</th><th>單價</th><th>金額</th><th style="width:26%">說明</th></tr></thead>
     <tbody>${detail}<tr class="tot"><td colspan="11">合計（劃線的不計費）</td><td class="r">${f(A)}</td><td></td></tr></tbody></table>
@@ -2320,6 +2789,7 @@ async function demoPost(b){
   if(b.action==="lineUnbind"){ demoLine.bound=false; return {ok:true, line:Object.assign({},demoLine)}; }
   if(b.action==="report"){ const id="回-"+String(demoReports.length+1).padStart(3,"0"); demoReports.unshift({id,time:"剛剛",teacher:b.name,date:b.date,record:b.record,kind:b.kind,text:b.text,status:"待處理",reply:""}); return {ok:true,id,notified:true}; }
   if(b.action==="reply"){ const r=demoReports.find(x=>x.id===b.id); if(r){ r.status="已處理"; r.reply=b.reply; } return {ok:true}; }
+  if(b.action==="fix") return {ok:true, text: b.op==="delete" ? "刪除整筆" : Object.keys(b.data||{}).map(k=>k+"："+b.data[k]).join("；"), issues:[]};
   if(b.name!=="王教務") return {ok:false,error:"只有管理者可以登記"};
   const T = demoTT(), ctx = {tt:T.tt,tSlot:T.tSlot,has:true,ev:demoEvents()};
   const res = CF.checkAll(ctx, b), conflicts = res.filter(x=>x.msgs.length);
