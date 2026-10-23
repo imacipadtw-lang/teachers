@@ -368,7 +368,7 @@ textarea{width:100%;font:inherit;padding:10px 12px;border:1.5px solid var(--line
 <div class="modal" id="repModal" hidden>
   <form class="modal-card" id="repForm" autocomplete="off">
     <h2>回報問題</h2>
-    <p class="sub">送出後會存在教務組的雲端表格，並用 LINE 通知教務組。</p>
+    <p class="sub">送出後會存在教務組的雲端表格，並立刻通知教務組。</p>
     <div class="about" id="repAbout" hidden></div>
     <label>哪裡不對？（可複選）</label>
     <div class="chips" id="repChips">
@@ -694,7 +694,7 @@ function applyData(d){
   state.pwStatus = d.pwStatus || [];
   $("#openPlan").hidden = state.role!=="admin";
   $("#openReport").hidden = state.role==="admin";
-  state.reports = d.reports || []; state.lineReady = d.lineReady;
+  state.reports = d.reports || []; state.notify = d.notify;
   renderReports();
   renderAdmin(); renderSummary(); renderYear(); renderList(); renderPanel(null);
   if(!state.shown){ state.shown=true; requestAnimationFrame(()=>jumpToday(true,true)); }
@@ -1225,7 +1225,7 @@ $("#repForm").addEventListener("submit", async e=>{
     if(!d.ok) throw new Error(d.error||"送出失敗");
     $("#repModal").hidden = true;
     await reload(true);
-    toast(d.line ? `已送出（${d.id}），教務組會收到 LINE 通知` : `已送出（${d.id}），教務組會在系統裡看到`);
+    toast(d.notified ? `已送出（${d.id}），教務組已收到通知` : `已送出（${d.id}），教務組會在系統裡看到`);
   }catch(err){ $("#repErr").textContent = err.message; }
   finally{ busy(false); }
 });
@@ -1245,7 +1245,7 @@ function renderReports(){
       ${r.status==="待處理" ? `<textarea data-reply="${esc(r.id)}" placeholder="回覆老師（老師登入後看得到）"></textarea><button type="button" class="btn small" data-replybtn="${esc(r.id)}">回覆並標為已處理</button>`
                           : (r.reply?`<div class="ans">已回覆：${esc(r.reply)}</div>`:"")}</div>`;
   box.innerHTML = `<div class="reports"><h3>老師回報（${todo.length} 件待處理）</h3>
-    ${state.lineReady===false?`<p class="meta" style="font-size:13px;color:var(--ink-2)">還沒設定 LINE 通知：資料表上方「代課工具 → 設定 LINE 通知」。</p>`:""}
+    ${state.notify ? `<p class="meta" style="font-size:13px;color:var(--ink-2)">有新回報時通知：${esc([state.notify.email?"Gmail（"+state.notify.email+"）":"", state.notify.iphone?"iPhone 推播":"", state.notify.line?"LINE":""].filter(Boolean).join("、") || "目前沒有開啟任何通知")}　設定在資料表「代課工具 → 通知設定」</p>` : ""}
     ${todo.length ? todo.map(item).join("") : `<div class="meta" style="padding:6px 0">目前沒有待處理的回報。</div>`}
     ${done.length ? `<details><summary style="font-size:13px;color:var(--ink-2);cursor:pointer;padding-top:8px">已處理 ${done.length} 件</summary>${done.map(item).join("")}</details>` : ""}</div>`;
 }
@@ -1296,11 +1296,11 @@ async function demoApi(p){
   const out = {ok:true,name:p.name,role:admin?"admin":"teacher",teachers:admin?DEMO_NAMES:[],viewing:target,
     events: target==="__all__" ? all : all.filter(mine), updated:"示範資料", pwChanged: !!demoPw[p.name]};
   if(admin) out.pwStatus = DEMO_NAMES.map(n=>({name:n,changed:!!demoPw[n],at:demoPw[n]?"剛剛":""}));
-  out.reports = demoReports.filter(r=>admin || r.teacher===p.name); out.lineReady = admin ? false : undefined;
+  out.reports = demoReports.filter(r=>admin || r.teacher===p.name); out.notify = admin ? {email:"demo@example.com", iphone:false, line:false} : undefined;
   return out;
 }
 async function demoPost(b){
-  if(b.action==="report"){ const id="回-"+String(demoReports.length+1).padStart(3,"0"); demoReports.unshift({id,time:"剛剛",teacher:b.name,date:b.date,record:b.record,kind:b.kind,text:b.text,status:"待處理",reply:""}); return {ok:true,id,line:false}; }
+  if(b.action==="report"){ const id="回-"+String(demoReports.length+1).padStart(3,"0"); demoReports.unshift({id,time:"剛剛",teacher:b.name,date:b.date,record:b.record,kind:b.kind,text:b.text,status:"待處理",reply:""}); return {ok:true,id,notified:true}; }
   if(b.action==="reply"){ const r=demoReports.find(x=>x.id===b.id); if(r){ r.status="已處理"; r.reply=b.reply; } return {ok:true}; }
   if(b.name!=="王教務") return {ok:false,error:"只有管理者可以登記"};
   const T = demoTT(), ctx = {tt:T.tt,tSlot:T.tSlot,has:true,ev:demoEvents()};
