@@ -1128,7 +1128,7 @@ async function lineGetCode(){
     lineUI.timer = setInterval(async ()=>{
       if($("#lineModal").hidden || Date.now() > lineUI.until){ lineStop(); renderLine(); return; }
       renderLine();                                   // 倒數
-      if(++n % 4) return;                             // 每 4 秒問一次有沒有綁定成功
+      if(++n % (n <= 120 ? 4 : 10)) return;           // 前 2 分鐘每 4 秒問一次有沒有綁定成功，之後每 10 秒（少打擾伺服器）
       try{ const s = await apiPost({action:"lineStatus", name:state.cred.name, h:state.cred.h});
         if(s.ok && s.line && s.line.bound){ state.line = s.line; lineUI.list = s.list || lineUI.list; lineStop(); lineUI.code="";
           renderLine(); $("#lineNotice").hidden = true; toast("LINE 綁定成功！"); } }catch(e){}
