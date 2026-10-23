@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>土城國小 代課・調課 年曆查詢</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+/* ===== 設定 ===== */
+:root{
+  --paper:#F5F7F2; --card:#FFFFFF; --ink:#1E2A23; --ink-2:#5B6861; --ink-3:#98A39C;
+  --line:#DDE3DB; --line-2:#EDF1EA;
+  --sub:#2E6DB4;    --sub-bg:#E3EDF9;   /* 我去代課 */
+  --leave:#D8842A;  --leave-bg:#FBEEDD; /* 我請假 */
+  --tutor:#3B8A5A;  --tutor-bg:#E2F2E7; /* 我代導師 */
+  --swap:#7A4FA6;   --swap-bg:#EFE6F7;  /* 調課 */
+  --today:#1E2A23;
+  --r:10px;
+  font-family:"Noto Sans TC",system-ui,-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--paper);color:var(--ink);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font:inherit;cursor:pointer}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--sub);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* ===== 登入 ===== */
+#login{min-height:100dvh;display:grid;place-items:center;padding:24px}
+.login-card{width:min(420px,100%);background:var(--card);border:1px solid var(--line);border-radius:16px;padding:32px 28px}
+.login-card h1{font-size:22px;margin:0 0 4px;font-weight:900;letter-spacing:.02em}
+.login-card .sub{color:var(--ink-2);margin:0 0 24px}
+label{display:block;font-weight:500;margin:14px 0 6px}
+input,select{width:100%;font:inherit;padding:11px 12px;border:1.5px solid var(--line);border-radius:var(--r);background:#fff;color:var(--ink)}
+input:focus,select:focus{border-color:var(--sub);outline:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 18px;border-radius:var(--r);border:1.5px solid var(--ink);background:var(--ink);color:#fff;font-weight:700}
+.btn.full{width:100%;margin-top:22px}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn.small{padding:7px 12px;font-size:13px}
+.err{color:#B43E2A;margin-top:12px;min-height:1.5em}
+.hint{font-size:13px;color:var(--ink-3);margin-top:18px}
+
+/* ===== 主畫面 ===== */
+#app{display:none;min-height:100dvh}
+.topbar{position:sticky;top:0;z-index:20;background:rgba(245,247,242,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:12px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.topbar .who{font-weight:900;font-size:18px}
+.topbar .who small{font-weight:400;color:var(--ink-2);margin-left:8px;font-size:13px}
+.topbar .spacer{flex:1}
+.topbar .updated{font-size:12px;color:var(--ink-3)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--ink-2)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+.wrap{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:24px;padding:24px 20px 60px;max-width:1500px;margin:0 auto}
+.wrap main{min-width:0}
+@media (max-width:1050px){.wrap{grid-template-columns:1fr}}
+
+/* 摘要 */
+.summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:22px}
+@media (max-width:640px){.summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;border-left-width:5px}
+.stat b{display:block;font-size:26px;font-weight:900;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat span{font-size:13px;color:var(--ink-2)}
+.stat.s-sub{border-left-color:var(--sub)} .stat.s-leave{border-left-color:var(--leave)}
+.stat.s-tutor{border-left-color:var(--tutor)} .stat.s-swap{border-left-color:var(--swap)}
+
+/* 檢視切換 */
+.tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.tab{padding:7px 14px;border-radius:999px;border:1.5px solid var(--line);background:#fff;color:var(--ink-2);font-weight:500}
+.tab[aria-selected=true]{background:var(--ink);border-color:var(--ink);color:#fff}
+
+/* ===== 年曆 ===== */
+.year{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:1300px){.year{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.year{grid-template-columns:1fr}}
+.month{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 12px 10px}
+.month.dim{opacity:.55}
+.month h3{margin:0 0 8px;font-size:15px;font-weight:700;display:flex;justify-content:space-between;align-items:baseline}
+.month h3 small{font-weight:400;color:var(--ink-3);font-size:12px}
+.dow{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));font-size:11px;color:var(--ink-3);text-align:center;margin-bottom:4px}
+.dow span:first-child,.dow span:last-child{color:#C9A0A0}
+.days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+.d{position:relative;aspect-ratio:1/1;border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:3px;font-size:13px;color:var(--ink);border:1px solid transparent;background:transparent;font-variant-numeric:tabular-nums}
+.d.empty{visibility:hidden}
+.d.we{color:#B9A6A6}
+.d.has{font-weight:900;background:var(--line-2);cursor:pointer;color:var(--ink)}
+.d.has.k-sub{background:var(--sub-bg)}.d.has.k-leave{background:var(--leave-bg)}.d.has.k-tutor{background:var(--tutor-bg)}.d.has.k-swap{background:var(--swap-bg)}
+.d.has:hover{border-color:var(--ink-3)}
+.d.today{border:2px solid var(--today)}
+.d.sel{background:var(--ink)!important;color:#fff!important}
+.d.sel .pips i{box-shadow:0 0 0 1px #fff}
+.pips{display:flex;gap:2px;margin-top:auto;margin-bottom:4px;flex-wrap:wrap;justify-content:center;max-width:92%}
+.pips i{width:11px;height:5px;border-radius:2px;display:block}
+.pips i.sub{background:var(--sub)}.pips i.leave{background:var(--leave)}.pips i.tutor{background:var(--tutor)}.pips i.swap{background:var(--swap)}
+.d .cnt{position:absolute;top:2px;right:3px;font-size:9px;font-weight:700;color:var(--ink-2)}
+
+/* ===== 清單 ===== */
+.list{display:none}
+.list .grp{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden}
+.list .grp h4{margin:0;padding:10px 14px;background:var(--line-2);font-size:14px;font-weight:700;display:flex;justify-content:space-between}
+.list .grp h4 small{font-weight:400;color:var(--ink-2)}
+
+/* 事件列 */
+.ev{display:grid;grid-template-columns:6px 1fr;gap:12px;padding:10px 14px;border-top:1px solid var(--line-2)}
+.ev:first-of-type{border-top:0}
+.ev i{border-radius:3px;display:block;margin:4px 0}
+.ev.sub i{background:var(--sub)}.ev.leave i{background:var(--leave)}.ev.tutor i{background:var(--tutor)}.ev.swap i{background:var(--swap)}
+.ev .t{font-weight:700}
+.ev .t .tag{font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;margin-right:6px;vertical-align:middle}
+.ev.sub .tag{background:var(--sub-bg);color:var(--sub)}.ev.leave .tag{background:var(--leave-bg);color:var(--leave)}
+.ev.tutor .tag{background:var(--tutor-bg);color:var(--tutor)}.ev.swap .tag{background:var(--swap-bg);color:var(--swap)}
+.ev .m{font-size:13px;color:var(--ink-2)}
+.ev .n{font-size:12px;color:var(--ink-3)}
+.empty{padding:28px 14px;text-align:center;color:var(--ink-3)}
+
+/* ===== 側欄（當日明細） ===== */
+.side{position:sticky;top:76px;align-self:start}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.panel h2{margin:0;padding:14px 16px;font-size:17px;font-weight:900;border-bottom:1px solid var(--line-2);display:flex;justify-content:space-between;align-items:center}
+.panel h2 .close{display:none;background:none;border:0;font-size:20px;color:var(--ink-2)}
+.panel .body{max-height:60vh;overflow:auto}
+.panel .next{padding:10px 16px;font-size:13px;color:var(--ink-2);border-top:1px solid var(--line-2)}
+.admin-box{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:14px}
+.admin-box label{margin-top:0}
+.admin-box .pw-tip{font-size:12px;color:var(--ink-3);margin-top:8px}
+
+@media (max-width:1050px){
+  .side{position:fixed;inset:auto 0 0 0;z-index:30;transform:translateY(110%);transition:transform .25s ease;padding:0 10px 10px}
+  .side.open{transform:none}
+  .panel{box-shadow:0 -10px 40px rgba(30,42,35,.18);border-radius:16px 16px 12px 12px}
+  .panel h2 .close{display:block}
+  .admin-box{position:static;}
+  .side .admin-box{display:none!important}
+  .admin-mobile{display:block;margin-bottom:14px}
+}
+@media (min-width:1051px){.admin-mobile{display:none}}
+/* 密碼欄、提示、彈窗 */
+select{appearance:none;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%235B6861' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 14px center;padding-right:38px;font-size:16px}
+.demo-tag{background:var(--swap-bg);color:var(--swap);font-size:13px;padding:6px 10px;border-radius:8px;margin:8px 0 0}
+.demo-tag[hidden]{display:none}
+.pw-wrap{position:relative}
+.pw-wrap input{padding-right:64px}
+.eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:transparent;color:var(--ink-2);font-size:13px;padding:6px 8px;border-radius:6px}
+.eye:hover{background:var(--line-2)}
+.notice{background:var(--leave-bg);color:#7A4A12;padding:10px 20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:14px;border-bottom:1px solid #F0D9B8}
+.notice[hidden]{display:none}
+.notice .btn{background:var(--leave);border-color:var(--leave)}
+.modal{position:fixed;inset:0;z-index:60;background:rgba(30,42,35,.45);display:grid;place-items:center;padding:16px}
+.modal[hidden]{display:none}
+.modal-card{width:min(400px,100%);background:var(--card);border-radius:16px;padding:24px 22px}
+.modal-card h2{margin:0 0 2px;font-size:20px;font-weight:900}
+.modal-card .sub{margin:0 0 6px;color:var(--ink-2)}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:6px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);opacity:0;background:var(--ink);color:#fff;padding:10px 18px;border-radius:999px;font-weight:500;z-index:70;transition:opacity .2s,transform .2s;pointer-events:none;max-width:calc(100% - 32px)}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.pw-list{margin-top:12px;border-top:1px solid var(--line-2);padding-top:10px;font-size:13px}
+.pw-list .row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;gap:8px}
+.pw-list .st{color:var(--ink-3);font-size:12px}
+.pw-list .st.c{color:var(--tutor)}
+.pw-list button{border:1px solid var(--line);background:#fff;border-radius:6px;font-size:12px;padding:3px 8px;color:var(--ink-2)}
+.loading{position:fixed;inset:0;background:rgba(245,247,242,.7);display:none;place-items:center;z-index:50;font-weight:700}
+.loading.on{display:grid}
+.print-note{display:none}
+@media print{
+  .topbar,.tabs,.side,.btn,.summary{display:none!important}
+  .wrap{grid-template-columns:1fr;padding:0}
+  .year{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .print-note{display:block;margin-bottom:10px;font-weight:700}
+}
+</style>
+</head>
+<body>
+
+<!-- 登入 -->
+<section id="login">
+  <form class="login-card" id="loginForm" autocomplete="off">
+    <h1>代課・調課 年曆查詢</h1>
+    <p class="demo-tag" id="demoTag" hidden>示範模式：資料是假的，密碼一律 demo</p>
+    <p class="sub">土城國小 115 學年度 — 只看得到自己的</p>
+    <label for="name">老師姓名</label>
+    <select id="name" name="name" required>
+      <option value="">名單讀取中…</option>
+    </select>
+    <label for="pw">個人密碼</label>
+    <div class="pw-wrap">
+      <input id="pw" name="pw" type="password" placeholder="教務組發給您的密碼，或您自己改過的" required>
+      <button type="button" class="eye" data-for="pw" aria-label="顯示密碼">顯示</button>
+    </div>
+    <button class="btn full" type="submit">查詢我的年曆</button>
+    <div class="err" id="loginErr"></div>
+    <p class="hint">登入後右上角可以「更改密碼」。忘記密碼請洽教務組 陳怡璇，會幫您恢復成初始密碼。</p>
+  </form>
+</section>
+
+<!-- 主畫面 -->
+<section id="app">
+  <header class="topbar">
+    <div class="who" id="who"></div>
+    <div class="legend">
+      <span><i style="background:var(--sub)"></i>我去代課</span>
+      <span><i style="background:var(--leave)"></i>我請假（別人代）</span>
+      <span><i style="background:var(--tutor)"></i>我代導師</span>
+      <span><i style="background:var(--swap)"></i>調課</span>
+    </div>
+    <div class="spacer"></div>
+    <span class="updated" id="updated"></span>
+    <button class="btn ghost small" id="reload" type="button">重新整理</button>
+    <button class="btn ghost small" id="openPw" type="button">更改密碼</button>
+    <button class="btn ghost small" id="logout" type="button">登出</button>
+  </header>
+  <div class="notice" id="pwNotice" hidden>
+    您還在使用教務組發的初始密碼，建議改成自己好記的密碼。
+    <button class="btn small" type="button" id="openPw2">現在更改</button>
+  </div>
+
+  <div class="wrap">
+    <main>
+      <div class="admin-mobile" id="adminMobile"></div>
+      <div class="summary" id="summary"></div>
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" aria-selected="true" data-view="year">年曆</button>
+        <button class="tab" role="tab" aria-selected="false" data-view="list">清單</button>
+        <span style="flex:1"></span>
+        <button class="tab" id="jumpToday" type="button">跳到今天</button>
+        <button class="tab" type="button" onclick="window.print()">列印</button>
+      </div>
+      <div class="print-note" id="printNote"></div>
+      <div class="year" id="year"></div>
+      <div class="list" id="list"></div>
+    </main>
+
+    <aside class="side" id="side">
+      <div class="admin-box" id="adminBox"></div>
+      <div class="panel">
+        <h2><span id="panelTitle">點一個日期看明細</span><button class="close" id="closeSide" aria-label="關閉">×</button></h2>
+        <div class="body" id="panelBody"><div class="empty">年曆上有顏色標記的日子，點一下就會列出那天的代課、請假與代導師。</div></div>
+        <div class="next" id="panelNext"></div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- 更改密碼 -->
+<div class="modal" id="pwModal" hidden>
+  <form class="modal-card" id="pwForm" autocomplete="off">
+    <h2>更改密碼</h2>
+    <p class="sub" id="pwWho"></p>
+    <label for="pwOld">目前的密碼</label>
+    <div class="pw-wrap"><input id="pwOld" type="password" required><button type="button" class="eye" data-for="pwOld" aria-label="顯示密碼">顯示</button></div>
+    <label for="pwNew">新密碼（至少 6 個字）</label>
+    <div class="pw-wrap"><input id="pwNew" type="password" minlength="6" required><button type="button" class="eye" data-for="pwNew" aria-label="顯示密碼">顯示</button></div>
+    <label for="pwNew2">再輸入一次新密碼</label>
+    <div class="pw-wrap"><input id="pwNew2" type="password" minlength="6" required><button type="button" class="eye" data-for="pwNew2" aria-label="顯示密碼">顯示</button></div>
+    <div class="err" id="pwErr"></div>
+    <div class="modal-actions">
+      <button class="btn ghost" type="button" id="pwCancel">取消</button>
+      <button class="btn" type="submit">儲存新密碼</button>
+    </div>
+  </form>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="loading" id="loading">讀取中…</div>
+
+<script>
+/* ==================================================================
+   設定：把 Apps Script 部署網址貼到這裡（以 /exec 結尾）
+   留空或加上 ?demo=1 會用示範資料，方便先看畫面。
+   ================================================================== */
+const API_URL = "";
+const SCHOOL_YEAR_START = 2026;        // 115 學年 = 2026/8 ～ 2027/7
+const RATE_SUB = 405, RATE_TUTOR = 133; // 每節代課費、每日代導費（與表單一致）
+
+const TYPE = {
+  sub:  {label:"我去代課",  short:"代課"},
+  leave:{label:"我請假",    short:"請假"},
+  tutor:{label:"我代導師",  short:"代導師"},
+  tutorLeave:{label:"我請假（代導師）", short:"請假"},
+  swap: {label:"調課",      short:"調課"},
+};
+const DOW = ["日","一","二","三","四","五","六"];
+const $ = s => document.querySelector(s);
+
+let state = { user:null, role:"teacher", teachers:[], events:[], view:"year", selected:null, viewing:null, cred:null };
+
+/* ---------- 密碼雜湊（送出的是雜湊值，不是密碼本身） ---------- */
+async function sha256(str){
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+
+/* ---------- 呼叫後端 ---------- */
+const DEMO = location.search.includes("demo=1");          // 只有網址加 ?demo=1 才是示範模式
+async function api(params){
+  if (DEMO) return demoApi(params);
+  if (!API_URL) throw new Error("網頁還沒連上資料表：請教務組把 Apps Script 網址填進 index.html 的 API_URL。");
+  const u = new URL(API_URL);
+  for (const [k,v] of Object.entries(params)) if (v!=null && v!=="") u.searchParams.set(k, v);
+  u.searchParams.set("_", Date.now());
+  const r = await fetch(u, {redirect:"follow"});
+  if (!r.ok) throw new Error("連不到伺服器（"+r.status+"），請稍後再試");
+  return r.json();
+}
+const fetchData = (name, h, as) => api({action:"data", name, h, as});
+const store = {
+  get(k, s=sessionStorage){ try{ return s.getItem(k); }catch(e){ return null; } },
+  set(k, v, s=sessionStorage){ try{ s.setItem(k, v); }catch(e){} },
+  del(k, s=sessionStorage){ try{ s.removeItem(k); }catch(e){} },
+};
+function busy(on){ $("#loading").classList.toggle("on", on); }
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("on"); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove("on"),2600); }
+
+/* ---------- 登入下拉選單 ---------- */
+async function loadNames(){
+  const sel = $("#name");
+  try{
+    const d = await api({action:"names"});
+    if(!d.ok) throw new Error(d.error);
+    const last = store.get("lastName", localStorage);
+    sel.innerHTML = `<option value="">請選擇您的名字</option>` +
+      d.names.map(n=>`<option ${n===last?"selected":""}>${esc(n)}</option>`).join("");
+    if (last && d.names.includes(last)) $("#pw").focus();
+  }catch(e){
+    sel.innerHTML = `<option value="">名單讀取失敗，請重新整理</option>`;
+    $("#loginErr").textContent = e.message;
+  }
+}
+
+/* 顯示／隱藏密碼 */
+document.querySelectorAll(".eye").forEach(b=>b.onclick=()=>{
+  const i=document.getElementById(b.dataset.for), show=i.type==="password";
+  i.type=show?"text":"password"; b.textContent=show?"隱藏":"顯示"; b.setAttribute("aria-label", show?"隱藏密碼":"顯示密碼");
+});
+
+/* ---------- 登入 ---------- */
+$("#loginForm").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const name = $("#name").value.trim(), pw = $("#pw").value;
+  $("#loginErr").textContent = "";
+  if(!name){ $("#loginErr").textContent = "請先選擇您的名字"; return; }
+  busy(true);
+  try{
+    const h = await sha256(name+":"+pw);
+    const data = await fetchData(name, h);
+    if (!data.ok) throw new Error(data.error || "姓名或密碼不正確");
+    state.cred = {name, h};
+    store.set("cred", JSON.stringify(state.cred));
+    store.set("lastName", name, localStorage);
+    $("#pw").value = "";
+    applyData(data);
+  }catch(err){ $("#loginErr").textContent = err.message; }
+  finally{ busy(false); }
+});
+$("#logout").onclick = ()=>{ store.del("cred"); location.reload(); };
+$("#reload").onclick = ()=>reload();
+async function reload(){
+  if(!state.cred) return;
+  busy(true);
+  try{ const d = await fetchData(state.cred.name, state.cred.h, state.viewing); if(d.ok){ applyData(d); toast("已更新到最新資料"); } else throw new Error(d.error); }
+  catch(e){ toast("更新失敗："+e.message); }
+  finally{ busy(false); }
+}
+// 同一個分頁重新整理時自動續登（關掉瀏覽器就要重新登入）
+async function resume(){ const c = store.get("cred"); if(!c) return;
+  state.cred = JSON.parse(c); busy(true);
+  try{ const d = await fetchData(state.cred.name, state.cred.h); if(d.ok) applyData(d); else store.del("cred"); }catch(e){}
+  busy(false); }
+
+/* ---------- 更改密碼 ---------- */
+function openPw(){
+  $("#pwForm").reset(); $("#pwErr").textContent="";
+  $("#pwWho").textContent = state.cred.name + " 老師";
+  $("#pwModal").hidden = false; $("#pwOld").focus();
+}
+function closePw(){ $("#pwModal").hidden = true; }
+$("#openPw").onclick = openPw; $("#openPw2").onclick = openPw;
+$("#pwCancel").onclick = closePw;
+$("#pwModal").addEventListener("click", e=>{ if(e.target.id==="pwModal") closePw(); });
+document.addEventListener("keydown", e=>{ if(e.key==="Escape" && !$("#pwModal").hidden) closePw(); });
+$("#pwForm").addEventListener("submit", async e=>{
+  e.preventDefault();
+  const name = state.cred.name, o=$("#pwOld").value, n1=$("#pwNew").value, n2=$("#pwNew2").value;
+  const err = m => $("#pwErr").textContent = m;
+  if(n1.length < 6) return err("新密碼至少要 6 個字");
+  if(n1 !== n2) return err("兩次輸入的新密碼不一樣");
+  if(n1 === o) return err("新密碼和目前的密碼一樣");
+  busy(true);
+  try{
+    const h = await sha256(name+":"+o), nh = await sha256(name+":"+n1);
+    const d = await api({action:"change", name, h, nh});
+    if(!d.ok) throw new Error(d.error || "更改失敗");
+    state.cred.h = nh; store.set("cred", JSON.stringify(state.cred));
+    closePw(); $("#pwNotice").hidden = true;
+    toast("密碼已更改，下次請用新密碼登入");
+    if(state.role==="admin") reload();
+  }catch(ex){ err(ex.message); }
+  finally{ busy(false); }
+});
+
+/* ---------- 套用資料 ---------- */
+function applyData(d){
+  state.user = d.name; state.role = d.role || "teacher";
+  state.teachers = d.teachers || []; state.events = (d.events||[]).sort((a,b)=>a.date.localeCompare(b.date)||(a.period||0)-(b.period||0));
+  state.viewing = d.viewing || d.name;
+  const label = state.viewing==="__all__" ? "全校總覽" : state.viewing+" 老師";
+  $("#login").style.display="none"; $("#app").style.display="block";
+  $("#who").innerHTML = `${esc(label)}${state.role==="admin"?"<small>教務組管理者</small>":""}`;
+  $("#updated").textContent = d.updated ? "表單更新：" + d.updated : "";
+  $("#printNote").textContent = `${label} 115 學年度 代課・調課 年曆`;
+  $("#pwNotice").hidden = d.pwChanged !== false;
+  state.pwStatus = d.pwStatus || [];
+  renderAdmin(); renderSummary(); renderYear(); renderList(); renderPanel(null); jumpToday(false);
+}
+
+/* ---------- 管理者：切換老師、密碼狀態 ---------- */
+function renderAdmin(){
+  const box = $("#adminBox"), mob = $("#adminMobile");
+  if(state.role!=="admin"){ box.style.display="none"; mob.innerHTML=""; return; }
+  box.style.display="block";
+  const opts = ["<option value=''>全校總覽</option>", ...state.teachers.map(t=>`<option ${t===state.viewing?"selected":""}>${esc(t)}</option>`)].join("");
+  const pwRows = state.pwStatus.map(p=>`<div class="row"><span>${esc(p.name)}</span>
+      <span class="st ${p.changed?"c":""}">${p.changed?"已自訂 "+esc(p.at):"初始密碼"}</span>
+      ${p.changed && p.name!==state.cred.name ? `<button type="button" data-reset="${esc(p.name)}">恢復初始</button>` : `<span style="width:62px"></span>`}</div>`).join("");
+  const html = `<label>查看哪位老師</label><select class="viewAs">${opts}</select>
+    <div class="pw-tip">一般老師登入只會看到自己的。</div>
+    <details class="pw-list"><summary>老師密碼狀態</summary>${pwRows}
+    <div class="pw-tip">老師忘記密碼時按「恢復初始」，就能用密碼表上的初始密碼登入。</div></details>`;
+  box.innerHTML = html; mob.innerHTML = `<div class="admin-box">${html}</div>`;
+  document.querySelectorAll(".viewAs").forEach(sel=>sel.onchange = async e=>{
+    state.viewing = e.target.value || "__all__";
+    busy(true);
+    try{ const d = await fetchData(state.cred.name, state.cred.h, state.viewing); if(d.ok) applyData(d); }
+    finally{ busy(false); }
+  });
+  document.querySelectorAll("[data-reset]").forEach(b=>b.onclick = async ()=>{
+    const t = b.dataset.reset;
+    if(!confirm(`把 ${t} 老師的密碼恢復成初始密碼？`)) return;
+    busy(true);
+    try{
+      const d = await api({action:"reset", name:state.cred.name, h:state.cred.h, target:t});
+      if(!d.ok) throw new Error(d.error);
+      toast(`${t} 老師已恢復成初始密碼`); reload();
+    }catch(e){ toast("重設失敗："+e.message); }
+    finally{ busy(false); }
+  });
+}
+
+/* ---------- 摘要 ---------- */
+function renderSummary(){
+  const n = t => state.events.filter(e=>e.type===t);
+  const sub=n("sub").length, leave=n("leave").length+n("tutorLeave").length, tutor=n("tutor").reduce((s,e)=>s+(+e.days||1),0), swap=n("swap").length;
+  $("#summary").innerHTML = `
+    <div class="stat s-sub"><b>${sub}</b><span>代課節數 · 約 ${(sub*RATE_SUB).toLocaleString()} 元</span></div>
+    <div class="stat s-leave"><b>${leave}</b><span>請假被代節數</span></div>
+    <div class="stat s-tutor"><b>${tutor}</b><span>代導師日數 · 約 ${(tutor*RATE_TUTOR).toLocaleString()} 元</span></div>
+    <div class="stat s-swap"><b>${swap}</b><span>調課筆數</span></div>`;
+}
+
+/* ---------- 年曆 ---------- */
+function renderYear(){
+  const byDate = {};
+  for(const e of state.events) (byDate[e.date] ||= []).push(e);
+  const today = ymd(new Date());
+  const months = []; for(let i=0;i<12;i++){ const m=(7+i)%12, y=SCHOOL_YEAR_START+(i>=5?1:0); months.push([y,m]); }
+  $("#year").innerHTML = months.map(([y,m])=>{
+    const first = new Date(y,m,1), days = new Date(y,m+1,0).getDate();
+    const sem = m>=7&&m<=11 || m===0 ? "上學期" : "下學期";
+    const hasAny = Object.keys(byDate).some(k=>k.startsWith(`${y}-${String(m+1).padStart(2,"0")}`));
+    let cells = ""; for(let i=0;i<first.getDay();i++) cells += `<div class="d empty"></div>`;
+    for(let d=1; d<=days; d++){
+      const key = `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+      const evs = byDate[key]||[], dow=new Date(y,m,d).getDay();
+      const types=[...new Set(evs.map(e=>e.type==="tutorLeave"?"leave":e.type))];
+      cells += `<button type="button" class="d${evs.length?" has k-"+types[0]:""}${key===today?" today":""}${dow===0||dow===6?" we":""}${key===state.selected?" sel":""}" data-date="${key}" ${evs.length?"":"tabindex=-1"} aria-label="${key}${evs.length?"，"+evs.length+" 筆":""}">
+        ${d}${evs.length>1?`<span class="cnt">${evs.length}</span>`:""}
+        <span class="pips">${types.map(t=>`<i class="${t}"></i>`).join("")}</span></button>`;
+    }
+    return `<section class="month${hasAny?"":" dim"}" id="m-${y}-${m+1}"><h3>${y} 年 ${m+1} 月 <small>${sem}</small></h3>
+      <div class="dow">${DOW.map(x=>`<span>${x}</span>`).join("")}</div><div class="days">${cells}</div></section>`;
+  }).join("");
+  $("#year").querySelectorAll(".d.has").forEach(b=>b.onclick=()=>{ state.selected=b.dataset.date; renderYear(); renderPanel(b.dataset.date); });
+}
+
+/* ---------- 清單 ---------- */
+function renderList(){
+  const list=$("#list");
+  if(!state.events.length){ list.innerHTML=`<div class="grp"><div class="empty">目前沒有任何紀錄。表單登錄後重新整理即可看到。</div></div>`; return; }
+  const groups={}; for(const e of state.events) (groups[e.date.slice(0,7)] ||= []).push(e);
+  list.innerHTML = Object.entries(groups).map(([ym,evs])=>{
+    const [y,m]=ym.split("-");
+    return `<div class="grp"><h4>${y} 年 ${+m} 月 <small>${evs.length} 筆</small></h4>${evs.map(e=>evRow(e)).join("")}</div>`;
+  }).join("");
+}
+
+/* ---------- 事件列 ---------- */
+function evRow(e, withDate=true){
+  const t = TYPE[e.type]||TYPE.sub, cls = e.type==="tutorLeave"?"leave":e.type;
+  const d = new Date(e.date+"T00:00:00");
+  const dateTxt = withDate ? `${d.getMonth()+1}/${d.getDate()}（${DOW[d.getDay()]}）` : "";
+  let main="", meta="";
+  if(e.type==="sub"){ main=`${e.period?`第 ${e.period} 節 `:""}${e.cls||""} ${e.subject||""}`; meta=`代 ${e.other||"—"} 老師的課${e.leaveType?"・"+e.leaveType:""}`; }
+  else if(e.type==="leave"){ main=`${e.period?`第 ${e.period} 節 `:""}${e.cls||""} ${e.subject||""}`; meta=`${e.leaveType||"請假"}，由 ${e.other||"（尚未安排）"} 老師代課`; }
+  else if(e.type==="tutor"){ main=`代 ${e.cls||""} 導師`; meta=`${e.other||""} 老師${e.leaveType?"・"+e.leaveType:""}${e.days&&e.days!=1?"・"+e.days+" 日":""}`; }
+  else if(e.type==="tutorLeave"){ main=`${e.cls||""} 導師請假`; meta=`${e.leaveType||""}，由 ${e.other||"（尚未安排）"} 代導師`; }
+  else if(e.type==="swap"){ main=e.subject||"調課"; meta=e.other||""; }
+  const whoTxt = state.viewing==="__all__" && e.who ? `<b style="color:var(--ink-2)">${esc(e.who)}</b>　` : "";
+  return `<div class="ev ${cls}"><i></i><div><div class="t"><span class="tag">${t.short}</span>${whoTxt}${esc(dateTxt)} ${esc(main)}</div><div class="m">${esc(meta)}</div>${e.note?`<div class="n">${esc(e.note)}</div>`:""}</div></div>`;
+}
+
+/* ---------- 側欄 ---------- */
+function renderPanel(date){
+  const side=$("#side");
+  if(!date){ side.classList.remove("open"); $("#panelTitle").textContent="點一個日期看明細"; $("#panelBody").innerHTML=`<div class="empty">年曆上有顏色標記的日子，點一下就會列出那天的代課、請假與代導師。</div>`; }
+  else{
+    const d=new Date(date+"T00:00:00"), evs=state.events.filter(e=>e.date===date);
+    $("#panelTitle").textContent=`${d.getMonth()+1} 月 ${d.getDate()} 日（${DOW[d.getDay()]}）`;
+    $("#panelBody").innerHTML = evs.map(e=>evRow(e,false)).join("") || `<div class="empty">這天沒有紀錄</div>`;
+    side.classList.add("open");
+  }
+  const today=ymd(new Date()), next=state.events.find(e=>e.date>=today);
+  $("#panelNext").innerHTML = next ? `下一筆：${esc(fmt(next.date))} ${esc((TYPE[next.type]||{}).short||"")}${next.period?` 第 ${next.period} 節`:""} ${esc(next.cls||"")}` : "之後沒有排定的紀錄";
+}
+$("#closeSide").onclick=()=>{ state.selected=null; renderYear(); renderPanel(null); };
+
+/* ---------- 切換 / 跳今天 ---------- */
+document.querySelectorAll(".tab[data-view]").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(".tab[data-view]").forEach(x=>x.setAttribute("aria-selected",x===b));
+  state.view=b.dataset.view; $("#year").style.display=state.view==="year"?"grid":"none"; $("#list").style.display=state.view==="list"?"block":"none";
+});
+$("#jumpToday").onclick=()=>jumpToday(true);
+function jumpToday(scroll){ const t=new Date(), el=document.getElementById(`m-${t.getFullYear()}-${t.getMonth()+1}`); if(el&&scroll) el.scrollIntoView({behavior:"smooth",block:"start"}); }
+
+/* ---------- 小工具 ---------- */
+function ymd(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
+function fmt(s){ const d=new Date(s+"T00:00:00"); return `${d.getMonth()+1}/${d.getDate()}（${DOW[d.getDay()]}）`; }
+function esc(s){ return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+/* ---------- 示範資料（未設定 API_URL 時）：密碼一律是 demo ---------- */
+const DEMO_NAMES=["陳怡璇","林繼于","李致德","黃詠裕","廖恒慈","簡玉惠","郭玉雪","劉佳雯","林家玉","陳佳君","黃羽瑄","陳怡伶","許聖欣","詹可德","吳韻如"];
+const demoPw = {};   // 示範模式下改過的密碼（只存在這個分頁）
+async function demoApi(p){
+  const ok = async (n,h)=> h === (demoPw[n] || await sha256(n+":demo"));
+  if(p.action==="names") return {ok:true,names:DEMO_NAMES};
+  if(!DEMO_NAMES.includes(p.name) || !(await ok(p.name,p.h))) return {ok:false,error:p.action==="change"?"目前的密碼不正確":"姓名或密碼不正確（示範模式密碼是 demo）"};
+  if(p.action==="change"){ demoPw[p.name]=p.nh; return {ok:true}; }
+  if(p.action==="reset"){ delete demoPw[p.target]; return {ok:true}; }
+  const all=[
+    {date:"2026-10-06",type:"sub",period:2,cls:"四甲",subject:"自然",other:"黃詠裕",leaveType:"公假",who:"林家玉"},
+    {date:"2026-10-16",type:"leave",period:1,cls:"四甲",subject:"國語",other:"黃詠裕",leaveType:"公假",who:"林家玉"},
+    {date:"2026-10-16",type:"leave",period:3,cls:"四甲",subject:"數學",other:"李致德",leaveType:"公假",who:"林家玉"},
+    {date:"2026-10-16",type:"tutorLeave",cls:"四甲",other:"黃詠裕",leaveType:"公假",who:"林家玉"},
+    {date:"2026-10-19",type:"leave",period:2,cls:"四甲",subject:"國語",other:"林繼于",leaveType:"事假",note:"身心假",who:"林家玉"},
+    {date:"2026-10-23",type:"sub",period:2,cls:"四甲",subject:"彈性(資訊)",other:"黃詠裕",leaveType:"公假",note:"尚未看到紙本",who:"林家玉"},
+    {date:"2026-11-06",type:"sub",period:2,cls:"四甲",subject:"彈性(資訊)",other:"黃詠裕",leaveType:"公假",who:"林家玉"},
+    {date:"2026-11-17",type:"sub",period:6,cls:"四甲",subject:"綜合",other:"陳怡璇",leaveType:"公假",who:"林家玉"},
+    {date:"2026-10-16",type:"tutor",cls:"六甲",other:"黃羽瑄",leaveType:"公假",days:1,who:"林繼于"},
+    {date:"2026-10-16",type:"sub",period:1,cls:"六甲",subject:"數學",other:"黃羽瑄",leaveType:"公假",who:"林繼于"},
+  ];
+  const admin = p.name==="陳怡璇", target = admin ? (p.as||"__all__") : p.name;
+  const out = {ok:true,name:p.name,role:admin?"admin":"teacher",teachers:admin?DEMO_NAMES:[],viewing:target,
+    events: target==="__all__" ? all : all.filter(e=>e.who===target), updated:"示範資料", pwChanged: !!demoPw[p.name]};
+  if(admin) out.pwStatus = DEMO_NAMES.map(n=>({name:n,changed:!!demoPw[n],at:demoPw[n]?"剛剛":""}));
+  return out;
+}
+
+/* ---------- 啟動 ---------- */
+if (DEMO) $("#demoTag").hidden = false;
+loadNames();
+resume();
+</script>
+</body>
+</html>
