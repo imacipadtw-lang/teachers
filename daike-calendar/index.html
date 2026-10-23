@@ -396,6 +396,9 @@ main{container-type:inline-size}
 .sheet .sub{text-align:center;margin:0 0 10px;font-size:13px}
 .sheet .meta{display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px}
 .sheet table{width:100%;border-collapse:collapse}
+.sheet thead{display:table-header-group}
+.sheet tr,.sheet .sign,.sheet .stamp{break-inside:avoid}
+.sheet .review-warning{border:2px solid #92400e;padding:10px;color:#78350f;background:#fff7ed;font-weight:700}
 .sheet th,.sheet td{border:1px solid #000;padding:5px 6px;text-align:center;vertical-align:middle}
 .sheet th{background:#E8EEF3;font-weight:700;white-space:nowrap}
 .sheet td.nw{white-space:nowrap}
@@ -1078,7 +1081,7 @@ function renderAdmin(){
 /* ---------- 文字說明：誰代誰、誰領多少錢 ---------- */
 const isAll = () => state.viewing==="__all__";
 const yuan = n => Number(n).toLocaleString("zh-TW") + " 元";
-const feeOf = e => e.nofee ? 0 : (e.type==="sub"||e.type==="leave") ? (e.rate || RATE_SUB)
+const feeOf = e => e.nofee ? 0 : (e.type==="sub"||e.type==="leave") ? Number(e.rate ?? RATE_SUB)
                  : (e.type==="tutor"||e.type==="tutorLeave") ? RATE_TUTOR*(+e.days||1) : 0;
 const leaveWord = e => (!e.leaveType || e.leaveType==="其他") ? "請假" : "請" + e.leaveType;   // 請公假、請事假…
 const courseOf = e => [e.cls, e.subject].filter(Boolean).join(" ");
@@ -1691,7 +1694,7 @@ const reduceMotion = () => window.matchMedia && matchMedia("(prefers-reduced-mot
 function countUp(el, to, fmtFn){
   if(reduceMotion() || !to){ el.innerHTML = fmtFn(to); return; }
   const t0 = performance.now(), dur = 700;
-  const step = now => { const k = Math.min(1,(now-t0)/dur), v = Math.round(to*(1-Math.pow(1-k,3))); el.innerHTML = fmtFn(v); if(k<1) requestAnimationFrame(step); };
+  const step = now => { const k = Math.min(1,(now-t0)/dur), v = k===1 ? to : Math.round(to*(1-Math.pow(1-k,3))); el.innerHTML = fmtFn(v); if(k<1) requestAnimationFrame(step); };
   requestAnimationFrame(step);
 }
 function shortFlag(e){
@@ -1783,11 +1786,13 @@ function tableRows(evs){
     const d = new Date(e.date+"T00:00:00"), x = describe(e);
     const tutorish = e.type==="tutor"||e.type==="tutorLeave";
     const kind = e.type==="leave" ? (e.other ? "請假（有人代）" : "請假（未安排）") : e.type==="tutorLeave" ? "請假（代導師）" : KIND[e.type];
-    const fee = e.type==="swap" ? 0 : feeOf(e);
+    // 金額欄與 tally 使用相同的領費範圍；請假者不能把別人的費用加進本人合計。
+    const payable = e.type==="sub" || e.type==="tutor";
+    const fee = payable ? feeOf(e) : 0;
     const payee = e.type==="sub"||e.type==="tutor" ? e.who : (e.type==="leave"||e.type==="tutorLeave") ? (e.other||"") : "";
     const subj = e.type==="swap" ? "" : (tutorish ? "導師" : (e.subject||""));
-    const note = [].concat(e.flags||[], e.note ? ["備註：" + e.note] : []).join("；");
-    return { date:`${d.getMonth()+1}/${d.getDate()}`, dow:DOW[d.getDay()], per: e.period ? `第${e.period}節` : (tutorish ? "全日" : ""),
+    const note = [].concat(e.flags||[], !payable && payee ? ["由代課教師領費，不列入本表金額合計"] : [], e.note ? ["備註：" + e.note] : []).join("；");
+    return { date:e.date, dow:DOW[d.getDay()], per: e.period ? `第${e.period}節` : (tutorish ? "全日" : ""),
              kind, cls: e.cls||"", subj, what: x.w + (e.type==="swap" ? "（" + x.f + "）" : ""), leave: e.type==="swap" ? "" : (e.leaveType||""),
              fee: fee, payee, note, e };
   });
@@ -1806,24 +1811,33 @@ async function loadExcelJS(){
   await new Promise((res, rej) => { const s = document.createElement("script");
     s.src = "https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"; s.onload = res; s.onerror = () => rej(new Error("Excel 元件下載失敗，請確認網路後再試")); document.head.appendChild(s); });
 }
+function reportAmountsValid(evs){
+  return evs.every(e => Number.isFinite(feeOf(e)) && feeOf(e) >= 0);
+}
+const REPORT_NOTE = "金額依目前系統資料估算，非付款證明。請假列不列入本人金額合計。假日、混齡與協同教學之支給，須依聘任方式及核定依據確認；系統排除計費的紀錄仍須人工核對。";
 $("#dlExcel").onclick = async () => {
   const r = $("#rangeSel").value, evs = state.events.filter(e => inRange(e, r)), rows = tableRows(evs);
   if(!rows.length){ toast(`${rangeLabel(r)}沒有紀錄`); return; }
+  if(!reportAmountsValid(evs)){ toast("單價或金額格式有誤，請先更正資料再匯出"); return; }
   busy(true);
   try{
     await loadExcelJS();
     const wb = new ExcelJS.Workbook(), ws = wb.addWorksheet("代課調課明細", {views:[{state:"frozen", ySplit:4}]});
     const head = ["日期","星期","節次","類別","班級","科目","內容","假別","金額（元）","領費的人","說明"];
-    ws.columns = [8,6,8,13,9,14,34,8,11,10,40].map(w => ({width:w}));
+    ws.columns = [13,6,8,13,9,14,34,8,11,10,40].map(w => ({width:w}));
     ws.mergeCells(1,1,1,head.length); ws.mergeCells(2,1,2,head.length);
     ws.getCell(1,1).value = `南投縣草屯鎮土城國民小學　代課・調課明細表`;
     ws.getCell(1,1).font = {size:16, bold:true}; ws.getCell(1,1).alignment = {horizontal:"center"};
     ws.getCell(2,1).value = `${whoLabel()}　範圍：${rangeLabel(r)}　下載時間：${new Date().toLocaleString("zh-TW",{hour12:false})}`;
     ws.getCell(2,1).alignment = {horizontal:"center"}; ws.getCell(2,1).font = {color:{argb:"FF4E5F70"}};
+    ws.mergeCells(3,1,3,head.length);
+    ws.getCell(3,1).value = REPORT_NOTE;
+    ws.getCell(3,1).alignment = {wrapText:true, vertical:"middle"};
+    ws.getRow(3).height = 36;
     const hr = ws.getRow(4); hr.values = head; hr.height = 22;
     hr.eachCell(c => { c.font = {bold:true, color:{argb:"FFFFFFFF"}}; c.fill = {type:"pattern", pattern:"solid", fgColor:{argb:"FF1F3A52"}}; c.alignment = {horizontal:"center", vertical:"middle"}; });
     rows.forEach(x => {
-      const row = ws.addRow([x.date, x.dow, x.per, x.kind, x.cls, x.subj, x.what, x.leave, x.fee || "", x.payee, x.note]);
+      const row = ws.addRow([x.date, x.dow, x.per, x.kind, x.cls, x.subj, x.what, x.leave, x.fee, x.payee, x.note]);
       row.alignment = {vertical:"middle", wrapText:true};
       [1,2,3,4,5,8,10].forEach(i => row.getCell(i).alignment = {horizontal:"center", vertical:"middle", wrapText:true});
       row.getCell(9).numFmt = "#,##0";
@@ -1860,13 +1874,14 @@ function sheetTable(rows){
 $("#printTable").onclick = () => {
   const r = $("#rangeSel").value, evs = state.events.filter(e => inRange(e, r)), rows = tableRows(evs);
   if(!rows.length){ toast(`${rangeLabel(r)}沒有紀錄`); return; }
+  if(!reportAmountsValid(evs)){ toast("單價或金額格式有誤，請先更正資料再列印"); return; }
   const tot = totalsFor(evs);
   printSheets(`<div class="sheet"><h1>南投縣草屯鎮土城國民小學　代課・調課明細表</h1>
     <p class="sub">${esc(whoLabel())}　${esc(rangeLabel(r))}</p>
     <div class="meta"><span>共 ${rows.length} 筆</span><span>列印日期：${printedAt()}</span></div>
     ${sheetTable(rows)}
     <table style="margin-top:8px;width:60%;margin-left:auto">${tot.map(([k,n,v]) => `<tr class="tot"><td class="l">${esc(k)}</td><td>${esc(n)}</td><td class="r">${v.toLocaleString("zh-TW")} 元</td></tr>`).join("")}</table>
-    <p class="note">說明：代課費每節 405 元（合班且只有一位老師上課的節次 608 元），代導師每日 133 元。標「⚠」的紀錄請和教務組確認；颱風假、國定假日當天的紀錄不計費，重複登錄只算一次。</p>
+    <p class="note">${esc(REPORT_NOTE)}</p>
     ${isAll() ? "" : `<div class="sign"><div>本人已核對以上紀錄無誤。　簽名：</div><div>日期：　　　年　　　月　　　日</div></div>`}</div>`);
 };
 $("#printCal").onclick = () => window.print();
@@ -1886,15 +1901,22 @@ function bigNum(n){
   return out + "元整";
 }
 $("#openSign").onclick = async () => {
+  if(state.role !== "admin"){ toast("只有教務組管理者可以產生全校確認單"); return; }
   let r = $("#rangeSel").value;
-  if(!r){ r = ymd(new Date()).slice(0,7); toast(`簽收單以月為單位，先產生 ${rangeLabel(r)}`); }
+  if(!r){ toast("請先選擇要核對的月份，再產生每月確認單"); $("#rangeSel").focus(); return; }
   busy(true);
   let all;
-  try{ all = isAll() ? state.events : ((await fetchData(state.cred.name, state.cred.h, "__all__")).events || []).filter(e => inTerm(e.date)); }
+  try{
+    const data = await fetchData(state.cred.name, state.cred.h, "__all__", true);
+    if(!data.ok) throw new Error(data.error || "後端未確認讀取成功");
+    if(data.role !== "admin" || data.viewing !== "__all__" || !Array.isArray(data.events)) throw new Error("未取得完整全校資料，已停止產生確認單");
+    all = data.events.filter(e => inTerm(e.date));
+  }
   catch(err){ busy(false); toast("讀取失敗：" + err.message); return; }
   busy(false);
   const evs = all.filter(e => e.date.startsWith(r) && (e.type==="sub" || e.type==="tutor"));
   if(!evs.length){ toast(`${rangeLabel(r)}沒有代課紀錄`); return; }
+  if(!reportAmountsValid(evs)){ toast("單價或金額格式有誤，請先更正資料再列印"); return; }
   const by = {}; evs.forEach(e => (by[e.who] ||= []).push(e));
   const names = Object.keys(by).sort((a,b) => a.localeCompare(b, "zh-Hant"));
   const roc = `${+r.slice(0,4)-1911} 年 ${+r.slice(5,7)} 月`;
@@ -1903,24 +1925,26 @@ $("#openSign").onclick = async () => {
   const totals = names.map(n => [n, sum(by[n])]);
   const G = totals.reduce((a,[,s]) => ({n:a.n+s.n, fee:a.fee+s.fee, d:a.d+s.d, tfee:a.tfee+s.tfee}), {n:0,fee:0,d:0,tfee:0});
   const voids = evs.filter(e => e.nofee).length, flags = evs.filter(e => (e.flags||[]).length && !e.nofee).length;
-  let html = `<div class="sheet"><h1>南投縣草屯鎮土城國民小學　${roc}校內代課鐘點費簽收總表</h1>
+  const review = flags || voids ? `<p class="review-warning">待核對草稿：${flags} 筆警示、${voids} 筆已排除計費。請逐筆確認後再辦理核銷；本表不是付款或領款證明。</p>` : "";
+  let html = `<div class="sheet"><h1>南投縣草屯鎮土城國民小學　${roc}代課明細確認總表</h1>${review}
     <p class="sub">計算期間：${r}-01 ～ ${r}-${String(new Date(+r.slice(0,4), +r.slice(5,7), 0).getDate()).padStart(2,"0")}</p>
     <div class="meta"><span>共 ${names.length} 人</span><span>列印日期：${printedAt()}</span></div>
-    <table><thead><tr><th style="width:5%">序</th><th style="width:12%">教師</th><th>代課節數</th><th>代課費</th><th>代導師日數</th><th>代導費</th><th>合計（元）</th><th style="width:16%">簽收（簽名）</th><th style="width:11%">日期</th></tr></thead><tbody>
+    <table><thead><tr><th style="width:5%">序</th><th style="width:12%">教師</th><th>代課節數</th><th>估算代課費</th><th>代導師日數</th><th>估算代導費</th><th>估算合計（元）</th><th style="width:16%">明細確認（簽名）</th><th style="width:11%">日期</th></tr></thead><tbody>
     ${totals.map(([n,s],i) => `<tr style="height:34px"><td>${i+1}</td><td>${esc(n)}</td><td>${s.n} 節</td><td class="r">${s.fee.toLocaleString("zh-TW")}</td><td>${s.d ? s.d + " 日" : "—"}</td><td class="r">${s.tfee ? s.tfee.toLocaleString("zh-TW") : "—"}</td><td class="r"><b>${(s.fee+s.tfee).toLocaleString("zh-TW")}</b></td><td></td><td></td></tr>`).join("")}
     <tr class="tot"><td colspan="2">合計</td><td>${G.n} 節</td><td class="r">${G.fee.toLocaleString("zh-TW")}</td><td>${G.d} 日</td><td class="r">${G.tfee.toLocaleString("zh-TW")}</td><td class="r">${(G.fee+G.tfee).toLocaleString("zh-TW")}</td><td colspan="2" class="l">新臺幣${bigNum(G.fee+G.tfee)}</td></tr></tbody></table>
-    <p class="note">說明：1. 每節 405 元；合班且只有一位老師上課（非協同）的節次 608 元；代導師每日 133 元。2. 重複登錄只算一次；颱風假、國定假日當天的紀錄不計費${voids ? `（本月有 ${voids} 筆不計費，明細見各人頁面）` : ""}。${flags ? `3. 本月有 ${flags} 筆標「⚠」需確認（例如衝堂），請教務組確認後再送出。` : ""} 4. 各人代課明細附於後頁，請老師核對後簽名。</p>
+    <p class="note">${esc(REPORT_NOTE)} 各人明細附於後頁，簽名表示確認明細，不表示已領款。</p>
     <div class="stamp"><div>製表（教務組）</div><div>教務主任</div><div>出納</div><div>會計主任</div><div>校長</div></div></div>`;
   names.forEach(n => {
     const list = by[n].sort((a,b) => a.date.localeCompare(b.date) || (+a.period||0) - (+b.period||0)), s = sum(list);
     const rows = list.map((e,i) => { const d = new Date(e.date+"T00:00:00"), fee = feeOf(e);
       return `<tr><td>${i+1}</td><td>${d.getMonth()+1}/${d.getDate()}</td><td>${DOW[d.getDay()]}</td><td>${e.type==="tutor" ? "全日" : "第" + esc(e.period) + "節"}</td><td>${esc(e.cls)}</td><td>${e.type==="tutor" ? "代理導師" : esc(e.subject||"")}</td><td>${esc(e.other)}</td><td>${esc(e.leaveType||"")}</td><td class="r">${e.type==="tutor" ? RATE_TUTOR : (e.rate||RATE_SUB)}</td><td class="r">${e.nofee ? "0" : fee.toLocaleString("zh-TW")}</td><td class="l">${esc((e.flags||[]).join("；"))}</td></tr>`; }).join("");
-    html += `<div class="sheet"><h1>${roc}　代課節數簽收確認單</h1>
+    html += `<div class="sheet"><h1>${roc}　代課節數確認單</h1>${review}
       <p class="sub">南投縣草屯鎮土城國民小學　教師：<b>${esc(n)}</b></p>
       <div class="meta"><span>代課 ${s.n} 節、代導師 ${s.d} 日</span><span>列印日期：${printedAt()}</span></div>
       <table><thead><tr><th style="width:4%">序</th><th style="width:7%">日期</th><th style="width:5%">星期</th><th style="width:7%">節次</th><th style="width:7%">班級</th><th style="width:14%">科目</th><th style="width:10%">代誰的課</th><th style="width:6%">假別</th><th style="width:8%">每節／日</th><th style="width:8%">金額</th><th>說明</th></tr></thead>
       <tbody>${rows}<tr class="tot"><td colspan="9">合計</td><td class="r">${(s.fee+s.tfee).toLocaleString("zh-TW")}</td><td class="l">新臺幣${bigNum(s.fee+s.tfee)}</td></tr></tbody></table>
       <p class="note">本人確認 ${roc}代課共 <b>${s.n}</b> 節${s.d ? `、代理導師 <b>${s.d}</b> 日` : ""}，合計新臺幣 <b>${(s.fee+s.tfee).toLocaleString("zh-TW")}</b> 元（${bigNum(s.fee+s.tfee)}），以上明細無誤。如有不符，請於簽名前告知教務組更正。</p>
+      <p class="note">${esc(REPORT_NOTE)} 本人簽名僅確認明細及節數，不表示款項已收訖。</p>
       <div class="sign"><div>教師簽名：</div><div>日期：　　　年　　　月　　　日</div></div></div>`;
   });
   printSheets(html);
@@ -2034,3 +2058,4 @@ resume();
 </script>
 </body>
 </html>
+
