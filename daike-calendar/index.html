@@ -48,9 +48,15 @@ input:focus,select:focus{border-color:var(--sub);outline:none}
 .topbar .who small{font-weight:400;color:var(--ink-2);margin-left:8px;font-size:13px}
 .topbar .spacer{flex:1}
 .topbar .updated{font-size:12px;color:var(--ink-3)}
-.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--ink-2)}
-.legend span{display:inline-flex;align-items:center;gap:6px}
-.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+@media (max-width:600px){
+  .topbar{padding:8px 12px;gap:8px}
+  .topbar .who{font-size:16px;flex:1 0 100%}
+  .topbar .spacer,.topbar .updated{display:none}
+  .topbar .btn.small{padding:5px 10px}
+  .wrap{padding:16px 12px 60px}
+  .month{padding:12px 10px 10px}
+  .month,.ag-day{scroll-margin-top:110px}
+}
 
 .wrap{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:24px;padding:24px 20px 60px;max-width:1500px;margin:0 auto}
 .wrap main{min-width:0}
@@ -59,11 +65,11 @@ input:focus,select:focus{border-color:var(--sub);outline:none}
 /* 摘要 */
 .summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:22px}
 @media (max-width:640px){.summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;border-left-width:5px}
-.stat b{display:block;font-size:26px;font-weight:900;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px}
+.stat .k{font-size:13px;color:var(--ink-2)}
+.stat b{display:block;font-size:24px;font-weight:900;line-height:1.2;font-variant-numeric:tabular-nums;margin:2px 0}
 .stat span{font-size:13px;color:var(--ink-2)}
-.stat.s-sub{border-left-color:var(--sub)} .stat.s-leave{border-left-color:var(--leave)}
-.stat.s-tutor{border-left-color:var(--tutor)} .stat.s-swap{border-left-color:var(--swap)}
+.fee-note{font-size:12px;color:var(--ink-3);margin:-12px 0 18px}
 
 /* 檢視切換 */
 .tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
@@ -71,47 +77,53 @@ input:focus,select:focus{border-color:var(--sub);outline:none}
 .tab[aria-selected=true]{background:var(--ink);border-color:var(--ink);color:#fff}
 
 /* ===== 年曆 ===== */
-.year{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
-@media (max-width:1300px){.year{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:560px){.year{grid-template-columns:1fr}}
-.month{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 12px 10px}
-.month.dim{opacity:.55}
-.month h3{margin:0 0 8px;font-size:15px;font-weight:700;display:flex;justify-content:space-between;align-items:baseline}
-.month h3 small{font-weight:400;color:var(--ink-3);font-size:12px}
-.dow{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));font-size:11px;color:var(--ink-3);text-align:center;margin-bottom:4px}
-.dow span:first-child,.dow span:last-child{color:#C9A0A0}
+main{container-type:inline-size}
+.year{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+.month{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 14px 12px;scroll-margin-top:90px}
+.month h3{margin:0 0 4px;font-size:17px;font-weight:900}
+.month .msum{font-size:13px;color:var(--ink-2);margin:0 0 10px}
+.dow{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));font-size:12px;color:var(--ink-3);text-align:center;margin-bottom:4px}
 .days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
-.d{position:relative;aspect-ratio:1/1;border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:3px;font-size:13px;color:var(--ink);border:1px solid transparent;background:transparent;font-variant-numeric:tabular-nums}
+.d{position:relative;min-height:40px;border-radius:7px;border:1px solid var(--line-2);background:#fff;padding:3px 4px;text-align:left;color:var(--ink);display:flex;flex-direction:column;gap:4px;font-variant-numeric:tabular-nums}
 .d.empty{visibility:hidden}
-.d.we{color:#B9A6A6}
-.d.has{font-weight:900;background:var(--line-2);cursor:pointer;color:var(--ink)}
-.d.has.k-sub{background:var(--sub-bg)}.d.has.k-leave{background:var(--leave-bg)}.d.has.k-tutor{background:var(--tutor-bg)}.d.has.k-swap{background:var(--swap-bg)}
-.d.has:hover{border-color:var(--ink-3)}
-.d.today{border:2px solid var(--today)}
-.d.sel{background:var(--ink)!important;color:#fff!important}
-.d.sel .pips i{box-shadow:0 0 0 1px #fff}
-.pips{display:flex;gap:2px;margin-top:auto;margin-bottom:4px;flex-wrap:wrap;justify-content:center;max-width:92%}
-.pips i{width:11px;height:5px;border-radius:2px;display:block}
-.pips i.sub{background:var(--sub)}.pips i.leave{background:var(--leave)}.pips i.tutor{background:var(--tutor)}.pips i.swap{background:var(--swap)}
-.d .cnt{position:absolute;top:2px;right:3px;font-size:9px;font-weight:700;color:var(--ink-2)}
+.d .n{font-size:13px;font-weight:500;color:var(--ink-2);text-align:center}
+.d.we .n{color:var(--ink-3)}
+.d.has{border:1.5px solid var(--ink);cursor:pointer}
+.d.has .n{color:var(--ink);font-weight:900}
+.d.today .n::after{content:"今天";display:block;font-size:10px;font-weight:700;color:var(--ink)}
+.d.sel{outline:3px solid var(--ink);outline-offset:1px}
+.d .cell-ev{display:none}
+/* 手機：小月曆＋下方文字清單 */
+.agenda{margin-top:12px;border-top:1px solid var(--line-2)}
+.agenda .none{padding:12px 2px 2px;color:var(--ink-3);font-size:14px}
+.ag-day{display:grid;grid-template-columns:76px minmax(0,1fr);gap:10px;padding:12px 0;border-bottom:1px solid var(--line-2);scroll-margin-top:90px}
+.ag-day:last-child{border-bottom:0}
+.ag-date{font-weight:900;font-size:15px;line-height:1.3}
+.ag-date small{display:block;font-weight:500;color:var(--ink-2);font-size:13px}
+/* 寬螢幕：字直接寫在月曆格子裡 */
+@container (min-width:720px){
+  .d{min-height:56px;padding:5px 6px}
+  .d .n{text-align:left}
+  .d.today .n::after{display:inline;margin-left:6px}
+  .d .cell-ev{display:block;font-size:12.5px;line-height:1.35;padding-top:4px;border-top:1px solid var(--line-2)}
+  .d .cell-ev .p{color:var(--ink-2)}
+  .d .cell-ev .w{font-weight:900}
+  .d .cell-ev .f{font-weight:500}
+  .agenda{display:none}
+}
 
-/* ===== 清單 ===== */
+/* ===== 文字明細（清單、手機、側欄共用） ===== */
 .list{display:none}
-.list .grp{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden}
-.list .grp h4{margin:0;padding:10px 14px;background:var(--line-2);font-size:14px;font-weight:700;display:flex;justify-content:space-between}
-.list .grp h4 small{font-weight:400;color:var(--ink-2)}
-
-/* 事件列 */
-.ev{display:grid;grid-template-columns:6px 1fr;gap:12px;padding:10px 14px;border-top:1px solid var(--line-2)}
-.ev:first-of-type{border-top:0}
-.ev i{border-radius:3px;display:block;margin:4px 0}
-.ev.sub i{background:var(--sub)}.ev.leave i{background:var(--leave)}.ev.tutor i{background:var(--tutor)}.ev.swap i{background:var(--swap)}
-.ev .t{font-weight:700}
-.ev .t .tag{font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;margin-right:6px;vertical-align:middle}
-.ev.sub .tag{background:var(--sub-bg);color:var(--sub)}.ev.leave .tag{background:var(--leave-bg);color:var(--leave)}
-.ev.tutor .tag{background:var(--tutor-bg);color:var(--tutor)}.ev.swap .tag{background:var(--swap-bg);color:var(--swap)}
-.ev .m{font-size:13px;color:var(--ink-2)}
-.ev .n{font-size:12px;color:var(--ink-3)}
+.list .grp{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:12px;padding:0 14px}
+.list .grp h4{margin:0;padding:12px 0 4px;font-size:16px;font-weight:900}
+.list .grp .msum{font-size:13px;color:var(--ink-2);margin:0 0 4px}
+.ev{padding:6px 0}
+.ev + .ev{border-top:1px dashed var(--line)}
+.ev .p{font-size:13px;color:var(--ink-2)}
+.ev .w{font-size:16px;font-weight:900;line-height:1.4}
+.ev .f{font-size:15px;font-weight:500}
+.ev .x{font-size:12px;color:var(--ink-3)}
+.panel .ev{padding:10px 16px}
 .empty{padding:28px 14px;text-align:center;color:var(--ink-3)}
 
 /* ===== 側欄（當日明細） ===== */
@@ -197,12 +209,6 @@ select{appearance:none;background:#fff url("data:image/svg+xml,%3Csvg xmlns='htt
 <section id="app">
   <header class="topbar">
     <div class="who" id="who"></div>
-    <div class="legend">
-      <span><i style="background:var(--sub)"></i>我去代課</span>
-      <span><i style="background:var(--leave)"></i>我請假（別人代）</span>
-      <span><i style="background:var(--tutor)"></i>我代導師</span>
-      <span><i style="background:var(--swap)"></i>調課</span>
-    </div>
     <div class="spacer"></div>
     <span class="updated" id="updated"></span>
     <button class="btn ghost small" id="reload" type="button">重新整理</button>
@@ -218,6 +224,7 @@ select{appearance:none;background:#fff url("data:image/svg+xml,%3Csvg xmlns='htt
     <main>
       <div class="admin-mobile" id="adminMobile"></div>
       <div class="summary" id="summary"></div>
+      <p class="fee-note">金額依每節 405 元、代導師每日 133 元計算，正式金額以教務組核算為準。</p>
       <div class="tabs" role="tablist">
         <button class="tab" role="tab" aria-selected="true" data-view="year">年曆</button>
         <button class="tab" role="tab" aria-selected="false" data-view="list">清單</button>
@@ -234,7 +241,7 @@ select{appearance:none;background:#fff url("data:image/svg+xml,%3Csvg xmlns='htt
       <div class="admin-box" id="adminBox"></div>
       <div class="panel">
         <h2><span id="panelTitle">點一個日期看明細</span><button class="close" id="closeSide" aria-label="關閉">×</button></h2>
-        <div class="body" id="panelBody"><div class="empty">年曆上有顏色標記的日子，點一下就會列出那天的代課、請假與代導師。</div></div>
+        <div class="body" id="panelBody"><div class="empty">點年曆上有框線的日子，這裡會列出那天的完整明細和備註。</div></div>
         <div class="next" id="panelNext"></div>
       </div>
     </aside>
@@ -410,7 +417,8 @@ function applyData(d){
   $("#printNote").textContent = `${label} 115 學年度 代課・調課 年曆`;
   $("#pwNotice").hidden = d.pwChanged !== false;
   state.pwStatus = d.pwStatus || [];
-  renderAdmin(); renderSummary(); renderYear(); renderList(); renderPanel(null); jumpToday(false);
+  renderAdmin(); renderSummary(); renderYear(); renderList(); renderPanel(null);
+  if(!state.shown){ state.shown=true; requestAnimationFrame(()=>jumpToday(true,true)); }
 }
 
 /* ---------- 管理者：切換老師、密碼狀態 ---------- */
@@ -446,15 +454,124 @@ function renderAdmin(){
   });
 }
 
+/* ---------- 文字說明：誰代誰、誰領多少錢 ---------- */
+const isAll = () => state.viewing==="__all__";
+const yuan = n => Number(n).toLocaleString("zh-TW") + " 元";
+const feeOf = e => (e.type==="sub"||e.type==="leave") ? RATE_SUB
+                 : (e.type==="tutor"||e.type==="tutorLeave") ? RATE_TUTOR*(+e.days||1) : 0;
+const leaveWord = e => (!e.leaveType || e.leaveType==="其他") ? "請假" : "請" + e.leaveType;   // 請公假、請事假…
+const courseOf = e => [e.cls, e.subject].filter(Boolean).join(" ");
+const daysTxt = e => (+e.days||1)!==1 ? `${e.days} 日` : "";
+
+/* 調課：從「調出：某老師 第 3 節 四甲 → 10/30 第 5 節」拆出各段 */
+function swapParts(e){
+  const m = String(e.subject||"").match(/^(調出|調入)：(\S+) 第 (\S+) 節 ?(\S*) → (\S+) 第 (\S+) 節/);
+  if(!m) return {dir:"調課", text:e.subject||"調課"};
+  const [,dir,who,p1,cls,d2,p2] = m;
+  return dir==="調出" ? {dir, who, text:`第${p1}節 ${cls} 改到 ${d2} 第${p2}節`, short:`第${p1}節→${d2}第${p2}節`}
+                      : {dir, who, text:`改上原本第${p1}節的 ${cls}（第${p2}節）`, short:`改上第${p2}節（原第${p1}節）`};
+}
+
+/* 一筆紀錄 → 三行字：p 時間/課程、w 誰代誰、f 錢 */
+function describe(e){
+  const o=e.other, w=e.who, f=feeOf(e), per=e.period?`第${e.period}節`:"";
+  if(isAll()){
+    switch(e.type){
+      case "sub":   return {p:`${per} ${courseOf(e)}・${o}${leaveWord(e)}`, w:`${w} 代 ${o} 上課`, f:`${w} 領代課費 ${yuan(f)}`};
+      case "tutor": return {p:`${e.cls} 導師 ${daysTxt(e)}・${o}${leaveWord(e)}`, w:`${w} 代 ${o} 當導師`, f:`${w} 領代導費 ${yuan(f)}`};
+      case "leave": return o ? null : {p:`${per} ${courseOf(e)}`, w:`${w} ${leaveWord(e)}`, f:"還沒有安排代課老師"};
+      case "tutorLeave": return o ? null : {p:`${e.cls} 導師`, w:`${w} ${leaveWord(e)}`, f:"還沒有安排代導師"};
+      case "swap": { const s=swapParts(e); return {p:`${s.dir}`, w:`${s.who||w} ${s.text}`, f:(e.other||"")+"（調課沒有代課費）"}; }
+    }
+    return null;
+  }
+  switch(e.type){
+    case "sub":   return {p:`${per} ${courseOf(e)}・${o}${leaveWord(e)}`, w:`我代 ${o} 上課`, f:`我領代課費 ${yuan(f)}`};
+    case "leave": return o ? {p:`${per} ${courseOf(e)}・我${leaveWord(e)}`, w:`${o} 代我上課`, f:`代課費 ${yuan(f)} 由 ${o} 領`}
+                           : {p:`${per} ${courseOf(e)}`, w:`我${leaveWord(e)}`, f:"還沒有安排代課老師"};
+    case "tutor": return {p:`${e.cls} 導師 ${daysTxt(e)}・${o}${leaveWord(e)}`, w:`我代 ${o} 當導師`, f:`我領代導費 ${yuan(f)}`};
+    case "tutorLeave": return o ? {p:`${e.cls} 導師・我${leaveWord(e)}`, w:`${o} 代我當導師`, f:`代導費 ${yuan(f)} 由 ${o} 領`}
+                                : {p:`${e.cls} 導師`, w:`我${leaveWord(e)}`, f:"還沒有安排代導師"};
+    case "swap": { const s=swapParts(e); return {p:s.dir, w:s.text, f:(e.other||"")+"（調課沒有代課費）"}; }
+  }
+  return null;
+}
+function evRow(e){
+  const d = describe(e); if(!d) return "";
+  return `<div class="ev"><div class="p">${esc(d.p)}</div><div class="w">${esc(d.w)}</div><div class="f">${esc(d.f)}</div>${e.note?`<div class="x">備註：${esc(e.note)}</div>`:""}</div>`;
+}
+
+/* 月曆格子用：同一天、同一個人、同一種情形合併成一則，節數列在一起、金額加總 */
+function cellEntries(evs){
+  const groups = new Map();
+  for(const e of evs){
+    if(!describe(e)) continue;
+    const key = [e.type, e.who, e.other, e.leaveType, e.type==="swap"?e.subject:""].join("|");
+    if(!groups.has(key)) groups.set(key, {e, periods:[], fee:0});
+    const g = groups.get(key);
+    if(e.period) g.periods.push(e.period);
+    g.fee += feeOf(e);
+  }
+  return [...groups.values()].map(({e, periods, fee})=>{
+    const o=e.other, w=e.who, per = periods.length ? `第${periods.join("、")}節` : "";
+    if(isAll()) switch(e.type){
+      case "sub":   return {p:`${per}・${o}${leaveWord(e)}`, w:`${w}代${o}`, f:`${w}領 ${yuan(fee)}`};
+      case "tutor": return {p:`導師・${o}${leaveWord(e)}`, w:`${w}代${o}當導師`, f:`${w}領 ${yuan(fee)}`};
+      case "leave": return {p:per, w:`${w}${leaveWord(e)}`, f:"還沒有人代課"};
+      case "tutorLeave": return {p:"導師", w:`${w}${leaveWord(e)}`, f:"還沒有人代導師"};
+      case "swap": { const s=swapParts(e); return {p:s.dir, w:`${s.who||w} ${s.short||s.text}`, f:e.other||""}; }
+    }
+    switch(e.type){
+      case "sub":   return {p:per, w:`我代${o}上課`, f:`我領 ${yuan(fee)}`};
+      case "leave": return o ? {p:`${per}・我${leaveWord(e)}`, w:`${o}代我上課`, f:`${o}領 ${yuan(fee)}`}
+                             : {p:`${per}・我${leaveWord(e)}`, w:"還沒有人代課", f:""};
+      case "tutor": return {p:"導師", w:`我代${o}當導師`, f:`我領 ${yuan(fee)}`};
+      case "tutorLeave": return o ? {p:`導師・我${leaveWord(e)}`, w:`${o}代我當導師`, f:`${o}領 ${yuan(fee)}`}
+                                  : {p:`導師・我${leaveWord(e)}`, w:"還沒有人代導師", f:""};
+      case "swap": { const s=swapParts(e); return {p:s.dir, w:s.short||s.text, f:e.other||""}; }
+    }
+  });
+}
+
+/* 一段期間的金額統計 */
+function tally(evs){
+  const t = {subN:0, subFee:0, tutorD:0, tutorFee:0, leaveN:0, unN:0};
+  for(const e of evs){
+    if(e.type==="sub"){ t.subN++; t.subFee+=feeOf(e); }
+    else if(e.type==="tutor"){ t.tutorD+=(+e.days||1); t.tutorFee+=feeOf(e); }
+    else if(e.type==="leave"){ t.leaveN++; if(!e.other) t.unN++; }
+    else if(e.type==="tutorLeave" && !e.other) t.unN++;
+  }
+  return t;
+}
+function monthSummary(evs){
+  if(!evs.length) return "這個月沒有代課、請假紀錄";
+  const t = tally(evs), parts=[];
+  if(isAll()){
+    parts.push(`全校代課 ${t.subN} 節，代課費 ${yuan(t.subFee)}`);
+    if(t.tutorD) parts.push(`代導師 ${t.tutorD} 日，代導費 ${yuan(t.tutorFee)}`);
+    if(t.unN) parts.push(`還沒安排代課 ${t.unN} 筆`);
+  }else{
+    if(t.subN)   parts.push(`我代別人上課 ${t.subN} 節，領 ${yuan(t.subFee)}`);
+    if(t.tutorD) parts.push(`我代導師 ${t.tutorD} 日，領 ${yuan(t.tutorFee)}`);
+    if(t.leaveN) parts.push(`我請假由別人代 ${t.leaveN} 節`);
+  }
+  return "本月：" + (parts.join("；") || "只有調課紀錄");
+}
+
 /* ---------- 摘要 ---------- */
 function renderSummary(){
-  const n = t => state.events.filter(e=>e.type===t);
-  const sub=n("sub").length, leave=n("leave").length+n("tutorLeave").length, tutor=n("tutor").reduce((s,e)=>s+(+e.days||1),0), swap=n("swap").length;
-  $("#summary").innerHTML = `
-    <div class="stat s-sub"><b>${sub}</b><span>代課節數 · 約 ${(sub*RATE_SUB).toLocaleString()} 元</span></div>
-    <div class="stat s-leave"><b>${leave}</b><span>請假被代節數</span></div>
-    <div class="stat s-tutor"><b>${tutor}</b><span>代導師日數 · 約 ${(tutor*RATE_TUTOR).toLocaleString()} 元</span></div>
-    <div class="stat s-swap"><b>${swap}</b><span>調課筆數</span></div>`;
+  const t = tally(state.events);
+  const card = (k,b,sub) => `<div class="stat"><div class="k">${k}</div><b>${b}</b><span>${sub}</span></div>`;
+  $("#summary").innerHTML = isAll()
+    ? card("全校代課", `${t.subN} 節`, `代課費 ${yuan(t.subFee)}`)
+    + card("全校代導師", `${t.tutorD} 日`, `代導費 ${yuan(t.tutorFee)}`)
+    + card("合計要發", yuan(t.subFee+t.tutorFee), "代課費＋代導費")
+    + card("還沒安排代課", `${t.unN} 筆`, "請假但代課老師空白")
+    : card("我代別人上課", `${t.subN} 節`, `我領代課費 ${yuan(t.subFee)}`)
+    + card("我代別人當導師", `${t.tutorD} 日`, `我領代導費 ${yuan(t.tutorFee)}`)
+    + card("我總共領", yuan(t.subFee+t.tutorFee), "代課費＋代導費")
+    + card("我請假，別人代我", `${t.leaveN} 節`, "這些代課費由代課老師領");
 }
 
 /* ---------- 年曆 ---------- */
@@ -464,62 +581,60 @@ function renderYear(){
   const today = ymd(new Date());
   const months = []; for(let i=0;i<12;i++){ const m=(7+i)%12, y=SCHOOL_YEAR_START+(i>=5?1:0); months.push([y,m]); }
   $("#year").innerHTML = months.map(([y,m])=>{
+    const ym = `${y}-${String(m+1).padStart(2,"0")}`;
     const first = new Date(y,m,1), days = new Date(y,m+1,0).getDate();
-    const sem = m>=7&&m<=11 || m===0 ? "上學期" : "下學期";
-    const hasAny = Object.keys(byDate).some(k=>k.startsWith(`${y}-${String(m+1).padStart(2,"0")}`));
+    const monthEvs = state.events.filter(e=>e.date.startsWith(ym));
     let cells = ""; for(let i=0;i<first.getDay();i++) cells += `<div class="d empty"></div>`;
+    let agenda = "";
     for(let d=1; d<=days; d++){
-      const key = `${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-      const evs = byDate[key]||[], dow=new Date(y,m,d).getDay();
-      const types=[...new Set(evs.map(e=>e.type==="tutorLeave"?"leave":e.type))];
-      cells += `<button type="button" class="d${evs.length?" has k-"+types[0]:""}${key===today?" today":""}${dow===0||dow===6?" we":""}${key===state.selected?" sel":""}" data-date="${key}" ${evs.length?"":"tabindex=-1"} aria-label="${key}${evs.length?"，"+evs.length+" 筆":""}">
-        ${d}${evs.length>1?`<span class="cnt">${evs.length}</span>`:""}
-        <span class="pips">${types.map(t=>`<i class="${t}"></i>`).join("")}</span></button>`;
+      const key = `${ym}-${String(d).padStart(2,"0")}`, dow=new Date(y,m,d).getDay();
+      const ents = cellEntries(byDate[key]||[]);
+      const has = ents.length>0;
+      const evHtml = ents.map(x=>`<div class="cell-ev"><div class="p">${esc(x.p)}</div><div class="w">${esc(x.w)}</div>${x.f?`<div class="f">${esc(x.f)}</div>`:""}</div>`).join("");
+      cells += `<${has?"button type=\"button\"":"div"} class="d${has?" has":""}${key===today?" today":""}${dow===0||dow===6?" we":""}${key===state.selected?" sel":""}" data-date="${key}"${has?` aria-label="${m+1}月${d}日，${ents.length} 則紀錄"`:""}><span class="n">${d}</span>${evHtml}</${has?"button":"div"}>`;
+      if(has){
+        agenda += `<div class="ag-day" id="ag-${key}"><div class="ag-date">${m+1}/${d}<small>星期${DOW[dow]}</small></div><div>${(byDate[key]).map(e=>evRow(e)).join("")}</div></div>`;
+      }
     }
-    return `<section class="month${hasAny?"":" dim"}" id="m-${y}-${m+1}"><h3>${y} 年 ${m+1} 月 <small>${sem}</small></h3>
-      <div class="dow">${DOW.map(x=>`<span>${x}</span>`).join("")}</div><div class="days">${cells}</div></section>`;
+    return `<section class="month" id="m-${y}-${m+1}"><h3>${y} 年 ${m+1} 月</h3><p class="msum">${esc(monthSummary(monthEvs))}</p>
+      <div class="dow">${DOW.map(x=>`<span>${x}</span>`).join("")}</div><div class="days">${cells}</div>
+      <div class="agenda">${agenda || `<div class="none">這個月沒有紀錄</div>`}</div></section>`;
   }).join("");
-  $("#year").querySelectorAll(".d.has").forEach(b=>b.onclick=()=>{ state.selected=b.dataset.date; renderYear(); renderPanel(b.dataset.date); });
+  $("#year").querySelectorAll(".d.has").forEach(b=>b.onclick=()=>{
+    const date=b.dataset.date, ag=document.getElementById("ag-"+date);
+    if(ag && ag.offsetParent){ ag.scrollIntoView({behavior:"smooth",block:"start"}); return; }   // 手機：捲到下方文字
+    state.selected=date; renderYear(); renderPanel(date);                                         // 寬螢幕：側欄看備註
+  });
 }
 
 /* ---------- 清單 ---------- */
 function renderList(){
   const list=$("#list");
-  if(!state.events.length){ list.innerHTML=`<div class="grp"><div class="empty">目前沒有任何紀錄。表單登錄後重新整理即可看到。</div></div>`; return; }
-  const groups={}; for(const e of state.events) (groups[e.date.slice(0,7)] ||= []).push(e);
+  const rows = state.events.filter(e=>describe(e));
+  if(!rows.length){ list.innerHTML=`<div class="grp"><div class="empty">目前沒有任何紀錄。表單登錄後重新整理即可看到。</div></div>`; return; }
+  const groups={}; for(const e of rows) (groups[e.date.slice(0,7)] ||= []).push(e);
   list.innerHTML = Object.entries(groups).map(([ym,evs])=>{
     const [y,m]=ym.split("-");
-    return `<div class="grp"><h4>${y} 年 ${+m} 月 <small>${evs.length} 筆</small></h4>${evs.map(e=>evRow(e)).join("")}</div>`;
+    const byDay={}; for(const e of evs) (byDay[e.date] ||= []).push(e);
+    return `<div class="grp"><h4>${y} 年 ${+m} 月</h4><p class="msum">${esc(monthSummary(state.events.filter(e=>e.date.startsWith(ym))))}</p>
+      ${Object.entries(byDay).map(([dt,es])=>{ const d=new Date(dt+"T00:00:00");
+        return `<div class="ag-day"><div class="ag-date">${d.getMonth()+1}/${d.getDate()}<small>星期${DOW[d.getDay()]}</small></div><div>${es.map(e=>evRow(e)).join("")}</div></div>`; }).join("")}</div>`;
   }).join("");
-}
-
-/* ---------- 事件列 ---------- */
-function evRow(e, withDate=true){
-  const t = TYPE[e.type]||TYPE.sub, cls = e.type==="tutorLeave"?"leave":e.type;
-  const d = new Date(e.date+"T00:00:00");
-  const dateTxt = withDate ? `${d.getMonth()+1}/${d.getDate()}（${DOW[d.getDay()]}）` : "";
-  let main="", meta="";
-  if(e.type==="sub"){ main=`${e.period?`第 ${e.period} 節 `:""}${e.cls||""} ${e.subject||""}`; meta=`代 ${e.other||"—"} 老師的課${e.leaveType?"・"+e.leaveType:""}`; }
-  else if(e.type==="leave"){ main=`${e.period?`第 ${e.period} 節 `:""}${e.cls||""} ${e.subject||""}`; meta=`${e.leaveType||"請假"}，由 ${e.other||"（尚未安排）"} 老師代課`; }
-  else if(e.type==="tutor"){ main=`代 ${e.cls||""} 導師`; meta=`${e.other||""} 老師${e.leaveType?"・"+e.leaveType:""}${e.days&&e.days!=1?"・"+e.days+" 日":""}`; }
-  else if(e.type==="tutorLeave"){ main=`${e.cls||""} 導師請假`; meta=`${e.leaveType||""}，由 ${e.other||"（尚未安排）"} 代導師`; }
-  else if(e.type==="swap"){ main=e.subject||"調課"; meta=e.other||""; }
-  const whoTxt = state.viewing==="__all__" && e.who ? `<b style="color:var(--ink-2)">${esc(e.who)}</b>　` : "";
-  return `<div class="ev ${cls}"><i></i><div><div class="t"><span class="tag">${t.short}</span>${whoTxt}${esc(dateTxt)} ${esc(main)}</div><div class="m">${esc(meta)}</div>${e.note?`<div class="n">${esc(e.note)}</div>`:""}</div></div>`;
 }
 
 /* ---------- 側欄 ---------- */
 function renderPanel(date){
   const side=$("#side");
-  if(!date){ side.classList.remove("open"); $("#panelTitle").textContent="點一個日期看明細"; $("#panelBody").innerHTML=`<div class="empty">年曆上有顏色標記的日子，點一下就會列出那天的代課、請假與代導師。</div>`; }
+  if(!date){ side.classList.remove("open"); $("#panelTitle").textContent="點一個日期看明細"; $("#panelBody").innerHTML=`<div class="empty">點年曆上有框線的日子，這裡會列出那天的完整明細和備註。</div>`; }
   else{
     const d=new Date(date+"T00:00:00"), evs=state.events.filter(e=>e.date===date);
     $("#panelTitle").textContent=`${d.getMonth()+1} 月 ${d.getDate()} 日（${DOW[d.getDay()]}）`;
-    $("#panelBody").innerHTML = evs.map(e=>evRow(e,false)).join("") || `<div class="empty">這天沒有紀錄</div>`;
+    $("#panelBody").innerHTML = evs.map(e=>evRow(e)).join("") || `<div class="empty">這天沒有紀錄</div>`;
     side.classList.add("open");
   }
-  const today=ymd(new Date()), next=state.events.find(e=>e.date>=today);
-  $("#panelNext").innerHTML = next ? `下一筆：${esc(fmt(next.date))} ${esc((TYPE[next.type]||{}).short||"")}${next.period?` 第 ${next.period} 節`:""} ${esc(next.cls||"")}` : "之後沒有排定的紀錄";
+  const today=ymd(new Date()), next=state.events.find(e=>e.date>=today && describe(e));
+  const nd = next && describe(next);
+  $("#panelNext").textContent = nd ? `下一筆：${fmt(next.date)} ${nd.p.split("・")[0]} ${nd.w}` : "之後沒有排定的紀錄";
 }
 $("#closeSide").onclick=()=>{ state.selected=null; renderYear(); renderPanel(null); };
 
@@ -529,35 +644,36 @@ document.querySelectorAll(".tab[data-view]").forEach(b=>b.onclick=()=>{
   state.view=b.dataset.view; $("#year").style.display=state.view==="year"?"grid":"none"; $("#list").style.display=state.view==="list"?"block":"none";
 });
 $("#jumpToday").onclick=()=>jumpToday(true);
-function jumpToday(scroll){ const t=new Date(), el=document.getElementById(`m-${t.getFullYear()}-${t.getMonth()+1}`); if(el&&scroll) el.scrollIntoView({behavior:"smooth",block:"start"}); }
+function jumpToday(scroll, instant){ const t=new Date(), el=document.getElementById(`m-${t.getFullYear()}-${t.getMonth()+1}`); if(el&&scroll) el.scrollIntoView({behavior:instant?"auto":"smooth",block:"start"}); }
 
 /* ---------- 小工具 ---------- */
 function ymd(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
 function fmt(s){ const d=new Date(s+"T00:00:00"); return `${d.getMonth()+1}/${d.getDate()}（${DOW[d.getDay()]}）`; }
 function esc(s){ return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
-/* ---------- 示範資料（未設定 API_URL 時）：密碼一律是 demo ---------- */
-const DEMO_NAMES=["陳怡璇","林繼于","李致德","黃詠裕","廖恒慈","簡玉惠","郭玉雪","劉佳雯","林家玉","陳佳君","黃羽瑄","陳怡伶","許聖欣","詹可德","吳韻如"];
-const demoPw = {};   // 示範模式下改過的密碼（只存在這個分頁）
+/* ---------- 示範資料（網址加 ?demo=1）：人名、資料都是虛構的，密碼一律 demo ---------- */
+const DEMO_NAMES=["王教務","甲老師","乙老師","丙老師","丁老師"];
+const demoPw = {};
 async function demoApi(p){
   const ok = async (n,h)=> h === (demoPw[n] || await sha256(n+":demo"));
   if(p.action==="names") return {ok:true,names:DEMO_NAMES};
   if(!DEMO_NAMES.includes(p.name) || !(await ok(p.name,p.h))) return {ok:false,error:p.action==="change"?"目前的密碼不正確":"姓名或密碼不正確（示範模式密碼是 demo）"};
   if(p.action==="change"){ demoPw[p.name]=p.nh; return {ok:true}; }
   if(p.action==="reset"){ delete demoPw[p.target]; return {ok:true}; }
-  const all=[
-    {date:"2026-10-06",type:"sub",period:2,cls:"四甲",subject:"自然",other:"黃詠裕",leaveType:"公假",who:"林家玉"},
-    {date:"2026-10-16",type:"leave",period:1,cls:"四甲",subject:"國語",other:"黃詠裕",leaveType:"公假",who:"林家玉"},
-    {date:"2026-10-16",type:"leave",period:3,cls:"四甲",subject:"數學",other:"李致德",leaveType:"公假",who:"林家玉"},
-    {date:"2026-10-16",type:"tutorLeave",cls:"四甲",other:"黃詠裕",leaveType:"公假",who:"林家玉"},
-    {date:"2026-10-19",type:"leave",period:2,cls:"四甲",subject:"國語",other:"林繼于",leaveType:"事假",note:"身心假",who:"林家玉"},
-    {date:"2026-10-23",type:"sub",period:2,cls:"四甲",subject:"彈性(資訊)",other:"黃詠裕",leaveType:"公假",note:"尚未看到紙本",who:"林家玉"},
-    {date:"2026-11-06",type:"sub",period:2,cls:"四甲",subject:"彈性(資訊)",other:"黃詠裕",leaveType:"公假",who:"林家玉"},
-    {date:"2026-11-17",type:"sub",period:6,cls:"四甲",subject:"綜合",other:"陳怡璇",leaveType:"公假",who:"林家玉"},
-    {date:"2026-10-16",type:"tutor",cls:"六甲",other:"黃羽瑄",leaveType:"公假",days:1,who:"林繼于"},
-    {date:"2026-10-16",type:"sub",period:1,cls:"六甲",subject:"數學",other:"黃羽瑄",leaveType:"公假",who:"林繼于"},
-  ];
-  const admin = p.name==="陳怡璇", target = admin ? (p.as||"__all__") : p.name;
+  const y=new Date().getFullYear(), mo=String(new Date().getMonth()+1).padStart(2,"0"), D=d=>`${y}-${mo}-${String(d).padStart(2,"0")}`;
+  const rows=[ // [日期, 節次, 班級, 科目, 請假者, 代課者, 假別]
+    [D(6),2,"四甲","自然","乙老師","甲老師","公假"],[D(6),3,"一甲","國語","乙老師","丙老師","公假"],
+    [D(13),3,"三甲","社會","王教務","甲老師","公假"],[D(16),1,"六甲","數學","丁老師","甲老師","事假"],
+    [D(16),4,"六甲","社會","丁老師","乙老師","事假"],[D(20),5,"二甲","生活","甲老師","丙老師","病假"],[D(22),2,"五甲","英語","丙老師","","公假"]];
+  const all=[];
+  for(const [date,period,cls,subject,lv,sb,lt] of rows){
+    const b={date,period,cls,subject,leaveType:lt,note:""};
+    if(sb) all.push({...b,type:"sub",who:sb,other:lv});
+    all.push({...b,type:"leave",who:lv,other:sb});
+  }
+  all.push({date:D(16),type:"tutor",cls:"六甲",leaveType:"事假",days:1,who:"甲老師",other:"丁老師"},
+           {date:D(16),type:"tutorLeave",cls:"六甲",leaveType:"事假",days:1,who:"丁老師",other:"甲老師"});
+  const admin = p.name==="王教務", target = admin ? (p.as||"__all__") : p.name;
   const out = {ok:true,name:p.name,role:admin?"admin":"teacher",teachers:admin?DEMO_NAMES:[],viewing:target,
     events: target==="__all__" ? all : all.filter(e=>e.who===target), updated:"示範資料", pwChanged: !!demoPw[p.name]};
   if(admin) out.pwStatus = DEMO_NAMES.map(n=>({name:n,changed:!!demoPw[n],at:demoPw[n]?"剛剛":""}));
