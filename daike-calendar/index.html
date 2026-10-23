@@ -4,8 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>土城國小 代課・調課 年曆查詢</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
 /* ===== 設定 ===== */
 :root{
@@ -20,7 +18,8 @@
   --sage:#4F7D6C; --sage-soft:#E6F0EB;   /* 檢查通過 */
   --today:var(--sky-deep);
   --r:10px;
-  font-family:"Noto Sans TC",system-ui,-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;
+  /* 用裝置內建字型：iPhone／Mac 蘋方、Windows 微軟正黑體、Android 思源黑體，不必下載 */
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang TC","Microsoft JhengHei","Noto Sans TC","Noto Sans CJK TC",sans-serif;
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -94,6 +93,8 @@ main{container-type:inline-size}
 .d.empty{visibility:hidden}
 .d .n{font-size:13px;font-weight:500;color:var(--ink-2);text-align:center}
 .d.we .n{color:var(--ink-3)}
+.d.out{background:transparent;border-style:dashed;opacity:.45}             /* 不在本學期的日子 */
+.d.out .n{color:var(--ink-3);font-weight:400}
 .d.has{border:1.5px solid var(--sky);background:var(--sky-mist);cursor:pointer}
 .d.has:hover{border-color:var(--sky-deep)}
 .d.has .n{color:var(--ink);font-weight:900}
@@ -197,6 +198,9 @@ textarea{width:100%;font:inherit;padding:10px 12px;border:1.5px solid var(--line
 .rp .ans{margin-top:4px;padding:6px 10px;background:var(--sage-soft);border-radius:8px;color:var(--ink)}
 .rp textarea{min-height:56px;margin-top:6px;font-size:14px}
 .rp .btn{margin-top:6px}
+.rp .acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.rp .acts .btn{margin-top:0}
+.term-note{font-size:13px;color:var(--ink-2);margin:-4px 0 12px}
 
 /* ===== 排調代課 ===== */
 .modal.plan{place-items:start center;padding:24px 16px;overflow:auto}
@@ -247,6 +251,7 @@ textarea{width:100%;font:inherit;padding:10px 12px;border:1.5px solid var(--line
 }
 .loading{position:fixed;inset:0;background:rgba(245,247,242,.7);display:none;place-items:center;z-index:50;font-weight:700}
 .loading.on{display:grid}
+.loading small{display:block;margin-top:6px;font-size:13px;font-weight:500;color:var(--ink-2);text-align:center}
 .print-note{display:none}
 @media print{
   .topbar,.tabs,.side,.btn,.summary{display:none!important}
@@ -263,7 +268,7 @@ textarea{width:100%;font:inherit;padding:10px 12px;border:1.5px solid var(--line
   <form class="login-card" id="loginForm" autocomplete="off">
     <h1>代課・調課 年曆查詢</h1>
     <p class="demo-tag" id="demoTag" hidden>示範模式：資料是假的，密碼一律 demo</p>
-    <p class="sub">土城國小 115 學年度 — 只看得到自己的</p>
+    <p class="sub">土城國小 115 學年度上學期（8/31～1/20）— 只看得到自己的</p>
     <label for="name">老師姓名</label>
     <select id="name" name="name" required>
       <option value="">名單讀取中…</option>
@@ -301,7 +306,7 @@ textarea{width:100%;font:inherit;padding:10px 12px;border:1.5px solid var(--line
       <div class="admin-mobile" id="adminMobile"></div>
       <div class="summary" id="summary"></div>
       <div id="myReports"></div>
-      <p class="fee-note">金額依每節 405 元、代導師每日 133 元計算，正式金額以教務組核算為準。</p>
+      <p class="fee-note">金額依每節 405 元、代導師每日 133 元計算，正式金額以教務組核算為準。<span id="termNote"></span></p>
       <div class="tabs" role="tablist">
         <button class="tab" role="tab" aria-selected="true" data-view="year">年曆</button>
         <button class="tab" role="tab" aria-selected="false" data-view="list">清單</button>
@@ -387,7 +392,17 @@ textarea{width:100%;font:inherit;padding:10px 12px;border:1.5px solid var(--line
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<div class="loading" id="loading">讀取中…</div>
+<div class="loading" id="loading"><div>讀取中…<small id="loadingHint"></small></div></div>
+
+<!-- 複製失敗時的備用視窗：自己長按複製 -->
+<div class="modal" id="copyModal" hidden>
+  <div class="modal-card">
+    <h2>複製給老師</h2>
+    <p class="sub">請長按下面的文字 →「全選」→「拷貝」，再到 LINE 貼給老師。</p>
+    <textarea id="copyArea" readonly style="min-height:220px"></textarea>
+    <div class="modal-actions"><button class="btn" type="button" id="copyClose">關閉</button></div>
+  </div>
+</div>
 
 <script>
 /* ==================================================================
@@ -395,7 +410,9 @@ textarea{width:100%;font:inherit;padding:10px 12px;border:1.5px solid var(--line
    留空或加上 ?demo=1 會用示範資料，方便先看畫面。
    ================================================================== */
 const API_URL = "https://script.google.com/macros/s/AKfycbxcXR0hQfypuYf0rgHi4vn5iO5FmcvqmgtWiGrGH3rDR7DIXNpi8WSNjpDtjIj5-82HtQ/exec";
-const SCHOOL_YEAR_START = 2026;        // 115 學年 = 2026/8 ～ 2027/7
+const DEFAULT_TERM = {from:"2026-08-31", to:"2027-01-20"};   // 115 學年度上學期（實際範圍以後端 Code.gs 的設定為準）
+const SITE = location.origin + location.pathname;
+const K = location.search.includes("demo=1") ? "demo_" : "";   // 示範模式的暫存和正式的分開
 const RATE_SUB = 405, RATE_TUTOR = 133; // 每節代課費、每日代導費（與表單一致）
 
 const TYPE = {
@@ -408,7 +425,7 @@ const TYPE = {
 const DOW = ["日","一","二","三","四","五","六"];
 const $ = s => document.querySelector(s);
 
-let state = { user:null, role:"teacher", teachers:[], events:[], view:"year", selected:null, viewing:null, cred:null };
+let state = { user:null, role:"teacher", teachers:[], events:[], view:"year", selected:null, viewing:null, cred:null, term:DEFAULT_TERM };
 
 /* ---------- 密碼雜湊（送出的是雜湊值，不是密碼本身） ---------- */
 async function sha256(str){
@@ -575,7 +592,7 @@ async function api(params){
   if (!r.ok) throw new Error("連不到伺服器（"+r.status+"），請稍後再試");
   return r.json();
 }
-const fetchData = (name, h, as) => api({action:"data", name, h, as});
+const fetchData = (name, h, as, fresh) => api({action:"data", name, h, as, fresh: fresh ? "1" : ""});
 async function apiPost(body){
   if (DEMO) return demoPost(body);
   if (!API_URL) throw new Error("網頁還沒連上資料表");
@@ -590,22 +607,29 @@ const store = {
   set(k, v, s=sessionStorage){ try{ s.setItem(k, v); }catch(e){} },
   del(k, s=sessionStorage){ try{ s.removeItem(k); }catch(e){} },
 };
-function busy(on){ $("#loading").classList.toggle("on", on); }
+function busy(on){
+  $("#loading").classList.toggle("on", on);
+  clearTimeout(busy._t); $("#loadingHint").textContent = "";
+  if(on) busy._t = setTimeout(()=>{ $("#loadingHint").textContent = "資料表讀取中，第一次會比較久，請稍候"; }, 3500);
+}
 function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("on"); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove("on"),2600); }
 
 /* ---------- 登入下拉選單 ---------- */
 async function loadNames(){
   const sel = $("#name");
+  const fill = names => {
+    const cur = sel.value || store.get("lastName", localStorage);
+    sel.innerHTML = `<option value="">請選擇您的名字</option>` + names.map(n=>`<option ${n===cur?"selected":""}>${esc(n)}</option>`).join("");
+    if (cur && names.includes(cur) && document.activeElement===document.body) $("#pw").focus();
+  };
+  let cached = null; try{ cached = JSON.parse(store.get(K+"names", localStorage) || "null"); }catch(e){}
+  if (Array.isArray(cached) && cached.length) fill(cached);          // 上次的名單：立刻顯示，不用等
   try{
-    const d = await api({action:"names"});
+    const d = await api({action:"names"});                            // 同時讓伺服器先把資料準備好
     if(!d.ok) throw new Error(d.error);
-    const last = store.get("lastName", localStorage);
-    sel.innerHTML = `<option value="">請選擇您的名字</option>` +
-      d.names.map(n=>`<option ${n===last?"selected":""}>${esc(n)}</option>`).join("");
-    if (last && d.names.includes(last)) $("#pw").focus();
+    if (JSON.stringify(d.names) !== JSON.stringify(cached)){ fill(d.names); store.set(K+"names", JSON.stringify(d.names), localStorage); }
   }catch(e){
-    sel.innerHTML = `<option value="">名單讀取失敗，請重新整理</option>`;
-    $("#loginErr").textContent = e.message;
+    if (!cached){ sel.innerHTML = `<option value="">名單讀取失敗，請重新整理</option>`; $("#loginErr").textContent = e.message; }
   }
 }
 
@@ -634,19 +658,25 @@ $("#loginForm").addEventListener("submit", async e=>{
   }catch(err){ $("#loginErr").textContent = err.message; }
   finally{ busy(false); }
 });
-$("#logout").onclick = ()=>{ store.del("cred"); location.reload(); };
-$("#reload").onclick = ()=>reload(false);
-async function reload(silent){
+$("#logout").onclick = ()=>{ store.del("cred"); store.del(K+"data"); location.reload(); };
+$("#reload").onclick = ()=>reload(false, true);                       // 按「重新整理」：一定從試算表重讀
+async function reload(silent, fresh){
   if(!state.cred) return;
   busy(true);
-  try{ const d = await fetchData(state.cred.name, state.cred.h, state.viewing); if(d.ok){ applyData(d); if(!silent) toast("已更新到最新資料"); } else throw new Error(d.error); }
+  try{ const d = await fetchData(state.cred.name, state.cred.h, state.viewing, fresh); if(d.ok){ applyData(d); if(!silent) toast("已更新到最新資料"); } else throw new Error(d.error); }
   catch(e){ toast("更新失敗："+e.message); }
   finally{ busy(false); }
 }
-// 同一個分頁重新整理時自動續登（關掉瀏覽器就要重新登入）
+// 同一個分頁重新整理時自動續登（關掉瀏覽器就要重新登入）：先顯示上次的畫面，背景再更新
 async function resume(){ const c = store.get("cred"); if(!c) return;
-  state.cred = JSON.parse(c); busy(true);
-  try{ const d = await fetchData(state.cred.name, state.cred.h); if(d.ok) applyData(d); else store.del("cred"); }catch(e){}
+  state.cred = JSON.parse(c);
+  const prev = store.get(K+"data"); let cached = null; try{ cached = JSON.parse(prev || "null"); }catch(e){}
+  if (cached && cached.ok) applyData(cached); else busy(true);
+  try{
+    const d = await fetchData(state.cred.name, state.cred.h, state.viewing);
+    if (d.ok){ if (JSON.stringify(d) !== prev) applyData(d); }
+    else { store.del("cred"); store.del(K+"data"); if (cached) location.reload(); }
+  }catch(e){}
   busy(false); }
 
 /* ---------- 更改密碼 ---------- */
@@ -682,14 +712,18 @@ $("#pwForm").addEventListener("submit", async e=>{
 
 /* ---------- 套用資料 ---------- */
 function applyData(d){
+  store.set(K+"data", JSON.stringify(d));
+  if (d.term && d.term.from && d.term.to) state.term = d.term;
   state.user = d.name; state.role = d.role || "teacher";
-  state.teachers = d.teachers || []; state.events = (d.events||[]).sort((a,b)=>a.date.localeCompare(b.date)||(a.period||0)-(b.period||0));
+  state.teachers = d.teachers || [];
+  state.events = (d.events||[]).filter(e=>inTerm(e.date)).sort((a,b)=>a.date.localeCompare(b.date)||(a.period||0)-(b.period||0));
   state.viewing = d.viewing || d.name;
   const label = state.viewing==="__all__" ? "全校總覽" : state.viewing+" 老師";
   $("#login").style.display="none"; $("#app").style.display="block";
   $("#who").innerHTML = `${esc(label)}${state.role==="admin"?"<small>教務組管理者</small>":""}`;
   $("#updated").textContent = d.updated ? "表單更新：" + d.updated : "";
-  $("#printNote").textContent = `${label} 115 學年度 代課・調課 年曆`;
+  $("#printNote").textContent = `${label} 115 學年度上學期（${termText()}）代課・調課 年曆`;
+  $("#termNote").textContent = `只顯示本學期 ${termText()} 的紀錄。`;
   $("#pwNotice").hidden = d.pwChanged !== false;
   state.pwStatus = d.pwStatus || [];
   $("#openPlan").hidden = state.role!=="admin";
@@ -697,6 +731,7 @@ function applyData(d){
   state.reports = d.reports || []; state.notify = d.notify;
   renderReports();
   renderAdmin(); renderSummary(); renderYear(); renderList(); renderPanel(null);
+  if (state.role==="admin") setTimeout(prefetchMeta, 300);          // 先把排課要用的資料準備好
   if(!state.shown){ state.shown=true; requestAnimationFrame(()=>jumpToday(true,true)); }
 }
 
@@ -870,7 +905,7 @@ function renderYear(){
   const byDate = {};
   for(const e of state.events) (byDate[e.date] ||= []).push(e);
   const today = ymd(new Date());
-  const months = []; for(let i=0;i<12;i++){ const m=(7+i)%12, y=SCHOOL_YEAR_START+(i>=5?1:0); months.push([y,m]); }
+  const months = termMonths();
   $("#year").innerHTML = months.map(([y,m])=>{
     const ym = `${y}-${String(m+1).padStart(2,"0")}`;
     const first = new Date(y,m,1), days = new Date(y,m+1,0).getDate();
@@ -879,6 +914,7 @@ function renderYear(){
     let agenda = "";
     for(let d=1; d<=days; d++){
       const key = `${ym}-${String(d).padStart(2,"0")}`, dow=new Date(y,m,d).getDay();
+      if(!inTerm(key)){ cells += `<div class="d out${dow===0||dow===6?" we":""}" title="不在本學期"><span class="n">${d}</span></div>`; continue; }
       const ents = cellEntries(byDate[key]||[]);
       const has = ents.length>0;
       const evHtml = ents.map(x=>`<div class="cell-ev"><div class="p">${esc(x.p)}</div><div class="w">${esc(x.w)}</div>${x.f?`<div class="f">${esc(x.f)}</div>`:""}</div>`).join("");
@@ -942,6 +978,14 @@ function jumpToday(scroll, instant){ const t=new Date(), el=document.getElementB
 function ymd(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
 function fmt(s){ const d=new Date(s+"T00:00:00"); return `${d.getMonth()+1}/${d.getDate()}（${DOW[d.getDay()]}）`; }
 function esc(s){ return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+const inTerm = d => !!d && d >= state.term.from && d <= state.term.to;
+const fmtMD = s => { const p = String(s).split("-"); return (+p[1]) + "/" + (+p[2]); };
+const termText = () => `${fmtMD(state.term.from)}～${fmtMD(state.term.to)}`;
+function termMonths(){                       // 本學期包含的月份 [[年, 月(0起算)], ...]
+  const [fy,fm] = state.term.from.split("-").map(Number), [ty,tm] = state.term.to.split("-").map(Number), out = [];
+  for(let y=fy, m=fm-1; y<ty || (y===ty && m<=tm-1); ){ out.push([y,m]); if(++m>11){ m=0; y++; } }
+  return out;
+}
 
 /* ================================================================
  * 排調代課（管理者）：填寫時即時檢查衝突，儲存後寫進雲端表格
@@ -961,6 +1005,7 @@ function resetPlan(date){
 async function openPlan(date){
   if(!plan || date) resetPlan(date);
   $("#planModal").hidden = false; document.body.style.overflow="hidden";
+  if(!state.meta && prefetchMeta.p){ $("#planBody").innerHTML = `<div class="empty">讀取課表與全校紀錄中…</div>`; await prefetchMeta.p; }
   if(!state.meta){
     $("#planBody").innerHTML = `<div class="empty">讀取課表與全校紀錄中…</div>`;
     try{ const m = await api({action:"meta", name:state.cred.name, h:state.cred.h}); if(!m.ok) throw new Error(m.error);
@@ -970,6 +1015,11 @@ async function openPlan(date){
   renderPlan();
 }
 function closePlan(){ $("#planModal").hidden = true; document.body.style.overflow=""; }
+function prefetchMeta(){                      // 管理者登入後在背景先讀好課表，按「排調代課」就不用等
+  if(state.role!=="admin" || state.meta || prefetchMeta.p || !state.cred) return;
+  prefetchMeta.p = api({action:"meta", name:state.cred.name, h:state.cred.h})
+    .then(m=>{ if(m.ok && m.tt) state.meta = m; }).catch(()=>{}).finally(()=>{ prefetchMeta.p = null; });
+}
 $("#openPlan").onclick = ()=>openPlan();
 $("#planClose").onclick = closePlan; $("#planCancel").onclick = closePlan;
 document.querySelectorAll("#planModal .seg button").forEach(b=>b.onclick=()=>{ plan.kind=b.dataset.kind; plan.force=false; plan.server=null; renderPlan(); });
@@ -1026,9 +1076,16 @@ function missingOf(kind, r){
   else { if(!r.sub) m.push("代導師"); }
   return m;
 }
+function termOf(kind, r){                    // 不在本學期的日期
+  const bad = [], chk = (d,l) => { if(d && !inTerm(d)) bad.push(`${l} ${CF.md(d)}`); };
+  if(kind==="swap"){ chk(r.fromDate,"原日期"); chk(r.toDate,"調整後日期"); } else chk(r.date,"日期");
+  return bad;
+}
 function checkBox(kind, r, msgs){
   const miss = missingOf(kind, r);
   if(miss.length) return `<div class="chk wait">還沒填：${esc(miss.join("、"))}</div>`;
+  const out = termOf(kind, r);
+  if(out.length) return `<div class="chk bad" role="alert"><b>⚠ 日期不在本學期（${esc(termText())}）</b>：${esc(out.join("、"))}</div>`;
   if(msgs.length) return `<div class="chk bad" role="alert"><b>⚠ 衝突提醒（${msgs.length}）</b><ul>${msgs.map(m=>`<li>${esc(m)}</li>`).join("")}</ul></div>`;
   return `<div class="chk good">✓ 檢查過了，沒有發現衝突</div>`;
 }
@@ -1049,12 +1106,12 @@ function renderPlan(){
         <div class="rgrid swap">
           <div><label>調課班級</label><select data-k="r.${i}.cls">${classOpts(r.cls)}</select></div>
           <div class="slot"><span class="cap">原上課</span>
-            <div><input type="date" aria-label="原日期" data-k="r.${i}.fromDate" value="${esc(r.fromDate)}"><div class="dow-tag" data-dow="r.${i}.fromDate"></div></div>
+            <div><input type="date" aria-label="原日期" data-k="r.${i}.fromDate" value="${esc(r.fromDate)}" min="${state.term.from}" max="${state.term.to}"><div class="dow-tag" data-dow="r.${i}.fromDate"></div></div>
             <div><select aria-label="原節次" data-k="r.${i}.fromPeriod">${periodOpts(r.fromPeriod)}</select></div>
             <div><input aria-label="原科目" placeholder="科目" data-k="r.${i}.fromSubject" value="${esc(r.fromSubject)}"></div></div>
           <div class="arrow" aria-hidden="true">⇄</div>
           <div class="slot"><span class="cap">調整後</span>
-            <div><input type="date" aria-label="調整後日期" data-k="r.${i}.toDate" value="${esc(r.toDate)}"><div class="dow-tag" data-dow="r.${i}.toDate"></div></div>
+            <div><input type="date" aria-label="調整後日期" data-k="r.${i}.toDate" value="${esc(r.toDate)}" min="${state.term.from}" max="${state.term.to}"><div class="dow-tag" data-dow="r.${i}.toDate"></div></div>
             <div><select aria-label="調整後節次" data-k="r.${i}.toPeriod">${periodOpts(r.toPeriod)}</select></div>
             <div><input aria-label="調整後科目" placeholder="科目" data-k="r.${i}.toSubject" value="${esc(r.toSubject)}"></div></div>
           <div><label>調(代)課教師</label><select data-k="r.${i}.partner">${teacherOpts(r.partner)}</select></div>
@@ -1067,7 +1124,7 @@ function renderPlan(){
     html += `<div class="fields">
       <div><label for="pLeaver">請假老師</label><select id="pLeaver" data-k="u.leaver">${teacherOpts(U.leaver)}</select></div>
       <div><label for="pLeave">假別</label><select id="pLeave" data-k="u.leaveType">${LEAVES.map(l=>opt(l,l,U.leaveType)).join("")}</select></div>
-      <div><label for="pDate">日期</label><input type="date" id="pDate" data-k="u.date" value="${esc(U.date)}"><div class="dow-tag" data-dow="u.date"></div></div>
+      <div><label for="pDate">日期</label><input type="date" id="pDate" data-k="u.date" value="${esc(U.date)}" min="${state.term.from}" max="${state.term.to}"><div class="dow-tag" data-dow="u.date"></div></div>
       <div><label for="pNote">備註</label><input id="pNote" data-k="u.note" value="${esc(U.note)}" placeholder="選填"></div></div>
       <p class="hintline">先選請假老師和日期，再按「帶入這天的課」。代課老師清單會把那一節有空的老師排在前面。</p>
       <button type="button" class="btn ghost small" id="fillDay" ${U.leaver&&U.date?"":"disabled"}>帶入${esc(U.leaver||"請假老師")}這天的課</button>
@@ -1135,9 +1192,10 @@ function refreshPlan(){
   const all = res.filter(x=>x.msgs.length).length;
   const rowsN = (form.swaps||form.subs||[]).length + ((form.tutors||[]).length);
   const anyMissing = (form.swaps||[]).some(r=>missingOf("swap",r).length) || (form.subs||[]).some(r=>missingOf("sub",r).length) || (form.tutors||[]).some(r=>missingOf("tutor",r).length);
-  $("#planSum").innerHTML = !rowsN ? "還沒有資料" : anyMissing ? `還有欄位沒填完` : all ? `<span style="color:var(--rose);font-weight:700">⚠ 有 ${all} 列衝突，請確認</span>` : `<span style="color:var(--sage);font-weight:700">✓ 共 ${rowsN} 列，沒有發現衝突</span>`;
+  const anyOut = (form.swaps||[]).some(r=>termOf("swap",r).length) || (form.subs||[]).some(r=>termOf("sub",r).length) || (form.tutors||[]).some(r=>termOf("tutor",r).length);
+  $("#planSum").innerHTML = !rowsN ? "還沒有資料" : anyMissing ? `還有欄位沒填完` : anyOut ? `<span style="color:var(--rose);font-weight:700">⚠ 有日期不在本學期（${esc(termText())}）</span>` : all ? `<span style="color:var(--rose);font-weight:700">⚠ 有 ${all} 列衝突，請確認</span>` : `<span style="color:var(--sage);font-weight:700">✓ 共 ${rowsN} 列，沒有發現衝突</span>`;
   $("#planSave").textContent = plan.force ? "仍要儲存（我已確認衝突）" : "儲存到雲端表格";
-  $("#planSave").disabled = !rowsN || anyMissing;
+  $("#planSave").disabled = !rowsN || anyMissing || anyOut;
 }
 
 /* 欄位變動：更新資料 → 自動帶入 → 重新檢查 */
@@ -1242,22 +1300,65 @@ function renderReports(){
   const todo = list.filter(r=>r.status==="待處理"), done = list.filter(r=>r.status!=="待處理");
   const item = r => `<div class="rp"><span class="st ${r.status==="待處理"?"todo":"done"}">${esc(r.status)}</span><b>${esc(r.teacher)}</b>　${esc(r.kind||"")}
       <div>${esc(r.text)}</div><div class="meta">${esc(r.id)}・${esc(r.time)}${r.record?"・"+esc(r.record):""}</div>
-      ${r.status==="待處理" ? `<textarea data-reply="${esc(r.id)}" placeholder="回覆老師（老師登入後看得到）"></textarea><button type="button" class="btn small" data-replybtn="${esc(r.id)}">回覆並標為已處理</button>`
-                          : (r.reply?`<div class="ans">已回覆：${esc(r.reply)}</div>`:"")}</div>`;
+      ${r.status==="待處理"
+        ? `<textarea data-reply="${esc(r.id)}" placeholder="回覆${esc(r.teacher)}老師（例：已更正為第 3 節，謝謝提醒）"></textarea>
+           <div class="acts"><button type="button" class="btn small" data-act="save-copy" data-id="${esc(r.id)}">回覆並複製（貼到 LINE）</button>
+           <button type="button" class="btn ghost small" data-act="save-line" data-id="${esc(r.id)}">回覆並開啟 LINE（手機）</button></div>`
+        : `${r.reply?`<div class="ans">已回覆：${esc(r.reply)}</div>`:""}
+           <div class="acts"><button type="button" class="btn ghost small" data-act="copy" data-id="${esc(r.id)}">複製回覆給${esc(r.teacher)}老師</button>
+           <button type="button" class="btn ghost small" data-act="line" data-id="${esc(r.id)}">開啟 LINE（手機）</button></div>`}</div>`;
   box.innerHTML = `<div class="reports"><h3>老師回報（${todo.length} 件待處理）</h3>
     ${state.notify ? `<p class="meta" style="font-size:13px;color:var(--ink-2)">有新回報時通知：${esc([state.notify.email?"Gmail（"+state.notify.email+"）":"", state.notify.iphone?"iPhone 推播":"", state.notify.line?"LINE":""].filter(Boolean).join("、") || "目前沒有開啟任何通知")}　設定在資料表「代課工具 → 通知設定」</p>` : ""}
     ${todo.length ? todo.map(item).join("") : `<div class="meta" style="padding:6px 0">目前沒有待處理的回報。</div>`}
     ${done.length ? `<details><summary style="font-size:13px;color:var(--ink-2);cursor:pointer;padding-top:8px">已處理 ${done.length} 件</summary>${done.map(item).join("")}</details>` : ""}</div>`;
 }
+/* 給老師的 LINE 訊息 */
+const DEFAULT_REPLY = "已處理完成，謝謝您的提醒。";
+function replyText(r, reply){
+  const m = String(r.time||"").match(/\d{4}\/(\d{1,2})\/(\d{1,2})/), day = m ? ` ${+m[1]}/${+m[2]} ` : "";
+  const what = [r.kind, r.text].filter(Boolean).join("：");
+  return `${r.teacher}老師您好：\n`
+    + `您${day}在「代課・調課年曆查詢」回報的問題（${r.id}）`
+    + (r.record ? `\n關於：${r.record}` : "") + (what ? `\n內容：${what}` : "")
+    + `\n\n教務組回覆：\n${reply}\n\n`
+    + `可登入網頁查看：${SITE}\n教務組 ${state.user}`;
+}
+function legacyCopy(text){
+  try{
+    const ta = document.createElement("textarea");
+    ta.value = text; ta.setAttribute("readonly",""); ta.style.cssText = "position:fixed;top:0;left:0;opacity:0";
+    document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, text.length);
+    const ok = document.execCommand("copy"); ta.remove(); return ok;
+  }catch(e){ return false; }
+}
+function copyText(text){                       // 回傳 Promise<是否成功>
+  if(navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text).then(()=>true, ()=>legacyCopy(text));
+  return Promise.resolve(legacyCopy(text));
+}
+function showCopyBox(text){ $("#copyArea").value = text; $("#copyModal").hidden = false; $("#copyArea").focus(); $("#copyArea").select(); }
+$("#copyClose").onclick = ()=>{ $("#copyModal").hidden = true; };
 document.addEventListener("click", async e=>{
-  const b = e.target.closest("[data-replybtn]"); if(!b) return;
-  const id = b.dataset.replybtn, ta = document.querySelector(`[data-reply="${id}"]`);
+  const b = e.target.closest("[data-act]"); if(!b) return;
+  const act = b.dataset.act, id = b.dataset.id, r = (state.reports||[]).find(x=>x.id===id); if(!r) return;
+  const save = act.startsWith("save-"), viaLine = act.endsWith("line");
+  const ta = document.querySelector(`[data-reply="${CSS.escape(id)}"]`);
+  const reply = save ? ((ta && ta.value.trim()) || DEFAULT_REPLY) : (r.reply || DEFAULT_REPLY);
+  const text = replyText(r, reply);
+  // 先送出儲存（請求立刻發出），再複製或開 LINE（都要在按下的當下做，手機才允許）
+  const saving = save ? apiPost({action:"reply", name:state.cred.name, h:state.cred.h, id, reply, status:"已處理"}) : null;
+  let copied = null;
+  if(viaLine) window.open("https://line.me/R/share?text=" + encodeURIComponent(text), "_blank");
+  else copied = copyText(text);
+  if(copied){ copied.then(ok=>{ if(!ok) showCopyBox(text); else if(!save) toast(`已複製，請到 LINE 貼給${r.teacher}老師`); }); }
+  if(!saving) return;
   busy(true);
   try{
-    const d = await apiPost({action:"reply", name:state.cred.name, h:state.cred.h, id, reply: ta ? ta.value.trim() : "", status:"已處理"});
+    const d = await saving;
     if(!d.ok) throw new Error(d.error);
-    await reload(true); toast(`${id} 已回覆`);
-  }catch(err){ toast("回覆失敗："+err.message); }
+    await reload(true);
+    const ok = copied ? await copied : true;
+    toast(viaLine ? `${id} 已回覆，請在 LINE 選${r.teacher}老師送出` : ok ? `${id} 已回覆並複製，請到 LINE 貼給${r.teacher}老師` : `${id} 已回覆`);
+  }catch(err){ toast("回覆沒有存到表格："+err.message); }
   finally{ busy(false); }
 });
 
