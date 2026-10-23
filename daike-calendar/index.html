@@ -327,6 +327,17 @@ main{container-type:inline-size}
 .modal-card h2{margin:0 0 2px;font-size:20px;font-weight:800}
 .modal-card .sub{margin:0 0 6px;color:var(--ink-2)}
 .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:10px}
+.modal.block{z-index:80;background:rgba(40,6,16,.7)}
+.block-card{width:min(480px,100%);border:2px solid var(--rose);box-shadow:0 0 0 6px rgba(239,122,155,.18),0 24px 60px rgba(0,0,0,.5);animation:pop .22s cubic-bezier(.2,.9,.3,1.2),shake .38s ease .05s}
+.block-card h2{color:var(--rose)}
+#blockList{margin:8px 0 6px;padding-left:20px;line-height:1.6;font-weight:600}
+#blockList li{margin:4px 0}
+.block-tip{margin:6px 0 0;font-size:14px;color:var(--ink-2)}
+.btn.danger{background:var(--rose);border-color:var(--rose);color:#2A0712}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+@media (prefers-reduced-motion:reduce){.block-card{animation:none}}
+.chk.stop{background:var(--rose);color:#2A0712}
+.chk.stop b{display:block;margin-bottom:2px}
 .toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);opacity:0;background:#E7EEF6;color:#0B1626;padding:11px 20px;border-radius:999px;font-weight:600;z-index:70;transition:opacity .2s,transform .25s cubic-bezier(.2,.9,.3,1.2);pointer-events:none;max-width:calc(100% - 32px);box-shadow:0 10px 30px rgba(29,43,56,.3)}
 .toast.on{opacity:1;transform:translate(-50%,0)}
 .loading{position:fixed;inset:0;background:rgba(3,9,18,.45);display:none;place-items:center;z-index:50}
@@ -542,7 +553,7 @@ main{container-type:inline-size}
           <button class="btn ghost small" id="printCal" type="button">列印年曆</button>
         </div>
       </div>
-      <p class="fee-note">金額依每節 405 元（合班且只有一位老師上的節次 608 元）、代導師每日 133 元計算，正式金額以教務組核算為準。<span id="termNote"></span></p>
+      <p class="fee-note">金額依每節 405 元（合班 608 元，代協同老師的課仍是 405 元）、代導師每日 133 元計算，正式金額以教務組核算為準。<span id="termNote"></span></p>
       <div class="print-note" id="printNote"></div>
       <div class="year" id="year"></div>
       <div class="list" id="list"></div>
@@ -631,6 +642,17 @@ main{container-type:inline-size}
     <p class="sub">請長按下面的文字 →「全選」→「拷貝」，再到 LINE 貼給老師。</p>
     <textarea id="copyArea" readonly style="min-height:220px"></textarea>
     <div class="modal-actions"><button class="btn" type="button" id="copyClose">關閉</button></div>
+  </div>
+</div>
+
+<!-- 衝堂警示：這個動作被擋下來 -->
+<div class="modal block" id="blockModal" hidden>
+  <div class="modal-card block-card" role="alertdialog" aria-modal="true" aria-labelledby="blockTitle" aria-describedby="blockList">
+    <h2 id="blockTitle">⛔ 衝堂警示：不能這樣安排</h2>
+    <p class="sub" id="blockSub">這位老師那時候已經有課或請假，剛才的選擇已經取消。</p>
+    <ul id="blockList"></ul>
+    <p class="block-tip">請改請這一節「有空」的老師（代課老師清單最上面一組）。</p>
+    <div class="modal-actions"><button class="btn danger" type="button" id="blockOk">知道了，改選其他老師</button></div>
   </div>
 </div>
 
@@ -1419,13 +1441,41 @@ function termOf(kind, r){                    // 不在本學期的日期
   if(kind==="swap"){ chk(r.fromDate,"原日期"); chk(r.toDate,"調整後日期"); } else chk(r.date,"日期");
   return bad;
 }
+/* 每節金額（和後端 rateOf_ 相同）：合班 608 元；代的是協同老師（課表上排第二位以後）的課 405 元 */
+function rateFor(leaver, date, period, cls, subject, note){
+  const comb = /年級$/.test(cls||"") || /合班/.test([cls,subject,note].join(" "));
+  if(!comb || !date || !period || !state.meta) return comb ? 608 : RATE_SUB;
+  const dw = CF.dow(date), p = String(period), tt = state.meta.tt, slots = [], x = tt[dw+"|"+p+"|"+cls];
+  if(x) slots.push(x);
+  else Object.keys(tt).forEach(k => { const s = k.split("|"); if(s[0]===dw && s[1]===p && /年級$|合班/.test(s[2]) && tt[k].teachers.indexOf(leaver) >= 0) slots.push(tt[k]); });
+  return slots.some(s => s.teachers.indexOf(leaver) > 0) ? RATE_SUB : 608;
+}
+/* 一定要擋下來的衝突（不能登記）：老師那一節已經有課（課表、代課、調課）、當天請假、同一節已經登記過 */
+const HARD_RE = /^衝堂：|有請假紀錄|已經登記過|已經在代|已經有調課紀錄|已經登記代課/;
+const hardOf = msgs => (msgs||[]).filter(m => HARD_RE.test(m));
+function hardMap(){                            // {"sub.0": [擋下的原因…]}
+  const m = {}; if(!state.meta || !plan) return m;
+  CF.checkAll(ctxOf(), formData()).forEach(x => { const h = hardOf(x.msgs); if(h.length) m[x.kind+"."+x.index] = h; });
+  return m;
+}
+let blockBack = null;
+function showBlock(msgs, sub){
+  $("#blockSub").textContent = sub || "這位老師那時候已經有課或請假，剛才的選擇已經取消。";
+  $("#blockList").innerHTML = msgs.map(m=>`<li>${esc(m)}</li>`).join("");
+  blockBack = document.activeElement;
+  $("#blockModal").hidden = false; $("#blockOk").focus();
+}
+function closeBlock(){ $("#blockModal").hidden = true; if(blockBack && blockBack.focus) try{ blockBack.focus(); }catch(e){} }
+$("#blockOk").onclick = closeBlock;
 function checkBox(kind, r, msgs){
   const miss = missingOf(kind, r);
+  const hard = hardOf(msgs), soft = msgs.filter(m => !HARD_RE.test(m));
+  if(hard.length) return `<div class="chk stop" role="alert"><b>⛔ 不能登記：衝堂或請假</b><ul>${hard.map(m=>`<li>${esc(m)}</li>`).join("")}</ul></div>`;
   if(miss.length) return `<div class="chk wait">還沒填：${esc(miss.join("、"))}</div>`;
   const out = termOf(kind, r);
   if(out.length) return `<div class="chk bad" role="alert"><b>⚠ 日期不在本學期（${esc(termText())}）</b>：${esc(out.join("、"))}</div>`;
-  if(msgs.length) return `<div class="chk bad" role="alert"><b>⚠ 衝突提醒（${msgs.length}）</b><ul>${msgs.map(m=>`<li>${esc(m)}</li>`).join("")}</ul></div>`;
-  return `<div class="chk good">✓ 檢查過了，沒有發現衝突</div>`;
+  if(soft.length) return `<div class="chk bad" role="alert"><b>⚠ 提醒（${soft.length}）</b><ul>${soft.map(m=>`<li>${esc(m)}</li>`).join("")}</ul></div>`;
+  return `<div class="chk good">✓ 檢查過了，沒有衝堂、沒有請假</div>`;
 }
 
 function renderPlan(){
@@ -1477,8 +1527,7 @@ function renderPlan(){
         </div><div data-chk="sub.${i}"></div></div>`;
     });
     html += `<button type="button" class="addrow" id="addRow">＋ 加一節</button>`;
-    const n = U.rows.length;
-    html += `<p class="fee">代課 <b>${n}</b> 節 × 405 元 ＝ <b>${(n*RATE_SUB).toLocaleString()} 元</b>（由各代課老師領）${U.tutor&&home?`；代導師 1 日 <b>133 元</b>（由代導師領）`:""}</p>`;
+    html += `<p class="fee" id="planFee"></p>`;
     if(home){
       html += `<div class="tutorbox"><label class="inline"><input type="checkbox" data-k="u.tutor" ${U.tutor?"checked":""}> 也登記代導師（${esc(U.leaver)}是${esc(home)}導師）</label>
         ${U.tutor?`<div style="margin-top:10px;max-width:260px"><label>代導師</label><select data-k="u.tutorSub">${teacherOpts(U.tutorSub)}</select></div><div data-chk="tutor.0"></div>`:""}</div>`;
@@ -1522,6 +1571,11 @@ function refreshPlan(){
       const lab = document.querySelector(`#planBody [data-freecount="${i}"]`);
       if(lab) lab.textContent = free.length ? `代課老師（這節有空 ${free.length} 位）` : "代課老師";
     });
+    const fee = $("#planFee"), home = U.leaver && state.meta.homeroom[U.leaver];
+    if(fee){
+      const n = U.rows.length, rates = U.rows.map(r => rateFor(U.leaver, U.date, r.period, r.cls, r.subject, U.note)), comb = rates.filter(x => x !== RATE_SUB).length;
+      fee.innerHTML = `代課 <b>${n}</b> 節${comb ? `（其中合班 ${comb} 節，每節 608 元）` : ` × 405 元`} ＝ <b>${rates.reduce((a,b)=>a+b,0).toLocaleString()} 元</b>（由各代課老師領）${U.tutor&&home?`；代導師 1 日 <b>133 元</b>（由代導師領）`:""}`;
+    }
   }
   if(plan.kind==="swap") document.querySelectorAll("#planBody [data-hint]").forEach(el=>{ const h = swapHint(plan.swap.rows[+el.dataset.hint]||{}); el.textContent = h ? "💡 " + h : ""; el.hidden = !h; });
   document.querySelectorAll("#planBody [data-chk]").forEach(el=>{
@@ -1530,13 +1584,13 @@ function refreshPlan(){
     el.innerHTML = checkBox(kind, row[+i]||{}, msgsOf(kind,+i));
   });
   // 摘要與儲存按鈕
-  const all = res.filter(x=>x.msgs.length).length;
+  const all = res.filter(x=>x.msgs.length).length, hardN = res.filter(x=>hardOf(x.msgs).length).length;
   const rowsN = (form.swaps||form.subs||[]).length + ((form.tutors||[]).length);
   const anyMissing = (form.swaps||[]).some(r=>missingOf("swap",r).length) || (form.subs||[]).some(r=>missingOf("sub",r).length) || (form.tutors||[]).some(r=>missingOf("tutor",r).length);
   const anyOut = (form.swaps||[]).some(r=>termOf("swap",r).length) || (form.subs||[]).some(r=>termOf("sub",r).length) || (form.tutors||[]).some(r=>termOf("tutor",r).length);
-  $("#planSum").innerHTML = !rowsN ? "還沒有資料" : anyMissing ? `還有欄位沒填完` : anyOut ? `<span style="color:var(--rose);font-weight:700">⚠ 有日期不在本學期（${esc(termText())}）</span>` : all ? `<span style="color:var(--rose);font-weight:700">⚠ 有 ${all} 列衝突，請確認</span>` : `<span style="color:var(--sage);font-weight:700">✓ 共 ${rowsN} 列，沒有發現衝突</span>`;
-  $("#planSave").textContent = plan.force ? "仍要儲存（我已確認衝突）" : "儲存到雲端表格";
-  $("#planSave").disabled = !rowsN || anyMissing || anyOut;
+  $("#planSum").innerHTML = !rowsN ? "還沒有資料" : hardN ? `<span style="color:var(--rose);font-weight:800">⛔ 有 ${hardN} 列衝堂或請假，不能儲存，請改選老師</span>` : anyMissing ? `還有欄位沒填完` : anyOut ? `<span style="color:var(--rose);font-weight:700">⚠ 有日期不在本學期（${esc(termText())}）</span>` : all ? `<span style="color:var(--rose);font-weight:700">⚠ 有 ${all} 列需要確認</span>` : `<span style="color:var(--sage);font-weight:700">✓ 共 ${rowsN} 列，沒有衝堂、沒有請假</span>`;
+  $("#planSave").textContent = plan.force ? "仍要儲存（我已確認提醒）" : "儲存到雲端表格";
+  $("#planSave").disabled = !rowsN || anyMissing || anyOut || hardN > 0;
 }
 
 /* 欄位變動：更新資料 → 自動帶入 → 重新檢查 */
@@ -1559,7 +1613,18 @@ function setField(k, v){
 }
 $("#planBody").addEventListener("change", e=>{
   const k = e.target.dataset.k; if(!k) return;
+  const before = hardMap(), saved = JSON.stringify(plan);
   setField(k, e.target.type==="checkbox" ? e.target.checked : e.target.value);
+  // 這個動作造成新的衝堂／請假衝突 → 跳出警示、取消這個動作（回到原來的值）
+  const after = hardMap(), added = [];
+  Object.keys(after).forEach(key => after[key].forEach(m => { if((before[key]||[]).indexOf(m) < 0 && added.indexOf(m) < 0) added.push(m); }));
+  if(added.length){
+    plan = JSON.parse(saved);
+    renderPlan();
+    const el = document.querySelector(`#planBody [data-k="${k}"]`); if(el) el.focus();
+    showBlock(added);
+    return;
+  }
   if(k==="u.leaver" || k==="u.tutor" || k==="u.date") renderPlan();   // 會改變版面的才整個重畫
   else refreshPlan();
 });
@@ -1582,20 +1647,28 @@ $("#planBody").addEventListener("click", e=>{
 });
 $("#planSave").onclick = async ()=>{
   const form = formData();
+  const hm = hardMap(), hard = [].concat(...Object.values(hm));
+  if(hard.length){ showBlock(hard, "這張單有衝堂或請假的老師，不能儲存。請先改選老師。"); return; }
   busy(true);
   try{
     const d = await apiPost(Object.assign({action:"save", name:state.cred.name, h:state.cred.h, force:plan.force}, form));
     if(d.ok){
       resetPlan(); state.meta = null; closePlan(); await reload(true);
       toast(`已儲存到雲端表格（${(d.ids||[]).join("、")}）`);
+    } else if(d.blocked){                       // 伺服器用最新資料檢查到衝堂／請假（例如別人剛登記）→ 一律擋下
+      state.meta = null; await openPlan();
+      showBlock([].concat(...d.blocked.map(x=>x.msgs)), "伺服器用最新的資料檢查，發現衝堂或請假，沒有儲存。請改選老師。");
     } else if(d.conflicts){
       plan.force = true; renderPlan();
-      $("#planSum").innerHTML = `<span style="color:var(--rose);font-weight:700">⚠ 伺服器檢查到 ${d.conflicts.length} 列衝突（內容在各列下方）。確定要登記就再按一次。</span>`;
+      $("#planSum").innerHTML = `<span style="color:var(--rose);font-weight:700">⚠ 伺服器檢查到 ${d.conflicts.length} 列需要確認（內容在各列下方）。確定要登記就再按一次。</span>`;
     } else throw new Error(d.error||"儲存失敗");
   }catch(err){ toast("儲存失敗："+err.message.split("\n")[0]); $("#planSum").textContent = err.message; }
   finally{ busy(false); }
 };
-document.addEventListener("keydown", e=>{ if(e.key==="Escape" && !$("#planModal").hidden) closePlan(); });
+document.addEventListener("keydown", e=>{
+  if(e.key==="Escape" && !$("#blockModal").hidden){ closeBlock(); return; }
+  if(e.key==="Escape" && !$("#planModal").hidden) closePlan();
+});
 
 /* ================================================================
  * 回報問題（老師）＋ 回覆（教務組）
@@ -1886,7 +1959,7 @@ $("#printTable").onclick = () => {
     <div class="meta"><span>共 ${rows.length} 筆</span><span>列印日期：${printedAt()}</span></div>
     ${sheetTable(rows)}
     <table style="margin-top:8px;width:60%;margin-left:auto">${tot.map(([k,n,v]) => `<tr class="tot"><td class="l">${esc(k)}</td><td>${esc(n)}</td><td class="r">${v.toLocaleString("zh-TW")} 元</td></tr>`).join("")}</table>
-    <p class="note">說明：代課費每節 405 元（合班且只有一位老師上課的節次 608 元），代導師每日 133 元。標「⚠」的紀錄請和教務組確認；颱風假、國定假日當天的紀錄，以及由其他經費支應（例如本土語直播共學）的紀錄，不列入本表，重複登錄只算一次。</p>
+    <p class="note">說明：代課費每節 405 元；合班每節 608 元（405×1.5＝607.5 進位），但代的是協同老師的課仍是 405 元；代導師每日 133 元。標「⚠」的紀錄請和教務組確認；颱風假、國定假日當天的紀錄，以及由其他經費支應（例如本土語直播共學）的紀錄，不列入本表，重複登錄只算一次。</p>
     ${isAll() ? "" : `<div class="sign"><div>本人已核對以上紀錄無誤。　簽名：</div><div>日期：　　　年　　　月　　　日</div></div>`}</div>`);
 };
 $("#printCal").onclick = () => window.print();
@@ -1931,7 +2004,7 @@ async function printSign(r){
     <table><thead><tr><th style="width:5%">序</th><th style="width:12%">教師</th><th>代課節數</th><th>代課費</th><th>代導師日數</th><th>代導費</th><th>合計（元）</th><th style="width:16%">簽收（簽名）</th><th style="width:11%">日期</th></tr></thead><tbody>
     ${totals.map(([n,s],i) => `<tr style="height:34px"><td>${i+1}</td><td>${esc(n)}</td><td>${s.n} 節</td><td class="r">${s.fee.toLocaleString("zh-TW")}</td><td>${s.d ? s.d + " 日" : "—"}</td><td class="r">${s.tfee ? s.tfee.toLocaleString("zh-TW") : "—"}</td><td class="r"><b>${(s.fee+s.tfee).toLocaleString("zh-TW")}</b></td><td></td><td></td></tr>`).join("")}
     <tr class="tot"><td colspan="2">合計</td><td>${G.n} 節</td><td class="r">${G.fee.toLocaleString("zh-TW")}</td><td>${G.d} 日</td><td class="r">${G.tfee.toLocaleString("zh-TW")}</td><td class="r">${(G.fee+G.tfee).toLocaleString("zh-TW")}</td><td colspan="2" class="l">新臺幣${bigNum(G.fee+G.tfee)}</td></tr></tbody></table>
-    <p class="note">說明：1. 每節 405 元；合班且只有一位老師上課（非協同）的節次 608 元；代導師每日 133 元。2. 重複登錄只算一次；颱風假、國定假日當天的紀錄，以及由其他經費支應（例如本土語直播共學）的紀錄，不列入本表${voids ? `（本月有 ${voids} 筆不計費，明細見各人頁面）` : ""}。${flags ? `3. 本月有 ${flags} 筆標「⚠」需確認（例如衝堂），請教務組確認後再送出。` : ""} 4. 各人代課明細附於後頁，請老師核對後簽名。</p>
+    <p class="note">說明：1. 每節 405 元；合班每節 608 元（405×1.5＝607.5 進位），但代的是協同老師的課仍是 405 元；代導師每日 133 元。2. 重複登錄只算一次；颱風假、國定假日當天的紀錄，以及由其他經費支應（例如本土語直播共學）的紀錄，不列入本表${voids ? `（本月有 ${voids} 筆不計費，明細見各人頁面）` : ""}。${flags ? `3. 本月有 ${flags} 筆標「⚠」需確認（例如衝堂），請教務組確認後再送出。` : ""} 4. 各人代課明細附於後頁，請老師核對後簽名。</p>
     <div class="stamp"><div>製表（教務組）</div><div>教務主任</div><div>出納</div><div>會計主任</div><div>校長</div></div></div>`;
   names.forEach(n => {
     const list = by[n].sort((a,b) => a.date.localeCompare(b.date) || (+a.period||0) - (+b.period||0)), s = sum(list);
@@ -2006,7 +2079,7 @@ async function printAcct(r){
     <tbody>${rows}<tr style="height:20px"><td>以下空白</td>${"<td></td>".repeat(15)}</tr>
       <tr class="tot"><td>共 ${names.length} 人</td><td class="r amt"><small>${T.b.toFixed(2)}</small>${f(T.B)}</td><td class="r amt"><small>${T.c.toFixed(2)}</small>${f(T.C)}</td><td class="r amt"><small>${T.d.toFixed(2)}</small>${f(T.D)}</td><td class="r">${f(A)}</td><td></td><td></td><td></td><td class="r">${f(A)}</td><td></td><td></td><td></td><td></td><td></td><td></td><td class="r">${f(A)}</td><td></td></tr></tbody></table>
     <p style="font-weight:700;margin:8px 0 2px">實領合計新臺幣（大寫）：${bigNum(A)}</p>
-    <p class="note">註：1. 本表依代課紀錄逐節計算，明細見「代課明細」頁；一般教師代課列「鐘點費 405 元」，合理員額教師代課他人列「代課他人 405 元」；合班非協同每節 608 元（405×1.5，四捨五入），合班協同與一般班級每節 405 元。2. 重複登錄只算一次；颱風假、國定假日當天的紀錄，以及由其他經費支應（例如本土語直播共學）的紀錄，不列入本表。3. 機關補助及應扣項目（勞保、勞退、健保、所得稅、補充保費）由人事、出納依實際計算填入，如有扣款請更正實領金額。</p>${stamp}</div>`;
+    <p class="note">註：1. 本表依代課紀錄逐節計算，明細見「代課明細」頁；一般教師代課列「鐘點費 405 元」，合理員額教師代課他人列「代課他人 405 元」；合班每節 608 元（405×1.5＝607.5，進位），代協同老師的課與一般班級每節 405 元。2. 重複登錄只算一次；颱風假、國定假日當天的紀錄，以及由其他經費支應（例如本土語直播共學）的紀錄，不列入本表。3. 機關補助及應扣項目（勞保、勞退、健保、所得稅、補充保費）由人事、出納依實際計算填入，如有扣款請更正實領金額。</p>${stamp}</div>`;
   if(tutors.length){
     const tb = {}; tutors.forEach(e => { const t = (tb[e.who] ||= {d:0, list:[]}); t.list.push(e); if(!e.nofee) t.d += (+e.days||1); });
     const tn = Object.keys(tb).sort((a,b) => a.localeCompare(b, "zh-Hant")), TT = tn.reduce((s,n) => s + tb[n].d, 0);
@@ -2120,6 +2193,8 @@ async function demoPost(b){
   if(b.name!=="王教務") return {ok:false,error:"只有管理者可以登記"};
   const T = demoTT(), ctx = {tt:T.tt,tSlot:T.tSlot,has:true,ev:demoEvents()};
   const res = CF.checkAll(ctx, b), conflicts = res.filter(x=>x.msgs.length);
+  const blocked = res.map(x=>({kind:x.kind, index:x.index, msgs:hardOf(x.msgs)})).filter(x=>x.msgs.length);
+  if(blocked.length) return {ok:false, blocked, error:"衝堂或請假，不能登記"};
   if(conflicts.length && !b.force) return {ok:false, conflicts};
   const ids=[];
   (b.swaps||[]).forEach(r=>{ const id="調-"+String(100+demoSaved.length); ids.push(id); CF.asEvents("swap",r).forEach(e=>demoSaved.push(Object.assign(e,{id,fromDate:r.fromDate,fromPeriod:r.fromPeriod,fromSubject:r.fromSubject,toDate:r.toDate,toPeriod:r.toPeriod,toSubject:r.toSubject,who:r.teacher,other:r.partner,subject:"",note:""}))); });
