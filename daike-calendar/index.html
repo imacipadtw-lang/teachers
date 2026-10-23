@@ -336,6 +336,8 @@ main{container-type:inline-size}
 .btn.danger{background:var(--rose);border-color:var(--rose);color:#2A0712}
 @keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
 @media (prefers-reduced-motion:reduce){.block-card{animation:none}}
+.ev .stp{margin-top:4px;font-size:13px;font-weight:800;color:var(--sage)}
+.ev .stp.wait{color:var(--amber, #F2B84B)}
 .chk.stop{background:var(--rose);color:#2A0712}
 .chk.stop b{display:block;margin-bottom:2px}
 .toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);opacity:0;background:#E7EEF6;color:#0B1626;padding:11px 20px;border-radius:999px;font-weight:600;z-index:70;transition:opacity .2s,transform .25s cubic-bezier(.2,.9,.3,1.2);pointer-events:none;max-width:calc(100% - 32px);box-shadow:0 10px 30px rgba(29,43,56,.3)}
@@ -1185,7 +1187,7 @@ function evRow(e){
   const about = `${md(e.date)} ${d.p}｜${d.w}｜${d.f}`;
   const repBtn = state.role==="teacher" ? `<button type="button" class="rep" data-date="${esc(e.date)}" data-about="${esc(about)}">這筆有錯？回報</button>` : "";
   const fl = (e.flags||[]).map(f=>`<div class="fl">⚠ ${esc(f)}</div>`).join("");
-  return `<div class="ev t-${e.type}${fl?" flag":""}"><div class="p"><span class="k">${KIND[e.type]||""}</span>${esc(d.p)}</div><div class="w">${esc(d.w)}</div><div class="f">${esc(d.f)}</div>${fl}${e.note?`<div class="x">備註：${esc(e.note)}</div>`:""}${repBtn}</div>`;
+  return `<div class="ev t-${e.type}${fl?" flag":""}"><div class="p"><span class="k">${KIND[e.type]||""}</span>${esc(d.p)}</div><div class="w">${esc(d.w)}</div><div class="f">${esc(d.f)}</div>${fl}${e.stamp?`<div class="stp${e.stamp.indexOf("已核章完成")===0?"":" wait"}">${e.stamp.indexOf("已核章完成")===0?"✓ ":"⏳ "}${esc(e.stamp)}</div>`:""}${e.note?`<div class="x">備註：${esc(e.note)}</div>`:""}${repBtn}</div>`;
 }
 
 /* 月曆格子用：每一節分開寫，寫出班級、科目、誰代誰、誰領多少錢 */
@@ -2009,7 +2011,7 @@ async function printSign(r){
   names.forEach(n => {
     const list = by[n].sort((a,b) => a.date.localeCompare(b.date) || (+a.period||0) - (+b.period||0)), s = sum(list);
     const rows = list.map((e,i) => { const d = new Date(e.date+"T00:00:00"), fee = feeOf(e);
-      return `<tr><td>${i+1}</td><td>${d.getMonth()+1}/${d.getDate()}</td><td>${DOW[d.getDay()]}</td><td>${e.type==="tutor" ? "全日" : "第" + esc(e.period) + "節"}</td><td>${esc(e.cls)}</td><td>${e.type==="tutor" ? "代理導師" : esc(e.subject||"")}</td><td>${esc(e.other)}</td><td>${esc(e.leaveType||"")}</td><td class="r">${e.type==="tutor" ? RATE_TUTOR : (e.rate||RATE_SUB)}</td><td class="r">${e.nofee ? "0" : fee.toLocaleString("zh-TW")}</td><td class="l">${esc((e.flags||[]).join("；"))}</td></tr>`; }).join("");
+      return `<tr><td>${i+1}</td><td>${d.getMonth()+1}/${d.getDate()}</td><td>${DOW[d.getDay()]}</td><td>${e.type==="tutor" ? "全日" : "第" + esc(e.period) + "節"}</td><td>${esc(e.cls)}</td><td>${e.type==="tutor" ? "代理導師" : esc(e.subject||"")}</td><td>${esc(e.other)}</td><td>${esc(e.leaveType||"")}</td><td class="r">${e.type==="tutor" ? RATE_TUTOR : (e.rate||RATE_SUB)}</td><td class="r">${e.nofee ? "0" : fee.toLocaleString("zh-TW")}</td><td class="l">${esc([...(e.flags||[]), e.stamp].filter(Boolean).join("；"))}</td></tr>`; }).join("");
     html += `<div class="sheet"><h1>${roc}　代課節數簽收確認單</h1>
       <p class="sub">南投縣草屯鎮土城國民小學　教師：<b>${esc(n)}</b></p>
       <div class="meta"><span>代課 ${s.n} 節、代導師 ${s.d} 日</span><span>列印日期：${printedAt()}</span></div>
