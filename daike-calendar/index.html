@@ -463,13 +463,24 @@ const leaveWord = e => (!e.leaveType || e.leaveType==="其他") ? "請假" : "�
 const courseOf = e => [e.cls, e.subject].filter(Boolean).join(" ");
 const daysTxt = e => (+e.days||1)!==1 ? `${e.days} 日` : "";
 
-/* 調課：從「調出：某老師 第 3 節 四甲 → 10/30 第 5 節」拆出各段 */
+/* 調課：後端有給結構化欄位（dir/fromDate/...）就用；舊資料才用字串拆 */
+const md = ymd => { if(!ymd) return "?"; const d=new Date(ymd+"T00:00:00"); return `${d.getMonth()+1}/${d.getDate()}（${DOW[d.getDay()]}）`; };
 function swapParts(e){
   const m = String(e.subject||"").match(/^(調出|調入)：(\S+) 第 (\S+) 節 ?(\S*) → (\S+) 第 (\S+) 節/);
   if(!m) return {dir:"調課", text:e.subject||"調課"};
   const [,dir,who,p1,cls,d2,p2] = m;
-  return dir==="調出" ? {dir, who, text:`第${p1}節 ${cls} 改到 ${d2} 第${p2}節`, short:`第${p1}節→${d2}第${p2}節`}
-                      : {dir, who, text:`改上原本第${p1}節的 ${cls}（第${p2}節）`, short:`改上第${p2}節（原第${p1}節）`};
+  return dir==="調出" ? {dir, who, text:`第${p1}節 ${cls} 改到 ${d2} 第${p2}節`}
+                      : {dir, who, text:`改上原本第${p1}節的 ${cls}（第${p2}節）`};
+}
+function swapView(e){
+  if(!e.dir){ const s=swapParts(e); return {p:s.dir, w:(isAll()&&s.who?s.who+" ":"")+s.text, f:e.other||""}; }
+  const me = isAll() ? null : state.viewing, nm = n => n===me ? "我" : (n||"對方");
+  const A = nm(e.teacher), B = nm(e.partner);
+  const v = e.dir==="調出"
+    ? {p:[`第${e.fromPeriod}節`, e.fromCls, e.fromSubject].filter(Boolean).join(" "), f:`${A}的這節課改到 ${md(e.toDate)} 第${e.toPeriod}節`}
+    : {p:[`第${e.toPeriod}節`, e.toCls, e.toSubject].filter(Boolean).join(" "), f:`${B}的這節課改到 ${md(e.fromDate)} 第${e.fromPeriod}節`};
+  v.w = `${A}和${B}調課`;
+  return v;
 }
 
 /* 一筆紀錄 → 三行字：p 時間/課程、w 誰代誰、f 錢 */
@@ -481,7 +492,7 @@ function describe(e){
       case "tutor": return {p:`${e.cls} 導師 ${daysTxt(e)}・${o}${leaveWord(e)}`, w:`${w} 代 ${o} 當導師`, f:`${w} 領代導費 ${yuan(f)}`};
       case "leave": return o ? null : {p:`${per} ${courseOf(e)}`, w:`${w} ${leaveWord(e)}`, f:"還沒有安排代課老師"};
       case "tutorLeave": return o ? null : {p:`${e.cls} 導師`, w:`${w} ${leaveWord(e)}`, f:"還沒有安排代導師"};
-      case "swap": { const s=swapParts(e); return {p:`${s.dir}`, w:`${s.who||w} ${s.text}`, f:(e.other||"")+"（調課沒有代課費）"}; }
+      case "swap": { const v=swapView(e); return {p:"調課・"+v.p, w:v.w, f:v.f+"（調課沒有代課費）"}; }
     }
     return null;
   }
@@ -492,7 +503,7 @@ function describe(e){
     case "tutor": return {p:`${e.cls} 導師 ${daysTxt(e)}・${o}${leaveWord(e)}`, w:`我代 ${o} 當導師`, f:`我領代導費 ${yuan(f)}`};
     case "tutorLeave": return o ? {p:`${e.cls} 導師・我${leaveWord(e)}`, w:`${o} 代我當導師`, f:`代導費 ${yuan(f)} 由 ${o} 領`}
                                 : {p:`${e.cls} 導師`, w:`我${leaveWord(e)}`, f:"還沒有安排代導師"};
-    case "swap": { const s=swapParts(e); return {p:s.dir, w:s.text, f:(e.other||"")+"（調課沒有代課費）"}; }
+    case "swap": { const v=swapView(e); return {p:"調課・"+v.p, w:v.w, f:v.f+"（調課沒有代課費）"}; }
   }
   return null;
 }
@@ -501,34 +512,26 @@ function evRow(e){
   return `<div class="ev"><div class="p">${esc(d.p)}</div><div class="w">${esc(d.w)}</div><div class="f">${esc(d.f)}</div>${e.note?`<div class="x">備註：${esc(e.note)}</div>`:""}</div>`;
 }
 
-/* 月曆格子用：同一天、同一個人、同一種情形合併成一則，節數列在一起、金額加總 */
+/* 月曆格子用：每一節分開寫，寫出班級、科目、誰代誰、誰領多少錢 */
 function cellEntries(evs){
-  const groups = new Map();
-  for(const e of evs){
-    if(!describe(e)) continue;
-    const key = [e.type, e.who, e.other, e.leaveType, e.type==="swap"?e.subject:""].join("|");
-    if(!groups.has(key)) groups.set(key, {e, periods:[], fee:0});
-    const g = groups.get(key);
-    if(e.period) g.periods.push(e.period);
-    g.fee += feeOf(e);
-  }
-  return [...groups.values()].map(({e, periods, fee})=>{
-    const o=e.other, w=e.who, per = periods.length ? `第${periods.join("、")}節` : "";
+  const order = e => e.type==="tutor"||e.type==="tutorLeave" ? 0 : (+e.period || (+e.fromPeriod) || 9);
+  return evs.filter(e=>describe(e)).sort((a,b)=>order(a)-order(b)).map(e=>{
+    const o=e.other, w=e.who, fee=feeOf(e);
+    const course = [e.period?`第${e.period}節`:"", e.cls, e.subject].filter(Boolean).join(" ");
+    if(e.type==="swap"){ const v=swapView(e); return {p:"調課・"+v.p, w:v.w, f:v.f}; }
     if(isAll()) switch(e.type){
-      case "sub":   return {p:`${per}・${o}${leaveWord(e)}`, w:`${w}代${o}`, f:`${w}領 ${yuan(fee)}`};
-      case "tutor": return {p:`導師・${o}${leaveWord(e)}`, w:`${w}代${o}當導師`, f:`${w}領 ${yuan(fee)}`};
-      case "leave": return {p:per, w:`${w}${leaveWord(e)}`, f:"還沒有人代課"};
-      case "tutorLeave": return {p:"導師", w:`${w}${leaveWord(e)}`, f:"還沒有人代導師"};
-      case "swap": { const s=swapParts(e); return {p:s.dir, w:`${s.who||w} ${s.short||s.text}`, f:e.other||""}; }
+      case "sub":   return {p:course, w:`${w}代${o}`, f:`${o}${leaveWord(e)}・${w}領 ${yuan(fee)}`};
+      case "tutor": return {p:`${e.cls} 導師`, w:`${w}代${o}當導師`, f:`${o}${leaveWord(e)}・${w}領 ${yuan(fee)}`};
+      case "leave": return {p:course, w:`${w}${leaveWord(e)}`, f:"還沒有人代課"};
+      case "tutorLeave": return {p:`${e.cls} 導師`, w:`${w}${leaveWord(e)}`, f:"還沒有人代導師"};
     }
     switch(e.type){
-      case "sub":   return {p:per, w:`我代${o}上課`, f:`我領 ${yuan(fee)}`};
-      case "leave": return o ? {p:`${per}・我${leaveWord(e)}`, w:`${o}代我上課`, f:`${o}領 ${yuan(fee)}`}
-                             : {p:`${per}・我${leaveWord(e)}`, w:"還沒有人代課", f:""};
-      case "tutor": return {p:"導師", w:`我代${o}當導師`, f:`我領 ${yuan(fee)}`};
-      case "tutorLeave": return o ? {p:`導師・我${leaveWord(e)}`, w:`${o}代我當導師`, f:`${o}領 ${yuan(fee)}`}
-                                  : {p:`導師・我${leaveWord(e)}`, w:"還沒有人代導師", f:""};
-      case "swap": { const s=swapParts(e); return {p:s.dir, w:s.short||s.text, f:e.other||""}; }
+      case "sub":   return {p:course, w:`我代${o}上課`, f:`我領 ${yuan(fee)}`};
+      case "leave": return o ? {p:course, w:`${o}代我上課`, f:`我${leaveWord(e)}・${o}領 ${yuan(fee)}`}
+                             : {p:course, w:`我${leaveWord(e)}`, f:"還沒有人代課"};
+      case "tutor": return {p:`${e.cls} 導師`, w:`我代${o}當導師`, f:`我領 ${yuan(fee)}`};
+      case "tutorLeave": return o ? {p:`${e.cls} 導師`, w:`${o}代我當導師`, f:`我${leaveWord(e)}・${o}領 ${yuan(fee)}`}
+                                  : {p:`${e.cls} 導師`, w:`我${leaveWord(e)}`, f:"還沒有人代導師"};
     }
   });
 }
