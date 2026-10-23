@@ -1886,7 +1886,7 @@ $("#printTable").onclick = () => {
     <div class="meta"><span>共 ${rows.length} 筆</span><span>列印日期：${printedAt()}</span></div>
     ${sheetTable(rows)}
     <table style="margin-top:8px;width:60%;margin-left:auto">${tot.map(([k,n,v]) => `<tr class="tot"><td class="l">${esc(k)}</td><td>${esc(n)}</td><td class="r">${v.toLocaleString("zh-TW")} 元</td></tr>`).join("")}</table>
-    <p class="note">說明：代課費每節 405 元（合班且只有一位老師上課的節次 608 元），代導師每日 133 元。標「⚠」的紀錄請和教務組確認；颱風假、國定假日當天的紀錄不計費，重複登錄只算一次。</p>
+    <p class="note">說明：代課費每節 405 元（合班且只有一位老師上課的節次 608 元），代導師每日 133 元。標「⚠」的紀錄請和教務組確認；颱風假、國定假日當天的紀錄，以及由其他經費支應（例如本土語直播共學）的紀錄，不列入本表，重複登錄只算一次。</p>
     ${isAll() ? "" : `<div class="sign"><div>本人已核對以上紀錄無誤。　簽名：</div><div>日期：　　　年　　　月　　　日</div></div>`}</div>`);
 };
 $("#printCal").onclick = () => window.print();
@@ -1931,7 +1931,7 @@ async function printSign(r){
     <table><thead><tr><th style="width:5%">序</th><th style="width:12%">教師</th><th>代課節數</th><th>代課費</th><th>代導師日數</th><th>代導費</th><th>合計（元）</th><th style="width:16%">簽收（簽名）</th><th style="width:11%">日期</th></tr></thead><tbody>
     ${totals.map(([n,s],i) => `<tr style="height:34px"><td>${i+1}</td><td>${esc(n)}</td><td>${s.n} 節</td><td class="r">${s.fee.toLocaleString("zh-TW")}</td><td>${s.d ? s.d + " 日" : "—"}</td><td class="r">${s.tfee ? s.tfee.toLocaleString("zh-TW") : "—"}</td><td class="r"><b>${(s.fee+s.tfee).toLocaleString("zh-TW")}</b></td><td></td><td></td></tr>`).join("")}
     <tr class="tot"><td colspan="2">合計</td><td>${G.n} 節</td><td class="r">${G.fee.toLocaleString("zh-TW")}</td><td>${G.d} 日</td><td class="r">${G.tfee.toLocaleString("zh-TW")}</td><td class="r">${(G.fee+G.tfee).toLocaleString("zh-TW")}</td><td colspan="2" class="l">新臺幣${bigNum(G.fee+G.tfee)}</td></tr></tbody></table>
-    <p class="note">說明：1. 每節 405 元；合班且只有一位老師上課（非協同）的節次 608 元；代導師每日 133 元。2. 重複登錄只算一次；颱風假、國定假日當天的紀錄不計費${voids ? `（本月有 ${voids} 筆不計費，明細見各人頁面）` : ""}。${flags ? `3. 本月有 ${flags} 筆標「⚠」需確認（例如衝堂），請教務組確認後再送出。` : ""} 4. 各人代課明細附於後頁，請老師核對後簽名。</p>
+    <p class="note">說明：1. 每節 405 元；合班且只有一位老師上課（非協同）的節次 608 元；代導師每日 133 元。2. 重複登錄只算一次；颱風假、國定假日當天的紀錄，以及由其他經費支應（例如本土語直播共學）的紀錄，不列入本表${voids ? `（本月有 ${voids} 筆不計費，明細見各人頁面）` : ""}。${flags ? `3. 本月有 ${flags} 筆標「⚠」需確認（例如衝堂），請教務組確認後再送出。` : ""} 4. 各人代課明細附於後頁，請老師核對後簽名。</p>
     <div class="stamp"><div>製表（教務組）</div><div>教務主任</div><div>出納</div><div>會計主任</div><div>校長</div></div></div>`;
   names.forEach(n => {
     const list = by[n].sort((a,b) => a.date.localeCompare(b.date) || (+a.period||0) - (+b.period||0)), s = sum(list);
@@ -2006,7 +2006,7 @@ async function printAcct(r){
     <tbody>${rows}<tr style="height:20px"><td>以下空白</td>${"<td></td>".repeat(15)}</tr>
       <tr class="tot"><td>共 ${names.length} 人</td><td class="r amt"><small>${T.b.toFixed(2)}</small>${f(T.B)}</td><td class="r amt"><small>${T.c.toFixed(2)}</small>${f(T.C)}</td><td class="r amt"><small>${T.d.toFixed(2)}</small>${f(T.D)}</td><td class="r">${f(A)}</td><td></td><td></td><td></td><td class="r">${f(A)}</td><td></td><td></td><td></td><td></td><td></td><td></td><td class="r">${f(A)}</td><td></td></tr></tbody></table>
     <p style="font-weight:700;margin:8px 0 2px">實領合計新臺幣（大寫）：${bigNum(A)}</p>
-    <p class="note">註：1. 本表依代課紀錄逐節計算，明細見「代課明細」頁；一般教師代課列「鐘點費 405 元」，合理員額教師代課他人列「代課他人 405 元」；合班非協同每節 608 元（405×1.5，四捨五入），合班協同與一般班級每節 405 元。2. 重複登錄只算一次；颱風假、國定假日當天的紀錄不計費。3. 機關補助及應扣項目（勞保、勞退、健保、所得稅、補充保費）由人事、出納依實際計算填入，如有扣款請更正實領金額。</p>${stamp}</div>`;
+    <p class="note">註：1. 本表依代課紀錄逐節計算，明細見「代課明細」頁；一般教師代課列「鐘點費 405 元」，合理員額教師代課他人列「代課他人 405 元」；合班非協同每節 608 元（405×1.5，四捨五入），合班協同與一般班級每節 405 元。2. 重複登錄只算一次；颱風假、國定假日當天的紀錄，以及由其他經費支應（例如本土語直播共學）的紀錄，不列入本表。3. 機關補助及應扣項目（勞保、勞退、健保、所得稅、補充保費）由人事、出納依實際計算填入，如有扣款請更正實領金額。</p>${stamp}</div>`;
   if(tutors.length){
     const tb = {}; tutors.forEach(e => { const t = (tb[e.who] ||= {d:0, list:[]}); t.list.push(e); if(!e.nofee) t.d += (+e.days||1); });
     const tn = Object.keys(tb).sort((a,b) => a.localeCompare(b, "zh-Hant")), TT = tn.reduce((s,n) => s + tb[n].d, 0);
