@@ -334,6 +334,24 @@ main{container-type:inline-size}
 #blockList li{margin:4px 0}
 .block-tip{margin:6px 0 0;font-size:14px;color:var(--ink-2)}
 .btn.danger{background:var(--rose);border-color:var(--rose);color:#2A0712}
+/* LINE 通知 */
+.btn.line{background:#06C755;border-color:#06C755;color:#04210F}
+.btn.line:hover{background:#2BD873;border-color:#2BD873}
+.notice.line{background:rgba(6,199,85,.12);color:#CFF5DE;border-bottom-color:rgba(6,199,85,.35)}
+.line-card{width:min(460px,100%);max-height:calc(100vh - 32px);overflow:auto}
+.line-steps{margin:12px 0 0;padding:0;list-style:none;counter-reset:s}
+.line-steps li{position:relative;padding:12px 0 12px 42px;border-top:1px solid var(--line-2)}
+.line-steps li::before{counter-increment:s;content:counter(s);position:absolute;left:0;top:12px;width:28px;height:28px;border-radius:50%;background:#06C755;color:#04210F;font-weight:800;display:grid;place-items:center}
+.line-steps b{display:block;margin-bottom:4px}
+.line-steps .hint{font-size:13px;color:var(--ink-2);margin:6px 0 0}
+.line-code{font:800 36px/1.1 var(--digits);letter-spacing:.14em;margin:8px 0 2px;color:#fff}
+.line-wait{font-size:13px;color:var(--ink-2)}
+.line-ok{background:rgba(6,199,85,.12);border:1px solid rgba(6,199,85,.45);border-radius:12px;padding:12px 14px;margin-top:10px}
+.line-ok strong{display:block;font-size:16px;margin-bottom:2px}
+.line-ok ul{margin:8px 0 0;padding-left:18px;color:var(--ink-2);font-size:14px}
+.line-err{color:var(--rose);font-size:14px;margin-top:8px}
+.line-list{margin-top:16px;padding-top:12px;border-top:1px solid var(--line-2);font-size:14px}
+.line-list .no{color:var(--amber)}
 @keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
 @media (prefers-reduced-motion:reduce){.block-card{animation:none}}
 .ev .stp{margin-top:4px;font-size:13px;font-weight:800;color:var(--sage)}
@@ -519,9 +537,15 @@ main{container-type:inline-size}
     <button class="btn ghost small" id="reload" type="button">重新整理</button>
     <button class="btn small" id="openPlan" type="button" hidden>＋ 排調代課</button>
     <button class="btn ghost small" id="openReport" type="button" hidden>回報問題</button>
+    <button class="btn ghost small" id="openLine" type="button" hidden>LINE 通知</button>
     <button class="btn ghost small" id="openPw" type="button">更改密碼</button>
     <button class="btn ghost small" id="logout" type="button">登出</button>
   </header>
+  <div class="notice line" id="lineNotice" hidden>
+    開啟 LINE 通知：每天早上 7:30 用 LINE 提醒您當天的代課、調課。
+    <button class="btn line small" type="button" id="openLine2">現在設定</button>
+    <button class="btn ghost small" type="button" id="lineNoticeX">先不用</button>
+  </div>
   <div class="notice" id="pwNotice" hidden>
     您還在使用教務組發的初始密碼，建議改成自己好記的密碼。
     <button class="btn small" type="button" id="openPw2">現在更改</button>
@@ -572,6 +596,16 @@ main{container-type:inline-size}
   </div>
   <div id="printArea"></div>
 </section>
+
+<!-- LINE 通知 -->
+<div class="modal" id="lineModal" hidden>
+  <div class="modal-card line-card" role="dialog" aria-modal="true" aria-labelledby="lineTitle">
+    <h2 id="lineTitle">LINE 通知</h2>
+    <p class="sub">每天早上 7:30，當天有代課或調課，會用 LINE 私訊提醒您；當天有新增或取消，也會再通知一次。</p>
+    <div id="lineBody" aria-live="polite"></div>
+    <div class="modal-actions"><button class="btn ghost" type="button" id="lineClose">關閉</button></div>
+  </div>
+</div>
 
 <!-- 更改密碼 -->
 <div class="modal" id="pwModal" hidden>
@@ -1029,6 +1063,88 @@ async function resume(){ const c = store.get("cred"); if(!c) return;
   }catch(e){}
   busy(false); }
 
+/* ---------- LINE 通知：取得綁定碼 → 傳給官方帳號 → 自動顯示綁定成功 ---------- */
+const lineUI = { timer:null, until:0, code:"", err:"", list:null };
+function lineStop(){ clearInterval(lineUI.timer); lineUI.timer=null; }
+async function openLine(){
+  $("#lineModal").hidden = false; lineUI.err = ""; lineUI.code = "";
+  renderLine(true);
+  try{
+    const d = await apiPost({action:"lineStatus", name:state.cred.name, h:state.cred.h});
+    if(!d.ok) throw new Error(d.error || "讀不到 LINE 設定");
+    state.line = d.line; lineUI.list = d.list || null;
+  }catch(ex){ lineUI.err = ex.message; }
+  renderLine();
+}
+function closeLine(){ lineStop(); $("#lineModal").hidden = true; }
+function fmtCode(c){ return c ? c.slice(0,3)+" "+c.slice(3) : ""; }
+function renderLine(loading){
+  const L = state.line || {}, box = $("#lineBody");
+  if(loading){ box.innerHTML = `<p class="line-wait">讀取中…</p>`; return; }
+  let h = "";
+  if(!L.on){ h = `<p>教務組還在設定 LINE 通知，請過幾天再來看看。</p>`; }
+  else if(L.bound){
+    h = `<div class="line-ok"><strong>✅ 已綁定</strong>LINE：${esc(L.dn||"（未顯示名稱）")}${L.at?`，${esc(L.at)} 綁定`:""}
+      <ul><li>每天早上 7:30，當天有代課或調課會私訊您</li><li>在 LINE 打「今天」「明天」可以隨時查詢</li></ul></div>
+      <p style="margin-top:12px"><button class="btn ghost small" type="button" id="lineUnbind">解除綁定（不再收到通知）</button></p>`;
+  } else {
+    const left = Math.max(0, Math.round((lineUI.until - Date.now())/1000));
+    const codeBlock = lineUI.code && left > 0
+      ? `<div class="line-code" aria-label="綁定碼 ${esc(lineUI.code.split("").join(" "))}">${esc(fmtCode(lineUI.code))}</div>
+         <p class="line-wait">還有 ${Math.floor(left/60)}:${String(left%60).padStart(2,"0")} 有效・傳出去後，這裡會自動顯示「已綁定」</p>
+         <button class="btn ghost small" type="button" id="lineCopy">複製號碼</button>`
+      : `<button class="btn line" type="button" id="lineGetCode">${lineUI.code?"重新取得綁定碼":"取得綁定碼"}</button>`;
+    h = `<ol class="line-steps">
+      <li><b>加官方帳號為好友</b>
+        <a class="btn line small" href="${esc(L.addUrl)}" target="_blank" rel="noopener">加好友（用手機點）</a>
+        <p class="hint">用電腦看的話：手機 LINE →「加入好友」→ 搜尋 ID <b style="display:inline">${esc(L.id)}</b></p></li>
+      <li><b>取得 6 位數綁定碼</b>${codeBlock}</li>
+      <li><b>把這 6 個數字傳給官方帳號</b><p class="hint">在 LINE 的官方帳號聊天室裡，直接打這 6 個數字送出就好。10 分鐘內有效，只能用一次。</p></li>
+    </ol>`;
+  }
+  if(lineUI.err) h += `<p class="line-err">${esc(lineUI.err)}</p>`;
+  if(lineUI.list && state.role==="admin"){
+    const yes = lineUI.list.filter(x=>x.bound), no = lineUI.list.filter(x=>!x.bound);
+    h += `<div class="line-list"><b>老師綁定情形：${yes.length} / ${lineUI.list.length} 位</b>
+      ${no.length?`<p class="no">還沒綁定：${no.map(x=>esc(x.name)).join("、")}</p>`:`<p>全部都綁定了 🎉</p>`}</div>`;
+  }
+  box.innerHTML = h;
+  const g = $("#lineGetCode"); if(g) g.onclick = lineGetCode;
+  const u = $("#lineUnbind"); if(u) u.onclick = lineUnbind;
+  const c = $("#lineCopy"); if(c) c.onclick = async ()=>{ try{ await navigator.clipboard.writeText(lineUI.code); toast("已複製，到 LINE 貼上送出"); }catch(e){ toast("請手動輸入這 6 個數字"); } };
+}
+async function lineGetCode(){
+  lineUI.err = ""; busy(true);
+  try{
+    const d = await apiPost({action:"lineCode", name:state.cred.name, h:state.cred.h});
+    if(!d.ok) throw new Error(d.error || "取不到綁定碼");
+    lineUI.code = d.code; lineUI.until = Date.now() + (d.minutes||10)*60000; state.line = d.line || state.line;
+    lineStop();
+    let n = 0;
+    lineUI.timer = setInterval(async ()=>{
+      if($("#lineModal").hidden || Date.now() > lineUI.until){ lineStop(); renderLine(); return; }
+      renderLine();                                   // 倒數
+      if(++n % 4) return;                             // 每 4 秒問一次有沒有綁定成功
+      try{ const s = await apiPost({action:"lineStatus", name:state.cred.name, h:state.cred.h});
+        if(s.ok && s.line && s.line.bound){ state.line = s.line; lineUI.list = s.list || lineUI.list; lineStop(); lineUI.code="";
+          renderLine(); $("#lineNotice").hidden = true; toast("LINE 綁定成功！"); } }catch(e){}
+    }, 1000);
+  }catch(ex){ lineUI.err = ex.message; }
+  finally{ busy(false); renderLine(); }
+}
+async function lineUnbind(){
+  busy(true);
+  try{ const d = await apiPost({action:"lineUnbind", name:state.cred.name, h:state.cred.h});
+    if(!d.ok) throw new Error(d.error || "解除失敗"); state.line = d.line; toast("已解除綁定"); }
+  catch(ex){ lineUI.err = ex.message; }
+  finally{ busy(false); renderLine(); }
+}
+$("#openLine").onclick = openLine; $("#openLine2").onclick = openLine;
+$("#lineNoticeX").onclick = ()=>{ $("#lineNotice").hidden = true; store.set("lineNoticeOff","1",localStorage); };
+$("#lineClose").onclick = closeLine;
+$("#lineModal").addEventListener("click", e=>{ if(e.target.id==="lineModal") closeLine(); });
+document.addEventListener("keydown", e=>{ if(e.key==="Escape" && !$("#lineModal").hidden) closeLine(); });
+
 /* ---------- 更改密碼 ---------- */
 function openPw(){
   $("#pwForm").reset(); $("#pwErr").textContent="";
@@ -1075,6 +1191,9 @@ function applyData(d){
   $("#printNote").textContent = `${label} 115 學年度上學期（${termText()}）代課・調課 年曆`;
   $("#termNote").textContent = `只顯示本學期 ${termText()} 的紀錄。`;
   $("#pwNotice").hidden = d.pwChanged !== false;
+  state.line = d.line || null;
+  $("#openLine").hidden = !(state.line && state.line.on);
+  $("#lineNotice").hidden = !(state.line && state.line.on && !state.line.bound) || store.get("lineNoticeOff", localStorage) === "1";
   state.pwStatus = d.pwStatus || [];
   $("#openPlan").hidden = state.role!=="admin";
   $("#openReport").hidden = state.role==="admin";
@@ -2186,10 +2305,15 @@ async function demoApi(p){
   const out = {ok:true,name:p.name,role:admin?"admin":"teacher",teachers:admin?DEMO_NAMES:[],viewing:target,
     events: target==="__all__" ? all : all.filter(mine), updated:"示範資料", pwChanged: !!demoPw[p.name]};
   if(admin) out.pwStatus = DEMO_NAMES.map(n=>({name:n,changed:!!demoPw[n],at:demoPw[n]?"剛剛":""}));
+  out.line = Object.assign({}, demoLine);
   out.reports = demoReports.filter(r=>admin || r.teacher===p.name); out.notify = admin ? {email:"demo@example.com", iphone:false, line:false} : undefined;
   return out;
 }
+const demoLine = {on:true, bound:false, dn:"", at:"", id:"@898bjead", addUrl:"https://line.me/R/ti/p/%40898bjead"};
 async function demoPost(b){
+  if(b.action==="lineStatus") return {ok:true, line:Object.assign({},demoLine), list: b.name==="王教務" ? DEMO_NAMES.map(n=>({name:n,bound:n===b.name&&demoLine.bound})) : undefined};
+  if(b.action==="lineCode"){ setTimeout(()=>{ demoLine.bound=true; demoLine.dn="示範老師"; demoLine.at="剛剛"; }, 9000); return {ok:true, code:"123456", minutes:10, line:Object.assign({},demoLine)}; }
+  if(b.action==="lineUnbind"){ demoLine.bound=false; return {ok:true, line:Object.assign({},demoLine)}; }
   if(b.action==="report"){ const id="回-"+String(demoReports.length+1).padStart(3,"0"); demoReports.unshift({id,time:"剛剛",teacher:b.name,date:b.date,record:b.record,kind:b.kind,text:b.text,status:"待處理",reply:""}); return {ok:true,id,notified:true}; }
   if(b.action==="reply"){ const r=demoReports.find(x=>x.id===b.id); if(r){ r.status="已處理"; r.reply=b.reply; } return {ok:true}; }
   if(b.name!=="王教務") return {ok:false,error:"只有管理者可以登記"};
