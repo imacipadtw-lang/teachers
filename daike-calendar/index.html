@@ -352,6 +352,9 @@ main{container-type:inline-size}
 .line-err{color:var(--rose);font-size:14px;margin-top:8px}
 .line-list{margin-top:16px;padding-top:12px;border-top:1px solid var(--line-2);font-size:14px}
 .line-list .no{color:var(--amber)}
+.line-qr{display:block;background:#fff;padding:8px;border-radius:12px;margin:4px 0 2px;box-shadow:0 0 0 1px var(--line),0 8px 24px rgba(0,0,0,.25)}
+.only-desk{display:none!important}
+@media (hover:hover) and (pointer:fine){ img.only-desk{display:block!important} span.only-desk{display:inline!important} .only-touch{display:none!important} }
 @keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
 @media (prefers-reduced-motion:reduce){.block-card{animation:none}}
 .ev .stp{margin-top:4px;font-size:13px;font-weight:800;color:var(--sage)}
@@ -1096,8 +1099,9 @@ function renderLine(loading){
       : `<button class="btn line" type="button" id="lineGetCode">${lineUI.code?"重新取得綁定碼":"取得綁定碼"}</button>`;
     h = `<ol class="line-steps">
       <li><b>加官方帳號為好友</b>
-        <a class="btn line small" href="${esc(L.addUrl)}" target="_blank" rel="noopener">加好友（用手機點）</a>
-        <p class="hint">用電腦看的話：手機 LINE →「加入好友」→ 搜尋 ID <b style="display:inline">${esc(L.id)}</b></p></li>
+        <a class="btn line small only-touch" href="${esc(L.addUrl)}" target="_blank" rel="noopener">加好友（用手機點）</a>
+        <img class="line-qr only-desk" src="line-qr.png" width="132" height="132" alt="LINE 官方帳號 ${esc(L.id)} 的 QR code">
+        <p class="hint"><span class="only-desk">用手機 LINE 掃描上面的 QR code，或</span>在 LINE「加入好友」搜尋 ID <b style="display:inline">${esc(L.id)}</b></p></li>
       <li><b>取得 6 位數綁定碼</b>${codeBlock}</li>
       <li><b>把這 6 個數字傳給官方帳號</b><p class="hint">在 LINE 的官方帳號聊天室裡，直接打這 6 個數字送出就好。10 分鐘內有效，只能用一次。</p></li>
     </ol>`;
