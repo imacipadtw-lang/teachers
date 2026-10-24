@@ -2630,6 +2630,8 @@ function renderHeli(r){
       <div><span class="k">本人鐘點費</span><b>${f(H.selfTotal)}<small>元</small></b></div>
       <div><span class="k">別人代課</span><b>${f(H.subs.length)}<small>節</small></b><small class="kk">${f(H.subTotal)} 元</small></div>
       <div class="total"><span class="k">合理員額應發合計</span><b>${f(H.total)}<small>元</small></b></div></div>
+    ${(() => { const cs = H.T.filter(t => t.L.length).map(t => insCalc(insOf(t.name), r, t.amt)), er = cs.reduce((s,c) => s + c.erTotal, 0), emp = cs.reduce((s,c) => s + c.empTotal, 0), miss = H.T.filter(t => t.L.length && !insOf(t.name)).map(t => t.name);
+      return `<p class="hint" style="margin:0 0 8px">保費（資料表「保險設定」）：雇主負擔 勞保＋職災 ${f(cs.reduce((s,c) => s + c.erLaborAll, 0))}、勞退 ${f(cs.reduce((s,c) => s + c.erPension, 0))}、健保 ${f(cs.reduce((s,c) => s + c.erNhi, 0))}，合計 ${f(er)} 元；老師應扣合計 ${f(emp)} 元；本人實領 ${f(H.selfTotal - emp)} 元${miss.length ? `。⚠ 「保險設定」沒有：${esc(miss.join("、"))}` : ""}</p>`; })()}
     <div class="acct-chk">
       <span class="${ok ? "ok" : "bad"}">${ok ? "✓" : "✗"} 核對：依老師 ${f(H.total)}＝逐節明細重算 ${f(H.lessonSum)}${ok ? "，一致" : "，不一致，請先不要送出"}</span>
       ${H.warn.length ? `<span class="w">⚠ 要確認 ${H.warn.length} 件（見下方）</span>` : `<span>無待確認</span>`}</div>
@@ -2722,17 +2724,21 @@ async function printHeli(r){
   const cnt = (g, w) => g.rows.filter(x => x.counted && x.w === w).length;
   const book = (title, list, note) => {
     const tot = list.reduce((s,g) => s + g.amt, 0), pay = list.reduce((s,g) => s + g.pay, 0);
-    const row = g => `<tr style="height:26px"><td><b>${esc(g.name)}</b></td><td>${cnt(g,1) || "-"}</td><td>${cnt(g,1.5) || "-"}</td><td>${unitsText(g.units)}</td><td><b>${g.pay}</b></td>
-      <td class="r amt"><small>${g.pay}*405=</small>${f(g.amt)}</td><td class="r"><b>${f(g.amt)}</b></td>${"<td></td>".repeat(3)}<td class="r">${f(g.amt)}</td>${"<td></td>".repeat(6)}<td class="r"><b>${f(g.amt)}</b></td>
-      <td class="l" style="font-size:10px">${g.kind === "本人" ? `合理員額代課教師（${H.T.find(t => t.name === g.name).weekly}節/週）` : "代 " + esc([...new Set(g.rows.map(x => x.owner))].join("、")) + " 的課"}</td></tr>`;
+    const icOf = g => g.kind === "本人" ? insCalc(insOf(g.name), r, g.amt) : null;      // 本人：勞保、勞退、健保、扣繳（資料表「保險設定」）
+    const sum = k => list.reduce((s,g) => { const c = icOf(g); return s + (c ? c[k] : 0); }, 0);
+    const row = g => { const c = icOf(g), er = c ? c.erTotal : 0, emp = c ? c.empTotal : 0;
+      return `<tr style="height:26px"><td><b>${esc(g.name)}</b></td><td>${cnt(g,1) || "-"}</td><td>${cnt(g,1.5) || "-"}</td><td>${unitsText(g.units)}</td><td><b>${g.pay}</b></td>
+      <td class="r amt"><small>${g.pay}*405=</small>${f(g.amt)}</td><td class="r"><b>${f(g.amt)}</b></td><td class="r">${c ? f(c.erLaborAll) : ""}</td><td class="r">${c ? f(c.erPension) : ""}</td><td class="r">${c ? f(c.erNhi) : ""}</td><td class="r">${f(g.amt + er)}</td>
+      <td class="r">${c ? f(c.empLabor) : ""}</td><td></td><td class="r">${c ? f(c.empNhi) : ""}</td><td class="r">${c ? f(c.tax) : ""}</td><td class="r">${c ? f(c.supp) : ""}</td><td class="r">${c ? f(emp) : ""}</td><td class="r"><b>${f(g.amt - emp)}</b></td>
+      <td class="l" style="font-size:10px">${g.kind === "本人" ? `合理員額代課教師（${H.T.find(t => t.name === g.name).weekly}節/週）${c && c.days && c.days < 30 ? `，投保 ${c.days} 天` : ""}` : "代 " + esc([...new Set(g.rows.map(x => x.owner))].join("、")) + " 的課"}</td></tr>`; };
     return `<div class="sheet land">${head(title, "")}
     <table><thead>
       <tr class="grp"><th rowspan="2" style="width:7%">員工姓名</th><th colspan="4">上課節數</th><th>實支現金給與</th><th rowspan="2">小計(A)</th><th colspan="3">機　關　補　助(B)</th><th rowspan="2">請領金額<br>(A+B)</th><th colspan="6">應　　扣　　項　　目</th><th rowspan="2">實領金額</th><th rowspan="2" style="width:12%">備註</th></tr>
       <tr><th>一般<br>1節</th><th>合班<br>1.5節</th><th>合計</th><th>請領<br>(進位)</th><th>鐘點費<br>405元</th><th>勞保</th><th>勞退</th><th>健保</th><th>勞保</th><th>勞退</th><th>健保</th><th>所得稅</th><th>補充保費</th><th>小計</th></tr></thead>
     <tbody>${list.length ? list.map(row).join("") : `<tr style="height:26px"><td colspan="19">本月沒有資料</td></tr>`}
       <tr style="height:20px"><td>以下空白</td>${"<td></td>".repeat(18)}</tr>
-      <tr class="tot"><td>共 ${list.length} 人</td><td>${list.reduce((s,g) => s + cnt(g,1), 0)}</td><td>${list.reduce((s,g) => s + cnt(g,1.5), 0)}</td><td></td><td>${pay}</td><td class="r">${f(tot)}</td><td class="r">${f(tot)}</td>${"<td></td>".repeat(3)}<td class="r">${f(tot)}</td>${"<td></td>".repeat(6)}<td class="r">${f(tot)}</td><td></td></tr></tbody></table>
-    <p style="font-weight:700;margin:8px 0 2px">實領合計新臺幣（大寫）：${bigNum(tot)}</p>
+      <tr class="tot"><td>共 ${list.length} 人</td><td>${list.reduce((s,g) => s + cnt(g,1), 0)}</td><td>${list.reduce((s,g) => s + cnt(g,1.5), 0)}</td><td></td><td>${pay}</td><td class="r">${f(tot)}</td><td class="r">${f(tot)}</td><td class="r">${f(sum("erLaborAll"))}</td><td class="r">${f(sum("erPension"))}</td><td class="r">${f(sum("erNhi"))}</td><td class="r">${f(tot + sum("erTotal"))}</td><td class="r">${f(sum("empLabor"))}</td><td></td><td class="r">${f(sum("empNhi"))}</td><td class="r">${f(sum("tax"))}</td><td class="r">${f(sum("supp"))}</td><td class="r">${f(sum("empTotal"))}</td><td class="r">${f(tot - sum("empTotal"))}</td><td></td></tr></tbody></table>
+    <p style="font-weight:700;margin:8px 0 2px">實領合計新臺幣（大寫）：${bigNum(tot - sum("empTotal"))}</p>
     <p class="note">${note}</p>${stamp}</div>`;
   };
   let html = book(`${mon}月國小合理教師員額代課教師鐘點費`, mine, HELI_NOTE.self);
