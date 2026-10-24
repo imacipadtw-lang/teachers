@@ -246,6 +246,11 @@ details.settings>summary span{font-size:13px;color:var(--ink-3)}
 .chk-list li.ok i{color:var(--c-tutor)} .chk-list li.ok span{color:var(--ink-2)}
 .chk-list li.info i{color:var(--ink-3)} .chk-list li.info span{color:var(--ink-3)}
 .set-msg{font-size:13px;color:var(--ink-2)}
+.set-from{grid-column:1 / -1;max-width:520px}
+.set-from select{padding:8px 34px 8px 10px;font-size:14px}
+.set-vers{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin-top:10px;font-size:13px;color:var(--ink-2)}
+.set-vers .ver{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:4px 8px 4px 10px;background:var(--surface-2)}
+.set-vers .vdel{border:0;background:transparent;color:var(--rose);font-weight:800;font-size:15px;line-height:1;padding:0 2px}
 @media (max-width:640px){.set-grid{grid-template-columns:1fr 1fr}}
 /* 會計總覽：每月一頁看完 */
 .acct{margin-top:14px;border-top:1px solid var(--line-2);padding-top:12px}
@@ -851,17 +856,22 @@ const SITE = location.origin + location.pathname;
 const K = location.search.includes("demo=1") ? "demo_" : "";   // 示範模式的暫存和正式的分開
 let RATE_SUB = 405, RATE_COMB = 608, RATE_TUTOR = 133; // 每節代課費、合班每節、每日代導費（預設值；後端「系統設定」會覆蓋，管理者可在網站改）
 const SETTING_DEF = {RATE_SUB:405, RATE_COMBINED:608, RATE_TUTOR:133, INS_LABOR:11.5, INS_EI:1, INS_OCC:0.12, INS_PENSION:6, INS_NHI:5.17, INS_NHI_DEP:0.56, INS_SUPP:2.11, INS_MINWAGE:29500, INS_TAX:5, INS_TAXFREE:90501};
-function applySettings(s){
+function applySettings(s, ym){
   if(!s) return;
+  if(ym && Array.isArray(s.dated) && s.dated.length){                    // 有生效日期的版本：套用生效日 ≤ 該月 1 日的
+    const d = `${ym}-01`; s = Object.assign({}, s); s.dated.filter(x => x.from <= d).forEach(x => { s[x.key] = x.value; }); }
   const n = k => { const v = +String(s[k] ?? "").replace(/,/g,""); return isFinite(v) && String(s[k] ?? "") !== "" ? v : SETTING_DEF[k]; };
   RATE_SUB = n("RATE_SUB") || 405; RATE_COMB = n("RATE_COMBINED") || 608; RATE_TUTOR = n("RATE_TUTOR") || 133;
   INS.laborRate = n("INS_LABOR")/100; INS.eiRate = n("INS_EI")/100; INS.occDefault = n("INS_OCC"); INS.pensionRate = n("INS_PENSION")/100;
   INS.nhiRate = n("INS_NHI")/100; INS.nhiAvgDep = n("INS_NHI_DEP"); INS.suppRate = n("INS_SUPP")/100; INS.minWage = n("INS_MINWAGE");
   INS.taxRate = n("INS_TAX")/100; INS.taxFree = n("INS_TAXFREE");
-  state.settings = Object.assign({}, state.settings || {}, s);
+  if(!ym) state.settings = Object.assign({}, state.settings || {}, s);
+  state.ratesYm = ym || "";
   const fn = $("#feeRates"); if(fn) fn.textContent = `金額依每節 ${RATE_SUB} 元（合班 ${RATE_COMB} 元，代協同老師的課仍是 ${RATE_SUB} 元）、代導師每日 ${RATE_TUTOR} 元計算，正式金額以教務組核算為準。`;
 }
 
+/* 把某個月份生效的費率套到全域（頁面是整頁跟著月份走的，所以直接換全域值）；沒有版本就是現行值 */
+function applySettingsAt(ym){ if(state.settings && state.settings.labels) applySettings(state.settings, ym || ymd(new Date()).slice(0,7)); }
 const TYPE = {
   sub:  {label:"代課",  short:"代課"},
   leave:{label:"請假",    short:"請假"},
@@ -1359,17 +1369,17 @@ function applyData(d){
   state.viewing = d.viewing || d.name;
   const label = state.viewing==="__all__" ? "全校總覽" : state.viewing+" 老師";
   $("#login").style.display="none"; $("#app").style.display="block";
-  $("#who").innerHTML = `${esc(label)}${state.role==="admin"?"<small>教務組管理者</small>":""}`;
+  $("#who").innerHTML = `${esc(label)}${state.role==="admin"?"<small>教務組管理者</small>":state.role==="acct"?"<small>會計（唯讀）</small>":""}`;
   $("#updated").textContent = d.updated ? "表單更新：" + d.updated : "";
   $("#printNote").textContent = `${label} 115 學年度上學期（${termText()}）代課・調課 年曆`;
   $("#termNote").textContent = `只顯示本學期 ${termText()} 的紀錄。`;
   $("#pwNotice").hidden = d.pwChanged !== false;
   state.line = d.line || null;
-  $("#openLine").hidden = !(state.line && state.line.on);
-  $("#lineNotice").hidden = !(state.line && state.line.on && !state.line.bound) || store.get("lineNoticeOff", localStorage) === "1";
+  $("#openLine").hidden = state.role==="acct" || !(state.line && state.line.on);
+  $("#lineNotice").hidden = state.role==="acct" || !(state.line && state.line.on && !state.line.bound) || store.get("lineNoticeOff", localStorage) === "1";
   state.pwStatus = d.pwStatus || [];
   $("#openPlan").hidden = state.role!=="admin";
-  $("#openReport").hidden = state.role==="admin";
+  $("#openReport").hidden = state.role!=="teacher";                 // 老師回報：只有老師用
   state.reports = d.reports || []; state.notify = d.notify;
   state.off = d.off || {}; state.audit = d.audit || []; state.typhoon = d.typhoon || null; state.heli = d.heli || state.heli || []; if(d.ins) state.ins = d.ins; if(d.meta) state.meta = d.meta;
   if(d.offRows) state.offRows = d.offRows; if(d.settings) applySettings(d.settings);   // 費率等設定（管理者可在網站改）
@@ -1377,7 +1387,7 @@ function applyData(d){
   state.fixes = d.fixes || []; state.leaveTypes = d.leaveTypes || null;
   renderReports();
   renderAdmin(); renderRange(); renderBoard(); renderAlerts(); renderMonthly(); renderHeliMine(); renderSettings(); renderYear(); renderList(); renderPanel(null);
-  if (state.role==="admin") setTimeout(prefetchMeta, 300);          // 先把排課要用的資料準備好
+  if (state.role==="admin" || state.role==="acct") setTimeout(prefetchMeta, 300);   // 先把課表讀好（排課、合理員額清冊都要）
   state.shown = true;                       // 一進來先看看板；要看這個月按「回到今天」
 }
 
@@ -1430,8 +1440,14 @@ const toInputDate = v => { const m = String(v||"").match(/^(\d{4})[\/-](\d{1,2})
 function renderSettings(){
   const box = $("#settings"); if(!box) return;
   if(state.role !== "admin"){ box.innerHTML = ""; return; }
-  const st = state.settings || {}, val = k => st[k] != null && st[k] !== "" ? st[k] : SETTING_DEF[k];
+  const st = state.settings || {}, dated = Array.isArray(st.dated) ? st.dated : [];
+  // 生效月份：空白＝改現行值；選了月份＝建立從那個月 1 日起生效的版本（之前的月份照舊；已結帳的月份本來就鎖住）
+  const from = state.setFrom || "", fromD = from ? `${from}-01` : "";
+  const val = k => { let v = st[k] != null && st[k] !== "" ? st[k] : SETTING_DEF[k]; if(fromD) dated.filter(x => x.key === k && x.from <= fromD).forEach(x => { v = x.value; }); return v; };
   const field = k => `<label class="set-f"><span>${SET_LABEL[k]}</span><input data-k="${k}" inputmode="decimal" autocomplete="off" value="${esc(val(k))}"><small>${SET_HINT[k]}</small></label>`;
+  const today = ymd(new Date()).slice(0,7), monthOpts = []; { const [y0, m0] = today.split("-").map(Number); for(let i = 1; i <= 18; i++){ const d = new Date(y0, m0 - 1 + i, 1); monthOpts.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`); } }
+  const fromSel = `<label class="set-f set-from"><span>生效月份</span><select id="setFrom"><option value="">現在起（改現行值，所有未結帳月份都用）</option>${monthOpts.map(m => `<option value="${m}" ${m===from?"selected":""}>${+m.slice(0,4)-1911} 年 ${+m.slice(5)} 月 1 日起</option>`).join("")}</select><small>費率調整（例如下學期新基準表）請選生效月份，之前的月份照舊算</small></label>`;
+  const vers = dated.length ? `<div class="set-vers"><span>已設定的版本：</span>${dated.map(x => `<span class="ver">${esc(x.from)} 起 ${esc(SET_LABEL[x.key] || x.key)} ＝ ${esc(x.value)} <button type="button" class="vdel" data-vdel="${esc(x.key)}@${esc(x.from)}" aria-label="刪除版本">×</button></span>`).join("")}</div>` : "";
   const teachers = (state.teachers || []).slice();
   (state.heli || []).forEach(t => { if(!teachers.includes(t)) teachers.push(t); });
   const heliChecks = teachers.map(t => `<label class="set-chk"><input type="checkbox" data-heli="${esc(t)}" ${(state.heli||[]).includes(t)?"checked":""}><span>${esc(t)}</span></label>`).join("");
@@ -1439,9 +1455,10 @@ function renderSettings(){
   box.innerHTML = `<details class="monthly settings" id="setDet" ${open ? "open" : ""}>
     <summary><h3>系統設定</h3><span>費率、合理員額名單、投保資料、假日。改了存檔就生效，網站、Excel、LINE 通知都用新的算。</span></summary>
     ${ready ? "" : `<p class="set-msg" style="margin:10px 0 0;color:var(--amber)">⚠ 後端程式還沒更新到新版（Apps Script 還沒重新部署），這裡先看不能存。部署好新版 Code.gs 後重新整理就能用。</p>`}
-    <div class="set-sec"><h4>1. 鐘點費率</h4><div class="set-grid">${SET_RATE_KEYS.map(field).join("")}</div></div>
+    <div class="set-sec"><h4>1. 鐘點費率</h4><div class="set-grid">${fromSel}${SET_RATE_KEYS.map(field).join("")}</div>${vers}</div>
     <div class="set-sec"><h4>2. 合理員額代課教師 <small>勾選的老師：依課表算每月鐘點薪、看得到自己的薪資卡；請假由別人代課時，代課費列合理員額經費</small></h4>
-      <div class="set-chks">${heliChecks || "<span class='hint'>「密碼」分頁還沒有老師名單</span>"}</div></div>
+      <div class="set-chks">${heliChecks || "<span class='hint'>「密碼」分頁還沒有老師名單</span>"}</div>
+      <label class="set-f" style="margin-top:10px;max-width:420px"><span>會計唯讀帳號（頓號分隔）</span><input data-k="ACCT_USERS" autocomplete="off" value="${esc(st.ACCT_USERS || "")}" placeholder="例：會計室"><small>先在資料表「密碼」分頁加一列（姓名、初始密碼），再填這裡。這個帳號登入只能看、下載、列印，不能改任何資料</small></label></div>
     <div class="set-sec"><h4>3. 保險與扣繳費率（${INS.year} 年）<small>投保級距、分擔比例依勞保局、健保署公告；這裡只改費率</small></h4><div class="set-grid">${SET_INS_KEYS.map(field).join("")}</div>
       <div class="mrow set-act"><button class="btn" type="button" id="setSave">儲存 1～3</button><span class="set-msg" id="setMsg"></span></div></div>
     <div class="set-sec"><h4>4. 投保資料（資料表「保險設定」分頁）<small>每人一列。每月投保日數留空＝整月 30 天；填了加保／退保日期才會按天數比例算</small></h4>
@@ -1452,7 +1469,9 @@ function renderSettings(){
       <div class="mrow set-act"><button class="btn ghost small" type="button" id="offAdd">＋ 新增一列</button><button class="btn" type="button" id="offSave">儲存假日</button><span class="set-msg" id="offMsg"></span></div></div>
     <p class="hint" style="margin-top:12px">每次存檔都會寫進資料表「設定異動紀錄」分頁（時間、修改者、舊值、新值），會計查帳有憑據。直接在資料表改也可以，網站會自動讀到。</p></details>`;
   $("#setDet").ontoggle = () => store.set("setOpen", $("#setDet").open ? "1" : "0");
-  if(!ready) box.querySelectorAll("#setSave,#insSave,#offSave,#insAdd,#offAdd").forEach(b => { b.disabled = true; });
+  if(!ready) box.querySelectorAll("#setSave,#insSave,#offSave,#insAdd,#offAdd,.vdel").forEach(b => { b.disabled = true; });
+  $("#setFrom").onchange = () => { state.setFrom = $("#setFrom").value; renderSettings(); $("#setDet").open = true; };
+  box.querySelectorAll("[data-vdel]").forEach(b => b.onclick = () => { const [k, d] = b.dataset.vdel.split("@"); if(!confirm(`刪除「${SET_LABEL[k] || k}」${d} 起的版本？`)) return; saveSetting({op:"set", values: JSON.stringify({[b.dataset.vdel]: ""})}, $("#setMsg"), $("#setSave")); });
   // 每節代課費改了，合班每節自動帶 ×1.5 進位（還沒自己改過合班的話）
   const rs = box.querySelector('[data-k="RATE_SUB"]'), rc = box.querySelector('[data-k="RATE_COMBINED"]');
   rs.oninput = () => { const v = +rs.value; if(!rc.dataset.touched && v > 0) rc.value = Math.ceil(v * 1.5 - 1e-9); };
@@ -1462,8 +1481,10 @@ function renderSettings(){
     for(const k of SET_RATE_KEYS.concat(SET_INS_KEYS)){
       const raw = box.querySelector(`[data-k="${k}"]`).value.replace(/,/g,"").trim();
       if(!/^\d+(\.\d+)?$/.test(raw)) return $("#setMsg").textContent = `✘ ${SET_LABEL[k]}：請填數字`;
-      if(String(+raw) !== String(+val(k))) values[k] = +raw;
+      if(String(+raw) !== String(+val(k))) values[fromD ? `${k}@${fromD}` : k] = +raw;
     }
+    const acct = box.querySelector('[data-k="ACCT_USERS"]').value.split(/[、,，\s]+/).map(x => x.trim()).filter(Boolean).join("、");
+    if(acct !== String(st.ACCT_USERS || "")) values.ACCT_USERS = acct;
     const picked = [...box.querySelectorAll("[data-heli]:checked")].map(x => x.dataset.heli), cur = state.heli || [];
     const heli = cur.filter(t => picked.includes(t)).concat(picked.filter(t => !cur.includes(t)));   // 原本的順序不動（清冊、Excel 的排列），新勾的排後面
     if(heli.join("、") !== cur.join("、")) values.HELI_TEACHERS = heli;
@@ -1528,6 +1549,7 @@ async function saveSetting(body, msgEl, btn){
     if(d.nochange){ msgEl.textContent = d.msg || "資料沒有變動"; return; }
     if(d.settings) applySettings(d.settings);
     if(d.heli) state.heli = d.heli; if(d.ins) state.ins = d.ins; if(d.off) state.off = d.off; if(d.offRows) state.offRows = d.offRows;
+    state.setFrom = "";
     toast("已儲存：" + (d.changed || []).join("；").slice(0, 70) + ((d.changed || []).join("；").length > 70 ? "…" : ""));
     await reload(true, true);                                   // 金額、衝堂檢查都在後端算：重讀一次，整頁用新設定
     const m = $(`#${msgEl.id}`); if(m) m.textContent = "✔ 已儲存 " + new Date().toLocaleTimeString("zh-TW", {hour:"2-digit", minute:"2-digit"});
@@ -1639,22 +1661,25 @@ function reportChecks(ym, evs){
 }
 function renderChecks(ym){
   const box = $("#checkBox"); if(!box) return;
-  if(state.role !== "admin" || !isAll()){ box.innerHTML = ""; return; }
+  applySettingsAt(ym);
+  if((state.role !== "admin" && state.role !== "acct") || !isAll()){ box.innerHTML = ""; return; }
+  const RO = state.role === "acct";                                    // 會計唯讀：只看檢查結果和月結狀態
   const heli = state.heli || [], ready = !!state.closes || false, C = reportChecks(ym), f = v => Number(v).toLocaleString("zh-TW");
   const errs = C.filter(x => x.lv === "err"), blocking = errs.filter(x => x.k !== "closed");
   const c = state.closes && state.closes[ym], closed = !!(c && c.data && !c.open);
   const si = signinOf(ym), H = state.meta ? heliOf(state.events, ym) : null;
-  const sign = H ? H.T.map(t => `<label class="si-f"><span>${esc(t.name)}</span><input inputmode="decimal" data-si="${esc(t.name)}" value="${esc(si[t.name] ?? "")}" placeholder="簽到表合計"><small>系統 ${unitsText(t.units)}</small></label>`).join("") : "";
-  box.innerHTML = `<div class="acct-head"><h4>報帳前檢查與月結</h4><span>${closed ? `已結帳 ${esc(c.at)}（${esc(c.by)}）` : "還沒結帳"}</span></div>
+  const sign = H ? H.T.map(t => `<label class="si-f"><span>${esc(t.name)}</span><input inputmode="decimal" data-si="${esc(t.name)}" value="${esc(si[t.name] ?? "")}" placeholder="簽到表合計" ${RO ? "disabled" : ""}><small>系統 ${unitsText(t.units)}</small></label>`).join("") : "";
+  box.innerHTML = `<div class="acct-head"><h4>報帳前檢查與月結</h4><span>${closed ? `已結帳 ${esc(c.at)}（${esc(c.by)}）${c.file ? `　<a href="${esc(c.file)}" target="_blank" rel="noopener">結帳時的 Excel（雲端硬碟）</a>` : ""}` : "還沒結帳"}</span></div>
     <div class="steps sop"><span><b>1</b>月初印簽到表</span><span><b>2</b>請假、代課隨時登記</span><span><b>3</b>月底收簽到表，填合計節數比對</span><span><b>4</b>檢查全綠</span><span><b>5</b>下載會計總帳、印清冊</span><span><b>6</b>送會計</span><span><b>7</b>本月結帳</span></div>
     ${heli.length ? `<div class="si-row"><span class="si-t">簽到表核對（紙本合計節數）</span>${sign}</div>` : ""}
     <ul class="chk-list">${C.map(x => `<li class="${x.lv}"><i>${CHECK_ICON[x.lv]}</i><span>${esc(x.text)}</span></li>`).join("")}</ul>
     <div class="mrow set-act">
       <button class="btn ghost small" type="button" id="chkRun">重新檢查</button>
-      ${closed ? `<button class="btn" type="button" id="chkClose" ${ready ? "" : "disabled"}>重新結帳</button><button class="btn dghost small" type="button" id="chkReopen" ${ready ? "" : "disabled"}>解除月結</button>`
-               : `<button class="btn" type="button" id="chkClose" ${ready && !blocking.length ? "" : "disabled"}>本月結帳</button>`}
-      <span class="set-msg" id="chkMsg">${!ready ? "（後端還沒更新到新版，月結先不能存）" : blocking.length ? `還有 ${blocking.length} 項要處理才能結帳` : closed ? "" : "檢查通過，送會計後按「本月結帳」鎖定本月數字"}</span></div>`;
-  box.querySelectorAll("[data-si]").forEach(inp => { inp.onchange = () => { const v = inp.value.replace(/,/g,"").trim(); if(v && !/^\d+(\.5)?$/.test(v)){ toast("簽到表節數請填整數或 .5"); inp.value = ""; } saveSignin(ym, inp.dataset.si, inp.value.trim()); renderChecks(ym); }; });
+      ${RO ? `<span class="set-msg">${closed ? "這個月教務組已結帳，數字已鎖定；上面若有紅字表示結帳後資料有變動，請向教務組確認" : "這個月教務組還沒結帳，數字還可能變動；請以結帳後的 Excel 為準"}</span>`
+         : closed ? `<button class="btn" type="button" id="chkClose" ${ready ? "" : "disabled"}>重新結帳</button><button class="btn dghost small" type="button" id="chkReopen" ${ready ? "" : "disabled"}>解除月結</button>`
+                  : `<button class="btn" type="button" id="chkClose" ${ready && !blocking.length ? "" : "disabled"}>本月結帳</button>`}
+      ${RO ? "" : `<span class="set-msg" id="chkMsg">${!ready ? "（後端還沒更新到新版，月結先不能存）" : blocking.length ? `還有 ${blocking.length} 項要處理才能結帳` : closed ? "" : "檢查通過，送會計後按「本月結帳」鎖定本月數字"}</span>`}</div>`;
+  if(!RO) box.querySelectorAll("[data-si]").forEach(inp => { inp.onchange = () => { const v = inp.value.replace(/,/g,"").trim(); if(v && !/^\d+(\.5)?$/.test(v)){ toast("簽到表節數請填整數或 .5"); inp.value = ""; } saveSignin(ym, inp.dataset.si, inp.value.trim()); renderChecks(ym); }; });
   $("#chkRun").onclick = () => renderChecks(ym);
   if($("#chkClose")) $("#chkClose").onclick = async () => {
     const warns = C.filter(x => x.lv === "warn");
@@ -1663,9 +1688,16 @@ function renderChecks(ym){
     if(warns.length && !confirm(`有 ${warns.length} 項提醒：\n${warns.map(w => "・" + w.text).join("\n")}\n\n確定要結帳？`)) return;
     const note = prompt(closed ? "重新結帳的原因（會記在月結紀錄）：" : "備註（可空白）：", "") ; if(note === null) return;
     const snap = monthSnapshot(ym);
-    $("#chkClose").disabled = true; $("#chkMsg").textContent = "結帳中…";
-    try{ const d = await apiPost({action:"close", name:state.cred.name, h:state.cred.h, ym, op:"close", data: JSON.stringify(snap), signin: JSON.stringify(snap.signin), note});
-      if(!d.ok) throw new Error(d.error || "結帳失敗"); state.closes = d.closes || state.closes; toast(`${+ym.slice(5)} 月已結帳`); renderChecks(ym); }
+    $("#chkClose").disabled = true; $("#chkMsg").textContent = "產生會計總帳 Excel 並歸檔中…";
+    try{
+      let xlsx = "", xlsxName = "";
+      const w = await ledgerWorkbook(ym);                                   // 同一本 Excel 存到雲端硬碟，會計看到的就是結帳那一刻的
+      if(w){ const buf = await w.wb.xlsx.writeBuffer(); let bin = ""; const u8 = new Uint8Array(buf); for(let i = 0; i < u8.length; i += 0x8000) bin += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); xlsx = btoa(bin); xlsxName = w.name; }
+      $("#chkMsg").textContent = "結帳中…";
+      const d = await apiPost({action:"close", name:state.cred.name, h:state.cred.h, ym, op:"close", data: JSON.stringify(snap), signin: JSON.stringify(snap.signin), note, xlsx, xlsxName});
+      if(!d.ok) throw new Error(d.error || "結帳失敗"); state.closes = d.closes || state.closes;
+      toast(`${+ym.slice(5)} 月已結帳${d.file ? "，Excel 已存到雲端硬碟「會計報表」" : ""}`); if(d.warn) setTimeout(() => toast("提醒：" + d.warn), 2800);
+      renderChecks(ym); }
     catch(e){ $("#chkMsg").textContent = "✘ " + e.message; $("#chkClose").disabled = false; toast("結帳失敗：" + e.message); }
   };
   if($("#chkReopen")) $("#chkReopen").onclick = async () => {
@@ -1704,7 +1736,7 @@ function buildCheckSheet(K, r, evs){
 const isAll = () => state.viewing==="__all__";
 const yuan = n => Number(n).toLocaleString("zh-TW") + " 元";
 const feeOf = e => e.nofee ? 0 : (e.type==="sub"||e.type==="leave") ? (e.rate || RATE_SUB)
-                 : (e.type==="tutor"||e.type==="tutorLeave") ? RATE_TUTOR*(+e.days||1) : 0;
+                 : (e.type==="tutor"||e.type==="tutorLeave") ? (e.rate || RATE_TUTOR)*(+e.days||1) : 0;
 const leaveWord = e => (!e.leaveType || e.leaveType==="其他") ? "請假" : "請" + e.leaveType;   // 請公假、請事假…
 const courseOf = e => [e.cls, e.subject].filter(Boolean).join(" ");
 const daysTxt = e => (+e.days||1)!==1 ? `${e.days} 日` : "";
@@ -1947,7 +1979,7 @@ async function openPlan(date){
 }
 function closePlan(){ $("#planModal").hidden = true; document.body.style.overflow=""; }
 function prefetchMeta(){                      // 管理者登入後在背景先讀好課表，按「排調代課」就不用等
-  if(state.role!=="admin" || state.meta || prefetchMeta.p || !state.cred) return;
+  if((state.role!=="admin" && state.role!=="acct") || state.meta || prefetchMeta.p || !state.cred) return;
   prefetchMeta.p = api({action:"meta", name:state.cred.name, h:state.cred.h})
     .then(m=>{ if(m.ok && m.tt) state.meta = m; }).catch(()=>{}).finally(()=>{ prefetchMeta.p = null; });
 }
@@ -2443,6 +2475,7 @@ $("#repForm").addEventListener("submit", async e=>{
 
 function renderReports(){
   const box = $("#myReports"), list = state.reports || [];
+  if(state.role==="acct"){ box.innerHTML = ""; return; }
   if(state.role!=="admin"){
     box.innerHTML = list.length ? `<div class="reports"><h3>${esc(state.viewing)}老師的回報</h3>${list.map(r=>`
       <div class="rp"><span class="st ${r.status==="待處理"?"todo":"done"}">${esc(r.status)}</span><b>${esc(r.kind||"回報")}</b>　${esc(r.text)}
@@ -2570,6 +2603,7 @@ function renderBoard(){
   renderSummary();
 }
 function renderSummary(){
+  applySettingsAt(state.range || ymd(new Date()).slice(0,7));
   const N = state.viewing, t = tally(state.events.filter(e => inRange(e, state.range || ""))), R = state.range ? `${+state.range.slice(5,7)} 月` : "本學期";
   const m = (k, n, unit, sub) => `<div class="meter"><div class="k">${esc(R + " " + k)}</div><b data-n="${n}" data-u="${esc(unit)}"></b><span>${esc(sub)}</span></div>`;
   $("#summary").innerHTML = isAll()
@@ -2752,6 +2786,7 @@ async function allEvents(){                       // 管理者正在看某位老
 }
 $("#openSign").onclick = () => { let r = $("#rangeSel").value; if(!r){ r = ymd(new Date()).slice(0,7); toast(`簽收單以月為單位，先產生 ${rangeLabel(r)}`); } printSign(r); };
 async function printSign(r){
+  applySettingsAt(r);
   let all;
   try{ all = await allEvents(); } catch(err){ toast("讀取失敗：" + err.message); return; }
   const heliN = all.filter(e => e.date.startsWith(r) && isHeliSub(e) && !e.nofee).length;
@@ -2793,7 +2828,7 @@ async function printSign(r){
 /* ---------- 每月報表（管理者）：老師簽收單、出納會計月報表、本月 Excel ---------- */
 function renderMonthly(){
   const box = $("#monthly");
-  if(state.role !== "admin"){ box.innerHTML = ""; return; }
+  if(state.role !== "admin" && state.role !== "acct"){ box.innerHTML = ""; return; }
   const months = termMonths().map(([y,m]) => `${y}-${String(m+1).padStart(2,"0")}`);
   const cur = (box.querySelector("#mSel") || {}).value, thisMonth = ymd(new Date()).slice(0,7);
   const pick = cur || (months.includes(thisMonth) ? thisMonth : months[0]);
@@ -2854,6 +2889,7 @@ function acctOf(evs, r){
 }
 function renderAcct(r){
   const box = $("#acctBox"); if(!box) return;
+  applySettingsAt(r);
   if(!isAll()){ box.innerHTML = `<p class="hint" style="margin:0">會計總覽看的是全校：上方「查看哪位老師」切回「全校總覽」就會出現。</p>`; return; }
   const A = acctOf(state.events, r), roc = `${+r.slice(0,4)-1911} 年 ${+r.slice(5,7)} 月`, f = v => Number(v).toLocaleString("zh-TW");
   const okAll = A.total === A.byTeacher && A.total === A.recSum && A.total === A.byLeave;
@@ -2988,6 +3024,7 @@ async function ensureMeta(){
 const heliRule = () => `合班而且只有這位老師上的課算 1.5 節，和協同老師一起上的課算 1 節；每人每月節數加總後有 .5 一律進位到整數節（2.5 → 3、27.5 → 28，代課他人也一樣），再乘以每節 ${RATE_SUB} 元；國定假日、颱風假課表上的課照常計算、照常給薪；請假由別人代的那幾節，代課老師領原本那一節的節數（同樣加總後進位），列在合理員額、不列入公假那份。`;
 function renderHeli(r){
   const box = $("#heliBox"); if(!box) return;
+  applySettingsAt(r);
   if(!(state.heli || []).length){ box.innerHTML = ""; return; }
   if(!isAll()){ box.innerHTML = `<p class="hint" style="margin:0">合理員額總覽看的是全校：上方「查看哪位老師」切回「全校總覽」就會出現。</p>`; return; }
   if(!state.meta){
@@ -3087,6 +3124,7 @@ const heliNote = () => ({
 });
 /* 列印：合理員額印領清冊（本人、代課分開兩張）＋逐節明細＋法規依據 */
 async function printHeli(r){
+  applySettingsAt(r);
   let H;
   try{ H = await heliData(r); } catch(err){ toast("讀取失敗：" + err.message); return; }
   if(!H.T.some(t => t.L.length) && !H.subs.length){ toast(`${rangeLabel(r)}沒有合理員額的課`); return; }
@@ -3148,6 +3186,7 @@ function heliMineData(r){
   return {name, r, H, t, p, ic};
 }
 function renderHeliMine(){
+  applySettingsAt(state.range || ymd(new Date()).slice(0,7));
   const box = $("#heliMine"); if(!box) return;
   const name = heliMineName();
   if(!name){ box.innerHTML = ""; return; }
@@ -3189,6 +3228,7 @@ function renderHeliMine(){
 const H_WARN = D => D.H.warn.length ? `<ul class="heli-warn">${D.H.warn.map(w => `<li>⚠ ${esc(w)}</li>`).join("")}</ul>` : "";
 /* 列印：一位老師的鐘點費明細＋計算過程（老師自己留底，或教務組給老師核對） */
 function printHeliMine(r){
+  applySettingsAt(r);
   const D = heliMineData(r); if(!D){ toast("沒有資料"); return; }
   const {t, ic, p} = D, f = v => Number(v).toLocaleString("zh-TW"), rocY = +r.slice(0,4) - 1911, mon = +r.slice(5,7), off = state.off || {};
   const rows = t.L.filter(l => l.st !== "sub").map((l, i) => { const paid = l.st === "self" || l.st === "hol";
@@ -3217,6 +3257,7 @@ function printHeliMine(r){
 }
 /* 列印：合理員額簽到表（每位老師一頁，日期、節次、合班 1.5、放假、別人代課都先印好） */
 async function printHeliSign(r, only){
+  applySettingsAt(r);
   let H;
   try{ H = await heliData(r, only); } catch(err){ toast("讀取失敗：" + err.message); return; }
   const list = H.T.filter(t => t.L.length);
@@ -3649,6 +3690,7 @@ function buildLawSheet(K){
  * 三個下載按鈕
  * ================================================================ */
 async function acctExcel(r){
+  applySettingsAt(r);
   let all; try{ all = await allEvents(); } catch(err){ toast("讀取失敗：" + err.message); return; }
   const A = acctOf(all, r), inM = all.filter(e => e.date.startsWith(r));
   if(!inM.some(e => (e.type==="sub" && !isHeliSub(e)) || e.type==="tutor")){ toast(`${rangeLabel(r)}沒有校內代課紀錄`); return; }
@@ -3682,6 +3724,7 @@ async function acctExcel(r){
   finally{ busy(false); }
 }
 async function heliExcel(r){
+  applySettingsAt(r);
   let H; try{ H = await heliData(r); } catch(err){ toast("讀取失敗：" + err.message); return; }
   if(!H.T.some(t => t.L.length) && !H.subs.length){ toast(`${rangeLabel(r)}沒有合理員額的課`); return; }
   busy(true);
@@ -3775,10 +3818,18 @@ function buildHeliCheck(K, H, HR, r){
 }
 /* 會計總帳：一個月的全部會計項目，一本 Excel；第一張「總表」把每個項目、每張工作表的合計拉在一起互相核對 */
 async function ledgerExcel(r){
-  let all, H; try{ all = await allEvents(); await ensureMeta(); H = heliOf(all, r); } catch(err){ toast("讀取失敗：" + err.message); return; }
+  const w = await ledgerWorkbook(r); if(!w) return;
+  busy(true);
+  try{ await w.K.download(w.name); toast("已下載會計總帳 Excel"); }
+  catch(err){ toast("產生失敗：" + err.message); }
+  finally{ busy(false); }
+}
+/* 會計總帳 Excel（整本）：下載和月結歸檔共用；回傳 {wb, K, name}，沒有資料回 null */
+async function ledgerWorkbook(r){
+  let all, H; try{ all = await allEvents(); await ensureMeta(); applySettingsAt(r); H = heliOf(all, r); } catch(err){ toast("讀取失敗：" + err.message); return null; }
   const A = acctOf(all, r), inM = all.filter(e => e.date.startsWith(r));
   const hasAcct = inM.some(e => (e.type==="sub" && !isHeliSub(e)) || e.type==="tutor"), hasHeli = H.T.some(t => t.L.length) || H.subs.length;
-  if(!hasAcct && !hasHeli){ toast(`${rangeLabel(r)}沒有任何代課、合理員額紀錄`); return; }
+  if(!hasAcct && !hasHeli){ toast(`${rangeLabel(r)}沒有任何代課、合理員額紀錄`); return null; }
   busy(true);
   try{
     await loadExcelJS(); const wb = new ExcelJS.Workbook(); wb.creator = "代課查詢系統"; wb.created = new Date(); const K = xlKit(wb), P = periodOf(r);
@@ -3810,9 +3861,8 @@ async function ledgerExcel(r){
     S.mergeCells(12, 1, 12, 8); S.getCell(12,1).value = `1 和 2 為校內代課（公假等）經費；3 和 4 為合理員額經費，分開核銷。網站會計總覽：校內代課＋代導 ${A.total.toLocaleString("zh-TW")} 元、合理員額 ${H.total.toLocaleString("zh-TW")} 元。${H.warn.length ? "要確認：" + H.warn.join("；") : "無待確認事項。"} 產生時間：${new Date().toLocaleString("zh-TW",{hour12:false})}`;
     S.getCell(12,1).font = K.font({size:9, color:{argb:"FF555555"}}); S.getCell(12,1).alignment = {wrapText:true, vertical:"top"}; S.getRow(12).height = 44;
     S.mergeCells(14, 1, 14, 8); S.getCell(14,1).value = "工作表：總表｜報帳檢查｜校內代課鐘點費｜校內代課明細｜代理導師費｜合理員額教師鐘點費｜代合理員額教師課｜合理員額明細｜保險計算｜會計印領清冊（會計室格式：所有領合理員額經費的人同一張）｜計算過程｜合理員額核對｜級距表｜法規依據。淡黃格可改，改了全部跟著重算。"; S.getCell(14,1).font = K.font({size:9});
-    await K.download(`土城國小_${P.rocY}年${P.mon}月_代課鐘點費會計總帳.xlsx`);
-    toast("已下載會計總帳 Excel");
-  }catch(err){ toast("產生失敗：" + err.message); }
+    return {wb, K, name: `土城國小_${P.rocY}年${P.mon}月_代課鐘點費會計總帳.xlsx`};
+  }catch(err){ toast("產生失敗：" + err.message); return null; }
   finally{ busy(false); }
 }
 function landscape(on){                              // 月報表用橫式
@@ -3821,6 +3871,7 @@ function landscape(on){                              // 月報表用橫式
   if(!on && st) st.remove();
 }
 async function printAcct(r){
+  applySettingsAt(r);
   let all;
   try{ all = await allEvents(); } catch(err){ toast("讀取失敗：" + err.message); return; }
   const evs = all.filter(e => e.date.startsWith(r)), heli = state.heli || [];
