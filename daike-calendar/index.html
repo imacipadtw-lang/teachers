@@ -649,14 +649,14 @@ main{container-type:inline-size}
         </div>
         <button class="btn ghost small" id="jumpToday" type="button">回到今天</button>
         <div class="tools">
-          <select id="rangeSel" aria-label="下載、列印的範圍"></select>
+          <select id="rangeSel" aria-label="月份（整頁跟著切換）"></select>
           <button class="btn ghost small" id="dlExcel" type="button">下載 Excel</button>
           <button class="btn ghost small" id="printTable" type="button">列印表格</button>
           <button class="btn small" id="openSign" type="button" hidden>每月簽收單</button>
           <button class="btn ghost small" id="printCal" type="button">列印年曆</button>
         </div>
       </div>
-      <p class="fee-note">金額依每節 405 元（合班 608 元，代協同老師的課仍是 405 元）、代導師每日 133 元計算，正式金額以教務組核算為準。<span id="termNote"></span></p>
+      <p class="fee-note"><span id="rangeNote"></span>金額依每節 405 元（合班 608 元，代協同老師的課仍是 405 元）、代導師每日 133 元計算，正式金額以教務組核算為準。<span id="termNote"></span></p>
       <div class="print-note" id="printNote"></div>
       <div class="year" id="year"></div>
       <div class="list" id="list"></div>
@@ -1303,7 +1303,7 @@ function applyData(d){
   state.off = d.off || {}; state.audit = d.audit || []; state.typhoon = d.typhoon || null; state.heli = d.heli || state.heli || []; if(d.ins) state.ins = d.ins;
   state.fixes = d.fixes || []; state.leaveTypes = d.leaveTypes || null;
   renderReports();
-  renderAdmin(); renderBoard(); renderAlerts(); renderRange(); renderMonthly(); renderYear(); renderList(); renderPanel(null);
+  renderAdmin(); renderRange(); renderBoard(); renderAlerts(); renderMonthly(); renderYear(); renderList(); renderPanel(null);
   if (state.role==="admin") setTimeout(prefetchMeta, 300);          // 先把排課要用的資料準備好
   state.shown = true;                       // 一進來先看看板；要看這個月按「回到今天」
 }
@@ -1476,7 +1476,7 @@ function renderYear(){
   const byDate = {};
   for(const e of state.events) (byDate[e.date] ||= []).push(e);
   const today = ymd(new Date());
-  const months = termMonths();
+  const months = termMonths().filter(([y,m]) => !state.range || `${y}-${String(m+1).padStart(2,"0")}` === state.range);   // 選了月份就只畫那個月
   $("#year").innerHTML = months.map(([y,m])=>{
     const ym = `${y}-${String(m+1).padStart(2,"0")}`;
     const first = new Date(y,m,1), days = new Date(y,m+1,0).getDate();
@@ -1509,8 +1509,8 @@ function renderYear(){
 /* ---------- 清單 ---------- */
 function renderList(){
   const list=$("#list");
-  const rows = state.events.filter(e=>describe(e));
-  if(!rows.length){ list.innerHTML=`<div class="grp"><div class="empty">目前沒有任何紀錄。表單登錄後重新整理即可看到。</div></div>`; return; }
+  const rows = state.events.filter(e=>describe(e) && inRange(e, state.range));
+  if(!rows.length){ list.innerHTML=`<div class="grp"><div class="empty">${state.range ? rangeLabel(state.range) + "沒有紀錄。" : "目前沒有任何紀錄。表單登錄後重新整理即可看到。"}</div></div>`; return; }
   const groups={}; for(const e of rows) (groups[e.date.slice(0,7)] ||= []).push(e);
   list.innerHTML = Object.entries(groups).map(([ym,evs])=>{
     const [y,m]=ym.split("-");
@@ -2211,8 +2211,8 @@ function renderBoard(){
   renderSummary();
 }
 function renderSummary(){
-  const N = state.viewing, t = tally(state.events);
-  const m = (k, n, unit, sub) => `<div class="meter"><div class="k">${esc(k)}</div><b data-n="${n}" data-u="${esc(unit)}"></b><span>${esc(sub)}</span></div>`;
+  const N = state.viewing, t = tally(state.events.filter(e => inRange(e, state.range || ""))), R = state.range ? `${+state.range.slice(5,7)} 月` : "本學期";
+  const m = (k, n, unit, sub) => `<div class="meter"><div class="k">${esc(R + " " + k)}</div><b data-n="${n}" data-u="${esc(unit)}"></b><span>${esc(sub)}</span></div>`;
   $("#summary").innerHTML = isAll()
     ? m("全校代課", t.subN, "節", `代課費 ${yuan(t.subFee)}`) + m("全校代導師", t.tutorD, "日", `代導費 ${yuan(t.tutorFee)}`)
       + m("合計要發", t.subFee+t.tutorFee, "元", "代課費＋代導費") + m("還沒安排代課", t.unN, "筆", "請假但代課老師空白")
@@ -2255,8 +2255,19 @@ function renderRange(){
   sel.innerHTML = `<option value="">整學期</option>` + months.map(([v,l]) => `<option value="${v}">${l}</option>`).join("");
   const thisMonth = ymd(new Date()).slice(0,7);
   sel.value = cur || (months.some(x=>x[0]===thisMonth) ? thisMonth : "");
+  state.range = sel.value;
   $("#openSign").hidden = state.role !== "admin";
 }
+/* 換月份：整頁跟著跳（年曆只顯示那個月、清單只列那個月、合計、會計總覽、合理員額總覽），不用再按任何鍵 */
+function setRange(r, from){
+  state.range = r || "";
+  if($("#rangeSel").value !== state.range) $("#rangeSel").value = state.range;
+  const m = $("#mSel");
+  if(m && state.range && m.value !== state.range && from !== "mSel"){ m.value = state.range; renderAcct(state.range); renderHeli(state.range); }
+  renderYear(); renderList(); renderSummary();
+  const nm = $("#rangeNote"); if(nm) nm.textContent = state.range ? `目前顯示 ${rangeLabel(state.range)}；要看整學期請選「整學期」。` : "";
+}
+$("#rangeSel").addEventListener("change", () => setRange($("#rangeSel").value, "rangeSel"));
 const rangeLabel = r => r ? `${r.slice(0,4)} 年 ${+r.slice(5,7)} 月` : `115 學年度上學期（${termText()}）`;
 const inRange = (e, r) => !r || e.date.startsWith(r);
 
@@ -2440,8 +2451,9 @@ function renderMonthly(){
         <button class="btn ghost" type="button" id="hExcel">合理員額 Excel（可填扣款）</button>
         <button class="btn" type="button" id="hLedger">會計總帳 Excel（全部工作表）</button></div>
       <div class="acct" id="heliBox" aria-live="polite"></div></div>` : ""}</div>`;
-  $("#mSel").onchange = () => { renderAcct($("#mSel").value); renderHeli($("#mSel").value); };
-  renderAcct(pick); renderHeli(pick);
+  $("#mSel").onchange = () => { renderAcct($("#mSel").value); renderHeli($("#mSel").value); setRange($("#mSel").value, "mSel"); };
+  if(state.range && months.includes(state.range) && $("#mSel").value !== state.range) $("#mSel").value = state.range;
+  renderAcct($("#mSel").value); renderHeli($("#mSel").value);
   if($("#hSignIn")){ $("#hSignIn").onclick = () => printHeliSign($("#mSel").value); $("#hPrint").onclick = () => printHeli($("#mSel").value); $("#hExcel").onclick = () => heliExcel($("#mSel").value); $("#hLedger").onclick = () => ledgerExcel($("#mSel").value); }
   $("#mSign").onclick = () => printSign($("#mSel").value);
   $("#mAcct").onclick = () => printAcct($("#mSel").value);
