@@ -1594,6 +1594,11 @@ function reportChecks(ym, evs){
     H.warn.filter(w => !/還沒安排代課/.test(w)).forEach(w => add("warn", "heli", w));
   }
   if(A.unassigned) add("err", "unassigned", `校內代課有 ${A.unassigned} 筆請假還沒安排代課老師`);
+  // 合理員額教師同一節登了兩筆代課（合班課分成一甲、二甲各登一筆）→ 會多算，要合併成一筆
+  if(heli.length){ const g = {};
+    evs.filter(e => e.type === "sub" && e.date.startsWith(ym) && heli.includes(e.other) && !e.dup).forEach(e => { (g[[e.other, e.date, e.period].join("|")] ||= []).push(e); });
+    Object.keys(g).filter(k => g[k].length > 1).forEach(k => { const [who, date, p] = k.split("|");
+      add("err", "dupslot", `${who} ${fmtMD(date)} 第${p}節登了 ${g[k].length} 筆代課（${g[k].map(e => `${e.cls} ${e.who}`).join("、")}）：合班課只能登一筆，班級填「低年級／中年級／高年級」，否則代課費會多算`); }); }
   if(A.flagN) add("err", "flags", `有 ${A.flagN} 筆標「⚠」（衝堂、重複登錄等），請在網站上按「修改」處理或確認`);
   // 投保
   heli.forEach(name => { const p = insOf(name), t = H && H.T.find(x => x.name === name);
@@ -2889,7 +2894,7 @@ function renderAcct(r){
 const isHeliSub = e => e.type === "sub" && (state.heli || []).includes(e.other);
 const heliCls = cs => cs.length > 1 && cs.every(c => /^.甲$/.test(c)) ? cs.map(c => c[0]).join("、") + "甲" : cs.join("、");
 const heliW = e => (e.rate || RATE_SUB) === RATE_SUB ? 1 : 1.5;                // 對不到課表時才用：代課紀錄 608 元＝1.5 節
-const heliPay = u => Math.ceil(u - 1e-9);                                       // 進位到整數節
+const heliPay = u => u > 0 ? Math.ceil(u - 1e-9) : 0;                           // 進位到整數節（0 不要變成 -0）
 const unitsText = u => Number.isInteger(u) ? String(u) : u.toFixed(1);
 /* 某位合理員額教師每週的課：[{dow, p, cls, subject, w(1 或 1.5), co(協同老師)}] */
 function heliSlots(T){
