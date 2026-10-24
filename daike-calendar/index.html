@@ -230,6 +230,21 @@ details.settings>summary span{font-size:13px;color:var(--ink-3)}
 .set-tbl input[type=date]{width:140px}
 .set-tbl select{min-width:120px;padding-right:30px;background-position:right 10px center;font-size:13.5px}
 .set-act{align-items:center}
+/* 報帳前檢查、簽到表核對、月結 */
+.monthly .steps.sop{margin:6px 0 10px}
+.si-row{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:flex-end;margin:4px 0 10px}
+.si-t{font-size:13px;color:var(--ink-2);font-weight:600;align-self:center;width:100%}
+.si-f{display:flex;flex-direction:column;gap:3px;margin:0;font-size:13px}
+.si-f span{color:var(--ink-2);font-weight:600}
+.si-f input{width:118px;padding:7px 9px;font-size:15px;text-align:right;font-variant-numeric:tabular-nums}
+.si-f small{font-size:11.5px;color:var(--ink-3)}
+.chk-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px;font-size:13.5px}
+.chk-list li{display:flex;gap:8px;align-items:flex-start;line-height:1.45}
+.chk-list li i{font-style:normal;font-weight:800;width:18px;flex:none;text-align:center}
+.chk-list li.err i{color:var(--rose)} .chk-list li.err span{color:#FFD5DF}
+.chk-list li.warn i{color:var(--amber)}
+.chk-list li.ok i{color:var(--c-tutor)} .chk-list li.ok span{color:var(--ink-2)}
+.chk-list li.info i{color:var(--ink-3)} .chk-list li.info span{color:var(--ink-3)}
 .set-msg{font-size:13px;color:var(--ink-2)}
 @media (max-width:640px){.set-grid{grid-template-columns:1fr 1fr}}
 /* 會計總覽：每月一頁看完 */
@@ -1358,6 +1373,7 @@ function applyData(d){
   state.reports = d.reports || []; state.notify = d.notify;
   state.off = d.off || {}; state.audit = d.audit || []; state.typhoon = d.typhoon || null; state.heli = d.heli || state.heli || []; if(d.ins) state.ins = d.ins; if(d.meta) state.meta = d.meta;
   if(d.offRows) state.offRows = d.offRows; if(d.settings) applySettings(d.settings);   // 費率等設定（管理者可在網站改）
+  if(d.closes) state.closes = d.closes;                                                // 月結紀錄（報帳前檢查用）
   state.fixes = d.fixes || []; state.leaveTypes = d.leaveTypes || null;
   renderReports();
   renderAdmin(); renderRange(); renderBoard(); renderAlerts(); renderMonthly(); renderHeliMine(); renderSettings(); renderYear(); renderList(); renderPanel(null);
@@ -1517,6 +1533,166 @@ async function saveSetting(body, msgEl, btn){
     const m = $(`#${msgEl.id}`); if(m) m.textContent = "✔ 已儲存 " + new Date().toLocaleTimeString("zh-TW", {hour:"2-digit", minute:"2-digit"});
   }catch(e){ msgEl.textContent = "✘ " + e.message; toast("儲存失敗：" + e.message); }
   finally{ btn.disabled = false; }
+}
+
+/* ---------- 報帳前檢查、簽到表核對、月結（管理者） ----------
+ * 報帳前檢查：一鍵把會讓會計退件的問題列出來（缺代課、缺投保、缺假日、⚠、三方核對、簽到表節數比對、費率、已結帳月份被改）。
+ * 簽到表核對：月底把紙本簽到表的合計節數鍵入，和系統逐人比對。
+ * 月結：按「本月結帳」把當月數字（含用的費率、投保資料、簽到表核對）存到資料表「月結紀錄」；之後資料變了，檢查會亮紅並列出差異。 */
+const CHECK_ICON = {err:"✗", warn:"⚠", ok:"✓", info:"ℹ"};
+const lastDayOf = ym => { const [y, m] = ym.split("-").map(Number); return `${ym}-${String(new Date(y, m, 0).getDate()).padStart(2,"0")}`; };
+function signinOf(ym){
+  if(!state.signin) { try { state.signin = JSON.parse(store.get("signin") || "{}"); } catch(e){ state.signin = {}; } }
+  if(!state.signin[ym]){ const c = state.closes && state.closes[ym]; let o = {}; if(c && c.signin){ try { o = JSON.parse(c.signin); } catch(e){ o = {}; } } state.signin[ym] = o; }
+  return state.signin[ym];
+}
+function saveSignin(ym, name, v){ const o = signinOf(ym); if(v === "" || v == null) delete o[name]; else o[name] = v; store.set("signin", JSON.stringify(state.signin)); }
+/* 當月要存進月結的數字（和會計總帳 Excel 同一套） */
+function monthSnapshot(ym, evs){
+  evs = evs || state.events;
+  const H = state.meta ? heliOf(evs, ym) : null, A = acctOf(evs, ym);
+  const heli = {T:{}, S:{}};
+  if(H){
+    H.T.forEach(t => { const ic = insCalc(insOf(t.name), ym, t.amt);
+      heli.T[t.name] = {units:t.units, pay:t.pay, amt:t.amt, hol:t.hol, subN:t.subN, days:ic.days, er:ic.erTotal, emp:ic.empTotal, net:t.amt - ic.empTotal, labor:ic.labor, pension:ic.pension}; });
+    Object.keys(H.S).forEach(n => { const s = H.S[n]; heli.S[n] = {units:s.units, pay:s.pay, amt:s.amt}; });
+  }
+  const acct = {}; Object.keys(A.T).forEach(n => { const t = A.T[n]; acct[n] = {b:t.b, c:t.c, d:t.d, td:t.td, amt:t.amt + t.tamt}; });
+  const emp = H ? H.T.reduce((s,t) => s + insCalc(insOf(t.name), ym, t.amt).empTotal, 0) : 0;
+  const er = H ? H.T.reduce((s,t) => s + insCalc(insOf(t.name), ym, t.amt).erTotal, 0) : 0;
+  return { ym, at: new Date().toISOString(), rates: {RATE_SUB, RATE_COMB, RATE_TUTOR}, ins: Object.assign({}, INS), heli, acct,
+           totals: {selfTotal: H ? H.selfTotal : 0, subTotal: H ? H.subTotal : 0, acctSub: A.fee, tutor: A.tfee, er, emp, net: (H ? H.total : 0) + A.total - emp},
+           signin: Object.assign({}, signinOf(ym)) };
+}
+/* 比對：結帳時 vs 現在 */
+function closeDiff(old, cur){
+  const f = v => Number(v).toLocaleString("zh-TW"), d = [];
+  const T = Object.assign({}, old.heli.T, cur.heli.T);
+  Object.keys(T).forEach(n => { const a = old.heli.T[n], b = cur.heli.T[n];
+    if(!a) d.push(`${n} 本人鐘點費新增 ${f(b.amt)}`); else if(!b) d.push(`${n} 本人鐘點費 ${f(a.amt)} → 不見了`);
+    else { if(a.amt !== b.amt) d.push(`${n} 本人 ${f(a.amt)} → ${f(b.amt)}`); if(a.net !== b.net && a.amt === b.amt) d.push(`${n} 實領 ${f(a.net)} → ${f(b.net)}（保費變了）`); } });
+  const S = Object.assign({}, old.heli.S, cur.heli.S);
+  Object.keys(S).forEach(n => { const a = old.heli.S[n], b = cur.heli.S[n];
+    if(!a) d.push(`${n} 代課他人新增 ${f(b.amt)}`); else if(!b) d.push(`${n} 代課他人 ${f(a.amt)} → 不見了`); else if(a.amt !== b.amt) d.push(`${n} 代課他人 ${f(a.amt)} → ${f(b.amt)}`); });
+  const Ac = Object.assign({}, old.acct, cur.acct);
+  Object.keys(Ac).forEach(n => { const a = old.acct[n], b = cur.acct[n];
+    if(!a) d.push(`${n} 校內代課新增 ${f(b.amt)}`); else if(!b) d.push(`${n} 校內代課 ${f(a.amt)} → 不見了`); else if(a.amt !== b.amt) d.push(`${n} 校內代課 ${f(a.amt)} → ${f(b.amt)}`); });
+  ["RATE_SUB","RATE_COMB","RATE_TUTOR"].forEach(k => { if(old.rates && old.rates[k] !== cur.rates[k]) d.push(`費率 ${k} ${old.rates[k]} → ${cur.rates[k]}`); });
+  return d;
+}
+/* 報帳前檢查：回傳 [{lv:'err'|'warn'|'ok'|'info', k, text}] */
+function reportChecks(ym, evs){
+  evs = evs || state.events;
+  const C = [], add = (lv, k, text) => C.push({lv, k, text}), f = v => Number(v).toLocaleString("zh-TW");
+  const heli = state.heli || [], today = ymd(new Date()), H = state.meta ? heliOf(evs, ym) : null, A = acctOf(evs, ym);
+  if(ym > today.slice(0,7)) add("err", "future", "這是未來的月份，不能報帳");
+  else if(ym === today.slice(0,7) && today < lastDayOf(ym)) add("warn", "open", `本月還沒結束（今天 ${fmtMD(today)}），之後登記的代課、請假會改變金額；建議月底收齊簽到表後再結帳`);
+  if(!state.meta) add("err", "meta", "課表還沒讀到，合理員額無法計算（按「重新整理」）");
+  if(heli.length && H){
+    H.T.forEach(t => { if(!t.weekly) add("err", "slots", `${t.name} 在課表上找不到任何課（請確認「課表」分頁或合理員額名單）`); });
+    H.T.forEach(t => { if(t.none) add("err", "none", `${t.name} 有 ${t.none} 節請假還沒安排代課老師（本人已不計，代課老師也領不到）`); });
+    H.warn.filter(w => !/還沒安排代課/.test(w)).forEach(w => add("warn", "heli", w));
+  }
+  if(A.unassigned) add("err", "unassigned", `校內代課有 ${A.unassigned} 筆請假還沒安排代課老師`);
+  if(A.flagN) add("err", "flags", `有 ${A.flagN} 筆標「⚠」（衝堂、重複登錄等），請在網站上按「修改」處理或確認`);
+  // 投保
+  heli.forEach(name => { const p = insOf(name), t = H && H.T.find(x => x.name === name);
+    if(!p){ add("err", "ins", `${name} 沒有投保資料（系統設定 → 投保資料）`); return; }
+    if(!p.labor) add("err", "ins", `${name} 勞保投保薪資空白`);
+    if(!p.pension) add("warn", "ins", `${name} 勞退提繳工資空白（雇主提繳會算 0）`);
+    const d = insDays(p, ym);
+    if(d === 0) add("warn", "ins", `${name} 本月投保日數 0（加保／退保日期不在本月），保費會算 0`);
+    else if(d < 30) add("info", "ins", `${name} 本月投保 ${d} 天（${p.days ? "人事指定固定天數" : "依加保／退保日期"}）`);
+    if(t && !t.n1 && !t.n15 && d) add("warn", "ins", `${name} 本月課表上沒有上課卻有投保 ${d} 天，實領會是負數，請確認加保／退保日期`); });
+  // 假日
+  const hol = Object.keys(state.off || {}).filter(d => d.startsWith(ym)).sort();
+  if(hol.length) add("info", "off", `本月假日／停班停課 ${hol.length} 天：${hol.map(d => fmtMD(d) + " " + state.off[d].name + (state.off[d].scope !== "全天" ? "（" + state.off[d].scope + "）" : "")).join("、")}（合理員額照計照給，校內代課當天不計）`);
+  else add("warn", "off", "本月沒有登記任何假日；如果有國定假日或颱風假，請到「系統設定 → 假日」補上，否則合理員額假日照給會算不到");
+  // 三方核對
+  const okAll = A.total === A.byTeacher && A.total === A.recSum && A.total === A.byLeave;
+  if(Object.keys(A.T).length) add(okAll ? "ok" : "err", "acct3", okAll ? `校內代課三方核對一致（${f(A.total)} 元）` : `校內代課三方核對不一致：依老師 ${f(A.byTeacher)}／逐筆 ${f(A.recSum)}／依假別 ${f(A.byLeave)}`);
+  if(H && heli.length) add(H.total === H.lessonSum ? "ok" : "err", "heli2", H.total === H.lessonSum ? `合理員額依老師＝逐節重算（${f(H.total)} 元）` : `合理員額依老師 ${f(H.total)} ≠ 逐節重算 ${f(H.lessonSum)}`);
+  // 名單外的人
+  const known = state.teachers || [], outsiders = [].concat(Object.keys(A.T), H ? Object.keys(H.S) : []).filter(n => known.length && !known.includes(n));
+  if(outsiders.length) add("warn", "names", `這些領錢的人不在「密碼」分頁的老師名單：${[...new Set(outsiders)].join("、")}（清冊會列出，但請確認名字沒打錯）`);
+  // 簽到表核對
+  if(H && heli.length){ const si = signinOf(ym);
+    H.T.forEach(t => { const v = si[t.name];
+      if(v == null || v === "") add("warn", "signin", `${t.name} 還沒填簽到表合計節數（月底收到簽到表後填入比對）`);
+      else if(Math.abs(+v - t.units) > 1e-9) add("err", "signin", `${t.name} 簽到表 ${v} 節 ≠ 系統 ${unitsText(t.units)} 節（差 ${unitsText(Math.abs(+v - t.units))}）：請核對簽到表上有沒有別人簽名的節次還沒登記、假日有沒有照計、合班 1.5 有沒有標`);
+      else add("ok", "signin", `${t.name} 簽到表 ${unitsText(+v)} 節 ＝ 系統`); }); }
+  // 費率
+  if(RATE_SUB !== 405) add("warn", "rate", `每節代課費目前設定 ${RATE_SUB} 元（法定基準表為 405），請確認依據`);
+  if(RATE_COMB !== Math.ceil(RATE_SUB * 1.5 - 1e-9)) add("warn", "rate", `合班每節 ${RATE_COMB} 元不等於每節 ×1.5 進位（${Math.ceil(RATE_SUB * 1.5 - 1e-9)}）`);
+  // 月結比對
+  const c = state.closes && state.closes[ym];
+  if(c && c.data && !c.open){ const d = closeDiff(c.data, monthSnapshot(ym, evs));
+    if(d.length) add("err", "closed", `本月已於 ${c.at} 結帳（${c.by}），但現在的數字和結帳時不同：${d.join("；")}。如果是刻意更正，請按「重新結帳」並寫備註`);
+    else add("ok", "closed", `已於 ${c.at} 結帳（${c.by}${c.note ? "，備註：" + c.note : ""}），數字和現在一致`); }
+  const order = {err:0, warn:1, ok:2, info:3};
+  return C.sort((a,b) => order[a.lv] - order[b.lv]);
+}
+function renderChecks(ym){
+  const box = $("#checkBox"); if(!box) return;
+  if(state.role !== "admin" || !isAll()){ box.innerHTML = ""; return; }
+  const heli = state.heli || [], ready = !!state.closes || false, C = reportChecks(ym), f = v => Number(v).toLocaleString("zh-TW");
+  const errs = C.filter(x => x.lv === "err"), blocking = errs.filter(x => x.k !== "closed");
+  const c = state.closes && state.closes[ym], closed = !!(c && c.data && !c.open);
+  const si = signinOf(ym), H = state.meta ? heliOf(state.events, ym) : null;
+  const sign = H ? H.T.map(t => `<label class="si-f"><span>${esc(t.name)}</span><input inputmode="decimal" data-si="${esc(t.name)}" value="${esc(si[t.name] ?? "")}" placeholder="簽到表合計"><small>系統 ${unitsText(t.units)}</small></label>`).join("") : "";
+  box.innerHTML = `<div class="acct-head"><h4>報帳前檢查與月結</h4><span>${closed ? `已結帳 ${esc(c.at)}（${esc(c.by)}）` : "還沒結帳"}</span></div>
+    <div class="steps sop"><span><b>1</b>月初印簽到表</span><span><b>2</b>請假、代課隨時登記</span><span><b>3</b>月底收簽到表，填合計節數比對</span><span><b>4</b>檢查全綠</span><span><b>5</b>下載會計總帳、印清冊</span><span><b>6</b>送會計</span><span><b>7</b>本月結帳</span></div>
+    ${heli.length ? `<div class="si-row"><span class="si-t">簽到表核對（紙本合計節數）</span>${sign}</div>` : ""}
+    <ul class="chk-list">${C.map(x => `<li class="${x.lv}"><i>${CHECK_ICON[x.lv]}</i><span>${esc(x.text)}</span></li>`).join("")}</ul>
+    <div class="mrow set-act">
+      <button class="btn ghost small" type="button" id="chkRun">重新檢查</button>
+      ${closed ? `<button class="btn" type="button" id="chkClose" ${ready ? "" : "disabled"}>重新結帳</button><button class="btn dghost small" type="button" id="chkReopen" ${ready ? "" : "disabled"}>解除月結</button>`
+               : `<button class="btn" type="button" id="chkClose" ${ready && !blocking.length ? "" : "disabled"}>本月結帳</button>`}
+      <span class="set-msg" id="chkMsg">${!ready ? "（後端還沒更新到新版，月結先不能存）" : blocking.length ? `還有 ${blocking.length} 項要處理才能結帳` : closed ? "" : "檢查通過，送會計後按「本月結帳」鎖定本月數字"}</span></div>`;
+  box.querySelectorAll("[data-si]").forEach(inp => { inp.onchange = () => { const v = inp.value.replace(/,/g,"").trim(); if(v && !/^\d+(\.5)?$/.test(v)){ toast("簽到表節數請填整數或 .5"); inp.value = ""; } saveSignin(ym, inp.dataset.si, inp.value.trim()); renderChecks(ym); }; });
+  $("#chkRun").onclick = () => renderChecks(ym);
+  if($("#chkClose")) $("#chkClose").onclick = async () => {
+    const warns = C.filter(x => x.lv === "warn");
+    if(blocking.length && !closed) return toast("還有問題要先處理");
+    if(errs.length && !confirm(`還有 ${errs.length} 項紅字（含已結帳數字不同）。確定要用現在的數字重新結帳？`)) return;
+    if(warns.length && !confirm(`有 ${warns.length} 項提醒：\n${warns.map(w => "・" + w.text).join("\n")}\n\n確定要結帳？`)) return;
+    const note = prompt(closed ? "重新結帳的原因（會記在月結紀錄）：" : "備註（可空白）：", "") ; if(note === null) return;
+    const snap = monthSnapshot(ym);
+    $("#chkClose").disabled = true; $("#chkMsg").textContent = "結帳中…";
+    try{ const d = await apiPost({action:"close", name:state.cred.name, h:state.cred.h, ym, op:"close", data: JSON.stringify(snap), signin: JSON.stringify(snap.signin), note});
+      if(!d.ok) throw new Error(d.error || "結帳失敗"); state.closes = d.closes || state.closes; toast(`${+ym.slice(5)} 月已結帳`); renderChecks(ym); }
+    catch(e){ $("#chkMsg").textContent = "✘ " + e.message; $("#chkClose").disabled = false; toast("結帳失敗：" + e.message); }
+  };
+  if($("#chkReopen")) $("#chkReopen").onclick = async () => {
+    if(!confirm("解除月結後，這個月的數字不再鎖定（之前的結帳紀錄會留著）。確定？")) return;
+    const note = prompt("解除原因：", ""); if(note === null) return;
+    try{ const d = await apiPost({action:"close", name:state.cred.name, h:state.cred.h, ym, op:"reopen", note});
+      if(!d.ok) throw new Error(d.error || "失敗"); state.closes = d.closes || state.closes; toast("已解除月結"); renderChecks(ym); }
+    catch(e){ toast("解除失敗：" + e.message); }
+  };
+}
+/* Excel：報帳檢查工作表 */
+function buildCheckSheet(K, r, evs){
+  const {wb, HEAD, TOT, font, boxAll, page} = K, C = reportChecks(r, evs), si = signinOf(r), H = state.meta ? heliOf(evs || state.events, r) : null, c = state.closes && state.closes[r];
+  const ws = wb.addWorksheet("報帳檢查", {pageSetup: Object.assign({}, page, {orientation:"portrait"})});
+  ws.columns = [6,10,70].map(w => ({width:w}));
+  K.title(ws, 3, "報帳前檢查（產生這份 Excel 時的檢查結果）", periodOf(r).text);
+  K.head(ws, 4, ["序","結果","項目"]);
+  const LV = {err:"✗ 要處理", warn:"⚠ 提醒", ok:"✓ 通過", info:"ℹ 說明"};
+  C.forEach((x, i) => { const R = ws.getRow(5 + i); R.values = [i + 1, LV[x.lv], x.text];
+    R.eachCell({includeEmpty:true}, (cell, cc) => { if(cc <= 3){ cell.font = font({size:10, bold: cc === 2 && x.lv === "err", color: x.lv === "err" ? {argb:"FFB00020"} : x.lv === "warn" ? {argb:"FF9A6700"} : undefined}); cell.alignment = {vertical:"top", wrapText:true, horizontal: cc === 3 ? "left" : "center"}; } });
+    R.height = Math.max(18, 14 * Math.ceil(String(x.text).length / 44)); });
+  boxAll(ws, 4, 1, 4 + Math.max(1, C.length), 3);
+  let z = 6 + Math.max(1, C.length);
+  if(H){ ws.getCell(z, 1).value = "簽到表核對（紙本合計節數 vs 系統）"; ws.getCell(z, 1).font = font({bold:true, size:11}); z++;
+    K.head(ws, z, ["序","姓名","簽到表 / 系統（節）"]);
+    H.T.forEach((t, i) => { const v = si[t.name]; const R = ws.getRow(z + 1 + i); R.values = [i + 1, t.name, v == null || v === "" ? `（未填） / ${unitsText(t.units)}` : `${unitsText(+v)} / ${unitsText(t.units)}${Math.abs(+v - t.units) > 1e-9 ? "　✗ 不一致" : "　✓"}`];
+      R.eachCell({includeEmpty:true}, (cell, cc) => { if(cc <= 3){ cell.font = font({size:10}); cell.alignment = {vertical:"middle", horizontal: cc === 3 ? "left" : "center"}; } }); });
+    boxAll(ws, z, 1, z + Math.max(1, H.T.length), 3); z += H.T.length + 2; }
+  ws.mergeCells(z, 1, z, 3); ws.getCell(z, 1).value = c && c.data && !c.open ? `月結：已於 ${c.at} 結帳（${c.by}）${c.note ? "；備註：" + c.note : ""}。結帳後若資料有變動，網站「報帳前檢查」會列出差異。` : "月結：這個月還沒結帳。送會計後請在網站按「本月結帳」，把本月數字鎖定存檔。";
+  ws.getCell(z, 1).font = font({size:10}); ws.getCell(z, 1).alignment = {wrapText:true, vertical:"top"}; ws.getRow(z).height = 30;
+  ws.mergeCells(z + 1, 1, z + 1, 3); ws.getCell(z + 1, 1).value = `產生時間：${new Date().toLocaleString("zh-TW", {hour12:false})}；費率：每節 ${RATE_SUB}、合班 ${RATE_COMB}、代導師 ${RATE_TUTOR}；勞保 ${(INS.laborRate*100).toFixed(2)}%＋就保 ${(INS.eiRate*100).toFixed(2)}%、職災 ${INS.occDefault}%、勞退 ${(INS.pensionRate*100).toFixed(1)}%、健保 ${(INS.nhiRate*100).toFixed(2)}%、補充保費 ${(INS.suppRate*100).toFixed(2)}%、最低工資 ${INS.minWage.toLocaleString("zh-TW")}、起扣點 ${INS.taxFree.toLocaleString("zh-TW")}。`;
+  ws.getCell(z + 1, 1).font = font({size:9, color:{argb:"FF555555"}}); ws.getCell(z + 1, 1).alignment = {wrapText:true, vertical:"top"}; ws.getRow(z + 1).height = 40;
 }
 
 /* ---------- 文字說明：誰代誰、誰領多少錢 ---------- */
@@ -2631,10 +2807,11 @@ function renderMonthly(){
         <button class="btn" type="button" id="hPrint">合理員額印領清冊（列印／PDF）</button>
         <button class="btn ghost" type="button" id="hExcel">合理員額 Excel（可填扣款）</button>
         <button class="btn" type="button" id="hLedger">會計總帳 Excel（全部工作表）</button></div>
-      <div class="acct" id="heliBox" aria-live="polite"></div></div>` : ""}</div>`;
-  $("#mSel").onchange = () => { renderAcct($("#mSel").value); renderHeli($("#mSel").value); setRange($("#mSel").value, "mSel"); };
+      <div class="acct" id="heliBox" aria-live="polite"></div></div>` : ""}
+    <div class="acct" id="checkBox" aria-live="polite"></div></div>`;
+  $("#mSel").onchange = () => { renderAcct($("#mSel").value); renderHeli($("#mSel").value); renderChecks($("#mSel").value); setRange($("#mSel").value, "mSel"); };
   if(state.range && months.includes(state.range) && $("#mSel").value !== state.range) $("#mSel").value = state.range;
-  renderAcct($("#mSel").value); renderHeli($("#mSel").value);
+  renderAcct($("#mSel").value); renderHeli($("#mSel").value); renderChecks($("#mSel").value);
   if($("#hSignIn")){ $("#hSignIn").onclick = () => printHeliSign($("#mSel").value); $("#hPrint").onclick = () => printHeli($("#mSel").value); $("#hExcel").onclick = () => heliExcel($("#mSel").value); $("#hLedger").onclick = () => ledgerExcel($("#mSel").value); }
   $("#mSign").onclick = () => printSign($("#mSel").value);
   $("#mAcct").onclick = () => printAcct($("#mSel").value);
@@ -2810,7 +2987,7 @@ function renderHeli(r){
   if(!isAll()){ box.innerHTML = `<p class="hint" style="margin:0">合理員額總覽看的是全校：上方「查看哪位老師」切回「全校總覽」就會出現。</p>`; return; }
   if(!state.meta){
     box.innerHTML = `<p class="hint" style="margin:0">讀取課表中…</p>`;
-    ensureMeta().then(() => { if($("#mSel") && $("#mSel").value === r) renderHeli(r); })
+    ensureMeta().then(() => { if($("#mSel") && $("#mSel").value === r){ renderHeli(r); renderChecks(r); } })
       .catch(err => { box.innerHTML = `<p class="hint" style="margin:0">讀取課表失敗：${esc(err.message)}（按「重新整理」再試一次）</p>`; });
     return;
   }
@@ -3601,6 +3778,7 @@ async function ledgerExcel(r){
   try{
     await loadExcelJS(); const wb = new ExcelJS.Workbook(); wb.creator = "代課查詢系統"; wb.created = new Date(); const K = xlKit(wb), P = periodOf(r);
     const S = wb.addWorksheet("總表", {pageSetup: Object.assign({}, K.page, {orientation:"portrait"})});   // 先建，排第一張；內容最後填
+    buildCheckSheet(K, r, all);                                                                              // 第二張：報帳前檢查（和這本 Excel 用同一份資料）
     const X = buildAcctSheets(K, all, r, A);
     const HR = buildHeliSheets(K, H, r, true);
     const INSOUT = buildInsSheet(K, HR, H, r);
@@ -3626,7 +3804,7 @@ async function ledgerExcel(r){
     S.mergeCells(11, 1, 11, 8); S.getCell(11,1).value = `實領合計新臺幣（大寫）：${bigNum(X.subTotal+X.tTot+H.total-emp)}（實支現金給與 − 應扣）　　機關補助（雇主負擔勞保、職災、勞退、健保，不發給老師）合計 ${er.toLocaleString("zh-TW")} 元`; S.getCell(11,1).font = K.font({bold:true, size:12});
     S.mergeCells(12, 1, 12, 8); S.getCell(12,1).value = `1 和 2 為校內代課（公假等）經費；3 和 4 為合理員額經費，分開核銷。網站會計總覽：校內代課＋代導 ${A.total.toLocaleString("zh-TW")} 元、合理員額 ${H.total.toLocaleString("zh-TW")} 元。${H.warn.length ? "要確認：" + H.warn.join("；") : "無待確認事項。"} 產生時間：${new Date().toLocaleString("zh-TW",{hour12:false})}`;
     S.getCell(12,1).font = K.font({size:9, color:{argb:"FF555555"}}); S.getCell(12,1).alignment = {wrapText:true, vertical:"top"}; S.getRow(12).height = 44;
-    S.mergeCells(14, 1, 14, 8); S.getCell(14,1).value = "工作表：總表｜校內代課鐘點費｜校內代課明細｜代理導師費｜合理員額教師鐘點費｜代合理員額教師課｜合理員額明細｜保險計算｜會計印領清冊（會計室格式：所有領合理員額經費的人同一張）｜計算過程｜合理員額核對｜級距表｜法規依據。淡黃格可改，改了全部跟著重算。"; S.getCell(14,1).font = K.font({size:9});
+    S.mergeCells(14, 1, 14, 8); S.getCell(14,1).value = "工作表：總表｜報帳檢查｜校內代課鐘點費｜校內代課明細｜代理導師費｜合理員額教師鐘點費｜代合理員額教師課｜合理員額明細｜保險計算｜會計印領清冊（會計室格式：所有領合理員額經費的人同一張）｜計算過程｜合理員額核對｜級距表｜法規依據。淡黃格可改，改了全部跟著重算。"; S.getCell(14,1).font = K.font({size:9});
     await K.download(`土城國小_${P.rocY}年${P.mon}月_代課鐘點費會計總帳.xlsx`);
     toast("已下載會計總帳 Excel");
   }catch(err){ toast("產生失敗：" + err.message); }
