@@ -292,6 +292,59 @@ details.settings>summary span{font-size:13px;color:var(--ink-3)}
 .acct-kpi .kk{display:block;font-size:12px;color:#C9DAE8;margin-top:2px}
 .live-box{margin-top:18px;border-top:2px solid var(--line);padding-top:14px}
 .live-box h3{margin:0 0 4px;font-size:15px}.live-box p{margin:4px 0 8px;font-size:13px;color:var(--ink-2)}.live-box .mrow{gap:8px}.live-box a.btn{text-decoration:none;display:inline-flex;align-items:center}
+/* 教務組工作台（管理者第一個畫面） */
+.wb{margin-bottom:18px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(160deg,rgba(23,44,71,.92),rgba(14,29,49,.96));padding:18px 20px 16px;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.wb-top{display:flex;gap:16px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;margin-bottom:14px}
+.wb-greet h2{margin:0;font-size:22px;letter-spacing:.5px}
+.wb-greet p{margin:4px 0 0;color:var(--ink-2);font-size:13px}
+.wb-find{display:flex;gap:8px;flex:1 1 320px;max-width:520px}
+.wb-find input{padding:10px 12px}
+.wb-find .btn{padding:10px 14px;white-space:nowrap}
+.wb-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:12px}
+.wb-card{background:rgba(11,22,38,.55);border:1px solid var(--line-2);border-radius:14px;padding:14px 14px 12px;min-width:0}
+.wb-card h3{margin:0 0 10px;font-size:15px;display:flex;justify-content:space-between;align-items:baseline}
+.wb-card h3 small{font-size:12px;color:var(--ink-3);font-weight:600}
+.wb-track{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(7,1fr);gap:4px;position:relative}
+.wb-track::before{content:"";position:absolute;left:7%;right:7%;top:16px;height:2px;background:var(--line)}
+.wb-track li{position:relative}
+.wb-track button{width:100%;background:none;border:0;color:var(--ink-2);padding:0;text-align:center;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px}
+.wb-track i{display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--surface-2);border:2px solid var(--line);font-style:normal;font-weight:800;font-family:var(--digits);font-size:15px;color:var(--ink-2);position:relative;z-index:1}
+.wb-track b{font-size:12px;color:var(--ink);line-height:1.2}
+.wb-track small{font-size:11px;color:var(--ink-3);line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.wb-track li.done i{background:var(--sage);border-color:var(--sage);color:#07131F}
+.wb-track li.cur i{background:var(--amber);border-color:var(--amber);color:#07131F;animation:wbpulse 1.8s ease-in-out infinite}
+.wb-track li.cur b{color:var(--amber)}
+.wb-track li.skip i{border-style:dashed;color:var(--ink-3)}.wb-track li.skip b{color:var(--ink-3)}
+@keyframes wbpulse{0%,100%{box-shadow:0 0 0 4px var(--amber-soft)}50%{box-shadow:0 0 0 10px rgba(242,184,75,.04)}}
+@media (prefers-reduced-motion:reduce){.wb-track li.cur i{animation:none;box-shadow:0 0 0 4px var(--amber-soft)}}
+.wb-next{margin-top:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 12px;border-radius:10px;background:var(--amber-soft);border:1px solid rgba(242,184,75,.35)}
+.wb-next span{font-size:12px;color:var(--amber);font-weight:700}
+.wb-next b{font-size:16px}
+.wb-next em{font-style:normal;color:var(--ink-2);font-size:13px;flex:1;min-width:120px}
+.wb-next .btn{padding:8px 14px}
+.wb-next.ok{background:var(--sage-soft);border-color:rgba(94,214,168,.35)} .wb-next.ok span{color:var(--sage)}
+.wb-todo{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;max-height:280px;overflow:auto}
+.wb-todo li{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;background:rgba(17,34,58,.7);border-left:3px solid var(--ink-3);font-size:13px}
+.wb-todo li span{flex:1}
+.wb-todo li.err{border-left-color:var(--rose)} .wb-todo li.warn{border-left-color:var(--amber)} .wb-todo li.info{border-left-color:var(--sky)}
+.wb-todo .btn.small{padding:6px 10px;white-space:nowrap}
+.wb-clear{margin:0;color:var(--sage);font-weight:700}
+.wb-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.wb-btns .btn{padding:9px 10px;font-size:13px}
+.wb-quick .hint{margin:10px 0 0;font-size:11px;color:var(--ink-3)}
+.wb-hl{outline:2px solid var(--amber);outline-offset:4px;border-radius:8px}
+.has-wb #greet{display:none}
+.wb-nav{display:none}
+@media (max-width:760px){
+  .wb{padding:14px 14px 12px}.wb-grid{grid-template-columns:1fr}
+  .wb-track b{font-size:11px}.wb-track small{display:none}.wb-track i{width:28px;height:28px;font-size:13px}.wb-track::before{top:14px}
+  .wb-nav{position:fixed;left:0;right:0;bottom:0;z-index:40;display:grid;grid-template-columns:repeat(4,1fr);background:rgba(11,22,38,.96);border-top:1px solid var(--line);backdrop-filter:blur(8px);padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
+  .wb-nav[hidden]{display:none}
+  .wb-nav button{background:none;border:0;color:var(--ink-2);font-size:12px;font-weight:700;padding:7px 2px;border-radius:8px}
+  .wb-nav button.on{color:var(--sky);background:var(--sky-soft)}
+  body.has-wb{padding-bottom:64px}
+}
+@media print{.wb,.wb-nav{display:none!important}}
 .heli-panel{margin-top:18px;border-top:2px solid var(--line);padding-top:14px}
 .heli-panel h3 span{font-size:13px;font-weight:600;color:var(--ink-3)}
 .heli-warn{margin:8px 0 0;padding-left:18px;font-size:13px;color:var(--amber)}
@@ -707,6 +760,7 @@ main{container-type:inline-size}
 
   <div class="wrap">
     <main>
+      <div id="workbench"></div>
       <section class="board" id="board" aria-label="課務看板">
         <div class="board-head">
           <div><p class="greet" id="greet"></p><p class="today-line" id="todayLine"></p></div>
@@ -750,6 +804,7 @@ main{container-type:inline-size}
       </div>
     </aside>
   </div>
+  <nav class="wb-nav" id="wbNav" hidden aria-label="管理者導覽"><button type="button" class="on" data-nav="#workbench">工作台</button><button type="button" data-nav="#year">年曆</button><button type="button" data-nav="#monthly">報表</button><button type="button" data-nav="set">設定</button></nav>
   <div id="printArea"></div>
 </section>
 
@@ -1607,7 +1662,7 @@ function applyData(d){
   if(d.hrIns){ state.hrInsSaved = d.hrIns; state.hrIns = null; }                      // 已存的人事保費核對（以資料表為準，重讀時蓋掉暫存）
   state.fixes = d.fixes || []; state.leaveTypes = d.leaveTypes || null;
   renderReports();
-  renderAdmin(); renderRange(); renderBoard(); renderAlerts(); renderMonthly(); renderHeliMine(); renderSettings(); renderYear(); renderList(); renderPanel(null);
+  renderAdmin(); renderRange(); renderBoard(); renderAlerts(); renderMonthly(); renderHeliMine(); renderSettings(); renderYear(); renderList(); renderPanel(null); renderWorkbench();
   if (state.role==="admin" || state.role==="acct") setTimeout(prefetchMeta, 300);   // 先把課表讀好（排課、合理員額清冊都要）
   state.shown = true;                       // 一進來先看看板；要看這個月按「回到今天」
 }
@@ -2093,14 +2148,14 @@ function renderChecks(ym){
       const d = await apiPost({action:"close", name:state.cred.name, h:state.cred.h, ym, op:"close", data: JSON.stringify(snap), signin: JSON.stringify(snap.signin), note, xlsx, xlsxName});
       if(!d.ok) throw new Error(d.error || "結帳失敗"); state.closes = d.closes || state.closes;
       toast(`${+ym.slice(5)} 月已結帳${d.file ? "，Excel 已存到雲端硬碟「會計報表」" : ""}`); if(d.warn) setTimeout(() => toast("提醒：" + d.warn), 2800);
-      renderChecks(ym); }
+      renderChecks(ym); renderWorkbench(); }
     catch(e){ $("#chkMsg").textContent = "✘ " + e.message; $("#chkClose").disabled = false; toast("結帳失敗：" + e.message); }
   };
   if($("#chkReopen")) $("#chkReopen").onclick = async () => {
     if(!confirm("解除月結後，這個月的數字不再鎖定（之前的結帳紀錄會留著）。確定？")) return;
     const note = prompt("解除原因：", ""); if(note === null) return;
     try{ const d = await apiPost({action:"close", name:state.cred.name, h:state.cred.h, ym, op:"reopen", note});
-      if(!d.ok) throw new Error(d.error || "失敗"); state.closes = d.closes || state.closes; toast("已解除月結"); renderChecks(ym); }
+      if(!d.ok) throw new Error(d.error || "失敗"); state.closes = d.closes || state.closes; toast("已解除月結"); renderChecks(ym); renderWorkbench(); }
     catch(e){ toast("解除失敗：" + e.message); }
   };
 }
@@ -3013,6 +3068,140 @@ function renderSummary(){
   document.querySelectorAll("#summary b[data-n]").forEach(b => countUp(b, +b.dataset.n, v => `${Number(v).toLocaleString("zh-TW")}<small>${b.dataset.u}</small>`));
 }
 
+/* ---------- 教務組工作台（管理者專用的第一個畫面）：三個問題一次回答 ----------
+ * 1. 本月報帳到哪一步？  七步驟進度（能自動判斷的自動判斷；印過、送過的在這台裝置記下來）＋「下一步」一鍵去做
+ * 2. 現在該處理什麼？    從現有資料整理出待辦（未安排代課、檢查紅字、老師回報、修正要留意、明天的課務…），每一項都有按鈕直接跳過去
+ * 3. 要找什麼？          一個輸入框：老師名字 → 切到那位老師；日期 → 打開那一天；功能名稱 → 跳到那個區塊 */
+const WB_FUNCS = [
+  ["排調代課", () => openPlan()], ["登記", () => openPlan()],
+  ["簽到表", () => wbGo("#checkBox")], ["報帳前檢查", () => wbGo("#checkBox")], ["檢查", () => wbGo("#checkBox")], ["月結", () => wbGo("#chkClose", "#checkBox")], ["結帳", () => wbGo("#chkClose", "#checkBox")],
+  ["會計總覽", () => wbGo("#acctBox")], ["合理員額", () => wbGo("#heliBox")], ["每月報表", () => wbGo("#monthly")], ["會計總帳", () => wbGo("#hLedger", "#monthly")], ["Excel", () => wbGo("#hLedger", "#monthly")],
+  ["會計報表（即時）", () => wbGo(".live-box")], ["即時報表", () => wbGo(".live-box")], ["試算表", () => wbGo(".live-box")],
+  ["系統設定", () => wbOpenSettings()], ["設定", () => wbOpenSettings()], ["費率", () => wbOpenSettings()], ["保險設定", () => wbOpenSettings("#insTbl")], ["投保", () => wbOpenSettings("#insTbl")], ["假日", () => wbOpenSettings("#offTbl")], ["颱風假", () => wbOpenSettings("#offTbl")], ["扣款", () => wbOpenSettings("#dedTbl")],
+  ["資料檢查", () => wbGo("#alerts")], ["衝堂", () => wbGo("#alerts")], ["修正", () => wbGo("#alerts")],
+  ["老師回報", () => wbGo("#myReports")], ["回報", () => wbGo("#myReports")],
+  ["老師密碼", () => { const d = document.querySelector("#adminBox .pw-list") || document.querySelector("#adminMobile .pw-list"); if(d) d.open = true; wbGo(d && d.offsetParent ? d : "#adminMobile"); }], ["密碼", () => $("#openPw").click()],
+  ["LINE", () => { if(!$("#openLine").hidden) $("#openLine").click(); else toast("LINE 通知還沒設定（資料表選單「設定 LINE」）"); }], ["年曆", () => wbGo("#year")], ["清單", () => { document.querySelector('.tab[data-view="list"]').click(); wbGo("#list"); }],
+  ["整學期", () => { setRange(""); wbGo("#year"); }]
+];
+function wbGo(sel, fallback){
+  const el = typeof sel === "string" ? document.querySelector(sel) : sel;
+  const t = el && (el.offsetParent || el === document.body) ? el : (fallback ? document.querySelector(fallback) : null);
+  if(!t){ toast("這個區塊目前沒有顯示（可能要先切回全校總覽）"); return; }
+  const det = t.closest("details"); if(det) det.open = true;
+  t.scrollIntoView({behavior:"smooth", block:"start"});
+  t.classList.remove("wb-hl"); void t.offsetWidth; t.classList.add("wb-hl"); setTimeout(() => t.classList.remove("wb-hl"), 2200);
+  if(/^(INPUT|SELECT|BUTTON|TEXTAREA)$/.test(t.tagName)) setTimeout(() => { try{ t.focus({preventScroll:true}); }catch(e){} }, 500);
+}
+function wbOpenSettings(inner){ const d = $("#setDet"); if(!d){ toast("系統設定只有管理者看得到"); return; } d.open = true; store.set("setOpen", "1"); wbGo(inner && document.querySelector(inner) ? inner : "#setDet"); }
+const wbFlags = ym => { try { return JSON.parse(store.get("wbFlags:" + ym, localStorage) || "{}"); } catch(e){ return {}; } };
+function wbFlag(ym, k, on = true){ const f = wbFlags(ym); if(on) f[k] = new Date().toLocaleString("zh-TW", {month:"numeric", day:"numeric", hour:"2-digit", minute:"2-digit", hour12:false}); else delete f[k]; store.set("wbFlags:" + ym, JSON.stringify(f), localStorage); }
+const wbYm = () => ($("#mSel") && $("#mSel").value) || state.range || ymd(new Date()).slice(0,7);
+/* 本月報帳進度：七步驟，每一步 {t 名稱, done, cur, sub 說明, act 去做} */
+function monthProgress(ym){
+  const thisYm = ymd(new Date()).slice(0,7), past = ym < thisYm, future = ym > thisYm;
+  const C = reportChecks(ym), err = C.filter(x => x.lv === "err" && x.k !== "closed" && x.k !== "future"), warn = C.filter(x => x.lv === "warn");
+  const heli = state.heli || [], si = signinOf(ym), signed = heli.filter(n => si[n] !== "" && si[n] != null).length;
+  const c = state.closes && state.closes[ym], closed = !!(c && c.data && !c.open), fl = wbFlags(ym);
+  const t = tally(state.events.filter(e => inRange(e, ym))), un = t.unN;
+  const steps = [
+    {k:"sign", t:"印簽到表", done: !!fl.sign || closed, sub: fl.sign ? `已印（${fl.sign}）` : "月初印給合理員額老師", act: () => printHeliSign(ym), verb:"列印簽到表"},
+    {k:"reg", t:"登記請假代課", done: closed || (past && !un), sub: un ? `${un} 筆請假還沒安排代課` : (future ? "還沒到" : past ? "沒有未安排的" : "隨時登記；請假要填代課老師"), act: () => un ? wbUnassigned(ym) : openPlan(), verb: un ? "看哪幾筆" : "登記一筆"},
+    {k:"signin", t:"填簽到表節數", done: closed || (heli.length > 0 && signed === heli.length), sub: heli.length ? `${signed}／${heli.length} 位已填` : "沒有合理員額老師", act: () => wbGo('[data-si]', "#checkBox"), verb:"去填節數"},
+    {k:"check", t:"檢查全綠", done: closed || (!future && !err.length), sub: err.length ? `${err.length} 個紅字要處理` : warn.length ? `${warn.length} 個提醒（可結帳）` : "全綠", act: () => wbGo("#checkBox"), verb:"看檢查"},
+    {k:"ledger", t:"下載會計總帳", done: !!fl.ledger || closed, sub: fl.ledger ? `已下載（${fl.ledger}）` : "一本 Excel 全部工作表", act: () => ledgerExcel(ym), verb:"下載 Excel"},
+    {k:"sent", t:"送會計", done: !!fl.sent || closed, sub: fl.sent ? `已送（${fl.sent}）` : "送出後按一下記錄", act: () => { wbFlag(ym, "sent", !wbFlags(ym).sent); renderWorkbench(); }, verb:"記錄已送"},
+    {k:"close", t:"本月結帳", done: closed, sub: closed ? `已結帳 ${c.at}` : (c && c.open ? "已解除，待重新結帳" : "會計收了再結"), act: () => wbGo("#chkClose", "#checkBox"), verb:"去結帳"}
+  ];
+  // 已過的月份：「印簽到表」「下載會計總帳」「送會計」沒有記錄就無法判斷（可能在別台裝置做的）→ 標「未記錄」，不當成下一步
+  if(past) steps.forEach(s => { if(["sign","ledger","sent"].includes(s.k) && !s.done){ s.skip = true; s.sub = "已過月，這台裝置沒有記錄"; } });
+  const cur = steps.find(s => !s.done && !s.skip) || null;
+  if(cur) cur.cur = true;
+  return {ym, steps, cur, err, warn, closed, un, past, future, doneN: steps.filter(s => s.done).length};
+}
+function wbUnassigned(ym){ setRange(ym); document.querySelector('.tab[data-view="list"]').click(); wbGo("#list"); }
+/* 現在該處理：[{text, verb, act, lv}] */
+function wbTodos(ym, P){
+  const L = [], today = ymd(new Date()), f = v => Number(v).toLocaleString("zh-TW");
+  if(!(state.settings && state.settings.labels)) L.push({lv:"err", text:"後端程式（Apps Script）還是舊版：系統設定、月結、會計報表（即時）都還不能用", verb:"", act:null});
+  if(P.un) L.push({lv:"err", text:`${+ym.slice(5)} 月有 ${P.un} 筆請假還沒安排代課老師`, verb:"看哪幾筆", act: () => wbUnassigned(ym)});
+  const a = state.audit || []; if(a.length) L.push({lv:"warn", text:`資料檢查有 ${a.length} 個問題（衝堂、重複登錄…）`, verb:"去看", act: () => wbGo("#alerts")});
+  const todo = (state.reports || []).filter(r => r.status === "待處理"); if(todo.length) L.push({lv:"warn", text:`${todo.length} 件老師回報還沒回覆（${[...new Set(todo.map(r => r.teacher))].slice(0,3).join("、")}）`, verb:"去回覆", act: () => wbGo("#myReports")});
+  const fx = (state.fixes || []).filter(x => x.warn); if(fx.length) L.push({lv:"warn", text:`${fx.length} 筆修正要留意（原始資料又變了或找不到）`, verb:"去看", act: () => wbGo("#alerts")});
+  P.err.slice(0, 4).forEach(x => L.push({lv:"err", text: x.text, verb:"去處理", act: () => wbGo("#checkBox")}));
+  if(P.err.length > 4) L.push({lv:"err", text:`還有 ${P.err.length - 4} 個檢查紅字`, verb:"看檢查", act: () => wbGo("#checkBox")});
+  if(state.line && state.line.on && !state.line.bound) L.push({lv:"info", text:"您還沒綁定 LINE：綁了每天 7:30 收到全校課務、老師回報也會傳到 LINE", verb:"現在綁定", act: () => $("#openLine").click()});
+  // 明天（下一個有紀錄的日子）的課務
+  const nxt = state.events.filter(e => e.date > today && describe(e)).sort((a,b) => a.date.localeCompare(b.date));
+  if(nxt.length){ const d = nxt[0].date, n = nxt.filter(e => e.date === d), fl = n.filter(e => (e.flags||[]).length).length;
+    L.push({lv:"info", text:`${md(d)} 有 ${n.length} 筆課務${fl ? `，${fl} 筆標 ⚠` : ""}`, verb:"看明細", act: () => wbOpenDay(d)}); }
+  return L;
+}
+function wbOpenDay(d){ if(!d.startsWith(state.range || d)) setRange(d.slice(0,7)); state.selected = d; renderYear(); renderPanel(d); const ag = document.getElementById("ag-" + d); if(ag && ag.offsetParent) wbGo(ag); else wbGo("#side"); }
+function renderWorkbench(){
+  const box = $("#workbench"); if(!box) return;
+  const nav = $("#wbNav");
+  if(state.role !== "admin" || !isAll()){ box.innerHTML = ""; if(nav) nav.hidden = true; document.body.classList.remove("has-wb"); return; }
+  document.body.classList.add("has-wb"); if(nav) nav.hidden = false;
+  const ym = wbYm(), now = new Date(), h = now.getHours(), hi = h < 11 ? "早安" : h < 18 ? "午安" : "晚安", today = ymd(now), off = (state.off||{})[today];
+  const roc = `${+ym.slice(0,4)-1911} 年 ${+ym.slice(5)} 月`;
+  let P; try { P = monthProgress(ym); } catch(e){ P = null; }
+  const esc2 = esc;
+  const steps = P ? `<ol class="wb-track">${P.steps.map((s, i) => `<li class="${s.done ? "done" : s.cur ? "cur" : s.skip ? "skip" : ""}"><button type="button" data-step="${i}" title="${esc2(s.sub)}"><i>${s.done ? "✓" : s.skip ? "–" : i + 1}</i><b>${esc2(s.t)}</b><small>${esc2(s.sub)}</small></button></li>`).join("")}</ol>` : `<p class="hint">課表還在讀取，稍後再看</p>`;
+  const next = P ? (P.cur ? `<div class="wb-next"><span>下一步</span><b>${esc2(P.cur.t)}</b><em>${esc2(P.cur.sub)}</em><button class="btn" type="button" id="wbNext">${esc2(P.cur.verb)}</button></div>`
+                          : `<div class="wb-next ok"><span>${roc}</span><b>${P.closed ? "已結帳 ✓" : "能判斷的步驟都完成了"}</b></div>`) : "";
+  const todos = P ? wbTodos(ym, P) : [];
+  const list = todos.length ? `<ul class="wb-todo">${todos.map((x, i) => `<li class="${x.lv}"><span>${esc2(x.text)}</span>${x.act ? `<button type="button" class="btn ghost small" data-todo="${i}">${esc2(x.verb)}</button>` : ""}</li>`).join("")}</ul>`
+                            : `<p class="wb-clear">目前沒有要處理的事 ✓</p>`;
+  const teachers = state.teachers || [], months = termMonths().map(([y,m]) => `${y-1911} 年 ${m+1} 月`);
+  box.innerHTML = `<section class="wb" aria-label="教務組工作台">
+    <div class="wb-top">
+      <div class="wb-greet"><h2>${hi}，${esc2(state.user)}</h2><p>今天 ${esc2(md(today))}${off ? `・${esc2(off.name)}` : ""}・看的是 <b>${roc}</b>（月份選單可換）</p></div>
+      <form class="wb-find" id="wbFind" autocomplete="off"><input id="wbQ" list="wbList" placeholder="找老師、日期（10/27）或功能（設定、結帳、簽到表…）" aria-label="找老師、日期或功能"><datalist id="wbList">${teachers.map(t => `<option value="${esc2(t)}">`).join("")}${months.map(m => `<option value="${m}">`).join("")}${WB_FUNCS.map(x => `<option value="${esc2(x[0])}">`).join("")}</datalist><button class="btn small" type="submit">前往</button></form>
+    </div>
+    <div class="wb-grid">
+      <div class="wb-card wb-prog"><h3>${roc} 報帳進度 <small>${P ? `${P.doneN}／7` : ""}</small></h3>${steps}${next}</div>
+      <div class="wb-card"><h3>現在該處理 <small>${todos.length ? `${todos.length} 項` : ""}</small></h3>${list}</div>
+      <div class="wb-card wb-quick"><h3>常用</h3><div class="wb-btns">
+        <button type="button" class="btn" data-q="plan">＋ 排調代課</button>
+        <button type="button" class="btn ghost" data-q="sign">合理員額簽到表</button>
+        <button type="button" class="btn ghost" data-q="check">報帳前檢查</button>
+        <button type="button" class="btn ghost" data-q="ledger">會計總帳 Excel</button>
+        <button type="button" class="btn ghost" data-q="live">會計報表（即時）</button>
+        <button type="button" class="btn ghost" data-q="set">系統設定</button>
+        <button type="button" class="btn ghost" data-q="pw">老師密碼</button>
+        <button type="button" class="btn ghost" data-q="reload">重新整理</button></div>
+        <p class="hint">「印簽到表」「下載會計總帳」「送會計」是在這台裝置記錄的，換裝置看不到；其餘步驟依資料自動判斷。</p></div>
+    </div></section>`;
+  if(P){ box.querySelectorAll("[data-step]").forEach(b => b.onclick = () => { const s = P.steps[+b.dataset.step]; if(s.k === "sent" && s.done && !P.closed){ if(confirm("取消「已送會計」的記錄？")) { wbFlag(ym, "sent", false); renderWorkbench(); } return; } s.act(); });
+    if($("#wbNext")) $("#wbNext").onclick = () => P.cur.act(); }
+  box.querySelectorAll("[data-todo]").forEach(b => b.onclick = () => todos[+b.dataset.todo].act());
+  const Q = {plan: () => openPlan(), sign: () => printHeliSign(ym), check: () => wbGo("#checkBox"), ledger: () => ledgerExcel(ym), live: () => state.liveUrl ? window.open(state.liveUrl, "_blank", "noopener") : wbGo(".live-box"), set: () => wbOpenSettings(), pw: () => WB_FUNCS.find(x => x[0] === "老師密碼")[1](), reload: () => reload()};
+  box.querySelectorAll("[data-q]").forEach(b => b.onclick = () => Q[b.dataset.q]());
+  $("#wbFind").onsubmit = e => { e.preventDefault(); wbFind($("#wbQ").value); };
+  $("#wbQ").onchange = () => { const v = $("#wbQ").value.trim(); if(v && (teachers.includes(v) || months.includes(v) || WB_FUNCS.some(x => x[0] === v))) wbFind(v); };
+  if(nav){ nav.querySelectorAll("button").forEach(b => b.onclick = () => { const t = b.dataset.nav; if(t === "set") wbOpenSettings(); else wbGo(t); nav.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); }); }
+}
+/* 找：老師 → 切到那位老師；日期 → 打開那天；月份 → 切月份；功能 → 跳過去 */
+function wbFind(q){
+  q = String(q || "").trim(); if(!q) return;
+  const teachers = state.teachers || [];
+  const t = teachers.find(n => n === q) || teachers.find(n => n.includes(q) || q.includes(n));
+  if(t){ const sel = document.querySelector(".viewAs"); if(sel){ sel.value = t; sel.dispatchEvent(new Event("change")); toast(`切換到 ${t} 老師`); } return; }
+  let m = q.match(/^(?:(\d{2,4})\s*[\/\-.年]\s*)?(\d{1,2})\s*[\/\-.月]\s*(\d{1,2})\s*日?$/);
+  if(m){ let y = m[1] ? +m[1] : null; if(y && y < 1911) y += 1911; const mo = +m[2], d = +m[3];
+    if(!y){ const ys = [...new Set(termMonths().map(([yy, mm]) => mm + 1 === mo ? yy : null).filter(Boolean))]; y = ys[0] || new Date().getFullYear(); }
+    const key = `${y}-${String(mo).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    if(!inTerm(key)){ toast(`${mo}/${d} 不在本學期（${termText()}）`); return; }
+    wbOpenDay(key); return; }
+  m = q.match(/^(?:(\d{2,4})\s*年\s*)?(\d{1,2})\s*月$/);
+  if(m){ const mo = +m[2], hit = termMonths().find(([yy, mm]) => mm + 1 === mo && (!m[1] || yy === (+m[1] < 1911 ? +m[1] + 1911 : +m[1])));
+    if(!hit){ toast(`${mo} 月不在本學期`); return; } const r = `${hit[0]}-${String(hit[1]+1).padStart(2,"0")}`; setRange(r); if($("#mSel")){ $("#mSel").value = r; $("#mSel").dispatchEvent(new Event("change")); } renderWorkbench(); wbGo("#monthly"); return; }
+  const fn = WB_FUNCS.find(x => x[0] === q) || WB_FUNCS.find(x => q.includes(x[0]) || x[0].includes(q));
+  if(fn){ fn[1](); return; }
+  toast(`找不到「${q}」：可以輸入老師名字、日期（10/27）、月份（10 月）或功能名稱`);
+}
+
 /* ---------- 管理者：資料檢查、颱風假狀態 ---------- */
 function renderAlerts(){
   const box = $("#alerts");
@@ -3246,7 +3435,7 @@ function renderMonthly(){
       if(d.url && !$(".live-box a")){ renderMonthly(); toast("會計報表（即時）已建立"); }
     }catch(err){ m.textContent = "更新失敗：" + err.message; }
     finally{ b.disabled = false; } };
-  $("#mSel").onchange = () => { renderAcct($("#mSel").value); renderHeli($("#mSel").value); renderChecks($("#mSel").value); setRange($("#mSel").value, "mSel"); };
+  $("#mSel").onchange = () => { renderAcct($("#mSel").value); renderHeli($("#mSel").value); renderChecks($("#mSel").value); setRange($("#mSel").value, "mSel"); renderWorkbench(); };
   if(state.range && months.includes(state.range) && $("#mSel").value !== state.range) $("#mSel").value = state.range;
   renderAcct($("#mSel").value); renderHeli($("#mSel").value); renderChecks($("#mSel").value);
   if($("#hSignIn")){ $("#hSignIn").onclick = () => printHeliSign($("#mSel").value); $("#hPrint").onclick = () => printHeli($("#mSel").value); $("#hExcel").onclick = () => heliExcel($("#mSel").value); $("#hLedger").onclick = () => ledgerExcel($("#mSel").value); }
@@ -3565,6 +3754,7 @@ async function printHeliSign(r, only){
   }).join("");
   printSheets(html);
   toast("每位老師一頁；列印視窗選「另存為 PDF」就能存成 PDF");
+  if(!only){ wbFlag(r, "sign"); renderWorkbench(); }                     // 工作台：步驟 1 記錄已印（這台裝置）
 }
 /* ================================================================
  * Excel 共用工具（ExcelJS）：字型、框線、標題列、欄字母
@@ -4094,7 +4284,7 @@ function buildHeliCheck(K, H, HR, r){
 async function ledgerExcel(r){
   const w = await ledgerWorkbook(r); if(!w) return;
   busy(true);
-  try{ await w.K.download(w.name); toast("已下載會計總帳 Excel"); }
+  try{ await w.K.download(w.name); toast("已下載會計總帳 Excel"); wbFlag(r, "ledger"); renderWorkbench(); }   // 工作台：步驟 5 記錄已下載（這台裝置）
   catch(err){ toast("產生失敗：" + err.message); }
   finally{ busy(false); }
 }
