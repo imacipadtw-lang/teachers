@@ -558,6 +558,12 @@ main{container-type:inline-size}
 .chk.stop b{display:block;margin-bottom:2px}
 .toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);opacity:0;background:#E7EEF6;color:#0B1626;padding:11px 20px;border-radius:999px;font-weight:600;z-index:70;transition:opacity .2s,transform .25s cubic-bezier(.2,.9,.3,1.2);pointer-events:none;max-width:calc(100% - 32px);box-shadow:0 10px 30px rgba(29,43,56,.3)}
 .toast.on{opacity:1;transform:translate(-50%,0)}
+.undo-bar{position:fixed;left:50%;bottom:76px;transform:translateX(-50%);z-index:71;display:flex;align-items:center;gap:10px;background:#11223A;border:1.5px solid var(--amber);color:var(--ink);padding:8px 8px 8px 16px;border-radius:999px;box-shadow:0 10px 30px rgba(0,0,0,.4);max-width:calc(100% - 32px);font-size:14px}
+.undo-bar[hidden]{display:none}.undo-bar span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.undo-bar .btn{padding:6px 14px;background:var(--amber);border-color:var(--amber)}.undo-x{background:none;border:0;color:var(--ink-2);font-size:18px;padding:0 6px}
+.undo-tbl{width:100%;border-collapse:collapse;font-size:13px}.undo-tbl th,.undo-tbl td{padding:6px 8px;border-bottom:1px solid var(--line-2);text-align:left;vertical-align:top}
+.undo-tbl td.st{white-space:nowrap;color:var(--ink-2)}.undo-tbl tr.done td{color:var(--ink-3)}.undo-tbl .btn{padding:5px 10px;white-space:nowrap}
+.rp .rdel{margin-left:auto}
 .loading{position:fixed;inset:0;background:rgba(3,9,18,.45);display:none;place-items:center;z-index:50}
 .loading.on{display:grid}
 .loading > div{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 22px;font-weight:700;box-shadow:0 12px 30px rgba(29,43,56,.15);display:flex;align-items:center;gap:12px}
@@ -891,6 +897,7 @@ main{container-type:inline-size}
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="undo-bar" id="undoBar" role="status" aria-live="polite" hidden><span id="undoMsg"></span><button type="button" class="btn small" id="undoBtn">復原</button><button type="button" class="undo-x" id="undoX" aria-label="關閉">×</button></div>
 <div class="loading" id="loading"><div><span class="spin" aria-hidden="true"></span><div>讀取中…<small id="loadingHint"></small></div></div></div>
 
 <!-- 複製失敗時的備用視窗：自己長按複製 -->
@@ -1436,6 +1443,31 @@ function busy(on){
   if(on) busy._t = setTimeout(()=>{ $("#loadingHint").textContent = "資料表讀取中，第一次會比較久，請稍候"; }, 3500);
 }
 function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("on"); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove("on"),2600); }
+/* 剛做完一個可以復原的動作：下方出現「復原」鍵 15 秒（之後到「系統設定 → 8. 變更紀錄與復原」也找得到） */
+function offerUndo(msg, no){
+  if(!no) return; const bar = $("#undoBar");
+  $("#undoMsg").textContent = msg; bar.hidden = false;
+  $("#undoBtn").onclick = () => { bar.hidden = true; doUndo(no); };
+  $("#undoX").onclick = () => { bar.hidden = true; };
+  clearTimeout(offerUndo._t); offerUndo._t = setTimeout(() => { bar.hidden = true; }, 15000);
+}
+async function doUndo(no, force){
+  busy(true);
+  try{
+    const d = await apiPost({action:"undo", name:state.cred.name, h:state.cred.h, no, force: force ? 1 : ""});
+    if(!d.ok && d.conflict){
+      busy(false);
+      if(!confirm(`⚠ ${d.error}${(d.later||[]).length ? "\n\n之後的修改：\n・" + d.later.join("\n・") : ""}\n\n仍要復原 ${no} 嗎？（之後的修改會被蓋掉；這次復原也會留紀錄，可以再復原回來）`)) return;
+      return doUndo(no, true);
+    }
+    if(!d.ok) throw new Error(d.error || "復原失敗");
+    if(d.undo) state.undo = d.undo;
+    await reload(true, true);
+    toast(`已復原 ${no}（${(d.restored||[]).join("、")}）`);
+    if(d.redo) offerUndo(`已復原 ${no}；要改回去嗎？`, d.redo);
+  }catch(e){ toast("復原失敗：" + e.message); }
+  finally{ busy(false); }
+}
 
 /* ---------- 登入下拉選單 ---------- */
 async function loadNames(){
@@ -1658,7 +1690,8 @@ function applyData(d){
   if(d.offRows) state.offRows = d.offRows; if(d.settings) applySettings(d.settings);   // 費率等設定（管理者可在網站改）
   if(d.closes) state.closes = d.closes;                                                // 月結紀錄（報帳前檢查用）
   state.deduct = d.deduct || [];                                                      // 扣款調整（出納、會計填的）
-  state.liveUrl = d.liveUrl || "";                                                    // 會計報表（即時）Google 試算表（管理者、會計）
+  state.liveUrl = d.liveUrl || "";
+  state.undo = d.undo || [];                                                          // 變更紀錄與復原（管理者）                                                    // 會計報表（即時）Google 試算表（管理者、會計）
   if(d.hrIns){ state.hrInsSaved = d.hrIns; state.hrIns = null; }                      // 已存的人事保費核對（以資料表為準，重讀時蓋掉暫存）
   state.fixes = d.fixes || []; state.leaveTypes = d.leaveTypes || null;
   renderReports();
@@ -1752,8 +1785,12 @@ function renderSettings(){
         <label class="set-chk"><input type="radio" name="exsync" value="off" ${st.EXCEL_SYNC === "on" ? "" : "checked"}><span>以試算表「代課一覽表」分頁為準（網站的修改直接寫回分頁；雲端 .xlsx 不再匯入）</span></label>
         <label class="set-chk"><input type="radio" name="exsync" value="on" ${st.EXCEL_SYNC === "on" ? "checked" : ""}><span>每分鐘從雲端硬碟的「代課一覽表」.xlsx 匯入並覆蓋分頁（網站的修改只記在「修正」分頁）</span></label></div>
       <div class="mrow set-act"><button class="btn" type="button" id="exSave">儲存資料來源</button><span class="set-msg" id="exMsg"></span></div></div>
+    <div class="set-sec" id="undoSec"><h4>8. 變更紀錄與復原 <small>系統設定、投保資料、假日、扣款、人事保費核對、老師回報的每一次修改和刪除，都先存一份修改前的樣子；按「復原」就回到那次修改之前。復原也會留一筆，可以再復原回來。代課紀錄的修改刪除在「已修正的資料」按「還原」</small></h4>
+      ${(state.undo||[]).length ? `<div class="set-tbl"><table class="undo-tbl"><thead><tr><th>編號</th><th>時間</th><th>項目</th><th>改了什麼</th><th>狀態</th><th></th></tr></thead><tbody>${state.undo.map(u => `<tr class="${u.can ? "" : "done"}"><td>${esc(u.no)}</td><td>${esc(u.at.slice(5, 16))}<br><small>${esc(u.by)}</small></td><td>${esc(u.kind)}</td><td>${esc(u.text || u.sheets)}</td><td class="st">${esc(u.status)}${u.undoneAt ? `<br><small>${esc(u.undoneAt)}</small>` : ""}</td><td>${u.can ? `<button type="button" class="btn ghost small" data-undo="${esc(u.no)}">復原</button>` : ""}</td></tr>`).join("")}</tbody></table></div>`
+        : `<p class="hint">還沒有變更紀錄。之後在網站上改設定、刪回報…都會列在這裡。</p>`}</div>
     <p class="hint" style="margin-top:12px">每次存檔都會寫進資料表「設定異動紀錄」分頁（時間、修改者、舊值、新值），會計查帳有憑據。直接在資料表改也可以，網站會自動讀到。</p></details>`;
   $("#setDet").ontoggle = () => store.set("setOpen", $("#setDet").open ? "1" : "0");
+  box.querySelectorAll("[data-undo]").forEach(b => b.onclick = () => { const u = state.undo.find(x => x.no === b.dataset.undo); if(confirm(`復原 ${u.no}：${u.text || u.sheets}\n\n「${u.sheets}」會回到 ${u.at} 這次修改之前的樣子。確定？`)) doUndo(u.no); });
   if(!ready){ box.querySelectorAll("#setSave,#insSave,#offSave,#insAdd,#offAdd,.vdel,#dedAdd,#dedSave,#exSave").forEach(b => { b.disabled = true; b.title = "後端程式（Apps Script）還沒更新到新版，更新後才能用"; });
     box.querySelectorAll(".set-act .set-msg").forEach(m => { m.textContent = "⚠ 後端程式還沒更新到新版，這裡先不能按；請先部署新版 Code.gs"; m.style.color = "var(--amber)"; }); }
   // 6. 扣款調整表
@@ -1865,7 +1902,8 @@ async function saveSetting(body, msgEl, btn){
     if(d.heli) state.heli = d.heli; if(d.ins) state.ins = d.ins; if(d.off) state.off = d.off; if(d.offRows) state.offRows = d.offRows;
     state.setFrom = "";
     toast("已儲存：" + (d.changed || []).join("；").slice(0, 70) + ((d.changed || []).join("；").length > 70 ? "…" : ""));
-    await reload(true, true);                                   // 金額、衝堂檢查都在後端算：重讀一次，整頁用新設定
+    await reload(true, true);
+    if(d.undoNo) offerUndo("已儲存：" + (d.changed || []).join("；").slice(0, 40), d.undoNo);                                   // 金額、衝堂檢查都在後端算：重讀一次，整頁用新設定
     const m = $(`#${msgEl.id}`); if(m) m.textContent = "✔ 已儲存 " + new Date().toLocaleTimeString("zh-TW", {hour:"2-digit", minute:"2-digit"});
   }catch(e){ msgEl.textContent = "✘ " + e.message; toast("儲存失敗：" + e.message); }
   finally{ btn.disabled = false; }
@@ -2126,7 +2164,7 @@ function renderChecks(ym){
     $("#hrSave").disabled = true; $("#hrMsg").textContent = "儲存中…";
     try{ const d = await apiPost({action:"hrins", name:state.cred.name, h:state.cred.h, ym, rows: JSON.stringify(rows)});
       if(!d.ok) throw new Error(d.error || "儲存失敗"); state.hrInsSaved = d.hrIns || state.hrInsSaved; if(state.hrIns) delete state.hrIns[ym];
-      toast(`已存 ${d.saved} 人的保費核對${d.bad ? `，${d.bad} 人不一致` : "，全部一致"}`); renderChecks(ym); const det = $("#checkBox .hr-det"); if(det) det.open = true; }
+      toast(`已存 ${d.saved} 人的保費核對${d.bad ? `，${d.bad} 人不一致` : "，全部一致"}`); renderChecks(ym); const det = $("#checkBox .hr-det"); if(det) det.open = true; if(d.undoNo){ offerUndo(`已存 ${d.saved} 人的保費核對`, d.undoNo); } }
     catch(e){ $("#hrMsg").textContent = "✘ " + e.message; $("#hrSave").disabled = false; toast("儲存失敗：" + e.message); }
   };
   if(!RO) box.querySelectorAll("[data-hr]").forEach(inp => { inp.onchange = () => { const v = inp.value.replace(/,/g,"").trim(); if(v && !/^\d+$/.test(v)){ toast("保費請填整數"); inp.value = ""; } const [n, k] = inp.dataset.hr.split("|"); saveHrIns(ym, n, k, inp.value.replace(/,/g,"").trim()); const open = $("#checkBox .hr-det").open; renderChecks(ym); if($("#checkBox .hr-det")) $("#checkBox .hr-det").open = open; }; });
@@ -2935,7 +2973,7 @@ function renderReports(){
     return;
   }
   const todo = list.filter(r=>r.status==="待處理"), done = list.filter(r=>r.status!=="待處理");
-  const item = r => `<div class="rp"><span class="st ${r.status==="待處理"?"todo":"done"}">${esc(r.status)}</span><b>${esc(r.teacher)}</b>　${esc(r.kind||"")}
+  const item = r => `<div class="rp"><span class="st ${r.status==="待處理"?"todo":"done"}">${esc(r.status)}</span><b>${esc(r.teacher)}</b>　${esc(r.kind||"")}<button type="button" class="btn dghost small rdel" style="float:right" data-rdel="${esc(r.id)}">刪除</button>
       <div>${esc(r.text)}</div><div class="meta">${esc(r.id)}・${esc(r.time)}${r.record?"・"+esc(r.record):""}</div>
       ${r.status==="待處理"
         ? `<textarea data-reply="${esc(r.id)}" placeholder="回覆${esc(r.teacher)}老師（例：已更正為第 3 節，謝謝提醒）"></textarea>
@@ -2947,7 +2985,16 @@ function renderReports(){
   box.innerHTML = `<div class="reports"><h3>老師回報（${todo.length} 件待處理）</h3>
     ${state.notify ? `<p class="meta" style="font-size:13px;color:var(--ink-2)">有新回報時通知：${esc([state.notify.email?"Gmail（"+state.notify.email+"）":"", state.notify.iphone?"iPhone 推播":"", state.notify.line?"LINE":""].filter(Boolean).join("、") || "目前沒有開啟任何通知")}　設定在資料表「代課工具 → 通知設定」</p>` : ""}
     ${todo.length ? todo.map(item).join("") : `<div class="meta" style="padding:6px 0">目前沒有待處理的回報。</div>`}
-    ${done.length ? `<details><summary style="font-size:13px;color:var(--ink-2);cursor:pointer;padding-top:8px">已處理 ${done.length} 件</summary>${done.map(item).join("")}</details>` : ""}</div>`;
+    ${done.length ? `<details><summary style="font-size:13px;color:var(--ink-2);cursor:pointer;padding-top:8px">已處理 ${done.length} 件</summary><div class="acts" style="margin:8px 0"><button type="button" class="btn dghost small" data-rdelall>刪除全部已處理的回報（${done.length} 件）</button></div>${done.map(item).join("")}</details>` : ""}</div>`;
+  const del = async ids => {
+    busy(true);
+    try{ const d = await apiPost({action:"reportDel", name:state.cred.name, h:state.cred.h, ids: JSON.stringify(ids)});
+      if(!d.ok) throw new Error(d.error || "刪除失敗");
+      await reload(true); toast(`已刪除 ${d.deleted} 件回報`); offerUndo(`已刪除 ${d.deleted} 件回報`, d.undoNo); }
+    catch(e){ toast("刪除失敗：" + e.message); }
+    finally{ busy(false); } };
+  box.querySelectorAll("[data-rdel]").forEach(b => b.onclick = () => { const r = list.find(x => x.id === b.dataset.rdel); if(confirm(`刪除 ${r.id}（${r.teacher}：${r.text.slice(0, 30)}）？\n刪掉後可以按「復原」救回來。`)) del([r.id]); });
+  const all = box.querySelector("[data-rdelall]"); if(all) all.onclick = () => { if(confirm(`刪除全部 ${done.length} 件已處理的回報？\n刪掉後可以按「復原」救回來。`)) del(done.map(r => r.id)); };
 }
 /* 給老師的 LINE 訊息 */
 const DEFAULT_REPLY = "已處理完成，謝謝您的提醒。";
@@ -3078,6 +3125,7 @@ const WB_FUNCS = [
   ["會計總覽", () => wbGo("#acctBox")], ["合理員額", () => wbGo("#heliBox")], ["每月報表", () => wbGo("#monthly")], ["會計總帳", () => wbGo("#hLedger", "#monthly")], ["Excel", () => wbGo("#hLedger", "#monthly")],
   ["會計報表（即時）", () => wbGo(".live-box")], ["即時報表", () => wbGo(".live-box")], ["試算表", () => wbGo(".live-box")],
   ["系統設定", () => wbOpenSettings()], ["設定", () => wbOpenSettings()], ["費率", () => wbOpenSettings()], ["保險設定", () => wbOpenSettings("#insTbl")], ["投保", () => wbOpenSettings("#insTbl")], ["假日", () => wbOpenSettings("#offTbl")], ["颱風假", () => wbOpenSettings("#offTbl")], ["扣款", () => wbOpenSettings("#dedTbl")],
+  ["復原", () => wbOpenSettings("#undoSec")], ["變更紀錄", () => wbOpenSettings("#undoSec")], ["刪除", () => wbOpenSettings("#undoSec")],
   ["資料檢查", () => wbGo("#alerts")], ["衝堂", () => wbGo("#alerts")], ["修正", () => wbGo("#alerts")],
   ["老師回報", () => wbGo("#myReports")], ["回報", () => wbGo("#myReports")],
   ["老師密碼", () => { const d = document.querySelector("#adminBox .pw-list") || document.querySelector("#adminMobile .pw-list"); if(d) d.open = true; wbGo(d && d.offsetParent ? d : "#adminMobile"); }], ["密碼", () => $("#openPw").click()],
