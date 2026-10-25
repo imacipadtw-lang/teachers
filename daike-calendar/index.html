@@ -1685,6 +1685,7 @@ function applyData(d){
   $("#lineNotice").hidden = state.role==="acct" || !(state.line && state.line.on && !state.line.bound) || store.get("lineNoticeOff", localStorage) === "1";
   state.pwStatus = d.pwStatus || [];
   $("#openPlan").hidden = state.role!=="admin";
+  $("#dlExcel").textContent = state.role==="admin" || state.role==="acct" ? "明細試算表（雲端）" : "下載 Excel";
   $("#openReport").hidden = state.role!=="teacher";                 // 老師回報：只有老師用
   state.reports = d.reports || []; state.notify = d.notify;
   state.off = d.off || {}; state.audit = d.audit || []; state.typhoon = d.typhoon || null; state.heli = d.heli || state.heli || []; if(d.ins) state.ins = d.ins; if(d.meta) state.meta = d.meta;
@@ -3169,7 +3170,7 @@ function monthProgress(ym){
     {k:"reg", t:"登記請假代課", done: closed || (past && !un), sub: un ? `${un} 筆請假還沒安排代課` : (future ? "還沒到" : past ? "沒有未安排的" : "隨時登記；請假要填代課老師"), act: () => un ? wbUnassigned(ym) : openPlan(), verb: un ? "看哪幾筆" : "登記一筆"},
     {k:"signin", t:"填簽到表節數", done: closed || (heli.length > 0 && signed === heli.length), sub: heli.length ? `${signed}／${heli.length} 位已填` : "沒有合理員額老師", act: () => wbGo('[data-si]', "#checkBox"), verb:"去填節數"},
     {k:"check", t:"檢查全綠", done: closed || (!future && !err.length), sub: err.length ? `${err.length} 個紅字要處理` : warn.length ? `${warn.length} 個提醒（可結帳）` : "全綠", act: () => wbGo("#checkBox"), verb:"看檢查"},
-    {k:"ledger", t:"下載會計總帳", done: !!fl.ledger || closed, sub: fl.ledger ? `已下載（${fl.ledger}）` : "一本 Excel 全部工作表", act: () => ledgerExcel(ym), verb:"下載 Excel"},
+    {k:"ledger", t:"開會計總帳", done: !!fl.ledger || closed, sub: fl.ledger ? `已開啟（${fl.ledger}）` : "雲端試算表，全部工作表", act: () => ledgerExcel(ym), verb:"開啟會計總帳"},
     {k:"sent", t:"送會計", done: !!fl.sent || closed, sub: fl.sent ? `已送（${fl.sent}）` : "送出後按一下記錄", act: () => { wbFlag(ym, "sent", !wbFlags(ym).sent); renderWorkbench(); }, verb:"記錄已送"},
     {k:"close", t:"本月結帳", done: closed, sub: closed ? `已結帳 ${c.at}` : (c && c.open ? "已解除，待重新結帳" : "會計收了再結"), act: () => wbGo("#chkClose", "#checkBox"), verb:"去結帳"}
   ];
@@ -3226,7 +3227,7 @@ function renderWorkbench(){
         <button type="button" class="btn" data-q="plan">＋ 排調代課</button>
         <button type="button" class="btn ghost" data-q="sign">合理員額簽到表</button>
         <button type="button" class="btn ghost" data-q="check">報帳前檢查</button>
-        <button type="button" class="btn ghost" data-q="ledger">會計總帳 Excel</button>
+        <button type="button" class="btn ghost" data-q="ledger">會計總帳（雲端）</button>
         <button type="button" class="btn ghost" data-q="live">會計報表（即時）</button>
         <button type="button" class="btn ghost" data-q="set">系統設定</button>
         <button type="button" class="btn ghost" data-q="pw">老師密碼</button>
@@ -3347,6 +3348,7 @@ async function loadExcelJS(){
 $("#dlExcel").onclick = async () => {
   const r = $("#rangeSel").value, evs = state.events.filter(e => inRange(e, r)), rows = tableRows(evs);
   if(!rows.length){ toast(`${rangeLabel(r)}沒有紀錄`); return; }
+  const cloud = state.role === "admin" || state.role === "acct", win = cloud ? cloudWin() : null;   // 一般老師沒有學校雲端硬碟權限：老師畫面維持下載自己的明細
   busy(true);
   try{
     await loadExcelJS();
@@ -3372,13 +3374,12 @@ $("#dlExcel").onclick = async () => {
     const last = ws.rowCount;
     for(let i = 4; i <= last; i++) ws.getRow(i).eachCell({includeEmpty:true}, (c, col) => { if(col <= head.length && (i <= 4 + rows.length || c.value)) c.border = {top:{style:"thin"}, left:{style:"thin"}, bottom:{style:"thin"}, right:{style:"thin"}}; });
     ws.pageSetup = {paperSize:9, orientation:"landscape", fitToPage:true, fitToWidth:1, fitToHeight:0, printTitlesRow:"4:4", margins:{left:.4, right:.4, top:.5, bottom:.5, header:.2, footer:.2}};
-    const buf = await wb.xlsx.writeBuffer();
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([buf], {type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}));
-    a.download = `代課調課明細_${isAll() ? "全校" : state.viewing}_${r ? rangeLabel(r).replace(/ /g,"") : "115學年上學期"}.xlsx`;
-    document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
-    toast("已下載 Excel");
-  }catch(err){ toast(err.message); }
+    const fname = `代課調課明細_${isAll() ? "全校" : state.viewing}_${r ? rangeLabel(r).replace(/ /g,"") : "115學年上學期"}`;
+    if(cloud){ await toCloud(wb, "detail", r, fname, win); toast("已在新分頁開啟明細雲端試算表"); }
+    else { const buf = await wb.xlsx.writeBuffer(), a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([buf], {type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"})); a.download = fname + ".xlsx";
+      document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000); toast("已下載 Excel"); }
+  }catch(err){ cloudFail(win, err.message); }
   finally{ busy(false); }
 };
 
@@ -3470,16 +3471,16 @@ function renderMonthly(){
     <div class="mrow"><select id="mSel" aria-label="月份">${months.map(v => `<option value="${v}" ${v===pick?"selected":""}>${+v.slice(0,4)-1911} 年 ${+v.slice(5)} 月</option>`).join("")}</select>
       <button class="btn" type="button" id="mSign">老師簽收單（列印／PDF）</button>
       <button class="btn" type="button" id="mAcct">出納會計月報表（列印／PDF）</button>
-      <button class="btn ghost" type="button" id="mAcctX">出納會計 Excel（可填扣款）</button>
-      <button class="btn ghost" type="button" id="mExcel">本月明細 Excel</button></div>
+      <button class="btn ghost" type="button" id="mAcctX">出納會計試算表（雲端）</button>
+      <button class="btn ghost" type="button" id="mExcel">本月明細試算表（雲端）</button></div>
     <div class="steps"><span><b>1</b>月底印簽收單</span><span><b>2</b>請老師核對、簽名</span><span><b>3</b>有錯就在網站按「修改」，再印一次</span><span><b>4</b>印月報表送出納、會計</span></div>
     <div class="acct" id="acctBox" aria-live="polite"></div>
     ${(state.heli||[]).length ? `<div class="heli-panel"><h3>合理員額代課教師鐘點費 <span>（另一個會計項目：${esc(state.heli.join("、"))}）</span></h3>
       <p>依課表逐節計算；合班且只有一位老師上的課 ×1.5。上面選的月份同時套用。簽到表月初印給老師簽，月底印清冊送出納、會計。</p>
       <div class="mrow"><button class="btn" type="button" id="hSignIn">合理員額簽到表（列印）</button>
         <button class="btn" type="button" id="hPrint">合理員額印領清冊（列印／PDF）</button>
-        <button class="btn ghost" type="button" id="hExcel">合理員額 Excel（可填扣款）</button>
-        <button class="btn" type="button" id="hLedger">會計總帳 Excel（全部工作表）</button></div>
+        <button class="btn ghost" type="button" id="hExcel">合理員額試算表（雲端）</button>
+        <button class="btn" type="button" id="hLedger">會計總帳（雲端試算表，全部工作表）</button></div>
       <div class="acct" id="heliBox" aria-live="polite"></div></div>` : ""}
     <div class="live-box"><h3>會計報表（即時）Google 試算表</h3>
       <p>程式自己維護的一份試算表：每個月一個分頁（總表、合理員額印領清冊、校內代課印領清冊、代理導師費、逐節明細、保險計算、要確認的事項），資料一變動約一分鐘內自動重算，數字和這個網站、會計總帳 Excel 同一套算法。會計隨時可以開、可以下載成 Excel；月結歸檔的鎖定版另存在雲端硬碟「會計報表」資料夾。</p>
@@ -3819,6 +3820,22 @@ async function printHeliSign(r, only){
 /* ================================================================
  * Excel 共用工具（ExcelJS）：字型、框線、標題列、欄字母
  * ================================================================ */
+/* ---------- Excel 改成雲端試算表：不下載，轉成 Google 試算表放在雲端硬碟「會計報表」，開新分頁 ----------
+ * 按下去當下先開一個「產生中」分頁（之後才開會被瀏覽器擋），做好後把那個分頁導到雲端試算表 */
+function cloudWin(){
+  try{ const w = window.open("", "_blank"); if(w){ w.document.title = "產生中…"; w.document.body.innerHTML = '<p style="font:17px/1.6 -apple-system,\'PingFang TC\',\'Microsoft JhengHei\',sans-serif;padding:28px;color:#1F3A52">正在產生雲端試算表，約 5～15 秒，請稍候…</p>'; } return w; }
+  catch(e){ return null; }
+}
+function cloudFail(win, msg){ try{ if(win && !win.closed) win.close(); }catch(e){} toast(msg); }
+async function toCloud(wb, kind, ym, title, win){
+  const buf = await wb.xlsx.writeBuffer(), u8 = new Uint8Array(buf); let bin = "";
+  for(let i = 0; i < u8.length; i += 0x8000) bin += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
+  const d = await apiPost({action:"sheet", name:state.cred.name, h:state.cred.h, kind, ym: ym || "", title, who: isAll() ? "全校" : (state.viewing || ""), xlsx: btoa(bin)});
+  if(!d.ok) throw new Error(d.error || "轉成雲端試算表失敗");
+  if(win && !win.closed) win.location.href = d.url;
+  else { const a = document.createElement("a"); a.href = d.url; a.target = "_blank"; a.rel = "noopener"; document.body.appendChild(a); a.click(); a.remove(); }
+  return d;
+}
 function xlKit(wb){
   const FN = "Microsoft JhengHei", thin = {style:"thin", color:{argb:"FF000000"}}, med = {style:"medium", color:{argb:"FF000000"}};
   const K = {
@@ -3838,9 +3855,7 @@ function xlKit(wb){
     head(ws, row, vals){ ws.getRow(row).values = vals; ws.getRow(row).eachCell(c => { c.font = K.font({bold:true, size:10}); c.alignment = K.center; c.fill = K.HEAD; }); ws.getRow(row).height = 22; },
     sig(ws, row, ncol, list){ list.forEach(([t,c1,c2]) => { if(c2 > c1){ ws.mergeCells(row,c1,row,c2); ws.mergeCells(row+1,c1,row+1,c2); } const h = ws.getCell(row,c1); h.value = t; h.font = K.font({bold:true}); h.alignment = K.center; h.fill = K.HEAD; });
       ws.getRow(row+1).height = 46; K.boxAll(ws, row, 1, row+1, ncol); },
-    download(name){ return wb.xlsx.writeBuffer().then(buf => { const a = document.createElement("a");
-      a.href = URL.createObjectURL(new Blob([buf], {type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"})); a.download = name;
-      document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000); }); }
+    cloud(name, kind, ym, win){ return toCloud(wb, kind, ym, name, win); }
   };
   return K;
 }
@@ -4212,10 +4227,11 @@ function buildLawSheet(K){
  * 三個下載按鈕
  * ================================================================ */
 async function acctExcel(r){
+  const win = cloudWin();
   applySettingsAt(r);
-  let all; try{ all = await allEvents(); } catch(err){ toast("讀取失敗：" + err.message); return; }
+  let all; try{ all = await allEvents(); } catch(err){ cloudFail(win, "讀取失敗：" + err.message); return; }
   const A = acctOf(all, r), inM = all.filter(e => e.date.startsWith(r));
-  if(!inM.some(e => (e.type==="sub" && !isHeliSub(e)) || e.type==="tutor")){ toast(`${rangeLabel(r)}沒有校內代課紀錄`); return; }
+  if(!inM.some(e => (e.type==="sub" && !isHeliSub(e)) || e.type==="tutor")){ cloudFail(win, `${rangeLabel(r)}沒有校內代課紀錄`); return; }
   busy(true);
   try{
     await loadExcelJS(); const wb = new ExcelJS.Workbook(); wb.creator = "代課查詢系統"; wb.created = new Date(); const K = xlKit(wb), P = periodOf(r);
@@ -4240,15 +4256,16 @@ async function acctExcel(r){
     s4.getCell(z+1,1).value = {formula: `IF(D${z}=B8,"✓ 依假別合計 = 應發合計","✗ 依假別合計和應發合計不符")`}; s4.getCell(z+1,1).font = K.font({bold:true});
     s4.getCell(z+3,1).value = `另：不計費 ${A.voidN} 筆、待確認 ${A.flagN} 筆、管理者修正 ${A.fixN} 筆${A.heliN ? `、代合理員額教師課 ${A.heliN} 節（列合理員額）` : ""}。產生時間：${new Date().toLocaleString("zh-TW",{hour12:false})}`;
     s4.getCell(z+3,1).font = K.font({size:10, color:{argb:"FF555555"}});
-    await K.download(`土城國小_${P.rocY}年${P.mon}月_校內代課鐘點費（出納會計）.xlsx`);
-    toast("已下載出納會計 Excel");
-  }catch(err){ toast("產生失敗：" + err.message); }
+    await K.cloud(`土城國小_${P.rocY}年${P.mon}月_校內代課鐘點費（出納會計）`, "acct", r, win);
+    toast("已在新分頁開啟出納會計雲端試算表");
+  }catch(err){ cloudFail(win, "產生失敗：" + err.message); }
   finally{ busy(false); }
 }
 async function heliExcel(r){
+  const win = cloudWin();
   applySettingsAt(r);
-  let H; try{ H = await heliData(r); } catch(err){ toast("讀取失敗：" + err.message); return; }
-  if(!H.T.some(t => t.L.length) && !H.subs.length){ toast(`${rangeLabel(r)}沒有合理員額的課`); return; }
+  let H; try{ H = await heliData(r); } catch(err){ cloudFail(win, "讀取失敗：" + err.message); return; }
+  if(!H.T.some(t => t.L.length) && !H.subs.length){ cloudFail(win, `${rangeLabel(r)}沒有合理員額的課`); return; }
   busy(true);
   try{
     await loadExcelJS(); const wb = new ExcelJS.Workbook(); wb.creator = "代課查詢系統"; wb.created = new Date(); const K = xlKit(wb), P = periodOf(r);
@@ -4258,9 +4275,9 @@ async function heliExcel(r){
     buildCalcSheet(K, H, r, INSOUT);
     buildHeliCheck(K, H, HR, r);
     buildTableSheet(K); buildLawSheet(K);
-    await K.download(`土城國小_${P.rocY}年${P.mon}月_合理員額代課教師鐘點費.xlsx`);
-    toast("已下載合理員額 Excel");
-  }catch(err){ toast("產生失敗：" + err.message); }
+    await K.cloud(`土城國小_${P.rocY}年${P.mon}月_合理員額代課教師鐘點費`, "heli", r, win);
+    toast("已在新分頁開啟合理員額雲端試算表");
+  }catch(err){ cloudFail(win, "產生失敗：" + err.message); }
   finally{ busy(false); }
 }
 /* ================================================================
@@ -4342,10 +4359,11 @@ function buildHeliCheck(K, H, HR, r){
 }
 /* 會計總帳：一個月的全部會計項目，一本 Excel；第一張「總表」把每個項目、每張工作表的合計拉在一起互相核對 */
 async function ledgerExcel(r){
-  const w = await ledgerWorkbook(r); if(!w) return;
+  const win = cloudWin();
+  const w = await ledgerWorkbook(r); if(!w){ cloudFail(win, ""); return; }
   busy(true);
-  try{ await w.K.download(w.name); toast("已下載會計總帳 Excel"); wbFlag(r, "ledger"); renderWorkbench(); }   // 工作台：步驟 5 記錄已下載（這台裝置）
-  catch(err){ toast("產生失敗：" + err.message); }
+  try{ await w.K.cloud(w.name.replace(/\.xlsx$/, ""), "ledger", r, win); toast("已在新分頁開啟會計總帳雲端試算表"); wbFlag(r, "ledger"); renderWorkbench(); }   // 工作台：步驟 5 記錄已開啟（這台裝置）
+  catch(err){ cloudFail(win, "產生失敗：" + err.message); }
   finally{ busy(false); }
 }
 /* 會計總帳 Excel（整本）：下載和月結歸檔共用；回傳 {wb, K, name}，沒有資料回 null */
