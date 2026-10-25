@@ -1699,7 +1699,8 @@ function renderSettings(){
       <div class="mrow set-act"><button class="btn" type="button" id="exSave">儲存資料來源</button><span class="set-msg" id="exMsg"></span></div></div>
     <p class="hint" style="margin-top:12px">每次存檔都會寫進資料表「設定異動紀錄」分頁（時間、修改者、舊值、新值），會計查帳有憑據。直接在資料表改也可以，網站會自動讀到。</p></details>`;
   $("#setDet").ontoggle = () => store.set("setOpen", $("#setDet").open ? "1" : "0");
-  if(!ready) box.querySelectorAll("#setSave,#insSave,#offSave,#insAdd,#offAdd,.vdel,#dedAdd,#dedSave,#exSave").forEach(b => { b.disabled = true; });
+  if(!ready){ box.querySelectorAll("#setSave,#insSave,#offSave,#insAdd,#offAdd,.vdel,#dedAdd,#dedSave,#exSave").forEach(b => { b.disabled = true; b.title = "後端程式（Apps Script）還沒更新到新版，更新後才能用"; });
+    box.querySelectorAll(".set-act .set-msg").forEach(m => { m.textContent = "⚠ 後端程式還沒更新到新版，這裡先不能按；請先部署新版 Code.gs"; m.style.color = "var(--amber)"; }); }
   // 6. 扣款調整表
   const dedBody = box.querySelector("#dedTbl tbody"), months = termMonths().map(([y,m]) => `${y}-${String(m+1).padStart(2,"0")}`);
   const dedRow = (d = {}) => {
