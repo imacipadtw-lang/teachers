@@ -238,6 +238,11 @@ details.settings>summary span{font-size:13px;color:var(--ink-3)}
 .si-f span{color:var(--ink-2);font-weight:600}
 .si-f input{width:118px;padding:7px 9px;font-size:15px;text-align:right;font-variant-numeric:tabular-nums}
 .si-f small{font-size:11.5px;color:var(--ink-3)}
+.hr-det{margin:4px 0 10px;border:1px solid var(--line-2);border-radius:10px;padding:8px 12px}
+.hr-det>summary{cursor:pointer;font-size:13.5px;font-weight:600;color:var(--ink-2)}
+.hr-det>summary small{font-weight:500;color:var(--ink-3);margin-left:6px}
+.hr-det .set-tbl{margin-top:8px}
+.hr-tbl input.num{width:112px}
 .chk-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px;font-size:13.5px}
 .chk-list li{display:flex;gap:8px;align-items:flex-start;line-height:1.45}
 .chk-list li i{font-style:normal;font-weight:800;width:18px;flex:none;text-align:center}
@@ -1563,6 +1568,82 @@ async function saveSetting(body, msgEl, btn){
  * 月結：按「本月結帳」把當月數字（含用的費率、投保資料、簽到表核對）存到資料表「月結紀錄」；之後資料變了，檢查會亮紅並列出差異。 */
 const CHECK_ICON = {err:"✗", warn:"⚠", ok:"✓", info:"ℹ"};
 const lastDayOf = ym => { const [y, m] = ym.split("-").map(Number); return `${ym}-${String(new Date(y, m, 0).getDate()).padStart(2,"0")}`; };
+/* ---------- 人事保費核對：把人事（或勞保局、健保署帳單）給的保費數字鍵入，系統逐項對官方算法，錯的地方說明原因 ----------
+ * 每個月、每位合理員額教師五個數：勞保自付、勞保單位（含職災）、勞退、健保自付、健保單位。
+ * 對不上時反查：哪個投保薪資、幾天、含不含職災、哪個級距才算得出人事的數字 → 直接告訴你差在哪。 */
+const HR_FIELDS = [["el", "勞保自付", "empLabor"], ["er", "勞保單位（含職災）", "erLaborAll"], ["pe", "勞退（單位）", "erPension"], ["nh", "健保自付", "empNhi"], ["ne", "健保單位", "erNhi"]];
+const LV_PENSION_HI = [48200,50600,53000,55400,57800,60800,63800,66800,69800,72800,76500,80200,83900,87600,92100,96600,101100,105600,110100,115500,120900,126300,131700,137100,142500,147900,150000];   // 勞退分級表 45,800 以上
+const LV_ALL = () => LV_LABOR.concat(LV_PENSION_HI);
+function hrInsOf(ym){
+  if(!state.hrIns){ try { state.hrIns = JSON.parse(store.get("hrIns") || "{}"); } catch(e){ state.hrIns = {}; } }
+  if(!state.hrIns[ym]){ const c = state.closes && state.closes[ym]; state.hrIns[ym] = (c && c.data && c.data.hrIns) ? JSON.parse(JSON.stringify(c.data.hrIns)) : {}; }
+  return state.hrIns[ym];
+}
+function saveHrIns(ym, name, k, v){ const o = hrInsOf(ym); o[name] = o[name] || {}; if(v === "" || v == null) delete o[name][k]; else o[name][k] = +v; if(!Object.keys(o[name]).length) delete o[name]; store.set("hrIns", JSON.stringify(state.hrIns)); }
+/* 反查：哪些（投保薪資, 天數）算得出這個數 —— 只看三種合理的可能：同天數不同級距、同級距不同天數、改用整月 30 天不同級距
+ * （不然 1～30 天任意組合幾乎什麼數都湊得出來，反而誤導） */
+function hrGuess(kind, want, occ, L0, d0){
+  const calc = (L, d) => kind === "el" ? laborEmp(L, d) : kind === "er" ? laborEr(L, d) + occEr(L, occ, d) : kind === "erNoOcc" ? laborEr(L, d) : pensionEr(L, d);
+  const out = [], seen = {}, push = (L, d) => { const k = L + "|" + d; if(!seen[k]){ seen[k] = 1; out.push({L, d}); } };
+  LV_ALL().forEach(L => { if(L !== L0 && calc(L, d0) === want) push(L, d0); });
+  for(let d = 30; d >= 1; d--) if(d !== d0 && L0 && calc(L0, d) === want) push(L0, d);
+  if(d0 !== 30) LV_ALL().forEach(L => { if(L !== L0 && calc(L, 30) === want) push(L, 30); });
+  return out;
+}
+const hrFmt = g => g.slice(0, 3).map(x => `投保薪資 ${x.L.toLocaleString("zh-TW")}（${x.d} 天）`).join(" 或 ");
+/* 檢查項目：回傳 [{lv, k:'hrins', text}] */
+function hrInsChecks(ym, H){
+  const C = [], f = v => Number(v).toLocaleString("zh-TW"), hr = hrInsOf(ym);
+  (H ? H.T : []).forEach(t => {
+    const p = insOf(t.name), e = hr[t.name]; if(!e || !p) return;
+    const c = insCalc(p, ym, t.amt), L = +p.labor || 0, P = +p.pension || 0, d = c.days, occ = c.occRate;
+    HR_FIELDS.forEach(([k, label, ck]) => {
+      if(e[k] == null) return;
+      const want = +e[k], sys = c[ck];
+      if(want === sys){ C.push({lv:"ok", k:"hrins", text:`${t.name} ${label} ${f(want)} ＝ 系統`}); return; }
+      let why = "";
+      if(k === "el"){
+        const g = hrGuess("el", want, occ, L, d);
+        if(d < 30 && laborEmp(L, 30) === want) why = `人事用整月 30 天算（${f(laborEmp(L, 30))}），系統設定本月投保 ${d} 天；請確認投保日數`;
+        else if(g.length) why = `這個數對應 ${hrFmt(g)}；系統設定是投保薪資 ${f(L)}、${d} 天。請和人事確認投保薪資`;
+        else why = `115 年任何級距、任何天數都算不出 ${f(want)}（勞保 11.5%＋就保 1%，勞工 20%，兩項各自四捨五入）；可能是手算或用了舊費率`;
+      } else if(k === "er"){
+        const noOcc = laborEr(L, d), g = hrGuess("er", want, occ, L, d), g2 = hrGuess("erNoOcc", want, occ, L, d);
+        if(want === noOcc) why = `人事的單位負擔沒含職災 ${f(c.erOcc)} 元（${f(Math.max(L, INS.minWage))} × ${occ}% × ${d}/30）；含職災應為 ${f(sys)}`;
+        else if(d < 30 && want === laborEr(L, 30) + occEr(L, occ, 30)) why = `人事用整月 30 天算；系統設定本月投保 ${d} 天`;
+        else if(g.length) why = `這個數對應 ${hrFmt(g)}（含職災 ${occ}%）；系統設定是 ${f(L)}、${d} 天`;
+        else if(g2.length) why = `這個數對應 ${hrFmt(g2)} 但不含職災；系統設定是 ${f(L)}、${d} 天、含職災`;
+        else { const alt = [0.10, 0.11, 0.13, 0.14].map(r => [r, laborEr(L, d) + occEr(L, r, d)]).find(x => x[1] === want); why = alt ? `人事用職災費率 ${alt[0]}% 算（本校設定 ${occ}%，教育業＝0.05%＋通勤 0.07%）` : `任何級距、天數、職災費率都算不出 ${f(want)}，可能是手算錯誤`; }
+      } else if(k === "pe"){
+        const g = hrGuess("pe", want, occ, P, d);
+        if(d < 30 && pensionEr(P, 30) === want) why = `人事用整月 30 天算（${f(pensionEr(P, 30))}），系統設定本月 ${d} 天`;
+        else if(g.length){ why = `這個數對應提繳工資 ${hrFmt(g)}；系統設定是 ${f(P)}（${f(sys)}）。請和人事確認提繳工資`; }
+        else { const raw = Math.round(want / (INS.pensionRate * d / 30)); why = `115 年勞退分級表沒有任何一級 × 6% 會是 ${f(want)}（反推提繳工資約 ${f(raw)}，不是級距；例如 28,800 已從 115 年分級表刪除，27,601–28,590 為第 24 級 28,590、28,591–29,500 為第 25 級 29,500）`; }
+      } else if(k === "nh"){
+        why = !p.nhi ? `系統設定沒填「健保投保金額」（學校不是這位老師的健保投保單位時本來就不扣）；人事若有健保自付，請確認學校是不是投保單位，是的話把投保金額填進保險設定` : `系統 ${f(sys)} ＝ ${f(p.nhi)} × 5.17% × 30% 四捨五入 ×（1＋眷屬 ${Math.min(INS.nhiMaxDep, c.dep)} 口）；請確認投保金額、眷屬人數`;
+      } else if(k === "ne"){
+        why = !p.nhi ? `系統設定沒填「健保投保金額」，單位負擔算 0；學校是投保單位才會有這筆` : `系統 ${f(sys)} ＝ ${f(p.nhi)} × 5.17% × 60% × 1.56（平均眷口 0.56）`;
+      }
+      C.push({lv:"err", k:"hrins", text:`${t.name} ${label}：人事 ${f(want)} ≠ 系統 ${f(sys)}。${why}`});
+    });
+  });
+  return C;
+}
+/* 投保資料體檢（不用輸入就會跑）：級距對不對、投保薪資和實際薪資的關係、職災費率 */
+function insAuditChecks(ym, H){
+  const C = [], f = v => Number(v).toLocaleString("zh-TW"), main = LV_LABOR.filter(x => x >= INS.minWage);
+  (H ? H.T : []).forEach(t => {
+    const p = insOf(t.name); if(!p) return;
+    const L = +p.labor || 0, P = +p.pension || 0, N = +p.nhi || 0;
+    if(L && !LV_LABOR.includes(L)) C.push({lv:"err", k:"insaudit", text:`${t.name} 勞保投保薪資 ${f(L)} 不是 115 年勞保分級表的級距（部分工時 11,100／12,540，職訓級距 13,500～28,590，第 1 級起 ${main.map(f).slice(0, 3).join("、")}…），請人事確認`});
+    if(P && !LV_ALL().includes(P)) C.push({lv:"err", k:"insaudit", text:`${t.name} 勞退提繳工資 ${f(P)} 不是 115 年勞退月提繳分級表的級距（27,601–28,590 → 28,590；28,591–29,500 → 29,500；28,800 已刪除），請人事確認`});
+    if(N && N < INS.minWage) C.push({lv:"warn", k:"insaudit", text:`${t.name} 健保投保金額 ${f(N)} 低於 115 年第 1 級 ${f(INS.minWage)}，請確認`});
+    if(L && t.amt > L && L < INS.minWage) C.push({lv:"warn", k:"insaudit", text:`${t.name} 本月鐘點費 ${f(t.amt)} 高於勞保投保薪資 ${f(L)}。部分工時勞工薪資超過 12,540 時，勞保分級表備註二規定要按實際薪資申報級距（${f(t.amt)} 落在 ${f(LV_LABOR.find(x => x >= t.amt) || 45800)} 級）；低報投保薪資有被勞保局調整、補繳的風險，請人事確認（系統照目前設定算，不會自己改）`});
+    if(p.occ && +p.occ !== INS.occDefault) C.push({lv:"info", k:"insaudit", text:`${t.name} 職災費率 ${p.occ}%（教育業 114–116 年：行業 0.05%＋通勤 0.07%＝0.12%）`});
+    if(+p.days && +p.days < 30 && !p.from && !p.to) C.push({lv:"info", k:"insaudit", text:`${t.name} 每月固定投保 ${p.days} 天（人事指定），保費都按 ${p.days}/30 算`});
+  });
+  return C;
+}
 function signinOf(ym){
   if(!state.signin) { try { state.signin = JSON.parse(store.get("signin") || "{}"); } catch(e){ state.signin = {}; } }
   if(!state.signin[ym]){ const c = state.closes && state.closes[ym]; let o = {}; if(c && c.signin){ try { o = JSON.parse(c.signin); } catch(e){ o = {}; } } state.signin[ym] = o; }
@@ -1584,7 +1665,7 @@ function monthSnapshot(ym, evs){
   const er = H ? H.T.reduce((s,t) => s + insCalc(insOf(t.name), ym, t.amt).erTotal, 0) : 0;
   return { ym, at: new Date().toISOString(), rates: {RATE_SUB, RATE_COMB, RATE_TUTOR}, ins: Object.assign({}, INS), heli, acct,
            totals: {selfTotal: H ? H.selfTotal : 0, subTotal: H ? H.subTotal : 0, acctSub: A.fee, tutor: A.tfee, er, emp, net: (H ? H.total : 0) + A.total - emp},
-           signin: Object.assign({}, signinOf(ym)) };
+           signin: Object.assign({}, signinOf(ym)), hrIns: JSON.parse(JSON.stringify(hrInsOf(ym))) };
 }
 /* 比對：結帳時 vs 現在 */
 function closeDiff(old, cur){
@@ -1631,6 +1712,8 @@ function reportChecks(ym, evs){
     if(d === 0) add("warn", "ins", `${name} 本月投保日數 0（加保／退保日期不在本月），保費會算 0`);
     else if(d < 30) add("info", "ins", `${name} 本月投保 ${d} 天（${p.days ? "人事指定固定天數" : "依加保／退保日期"}）`);
     if(t && !t.n1 && !t.n15 && d) add("warn", "ins", `${name} 本月課表上沒有上課卻有投保 ${d} 天，實領會是負數，請確認加保／退保日期`); });
+  insAuditChecks(ym, H).forEach(x => C.push(x));                     // 級距對不對、投保薪資 vs 實際薪資、職災費率
+  hrInsChecks(ym, H).forEach(x => C.push(x));                        // 人事給的保費數字逐項審核
   // 假日
   const hol = Object.keys(state.off || {}).filter(d => d.startsWith(ym)).sort();
   if(hol.length) add("info", "off", `本月假日／停班停課 ${hol.length} 天：${hol.map(d => fmtMD(d) + " " + state.off[d].name + (state.off[d].scope !== "全天" ? "（" + state.off[d].scope + "）" : "")).join("、")}（合理員額照計照給，校內代課當天不計）`);
@@ -1672,6 +1755,10 @@ function renderChecks(ym){
   box.innerHTML = `<div class="acct-head"><h4>報帳前檢查與月結</h4><span>${closed ? `已結帳 ${esc(c.at)}（${esc(c.by)}）${c.file ? `　<a href="${esc(c.file)}" target="_blank" rel="noopener">結帳時的 Excel（雲端硬碟）</a>` : ""}` : "還沒結帳"}</span></div>
     <div class="steps sop"><span><b>1</b>月初印簽到表</span><span><b>2</b>請假、代課隨時登記</span><span><b>3</b>月底收簽到表，填合計節數比對</span><span><b>4</b>檢查全綠</span><span><b>5</b>下載會計總帳、印清冊</span><span><b>6</b>送會計</span><span><b>7</b>本月結帳</span></div>
     ${heli.length ? `<div class="si-row"><span class="si-t">簽到表核對（紙本合計節數）</span>${sign}</div>` : ""}
+    ${H && heli.length ? `<details class="hr-det" ${Object.keys(hrInsOf(ym)).length ? "open" : ""}><summary>人事保費核對 <small>把人事（或勞保局、健保署帳單）給的保費數字填進來，系統逐項對官方算法，對不上就說明差在哪</small></summary>
+      <div class="set-tbl"><table class="hr-tbl"><thead><tr><th>姓名</th>${HR_FIELDS.map(x => `<th>${x[1]}</th>`).join("")}</tr></thead>
+      <tbody>${H.T.map(t => { const c = insCalc(insOf(t.name), ym, t.amt), e = hrInsOf(ym)[t.name] || {}; return `<tr><td>${esc(t.name)}</td>${HR_FIELDS.map(([k, label, ck]) => `<td><input inputmode="numeric" class="num" data-hr="${esc(t.name)}|${k}" value="${e[k] ?? ""}" placeholder="系統 ${Number(c[ck]).toLocaleString("zh-TW")}" ${RO ? "disabled" : ""}></td>`).join("")}</tr>`; }).join("")}</tbody></table></div>
+      <p class="hint" style="margin:6px 0 0">空白＝不核對；填了就會在上面的檢查列出 ✓ 或 ✗ 與原因。結帳時這些數字會一起存進月結紀錄。</p></details>` : ""}
     <ul class="chk-list">${C.map(x => `<li class="${x.lv}"><i>${CHECK_ICON[x.lv]}</i><span>${esc(x.text)}</span></li>`).join("")}</ul>
     <div class="mrow set-act">
       <button class="btn ghost small" type="button" id="chkRun">重新檢查</button>
@@ -1679,6 +1766,7 @@ function renderChecks(ym){
          : closed ? `<button class="btn" type="button" id="chkClose" ${ready ? "" : "disabled"}>重新結帳</button><button class="btn dghost small" type="button" id="chkReopen" ${ready ? "" : "disabled"}>解除月結</button>`
                   : `<button class="btn" type="button" id="chkClose" ${ready && !blocking.length ? "" : "disabled"}>本月結帳</button>`}
       ${RO ? "" : `<span class="set-msg" id="chkMsg">${!ready ? "（後端還沒更新到新版，月結先不能存）" : blocking.length ? `還有 ${blocking.length} 項要處理才能結帳` : closed ? "" : "檢查通過，送會計後按「本月結帳」鎖定本月數字"}</span>`}</div>`;
+  if(!RO) box.querySelectorAll("[data-hr]").forEach(inp => { inp.onchange = () => { const v = inp.value.replace(/,/g,"").trim(); if(v && !/^\d+$/.test(v)){ toast("保費請填整數"); inp.value = ""; } const [n, k] = inp.dataset.hr.split("|"); saveHrIns(ym, n, k, inp.value.replace(/,/g,"").trim()); const open = $("#checkBox .hr-det").open; renderChecks(ym); if($("#checkBox .hr-det")) $("#checkBox .hr-det").open = open; }; });
   if(!RO) box.querySelectorAll("[data-si]").forEach(inp => { inp.onchange = () => { const v = inp.value.replace(/,/g,"").trim(); if(v && !/^\d+(\.5)?$/.test(v)){ toast("簽到表節數請填整數或 .5"); inp.value = ""; } saveSignin(ym, inp.dataset.si, inp.value.trim()); renderChecks(ym); }; });
   $("#chkRun").onclick = () => renderChecks(ym);
   if($("#chkClose")) $("#chkClose").onclick = async () => {
