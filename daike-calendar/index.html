@@ -238,6 +238,7 @@ details.settings>summary span{font-size:13px;color:var(--ink-3)}
 .si-f span{color:var(--ink-2);font-weight:600}
 .si-f input{width:118px;padding:7px 9px;font-size:15px;text-align:right;font-variant-numeric:tabular-nums}
 .si-f small{font-size:11.5px;color:var(--ink-3)}
+.hr-tbl input.auto{color:var(--ink-3);font-style:italic;border-style:dashed}
 .hr-det{margin:4px 0 10px;border:1px solid var(--line-2);border-radius:10px;padding:8px 12px}
 .hr-det>summary{cursor:pointer;font-size:13.5px;font-weight:600;color:var(--ink-2)}
 .hr-det>summary small{font-weight:500;color:var(--ink-3);margin-left:6px}
@@ -1925,7 +1926,10 @@ function hrInsOf(ym){
   if(!state.hrIns){ try { state.hrIns = JSON.parse(store.get("hrIns") || "{}"); } catch(e){ state.hrIns = {}; } }
   if(!state.hrIns[ym]){
     const sv = state.hrInsSaved && state.hrInsSaved[ym], c = state.closes && state.closes[ym], o = {};
-    if(sv) Object.keys(sv).forEach(n => { o[n] = {}; HR_FIELDS.forEach(([k]) => { if(sv[n][k] != null) o[n][k] = sv[n][k]; }); });
+    if(sv) Object.keys(sv).forEach(n => { o[n] = {}; HR_FIELDS.forEach(([k]) => { if(sv[n][k] != null) o[n][k] = sv[n][k]; });
+      const ok = String(sv[n].ok || ""), m = ok.match(/預填[:：]\s*([a-z,]+)/);           // 存的時候記下哪幾格是系統預填、人事還沒確認
+      const au = ok.indexOf("系統預填") === 0 ? HR_FIELDS.map(x => x[0]) : m ? m[1].split(",") : [];
+      au.forEach(k => { delete o[n][k]; }); });                                           // 預填的格子不存值：之後投保資料改了會跟著重算
     else if(c && c.data && c.data.hrIns) Object.assign(o, JSON.parse(JSON.stringify(c.data.hrIns)));
     state.hrIns[ym] = o; }
   return state.hrIns[ym];
@@ -1933,14 +1937,16 @@ function hrInsOf(ym){
 /* 人事保費核對的表格資料：每列人事值、系統值、是否一致、小計（自付＝勞保自付＋健保自付；單位＝勞保單位＋勞退＋健保單位） */
 function hrInsTable(ym, H){
   const si = hrInsOf(ym), rows = (H ? H.T : []).map(t => { const c = insCalc(insOf(t.name), ym, t.amt), e = si[t.name] || {}, cells = {};
-    HR_FIELDS.forEach(([k, label, ck]) => { const v = e[k] == null || e[k] === "" ? null : +e[k]; cells[k] = {v, sys: c[ck], ok: v == null ? null : v === c[ck]}; });
+    HR_FIELDS.forEach(([k, label, ck]) => { const has = !(e[k] == null || e[k] === ""), v = has ? +e[k] : c[ck];   // 沒填＝先帶入系統算的（預填），人事給的不一樣再改
+      cells[k] = {v, sys: c[ck], auto: !has, ok: has ? v === c[ck] : null}; });
     const sub = (ks, src) => ks.reduce((s, k) => s + (src === "v" ? (cells[k].v || 0) : cells[k].sys), 0), filled = ks => ks.some(k => cells[k].v != null);
     return {name: t.name, cells, empV: filled(["el","nh"]) ? sub(["el","nh"], "v") : null, empS: sub(["el","nh"], "s"), erV: filled(["er","pe","ne"]) ? sub(["er","pe","ne"], "v") : null, erS: sub(["er","pe","ne"], "s"),
-            filled: filled(HR_FIELDS.map(x => x[0])), bad: HR_FIELDS.some(([k]) => cells[k].ok === false)}; });
+            filled: filled(HR_FIELDS.map(x => x[0])), bad: HR_FIELDS.some(([k]) => cells[k].ok === false),
+            autoKeys: HR_FIELDS.map(x => x[0]).filter(k => cells[k].auto), edited: HR_FIELDS.some(([k]) => !cells[k].auto)}; });
   const tot = {}; HR_FIELDS.forEach(([k]) => { tot[k] = {v: rows.some(r => r.cells[k].v != null) ? rows.reduce((s, r) => s + (r.cells[k].v || 0), 0) : null, sys: rows.reduce((s, r) => s + r.cells[k].sys, 0)}; });
   tot.empV = rows.some(r => r.empV != null) ? rows.reduce((s, r) => s + (r.empV || 0), 0) : null; tot.empS = rows.reduce((s, r) => s + r.empS, 0);
   tot.erV = rows.some(r => r.erV != null) ? rows.reduce((s, r) => s + (r.erV || 0), 0) : null; tot.erS = rows.reduce((s, r) => s + r.erS, 0);
-  return {rows, tot, bad: rows.filter(r => r.bad).length, filled: rows.filter(r => r.filled).length};
+  return {rows, tot, bad: rows.filter(r => r.bad).length, filled: rows.filter(r => r.filled).length, autoN: rows.reduce((s, r) => s + r.autoKeys.length, 0), cellN: rows.length * HR_FIELDS.length};
 }
 function saveHrIns(ym, name, k, v){ const o = hrInsOf(ym); o[name] = o[name] || {}; if(v === "" || v == null) delete o[name][k]; else o[name][k] = +v; if(!Object.keys(o[name]).length) delete o[name]; store.set("hrIns", JSON.stringify(state.hrIns)); }
 /* 反查：哪些（投保薪資, 天數）算得出這個數 —— 只看三種合理的可能：同天數不同級距、同級距不同天數、改用整月 30 天不同級距
@@ -1990,6 +1996,8 @@ function hrInsChecks(ym, H){
       C.push({lv:"err", k:"hrins", text:`${t.name} ${label}：人事 ${f(want)} ≠ 系統 ${f(sys)}。${why}`});
     });
   });
+  const autoN = (H ? H.T : []).filter(t => t.L.some(l => l.st !== "sub")).reduce((s, t) => s + HR_FIELDS.filter(([k]) => !hr[t.name] || hr[t.name][k] == null).length, 0);
+  if(autoN) C.push({lv:"info", k:"hrins", text:`勞健保、勞退：有 ${autoN} 格還是系統預填（照「保險設定」的投保資料算），人事的數字不一樣請在下面改；一樣就按「預填的都正確」`});
   return C;
 }
 /* 投保資料體檢（不用輸入就會跑）：級距對不對、投保薪資和實際薪資的關係、職災費率 */
@@ -2139,15 +2147,16 @@ function renderChecks(ym){
     <div class="steps sop"><span><b>1</b>月初印簽到表</span><span><b>2</b>請假、代課隨時登記</span><span><b>3</b>月底收簽到表，填合計節數比對</span><span><b>4</b>檢查全綠</span><span><b>5</b>下載會計總帳、印清冊</span><span><b>6</b>送會計</span><span><b>7</b>本月結帳</span></div>
     ${heli.length ? `<div class="si-row"><span class="si-t">簽到表核對（紙本合計節數）</span>${sign}</div>` : ""}
     ${H && heli.length ? (() => { const T = hrInsTable(ym, H), f = v => Number(v).toLocaleString("zh-TW"), saved = state.hrInsSaved && state.hrInsSaved[ym], savedAt = saved ? Object.values(saved).map(x => x.at).sort().pop() : "", savedBy = saved ? (Object.values(saved)[0] || {}).by : "";
-      const cell = (name, k, ck, c) => `<td><input inputmode="numeric" class="num ${c.ok === true ? "good" : c.ok === false ? "bad" : ""}" data-hr="${esc(name)}|${k}" value="${c.v ?? ""}" placeholder="系統 ${f(c.sys)}" ${RO ? "disabled" : ""}><small class="sysv">系統 ${f(c.sys)}</small></td>`;
+      const cell = (name, k, ck, c) => `<td><input inputmode="numeric" class="num ${c.auto ? "auto" : c.ok === true ? "good" : c.ok === false ? "bad" : ""}" data-hr="${esc(name)}|${k}" value="${c.v ?? ""}" placeholder="系統 ${f(c.sys)}" title="${c.auto ? "系統預填：人事給的數字不一樣就直接改" : "人事數字"}" ${RO ? "disabled" : ""}><small class="sysv">${c.auto ? "系統預填" : "系統 " + f(c.sys)}</small></td>`;
       const subc = (v, sys) => `<td class="sub ${v == null ? "" : v === sys ? "good" : "bad"}"><b>${v == null ? "–" : f(v)}</b><small class="sysv">系統 ${f(sys)}</small></td>`;
-      return `<details class="hr-det" ${T.filled ? "open" : ""}><summary>人事保費核對 <small>把人事（或勞保局、健保署帳單）給的保費數字填進來，系統逐項對官方算法，對不上就說明差在哪</small></summary>
+      return `<details class="hr-det" open><summary>勞保、勞退、健保（合理員額代課教師）<small>系統已依「保險設定」的投保資料先算好（灰字＝系統預填）；人事或帳單的數字不一樣就直接改，系統會說明差在哪</small></summary>
       <div class="set-tbl"><table class="hr-tbl"><thead><tr><th>姓名</th>${HR_FIELDS.map(x => `<th>${x[1]}</th>`).join("")}<th>自付小計</th><th>單位小計</th></tr></thead>
       <tbody>${T.rows.map(r => `<tr><td>${esc(r.name)}</td>${HR_FIELDS.map(([k, label, ck]) => cell(r.name, k, ck, r.cells[k])).join("")}${subc(r.empV, r.empS)}${subc(r.erV, r.erS)}</tr>`).join("")}
       <tr class="tot"><td>合計</td>${HR_FIELDS.map(([k]) => subc(T.tot[k].v, T.tot[k].sys)).join("")}${subc(T.tot.empV, T.tot.empS)}${subc(T.tot.erV, T.tot.erS)}</tr></tbody></table></div>
       <div class="mrow set-act">${RO ? "" : `<button class="btn" type="button" id="hrSave" ${ready ? "" : "disabled"}>儲存核對</button>`}
-        <span class="set-msg" id="hrMsg">${T.bad ? `✗ 有 ${T.bad} 人的數字和系統不一致（紅框），原因在上面的檢查` : T.filled ? `✓ 已填 ${T.filled} 人，全部和系統一致` : "空白＝不核對；填了會即時和系統比對，小計、合計也一起對"}${savedAt ? `　｜已存：${esc(savedAt)}${savedBy ? "（" + esc(savedBy) + "）" : ""}` : ""}</span></div>
-      <p class="hint" style="margin:6px 0 0">自付小計＝勞保自付＋健保自付（老師實際被扣的）；單位小計＝勞保單位（含職災）＋勞退＋健保單位（機關補助）。按「儲存核對」寫進資料表「人事保費核對」分頁（人事數字和系統數字並列），有不一致會先問。結帳時也會一起存進月結紀錄。</p></details>`; })() : ""}
+        ${RO ? "" : `<button class="btn ghost small" type="button" id="hrConfirm" ${T.autoN ? "" : "disabled"}>預填的都正確（全部確認）</button><button class="btn ghost small" type="button" id="hrReset">全部改回系統預填</button>`}
+        <span class="set-msg" id="hrMsg">${T.bad ? `✗ 有 ${T.bad} 人的數字和系統不一致（紅框），原因在上面的檢查` : T.autoN === T.cellN ? "全部是系統預填（灰字），請對照人事資料，不一樣的直接改" : T.autoN ? `已確認 ${T.cellN - T.autoN} 格，還有 ${T.autoN} 格是系統預填` : "✓ 全部已確認，和系統一致"}${savedAt ? `　｜已存：${esc(savedAt)}${savedBy ? "（" + esc(savedBy) + "）" : ""}` : ""}</span></div>
+      <p class="hint" style="margin:6px 0 0">灰字＝系統預填（投保資料改了會自動重算）；改過或按「全部確認」就變成確定的數字（綠框＝和系統一樣，紅框＝不一樣）。把格子清空就回到系統預填。自付小計＝勞保自付＋健保自付（老師實際被扣的）；單位小計＝勞保單位（含職災）＋勞退＋健保單位（機關補助）。按「儲存核對」寫進資料表「人事保費核對」分頁（人事數字和系統數字並列），有不一致會先問。結帳時也會一起存進月結紀錄。</p></details>`; })() : ""}
     <ul class="chk-list">${C.map(x => `<li class="${x.lv}"><i>${CHECK_ICON[x.lv]}</i><span>${esc(x.text)}</span></li>`).join("")}</ul>
     <div class="mrow set-act">
       <button class="btn ghost small" type="button" id="chkRun">重新檢查</button>
@@ -2157,16 +2166,19 @@ function renderChecks(ym){
       ${RO ? "" : `<span class="set-msg" id="chkMsg">${!ready ? "（後端還沒更新到新版，月結先不能存）" : blocking.length ? `還有 ${blocking.length} 項要處理才能結帳` : closed ? "" : "檢查通過，送會計後按「本月結帳」鎖定本月數字"}</span>`}</div>`;
   if(!RO && $("#hrSave")) $("#hrSave").onclick = async () => {
     const T = hrInsTable(ym, H), f = v => Number(v).toLocaleString("zh-TW");
-    if(!T.filled) return toast("還沒填任何人事數字");
+
     const problems = reportChecks(ym).filter(x => x.k === "hrins" && x.lv === "err").map(x => x.text);
     if(problems.length && !confirm(`⚠ 有 ${problems.length} 項和系統不一致：\n\n${problems.map(t => "・" + t).join("\n\n")}\n\n仍要把人事的數字存起來嗎？（會標成「不一致」，可以先存再請人事確認）`)) return;
-    const rows = T.rows.filter(r => r.filled).map(r => { const o = {name: r.name, sys: {}}; HR_FIELDS.forEach(([k]) => { if(r.cells[k].v != null) o[k] = r.cells[k].v; o.sys[k] = r.cells[k].sys; }); o.ok = r.bad ? "不一致" : "一致"; return o; });
+    const rows = T.rows.map(r => { const o = {name: r.name, sys: {}}; HR_FIELDS.forEach(([k]) => { if(r.cells[k].v != null) o[k] = r.cells[k].v; o.sys[k] = r.cells[k].sys; });
+      o.ok = r.bad ? "不一致" : !r.edited ? "系統預填（人事未確認）" : r.autoKeys.length ? "一致（預填：" + r.autoKeys.join(",") + "）" : "一致"; return o; });
     $("#hrSave").disabled = true; $("#hrMsg").textContent = "儲存中…";
     try{ const d = await apiPost({action:"hrins", name:state.cred.name, h:state.cred.h, ym, rows: JSON.stringify(rows)});
       if(!d.ok) throw new Error(d.error || "儲存失敗"); state.hrInsSaved = d.hrIns || state.hrInsSaved; if(state.hrIns) delete state.hrIns[ym];
-      toast(`已存 ${d.saved} 人的保費核對${d.bad ? `，${d.bad} 人不一致` : "，全部一致"}`); renderChecks(ym); const det = $("#checkBox .hr-det"); if(det) det.open = true; if(d.undoNo){ offerUndo(`已存 ${d.saved} 人的保費核對`, d.undoNo); } }
+      toast(`已存 ${d.saved} 人的勞健保${d.bad ? `，${d.bad} 人不一致` : ""}${T.autoN ? `（${T.autoN} 格是系統預填）` : ""}`); renderChecks(ym); const det = $("#checkBox .hr-det"); if(det) det.open = true; if(d.undoNo){ offerUndo(`已存 ${d.saved} 人的保費核對`, d.undoNo); } }
     catch(e){ $("#hrMsg").textContent = "✘ " + e.message; $("#hrSave").disabled = false; toast("儲存失敗：" + e.message); }
   };
+  if(!RO && $("#hrConfirm")) $("#hrConfirm").onclick = () => { const T = hrInsTable(ym, H); T.rows.forEach(r => r.autoKeys.forEach(k => saveHrIns(ym, r.name, k, r.cells[k].sys))); renderChecks(ym); toast("預填的數字都標成已確認，記得按「儲存核對」"); };
+  if(!RO && $("#hrReset")) $("#hrReset").onclick = () => { if(!confirm("把這個月的勞健保數字全部改回系統預填？（還沒按儲存前都可以再改）")) return; const o = hrInsOf(ym); Object.keys(o).forEach(n => delete o[n]); store.set("hrIns", JSON.stringify(state.hrIns)); renderChecks(ym); };
   if(!RO) box.querySelectorAll("[data-hr]").forEach(inp => { inp.onchange = () => { const v = inp.value.replace(/,/g,"").trim(); if(v && !/^\d+$/.test(v)){ toast("保費請填整數"); inp.value = ""; } const [n, k] = inp.dataset.hr.split("|"); saveHrIns(ym, n, k, inp.value.replace(/,/g,"").trim()); const open = $("#checkBox .hr-det").open; renderChecks(ym); if($("#checkBox .hr-det")) $("#checkBox .hr-det").open = open; }; });
   if(!RO) box.querySelectorAll("[data-si]").forEach(inp => { inp.onchange = () => { const v = inp.value.replace(/,/g,"").trim(); if(v && !/^\d+(\.5)?$/.test(v)){ toast("簽到表節數請填整數或 .5"); inp.value = ""; } saveSignin(ym, inp.dataset.si, inp.value.trim()); renderChecks(ym); }; });
   $("#chkRun").onclick = () => renderChecks(ym);
