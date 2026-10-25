@@ -290,6 +290,8 @@ details.settings>summary span{font-size:13px;color:var(--ink-3)}
 .acct .scroll{overflow-x:auto}
 .acct-cols.one{grid-template-columns:1fr}
 .acct-kpi .kk{display:block;font-size:12px;color:#C9DAE8;margin-top:2px}
+.live-box{margin-top:18px;border-top:2px solid var(--line);padding-top:14px}
+.live-box h3{margin:0 0 4px;font-size:15px}.live-box p{margin:4px 0 8px;font-size:13px;color:var(--ink-2)}.live-box .mrow{gap:8px}.live-box a.btn{text-decoration:none;display:inline-flex;align-items:center}
 .heli-panel{margin-top:18px;border-top:2px solid var(--line);padding-top:14px}
 .heli-panel h3 span{font-size:13px;font-weight:600;color:var(--ink-3)}
 .heli-warn{margin:8px 0 0;padding-left:18px;font-size:13px;color:var(--amber)}
@@ -1128,6 +1130,210 @@ var CF = (function () {
 
   return { dow: dow, md: md, busyAt: busyAt, leaveOn: leaveOn, swap: swap, sub: sub, tutor: tutor, free: free, checkAll: checkAll, asEvents: asEvents, offOf: offOf, audit: audit };
 })();
+/* ====== 鐘點費、合理員額、勞健保、扣款（網頁與 Apps Script 共用同一份程式，兩邊數字一定一樣） ======
+ * 網頁：heliOf／acctOf／insCalc 等都是這裡的薄包裝；Apps Script：產生「會計報表（即時）」試算表時用同一套。
+ * 規則（教務組、會計室 115.10.24 確認）：
+ *  ・合理員額代課教師依課表逐節：一般 1 節；合班且只有一位老師 1.5 節；與協同老師一起 1 節。每人每月加總後 .5 一律進位 × 每節代課費。
+ *  ・國定假日、颱風假照常計薪；其他停課不計並提醒。調課依實際上課日期；請假由別人代的那幾節不計本人，代課老師領原本那一節的節數（同樣加總後進位），列合理員額。
+ *  ・勞保普通事故 11.5%（就保者）＋就保 1%，勞工 20%、單位 70%，兩項各自四捨五入；職災全由單位負擔，投保薪資不低於最低工資；勞退 6%；
+ *    健保 5.17%（學校是投保單位才算）；補充保費 2.11%（學校不是健保投保單位且單次給付 ≥ 最低工資）；兼職所得 5%（單次 ≥ 起扣點）。
+ */
+/* ====== 鐘點費、合理員額、勞健保、扣款（網頁與 Apps Script 共用同一份程式，兩邊數字一定一樣） ======
+ * 網頁：heliOf／acctOf／insCalc 等都是這裡的薄包裝；Apps Script：產生「會計報表（即時）」試算表時用同一套。
+ * 規則（教務組、會計室 115.10.24 確認）：
+ *  ・合理員額代課教師依課表逐節：一般 1 節；合班且只有一位老師 1.5 節；與協同老師一起 1 節。每人每月加總後 .5 一律進位 × 每節代課費。
+ *  ・國定假日、颱風假照常計薪；其他停課不計並提醒。調課依實際上課日期；請假由別人代的那幾節不計本人，代課老師領原本那一節的節數（同樣加總後進位），列合理員額。
+ *  ・勞保普通事故 11.5%（就保者）＋就保 1%，勞工 20%、單位 70%，兩項各自四捨五入；職災全由單位負擔，投保薪資不低於最低工資；勞退 6%；
+ *    健保 5.17%（學校是投保單位才算）；補充保費 2.11%（學校不是健保投保單位且單次給付 ≥ 最低工資）；兼職所得 5%（單次 ≥ 起扣點）。
+ */
+var PAY = (function () {
+  var W = ["日", "一", "二", "三", "四", "五", "六"];
+  function dow(ymd) { var p = String(ymd).split("-").map(Number); return W[new Date(Date.UTC(p[0], p[1] - 1, p[2])).getUTCDay()]; }
+  function fmtMD(s) { var p = String(s).split("-"); return (+p[1]) + "/" + (+p[2]); }
+  function pad2(n) { return (n < 10 ? "0" : "") + n; }
+  function R0(v) { return Math.round(v + 1e-9); }
+  function payUnits(u) { return u > 0 ? Math.ceil(u - 1e-9) : 0; }                 // 進位到整數節（.5 一律進位；0 不變 -0）
+  function unitsText(u) { return Number.isInteger(u) ? String(u) : u.toFixed(1); }
+  function heliCls(cs) { return cs.length > 1 && cs.every(function (c) { return /^.甲$/.test(c); }) ? cs.map(function (c) { return c[0]; }).join("、") + "甲" : cs.join("、"); }
+  function isHeliSub(e, heli) { return e.type === "sub" && heli.indexOf(e.other) >= 0; }
+
+  /* ---- 勞健保 ---- */
+  function days(p, ym) {
+    if (!p) return 0;
+    if (+p.days > 0) return Math.min(30, +p.days);
+    var y = +ym.slice(0, 4), m = +ym.slice(5, 7), last = new Date(Date.UTC(y, m, 0)).getUTCDate();
+    var first = ym + "-01", end = ym + "-" + pad2(last);
+    if (p.from && p.from > end) return 0;
+    if (p.to && p.to < first) return 0;
+    var from = p.from && p.from > first ? p.from : first, to = p.to && p.to < end ? p.to : end;
+    if (from === first && to === end) return 30;
+    var d = Math.round((Date.UTC(+to.slice(0, 4), +to.slice(5, 7) - 1, +to.slice(8, 10)) - Date.UTC(+from.slice(0, 4), +from.slice(5, 7) - 1, +from.slice(8, 10))) / 864e5) + 1;
+    return Math.max(0, Math.min(30, d));
+  }
+  function laborEmp(c, L, d) { return R0(L * c.laborRate * c.empShare * d / 30) + R0(L * c.eiRate * c.empShare * d / 30); }
+  function laborEr(c, L, d) { return R0(L * c.laborRate * c.erShare * d / 30) + R0(L * c.eiRate * c.erShare * d / 30); }
+  function occEr(c, L, rate, d) { return R0(Math.max(L, c.minWage) * (rate / 100) * d / 30); }
+  function pensionEr(c, L, d) { return R0(L * c.pensionRate * d / 30); }
+  function nhiEmp(c, L, dep) { return L ? R0(L * c.nhiRate * c.nhiEmpShare) * (1 + Math.min(c.nhiMaxDep, dep || 0)) : 0; }
+  function nhiEr(c, L) { return L ? R0(L * c.nhiRate * c.nhiErShare * (1 + c.nhiAvgDep)) : 0; }
+  function suppFee(c, pay, nhiHere) { return !nhiHere && pay >= c.minWage ? R0(pay * c.suppRate) : 0; }
+  function taxWh(c, pay) { return pay >= c.taxFree ? R0(pay * c.taxRate) : 0; }
+  function ins(c, p, ym, pay) {
+    var d = p ? days(p, ym) : 0, L = p ? +p.labor || 0 : 0, P = p ? +p.pension || 0 : 0, N = p ? +p.nhi || 0 : 0;
+    var occ = p && p.occ ? +p.occ : c.occDefault;
+    var o = { days: d, labor: L, pension: P, nhi: N, occRate: occ, dep: p ? +p.dep || 0 : 0,
+      erLabor: L ? laborEr(c, L, d) : 0, erOcc: L ? occEr(c, L, occ, d) : 0, erPension: P ? pensionEr(c, P, d) : 0, erNhi: N && d ? nhiEr(c, N) : 0,
+      empLabor: L ? laborEmp(c, L, d) : 0, empNhi: N && d ? nhiEmp(c, N, p.dep) : 0, supp: suppFee(c, pay, !!N), tax: taxWh(c, pay) };
+    o.erLaborAll = o.erLabor + o.erOcc; o.erTotal = o.erLaborAll + o.erPension + o.erNhi; o.empTotal = o.empLabor + o.empNhi + o.supp + o.tax;
+    return o;
+  }
+
+  /* ---- 扣款調整 ---- */
+  function deductFor(deduct, heli, name, ym, book) {
+    var isH = heli.indexOf(name) >= 0;
+    return (deduct || []).filter(function (d) { return d.name === name && d.ym === ym && ((d.book || (isH ? "heli" : "acct")) === book); });
+  }
+  function deductSum(rows) { return rows.reduce(function (s, d) { return s + (+d.amount || 0); }, 0); }
+  function deductText(rows) { return rows.map(function (d) { return d.item + " " + (+d.amount).toLocaleString("zh-TW") + (d.note ? "（" + d.note + "）" : ""); }).join("、"); }
+
+  /* ---- 合理員額：某位老師每週的課 [{dow, p, classes, cls, subject, w, co}] ---- */
+  function slots(meta, T) {
+    var tt = meta.tt, tS = meta.tSlot, out = [];
+    Object.keys(tS).forEach(function (k) {
+      var s = k.split("|"), dw = s[0], p = s[1], who = s[2]; if (who !== T) return;
+      var classes = tS[k].slice();
+      var grade = Object.keys(tt).find(function (x) { var q = x.split("|"); return q[0] === dw && q[1] === p && /年級$/.test(q[2]) && tt[x].teachers.indexOf(T) >= 0; });
+      var base = (grade && tt[grade]) || tt[dw + "|" + p + "|" + classes[0]] || { subject: "", teachers: [T] };
+      var comb = !!grade || classes.length > 1;
+      out.push({ dow: dw, p: String(p), classes: classes, cls: heliCls(classes), subject: base.subject, w: comb && base.teachers.length === 1 ? 1.5 : 1, co: base.teachers.filter(function (t) { return t !== T; }) });
+    });
+    var di = function (d) { return "一二三四五六日".indexOf(d); };
+    return out.sort(function (a, b) { return di(a.dow) - di(b.dow) || (+a.p) - (+b.p); });
+  }
+  /* ---- 合理員額：某月份（ctx = {events, meta, heli, off, term, rateSub, rateComb}） ---- */
+  function heli(ctx, r, only) {
+    var all = ctx.events, heliList = only ? [only] : (ctx.heli || []), off = ctx.off || {}, warn = [], rateSub = ctx.rateSub;
+    var inTerm = function (d) { return !!d && (!ctx.term || (d >= ctx.term.from && d <= ctx.term.to)); };
+    var y = +r.slice(0, 4), m = +r.slice(5, 7), last = new Date(Date.UTC(y, m, 0)).getUTCDate(), dates = [];
+    for (var d = 1; d <= last; d++) { var s0 = r + "-" + pad2(d); if (inTerm(s0)) dates.push(s0); }
+    var offAt = function (date, p) { var o = off[date]; if (!o) return null; if (o.scope === "上午" && +p > 4) return null; if (o.scope === "下午" && +p < 5) return null; return o; };
+    var paidOff = function (o) { return o.kind === "國定假日" || o.kind === "颱風假"; };
+    var stOf = function (o) { return !o ? "self" : paidOff(o) ? "hol" : "off"; }, whyOf = function (o) { return !o ? "" : paidOff(o) ? o.name + "（照常計薪）" : o.name + "（" + (o.kind || "停課") + "）"; };
+    var seen = {}, swaps = all.filter(function (e) { return e.type === "swap" && !e.nofee; }).filter(function (e) { var k = [e.id, e.fromDate, e.fromPeriod, e.toDate, e.toPeriod].join("|"); if (seen[k]) return false; return (seen[k] = true); });
+    var heliW = function (e) { return (e.rate || rateSub) === rateSub ? 1 : 1.5; };
+    var T = heliList.map(function (name) {
+      var sl = slots(ctx.meta, name), L = [];
+      var slotAt = function (date, p) { return sl.find(function (s) { return s.dow === dow(date) && s.p === String(p); }); };
+      dates.forEach(function (date) { sl.filter(function (s) { return s.dow === dow(date); }).forEach(function (s) {
+        var o = offAt(date, s.p);
+        L.push({ date: date, p: s.p, cls: s.cls, subject: s.subject, w: s.w, st: stOf(o), why: whyOf(o) });
+      }); });
+      swaps.forEach(function (s) {
+        var me = s.teacher === name ? { fd: s.fromDate, fp: s.fromPeriod, td: s.toDate, tp: s.toPeriod }
+               : s.partner === name ? { fd: s.toDate, fp: s.toPeriod, td: s.fromDate, tp: s.fromPeriod } : null;
+        if (!me || !me.fd || !me.fp) return;
+        var slot = slotAt(me.fd, me.fp); if (!slot) return;
+        if (me.fd.indexOf(r) === 0) {
+          var x = L.find(function (l) { return l.date === me.fd && l.p === String(me.fp) && l.st === "self"; });
+          if (x) { x.st = "moved"; x.why = me.td && me.tp ? "調課（" + s.id + "）改到 " + fmtMD(me.td) + " 第" + me.tp + "節上" : "調課（" + s.id + "）"; }
+        }
+        if (me.td && me.tp && me.td.indexOf(r) === 0 && inTerm(me.td))
+          L.push({ date: me.td, p: String(me.tp), cls: slot.cls, subject: slot.subject, w: slot.w, st: stOf(offAt(me.td, me.tp)), why: "調課（" + s.id + "）：原 " + fmtMD(me.fd) + " 第" + me.fp + "節" + (offAt(me.td, me.tp) ? "；" + whyOf(offAt(me.td, me.tp)) : ""), swap: true });
+      });
+      var lv = all.filter(function (e) { return e.type === "leave" && e.who === name && e.date.indexOf(r) === 0; });
+      lv.filter(function (e) { return !e.nofee; }).concat(lv.filter(function (e) { return e.nofee; })).forEach(function (e) {
+        var x = L.find(function (l) { return l.date === e.date && l.p === String(e.period) && l.st === "self"; });
+        if (!x) { if (!e.nofee && !offAt(e.date, e.period)) warn.push(name + " " + fmtMD(e.date) + " 第" + e.period + "節的請假紀錄，對不到合理員額課表上的課（不影響本人金額，請確認）"); return; }
+        x.st = e.other ? "sub" : "none"; x.sub = e.other || ""; x.lt = e.leaveType || "";
+        x.why = e.other ? "請假（" + (e.leaveType || "未填假別") + "），由 " + e.other + " 代課" + (e.nofee ? "（不計費：" + (e.exempt || "不列入") + "）" : "") : "請假（" + (e.leaveType || "未填假別") + "），還沒安排代課";
+      });
+      L.sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : (+a.p) - (+b.p); });
+      var self = L.filter(function (l) { return l.st === "self" || l.st === "hol"; }), n1 = self.filter(function (l) { return l.w === 1; }).length, n15 = self.filter(function (l) { return l.w === 1.5; }).length;
+      var units = n1 + n15 * 1.5, pay = payUnits(units), cnt = function (st) { return L.filter(function (l) { return l.st === st; }).length; };
+      if (cnt("off")) warn.push(name + " 有 " + cnt("off") + " 節遇到停課（不是國定假日、颱風假），目前不計，請確認要不要照給");
+      return { name: name, slots: sl, weekly: sl.length, L: L, n1: n1, n15: n15, units: units, pay: pay, amt: pay * rateSub,
+               hol: cnt("hol"), off: cnt("off"), subN: cnt("sub"), none: cnt("none"), moved: cnt("moved") };
+    });
+    var subs = all.filter(function (e) { return isHeliSub(e, ctx.heli || []) && e.date.indexOf(r) === 0 && !e.nofee; }).sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : (+a.period || 0) - (+b.period || 0); });
+    var S = {};
+    subs.forEach(function (e) {
+      var t = T.find(function (x) { return x.name === e.other; }), l = t && t.L.find(function (x) { return x.date === e.date && x.p === String(e.period) && x.st === "sub" && x.sub === e.who; });
+      var w = l ? l.w : heliW(e), s = S[e.who] || (S[e.who] = { n1: 0, n15: 0, units: 0, list: [] });
+      if (!l) warn.push(e.who + " " + fmtMD(e.date) + " 第" + e.period + "節代 " + e.other + " 的課，對不到 " + e.other + " 的合理員額課表（暫以 " + w + " 節計，請確認）");
+      if (w === 1) s.n1++; else s.n15++;
+      s.units += w; s.list.push({ e: e, w: w, cls: l ? l.cls : e.cls, subject: l ? l.subject : (e.subject || "") });
+    });
+    Object.keys(S).forEach(function (n) { S[n].pay = payUnits(S[n].units); S[n].amt = S[n].pay * rateSub; });
+    T.forEach(function (t) { if (t.none) warn.push(t.name + " 有 " + t.none + " 節請假還沒安排代課"); });
+    var selfTotal = T.reduce(function (s, t) { return s + t.amt; }, 0), subTotal = Object.keys(S).reduce(function (s, n) { return s + S[n].amt; }, 0);
+    var g = {};
+    T.forEach(function (t) { t.L.forEach(function (l) { if (l.st === "self" || l.st === "hol") g["本人|" + t.name] = (g["本人|" + t.name] || 0) + l.w; }); });
+    Object.keys(S).forEach(function (n) { S[n].list.forEach(function (x) { g["代課|" + n] = (g["代課|" + n] || 0) + x.w; }); });
+    var lessonSum = Object.keys(g).reduce(function (s, k) { return s + payUnits(g[k]) * rateSub; }, 0);
+    return { T: T, S: S, subs: subs, warn: warn, selfTotal: selfTotal, subTotal: subTotal, total: selfTotal + subTotal, lessonSum: lessonSum,
+             units: T.reduce(function (s, t) { return s + t.units; }, 0), pay: T.reduce(function (s, t) { return s + t.pay; }, 0), selfN: T.reduce(function (s, t) { return s + t.n1 + t.n15; }, 0),
+             subPay: Object.keys(S).reduce(function (s, n) { return s + S[n].pay; }, 0) };
+  }
+  /* ---- 校內代課（公假等）：某月份（ctx = {events, heli, rateSub, rateTutor}） ---- */
+  function acct(ctx, r) {
+    var heliList = ctx.heli || [], rateSub = ctx.rateSub, rateTutor = ctx.rateTutor, T = {}, L = {};
+    var inM = ctx.events.filter(function (e) { return e.date.indexOf(r) === 0; });
+    var n = 0, fee = 0, days = 0, tfee = 0, voidN = 0, flagN = 0, fixN = 0, recSum = 0, heliN = 0, heliAmt = 0;
+    var who = function (name) { return T[name] || (T[name] = { b: 0, c: 0, d: 0, amt: 0, td: 0, tamt: 0, flags: 0 }); };
+    var lt = function (e) { var k = e.leaveType || "（未填假別）"; return L[k] || (L[k] = { n: 0, days: 0, amt: 0 }); };
+    var feeOf = function (e) { return e.nofee ? 0 : (e.type === "sub" || e.type === "leave") ? (e.rate || rateSub) : (e.type === "tutor" || e.type === "tutorLeave") ? (e.rate || rateTutor) * (+e.days || 1) : 0; };
+    inM.filter(function (e) { return e.type === "sub"; }).forEach(function (e) {
+      if (isHeliSub(e, heliList)) { if (!e.nofee) { heliN++; heliAmt += e.rate || rateSub; } return; }
+      if (e.fix) fixN++;
+      if (e.nofee) { voidN++; return; }
+      var rate = e.rate || rateSub, t = who(e.who);
+      if (rate !== rateSub) t.d++; else if (heliList.indexOf(e.who) >= 0) t.c++; else t.b++;
+      t.amt += rate; n++; fee += rate; recSum += feeOf(e);
+      var x = lt(e); x.n++; x.amt += rate;
+      if ((e.flags || []).length) { t.flags++; flagN++; }
+    });
+    inM.filter(function (e) { return e.type === "tutor"; }).forEach(function (e) {
+      if (e.fix) fixN++;
+      if (e.nofee) { voidN++; return; }
+      var dd = +e.days || 1, t = who(e.who), rt = e.rate || rateTutor;
+      t.td += dd; t.tamt += rt * dd; days += dd; tfee += rt * dd; recSum += feeOf(e);
+      var x = lt(e); x.days += dd; x.amt += rt * dd;
+      if ((e.flags || []).length) { t.flags++; flagN++; }
+    });
+    var byTeacher = Object.keys(T).reduce(function (s, k) { return s + T[k].amt + T[k].tamt; }, 0), byLeave = Object.keys(L).reduce(function (s, k) { return s + L[k].amt; }, 0);
+    var unassigned = inM.filter(function (e) { return (e.type === "leave" || e.type === "tutorLeave") && !e.other; }).length;
+    return { T: T, L: L, n: n, fee: fee, days: days, tfee: tfee, total: fee + tfee, byTeacher: byTeacher, byLeave: byLeave, recSum: recSum, voidN: voidN, flagN: flagN, fixN: fixN, unassigned: unassigned, heliN: heliN, heliAmt: heliAmt };
+  }
+  /* ---- 印領清冊、明細用：把 heli() 的結果整理成「本人」「代課」各一組 [{kind, name, label, units, pay, amt, rows:[{date,p,cls,subject,owner,by,w,counted,note}]}] ---- */
+  function groups(H) {
+    var G = [];
+    H.T.forEach(function (t) { G.push({ kind: "本人", name: t.name, label: t.name + "（合理員額代課教師，" + t.weekly + "節/週）", units: t.units, pay: t.pay, amt: t.amt,
+      rows: t.L.filter(function (l) { return l.st !== "sub"; }).map(function (l) { var paid = l.st === "self" || l.st === "hol";
+        return { date: l.date, p: l.p, cls: l.cls, subject: l.subject, owner: t.name, by: paid ? t.name : "", w: l.w, counted: paid, note: paid ? (l.why || "") : l.why + "，不算" }; }) }); });
+    Object.keys(H.S).sort(function (a, b) { return a.localeCompare(b, "zh-Hant"); }).forEach(function (n) { var s = H.S[n];
+      G.push({ kind: "代課", name: n, label: n + "（代合理員額教師課）", units: s.units, pay: s.pay, amt: s.amt,
+        rows: s.list.map(function (x) { var e = x.e; return { date: e.date, p: String(e.period), cls: x.cls, subject: x.subject, owner: e.other, by: n, w: x.w, counted: true,
+          note: [e.other + " 請假（" + (e.leaveType || "未填假別") + "），由 " + n + " 代課；領 " + e.other + " 原本這一節的 " + x.w + " 節"].concat(e.flags || [], e.fix ? ["管理者已修正（" + e.fix.text + "）"] : []).filter(Boolean).join("；") }; }) }); });
+    return G;
+  }
+  /* ---- 新臺幣大寫 ---- */
+  function bigNum(n) {
+    var D = "零壹貳參肆伍陸柒捌玖", U = ["", "拾", "佰", "仟"], W = ["", "萬", "億"];
+    n = Math.round(+n || 0); if (!n) return "零元整";
+    var out = "", wi = 0, zero = false;
+    while (n > 0) {
+      var part = n % 10000, s = "", z = false;
+      for (var i = 0; i < 4 && part > 0; i++) { var d = part % 10; if (d) { s = D[d] + U[i] + (z ? "零" : "") + s; z = false; } else if (s) z = true; part = Math.floor(part / 10); }
+      if (s) out = s + W[wi] + (zero ? "零" : "") + out;
+      zero = (n % 10000) < 1000 && Math.floor(n / 10000) > 0 && (n % 10000) > 0;
+      n = Math.floor(n / 10000); wi++;
+    }
+    return out + "元整";
+  }
+  return { groups: groups, bigNum: bigNum, dow: dow, fmtMD: fmtMD, payUnits: payUnits, unitsText: unitsText, heliCls: heliCls, isHeliSub: isHeliSub,
+           days: days, ins: ins, laborEmp: laborEmp, laborEr: laborEr, occEr: occEr, pensionEr: pensionEr, nhiEmp: nhiEmp, nhiEr: nhiEr, suppFee: suppFee, taxWh: taxWh,
+           deductFor: deductFor, deductSum: deductSum, deductText: deductText, slots: slots, heli: heli, acct: acct };
+})();
 
 /* ---------- 呼叫後端 ---------- */
 const DEMO = location.search.includes("demo=1");          // 只有網址加 ?demo=1 才是示範模式
@@ -1397,6 +1603,7 @@ function applyData(d){
   if(d.offRows) state.offRows = d.offRows; if(d.settings) applySettings(d.settings);   // 費率等設定（管理者可在網站改）
   if(d.closes) state.closes = d.closes;                                                // 月結紀錄（報帳前檢查用）
   state.deduct = d.deduct || [];                                                      // 扣款調整（出納、會計填的）
+  state.liveUrl = d.liveUrl || "";                                                    // 會計報表（即時）Google 試算表（管理者、會計）
   if(d.hrIns){ state.hrInsSaved = d.hrIns; state.hrIns = null; }                      // 已存的人事保費核對（以資料表為準，重讀時蓋掉暫存）
   state.fixes = d.fixes || []; state.leaveTypes = d.leaveTypes || null;
   renderReports();
@@ -2953,19 +3160,7 @@ $("#printTable").onclick = () => {
 $("#printCal").onclick = () => window.print();
 
 /* ---------- 每月簽收單（管理者）：第一頁全校簽收總表，後面每位老師一頁明細＋簽名 ---------- */
-function bigNum(n){
-  const D = "零壹貳參肆伍陸柒捌玖", U = ["","拾","佰","仟"], W = ["","萬","億"];
-  n = Math.round(+n||0); if(!n) return "零元整";
-  let out = "", wi = 0, zero = false;
-  while(n > 0){
-    let part = n % 10000, s = "", z = false;
-    for(let i = 0; i < 4 && part > 0; i++){ const d = part % 10; if(d){ s = D[d] + U[i] + (z ? "零" : "") + s; z = false; } else if(s) z = true; part = Math.floor(part/10); }
-    if(s) out = s + W[wi] + (zero ? "零" : "") + out;
-    zero = (n % 10000) < 1000 && Math.floor(n/10000) > 0 && (n % 10000) > 0;
-    n = Math.floor(n/10000); wi++;
-  }
-  return out + "元整";
-}
+const bigNum = PAY.bigNum;
 async function allEvents(){                       // 管理者正在看某位老師時，另外讀全校資料
   if(isAll()) return state.events;
   busy(true);
@@ -3036,7 +3231,20 @@ function renderMonthly(){
         <button class="btn ghost" type="button" id="hExcel">合理員額 Excel（可填扣款）</button>
         <button class="btn" type="button" id="hLedger">會計總帳 Excel（全部工作表）</button></div>
       <div class="acct" id="heliBox" aria-live="polite"></div></div>` : ""}
+    <div class="live-box"><h3>會計報表（即時）Google 試算表</h3>
+      <p>程式自己維護的一份試算表：每個月一個分頁（總表、合理員額印領清冊、校內代課印領清冊、代理導師費、逐節明細、保險計算、要確認的事項），資料一變動約一分鐘內自動重算，數字和這個網站、會計總帳 Excel 同一套算法。會計隨時可以開、可以下載成 Excel；月結歸檔的鎖定版另存在雲端硬碟「會計報表」資料夾。</p>
+      <div class="mrow">${state.liveUrl ? `<a class="btn" href="${esc(state.liveUrl)}" target="_blank" rel="noopener">開啟會計報表（即時）</a>` : `<span class="hint">還沒建立（後端自動處理第一次跑完就會出現；也可以按右邊「立即更新」）</span>`}
+        <button class="btn ghost" type="button" id="liveNow">${state.role === "admin" ? "立即更新（整份重建）" : "立即更新"}</button><span id="liveMsg" class="hint"></span></div>
+      ${state.role === "admin" ? `<p class="hint">要讓會計看得到：在雲端硬碟把這份試算表「共用」給會計的 Google 帳號（網站不會自動公開）。</p>` : ""}</div>
     <div class="acct" id="checkBox" aria-live="polite"></div></div>`;
+  $("#liveNow").onclick = async () => {
+    const b = $("#liveNow"), m = $("#liveMsg"); b.disabled = true; m.textContent = "更新中（約 10～60 秒）…";
+    try{ const d = await apiPost({action:"live", name:state.cred.name, h:state.cred.h});
+      if(!d.ok) throw new Error(d.error || "更新失敗");
+      state.liveUrl = d.url || state.liveUrl; m.textContent = d.skipped ? "資料沒有變動，試算表已是最新" : `已更新 ${d.written || 0} 個月份的分頁`;
+      if(d.url && !$(".live-box a")){ renderMonthly(); toast("會計報表（即時）已建立"); }
+    }catch(err){ m.textContent = "更新失敗：" + err.message; }
+    finally{ b.disabled = false; } };
   $("#mSel").onchange = () => { renderAcct($("#mSel").value); renderHeli($("#mSel").value); renderChecks($("#mSel").value); setRange($("#mSel").value, "mSel"); };
   if(state.range && months.includes(state.range) && $("#mSel").value !== state.range) $("#mSel").value = state.range;
   renderAcct($("#mSel").value); renderHeli($("#mSel").value); renderChecks($("#mSel").value);
@@ -3047,34 +3255,7 @@ function renderMonthly(){
   $("#mAcctX").onclick = () => acctExcel($("#mSel").value);
 }
 /* 會計總覽：選定月份的金額，依老師、依假別；同一份資料用三種方式加總互相核對 */
-function acctOf(evs, r){
-  const heli = state.heli || [], T = {}, L = {};
-  const inM = evs.filter(e => e.date.startsWith(r));
-  let n = 0, fee = 0, days = 0, tfee = 0, voidN = 0, flagN = 0, fixN = 0, recSum = 0, heliN = 0, heliAmt = 0;
-  const who = name => (T[name] ||= {b:0, c:0, d:0, amt:0, td:0, tamt:0, flags:0});
-  const lt = e => (L[e.leaveType || "（未填假別）"] ||= {n:0, days:0, amt:0});
-  inM.filter(e => e.type==="sub").forEach(e => {
-    if(isHeliSub(e)){ if(!e.nofee){ heliN++; heliAmt += e.rate || RATE_SUB; } return; }   // 代合理員額教師課：列在合理員額那一項
-    if(e.fix) fixN++;
-    if(e.nofee){ voidN++; return; }
-    const rate = e.rate || RATE_SUB, t = who(e.who);
-    if(rate !== RATE_SUB) t.d++; else if(heli.includes(e.who)) t.c++; else t.b++;
-    t.amt += rate; n++; fee += rate; recSum += feeOf(e);
-    const x = lt(e); x.n++; x.amt += rate;
-    if((e.flags||[]).length){ t.flags++; flagN++; }
-  });
-  inM.filter(e => e.type==="tutor").forEach(e => {
-    if(e.fix) fixN++;
-    if(e.nofee){ voidN++; return; }
-    const dd = +e.days || 1, t = who(e.who);
-    t.td += dd; t.tamt += RATE_TUTOR * dd; days += dd; tfee += RATE_TUTOR * dd; recSum += feeOf(e);
-    const x = lt(e); x.days += dd; x.amt += RATE_TUTOR * dd;
-    if((e.flags||[]).length){ t.flags++; flagN++; }
-  });
-  const byTeacher = Object.values(T).reduce((s,t) => s + t.amt + t.tamt, 0), byLeave = Object.values(L).reduce((s,x) => s + x.amt, 0);
-  const unassigned = inM.filter(e => (e.type==="leave" || e.type==="tutorLeave") && !e.other).length;
-  return {T, L, n, fee, days, tfee, total: fee + tfee, byTeacher, byLeave, recSum, voidN, flagN, fixN, unassigned, heliN, heliAmt};
-}
+function acctOf(evs, r){ return PAY.acct({events: evs, heli: state.heli || [], rateSub: RATE_SUB, rateTutor: RATE_TUTOR}, r); }   // 算法在 PAY（和 Apps Script 共用）
 function renderAcct(r){
   const box = $("#acctBox"); if(!box) return;
   applySettingsAt(r);
@@ -3115,90 +3296,12 @@ function renderAcct(r){
  *  ・調課：那一節改到調整後的日期算。
  *  ・請假由別人代課：那一節不算本人，由代課老師領「這位老師原本那一節」的節數（1 或 1.5 節，和公假那份的單價規則無關），
  *    每人每月同樣加總後進位；列在合理員額自己的工作表，不列入公假那份（教務組 10/24）。 */
-const isHeliSub = e => e.type === "sub" && (state.heli || []).includes(e.other);
-const heliCls = cs => cs.length > 1 && cs.every(c => /^.甲$/.test(c)) ? cs.map(c => c[0]).join("、") + "甲" : cs.join("、");
-const heliW = e => (e.rate || RATE_SUB) === RATE_SUB ? 1 : 1.5;                // 對不到課表時才用：代課紀錄 608 元＝1.5 節
-const heliPay = u => u > 0 ? Math.ceil(u - 1e-9) : 0;                           // 進位到整數節（0 不要變成 -0）
-const unitsText = u => Number.isInteger(u) ? String(u) : u.toFixed(1);
-/* 某位合理員額教師每週的課：[{dow, p, cls, subject, w(1 或 1.5), co(協同老師)}] */
-function heliSlots(T){
-  const tt = state.meta.tt, tS = state.meta.tSlot, out = [];
-  Object.keys(tS).forEach(k => {
-    const [dw, p, who] = k.split("|"); if(who !== T) return;
-    const classes = tS[k].slice();
-    const grade = Object.keys(tt).find(x => { const s = x.split("|"); return s[0]===dw && s[1]===p && /年級$/.test(s[2]) && tt[x].teachers.includes(T); });
-    const base = (grade && tt[grade]) || tt[dw+"|"+p+"|"+classes[0]] || {subject:"", teachers:[T]};
-    const comb = !!grade || classes.length > 1;
-    out.push({dow: dw, p: String(p), classes, cls: heliCls(classes), subject: base.subject, w: comb && base.teachers.length === 1 ? 1.5 : 1, co: base.teachers.filter(t => t !== T)});
-  });
-  const di = d => "一二三四五六日".indexOf(d);
-  return out.sort((a,b) => di(a.dow) - di(b.dow) || (+a.p) - (+b.p));
-}
-/* 某月份的合理員額鐘點費：每位老師逐節（本人上、放假、調走、請假別人代）＋代合理員額教師課 */
-function heliOf(all, r, only){
-  const heli = only ? [only] : (state.heli || []), off = state.off || {}, warn = [];
-  const [y, m] = r.split("-").map(Number), last = new Date(y, m, 0).getDate(), days = [];
-  for(let d = 1; d <= last; d++){ const s = `${r}-${String(d).padStart(2,"0")}`; if(inTerm(s)) days.push(s); }
-  const dowOf = s => DOW[new Date(s+"T00:00:00").getDay()];
-  const offAt = (date, p) => { const o = off[date]; if(!o) return null; if(o.scope==="上午" && +p > 4) return null; if(o.scope==="下午" && +p < 5) return null; return o; };
-  const paidOff = o => o.kind === "國定假日" || o.kind === "颱風假";        // 照常給薪（教務組 10/24）
-  const stOf = o => !o ? "self" : paidOff(o) ? "hol" : "off", whyOf = o => !o ? "" : paidOff(o) ? `${o.name}（照常計薪）` : `${o.name}（${o.kind || "停課"}）`;
-  const seen = {}, swaps = all.filter(e => e.type==="swap" && !e.nofee).filter(e => { const k = [e.id, e.fromDate, e.fromPeriod, e.toDate, e.toPeriod].join("|"); if(seen[k]) return false; return (seen[k] = true); });
-  const T = heli.map(name => {
-    const slots = heliSlots(name), L = [];
-    const slotAt = (date, p) => slots.find(s => s.dow === dowOf(date) && s.p === String(p));
-    days.forEach(date => slots.filter(s => s.dow === dowOf(date)).forEach(s => {
-      const o = offAt(date, s.p);
-      L.push({date, p: s.p, cls: s.cls, subject: s.subject, w: s.w, st: stOf(o), why: whyOf(o)});
-    }));
-    swaps.forEach(s => {
-      const me = s.teacher === name ? {fd: s.fromDate, fp: s.fromPeriod, td: s.toDate, tp: s.toPeriod}
-               : s.partner === name ? {fd: s.toDate, fp: s.toPeriod, td: s.fromDate, tp: s.fromPeriod} : null;
-      if(!me || !me.fd || !me.fp) return;
-      const sl = slotAt(me.fd, me.fp); if(!sl) return;                        // 不是合理員額課表上的課
-      if(me.fd.startsWith(r)){
-        const x = L.find(l => l.date===me.fd && l.p===String(me.fp) && l.st==="self");
-        if(x){ x.st = "moved"; x.why = me.td && me.tp ? `調課（${s.id}）改到 ${fmtMD(me.td)} 第${me.tp}節上` : `調課（${s.id}）`; }
-      }
-      if(me.td && me.tp && me.td.startsWith(r) && inTerm(me.td))
-        L.push({date: me.td, p: String(me.tp), cls: sl.cls, subject: sl.subject, w: sl.w, st: stOf(offAt(me.td, me.tp)), why: `調課（${s.id}）：原 ${fmtMD(me.fd)} 第${me.fp}節` + (offAt(me.td, me.tp) ? "；" + whyOf(offAt(me.td, me.tp)) : ""), swap: true});
-    });
-    const lv = all.filter(e => e.type==="leave" && e.who===name && e.date.startsWith(r));
-    [...lv.filter(e => !e.nofee), ...lv.filter(e => e.nofee)].forEach(e => {   // 不計費的（重複登錄、另案經費）放後面：重複的不會誤報
-      const x = L.find(l => l.date===e.date && l.p===String(e.period) && l.st==="self");
-      if(!x){ if(!e.nofee && !offAt(e.date, e.period)) warn.push(`${name} ${fmtMD(e.date)} 第${e.period}節的請假紀錄，對不到合理員額課表上的課（不影響本人金額，請確認）`); return; }
-      x.st = e.other ? "sub" : "none"; x.sub = e.other || ""; x.lt = e.leaveType || "";
-      x.why = e.other ? `請假（${e.leaveType||"未填假別"}），由 ${e.other} 代課${e.nofee ? "（不計費：" + (e.exempt || "不列入") + "）" : ""}` : `請假（${e.leaveType||"未填假別"}），還沒安排代課`;
-    });
-    L.sort((a,b) => a.date.localeCompare(b.date) || (+a.p) - (+b.p));
-    const self = L.filter(l => l.st==="self" || l.st==="hol"), n1 = self.filter(l => l.w===1).length, n15 = self.filter(l => l.w===1.5).length;
-    const units = n1 + n15 * 1.5, pay = heliPay(units), cnt = st => L.filter(l => l.st===st).length;
-    if(cnt("off")) warn.push(`${name} 有 ${cnt("off")} 節遇到停課（不是國定假日、颱風假），目前不計，請確認要不要照給`);
-    return {name, slots, weekly: slots.length, L, n1, n15, units, pay, amt: pay * RATE_SUB,
-            hol: cnt("hol"), off: cnt("off"), subN: cnt("sub"), none: cnt("none"), moved: cnt("moved")};
-  });
-  /* 代合理員額教師課：請假的是這四位、由別人代課 → 這幾節的代課費列在合理員額 */
-  const subs = all.filter(e => isHeliSub(e) && e.date.startsWith(r) && !e.nofee).sort((a,b) => a.date.localeCompare(b.date) || (+a.period||0) - (+b.period||0));
-  const S = {};
-  subs.forEach(e => {
-    const t = T.find(x => x.name === e.other), l = t && t.L.find(x => x.date===e.date && x.p===String(e.period) && x.st==="sub" && x.sub===e.who);
-    const w = l ? l.w : heliW(e), s = (S[e.who] ||= {n1:0, n15:0, units:0, list:[]});   // 原本那一節算幾節，代課老師就領幾節
-    if(!l) warn.push(`${e.who} ${fmtMD(e.date)} 第${e.period}節代 ${e.other} 的課，對不到 ${e.other} 的合理員額課表（暫以 ${w} 節計，請確認）`);
-    if(w === 1) s.n1++; else s.n15++;
-    s.units += w; s.list.push({e, w, cls: l ? l.cls : e.cls, subject: l ? l.subject : (e.subject || "")});
-  });
-  Object.values(S).forEach(s => { s.pay = heliPay(s.units); s.amt = s.pay * RATE_SUB; });
-  T.forEach(t => { if(t.none) warn.push(`${t.name} 有 ${t.none} 節請假還沒安排代課`); });
-  const selfTotal = T.reduce((s,t) => s + t.amt, 0), subTotal = Object.values(S).reduce((s,x) => s + x.amt, 0);
-  /* 核對用：從逐節明細重算（每人節數加總 → 進位 → ×405） */
-  const g = {};
-  T.forEach(t => t.L.forEach(l => { if(l.st==="self" || l.st==="hol") g["本人|"+t.name] = (g["本人|"+t.name] || 0) + l.w; }));
-  Object.keys(S).forEach(n => S[n].list.forEach(x => { g["代課|"+n] = (g["代課|"+n] || 0) + x.w; }));
-  const lessonSum = Object.values(g).reduce((s,u) => s + heliPay(u) * RATE_SUB, 0);
-  return {T, S, subs, warn, selfTotal, subTotal, total: selfTotal + subTotal, lessonSum,
-          units: T.reduce((s,t) => s + t.units, 0), pay: T.reduce((s,t) => s + t.pay, 0), selfN: T.reduce((s,t) => s + t.n1 + t.n15, 0),
-          subPay: Object.values(S).reduce((s,x) => s + x.pay, 0)};
-}
+const isHeliSub = e => PAY.isHeliSub(e, state.heli || []);
+const heliCls = PAY.heliCls, heliPay = PAY.payUnits, unitsText = PAY.unitsText;
+/* 某位合理員額教師每週的課：[{dow, p, cls, subject, w(1 或 1.5), co(協同老師)}]（算法在 PAY，和 Apps Script 共用） */
+function heliSlots(T){ return PAY.slots(state.meta, T); }
+/* 某月份的合理員額鐘點費：每位老師逐節（本人上、放假、調走、請假別人代）＋代合理員額教師課（算法在 PAY） */
+function heliOf(all, r, only){ return PAY.heli({events: all, meta: state.meta, heli: state.heli || [], off: state.off || {}, term: state.term, rateSub: RATE_SUB, rateComb: RATE_COMB}, r, only); }
 /* 課表要先讀好（管理者登入後在背景讀） */
 async function ensureMeta(){
   if(state.meta) return state.meta;
@@ -3249,18 +3352,7 @@ function renderHeli(r){
     <p class="hint" style="margin:8px 0 0">規則：${heliRule()}</p>`;
 }
 /* 逐節明細（列印、Excel 共用）：依領錢的人分組，每組最後一列是「加總 → 進位 → ×405」 */
-function heliGroups(H){
-  const G = [];
-  H.T.forEach(t => G.push({kind: "本人", name: t.name, label: `${t.name}（合理員額代課教師，${t.weekly}節/週）`, units: t.units, pay: t.pay, amt: t.amt,
-    rows: t.L.filter(l => l.st !== "sub").map(l => { const paid = l.st==="self" || l.st==="hol";
-      return {date: l.date, p: l.p, cls: l.cls, subject: l.subject, owner: t.name, by: paid ? t.name : "", w: l.w, counted: paid,
-        note: paid ? (l.why || "") : `${l.why}，不算`}; })}));
-  Object.keys(H.S).sort((a,b) => a.localeCompare(b, "zh-Hant")).forEach(n => { const s = H.S[n];
-    G.push({kind: "代課", name: n, label: `${n}（代合理員額教師課）`, units: s.units, pay: s.pay, amt: s.amt,
-      rows: s.list.map(({e, w, cls, subject}) => ({date: e.date, p: String(e.period), cls, subject, owner: e.other, by: n, w, counted: true,
-        note: [`${e.other} 請假（${e.leaveType || "未填假別"}），由 ${n} 代課；領 ${e.other} 原本這一節的 ${w} 節`, ...(e.flags||[]), e.fix ? "管理者已修正（" + e.fix.text + "）" : ""].filter(Boolean).join("；")}))}); });
-  return G;
-}
+function heliGroups(H){ return PAY.groups(H); }   // 算法在 PAY（和 Apps Script 共用）
 const rocDate = s => { const d = new Date(s+"T00:00:00"); return `${d.getFullYear()-1911}/${String(d.getMonth()+1).padStart(2,"0")}/${String(d.getDate()).padStart(2,"0")}`; };
 async function heliData(r, only){
   const all = only && !isAll() ? state.events : await allEvents(); if(!only) await ensureMeta();
@@ -3620,40 +3712,22 @@ const INS = {
   suppRate: 0.0211, minWage: 29500, taxRate: 0.05, taxFree: 90501
 };
 const R0 = v => Math.round(v + 1e-9);
-function insDays(p, ym){
-  if(p.days > 0) return Math.min(30, +p.days);
-  const [y, m] = ym.split("-").map(Number), last = new Date(y, m, 0).getDate();
-  const first = `${ym}-01`, end = `${ym}-${String(last).padStart(2,"0")}`;
-  if(p.from && p.from > end) return 0;
-  if(p.to && p.to < first) return 0;
-  const from = p.from && p.from > first ? p.from : first, to = p.to && p.to < end ? p.to : end;
-  if(from === first && to === end) return 30;
-  const d = Math.round((new Date(to+"T00:00:00") - new Date(from+"T00:00:00")) / 864e5) + 1;
-  return Math.max(0, Math.min(30, d));
-}
-const laborEmp = (L, d) => R0(L * INS.laborRate * INS.empShare * d / 30) + R0(L * INS.eiRate * INS.empShare * d / 30);
-const laborEr  = (L, d) => R0(L * INS.laborRate * INS.erShare * d / 30) + R0(L * INS.eiRate * INS.erShare * d / 30);
-const occEr    = (L, rate, d) => R0(Math.max(L, INS.minWage) * (rate / 100) * d / 30);
-const pensionEr= (L, d) => R0(L * INS.pensionRate * d / 30);
-const nhiEmp   = (L, dep) => L ? R0(L * INS.nhiRate * INS.nhiEmpShare) * (1 + Math.min(INS.nhiMaxDep, dep || 0)) : 0;
-const nhiEr    = L => L ? R0(L * INS.nhiRate * INS.nhiErShare * (1 + INS.nhiAvgDep)) : 0;
-const suppFee  = (pay, nhiHere) => !nhiHere && pay >= INS.minWage ? R0(pay * INS.suppRate) : 0;
-const taxWh    = pay => pay >= INS.taxFree ? R0(pay * INS.taxRate) : 0;
-function insCalc(p, ym, pay){
-  const d = p ? insDays(p, ym) : 0, L = p ? +p.labor || 0 : 0, P = p ? +p.pension || 0 : 0, N = p ? +p.nhi || 0 : 0;
-  const occ = p && p.occ ? +p.occ : INS.occDefault;
-  const o = { days: d, labor: L, pension: P, nhi: N, occRate: occ, dep: p ? +p.dep || 0 : 0,
-    erLabor: L ? laborEr(L, d) : 0, erOcc: L ? occEr(L, occ, d) : 0, erPension: P ? pensionEr(P, d) : 0, erNhi: N && d ? nhiEr(N) : 0,
-    empLabor: L ? laborEmp(L, d) : 0, empNhi: N && d ? nhiEmp(N, p.dep) : 0, supp: suppFee(pay, !!N), tax: taxWh(pay) };
-  o.erLaborAll = o.erLabor + o.erOcc; o.erTotal = o.erLaborAll + o.erPension + o.erNhi; o.empTotal = o.empLabor + o.empNhi + o.supp + o.tax;
-  return o;
-}
+/* 以下都是 PAY 的薄包裝（費率取自 INS；算法和 Apps Script 共用） */
+function insDays(p, ym){ return PAY.days(p, ym); }
+const laborEmp = (L, d) => PAY.laborEmp(INS, L, d);
+const laborEr  = (L, d) => PAY.laborEr(INS, L, d);
+const occEr    = (L, rate, d) => PAY.occEr(INS, L, rate, d);
+const pensionEr= (L, d) => PAY.pensionEr(INS, L, d);
+const nhiEmp   = (L, dep) => PAY.nhiEmp(INS, L, dep);
+const nhiEr    = L => PAY.nhiEr(INS, L);
+const suppFee  = (pay, nhiHere) => PAY.suppFee(INS, pay, nhiHere);
+const taxWh    = pay => PAY.taxWh(INS, pay);
+function insCalc(p, ym, pay){ return PAY.ins(INS, p, ym, pay); }
 const insOf = name => (state.ins || []).find(p => p.name === name) || null;
 /* 扣款調整：某人某月、某本清冊（acct＝校內代課、heli＝合理員額）要扣的項目；帳別空白＝合理員額教師扣在合理員額，其他人扣在校內代課 */
 const exSyncOn = () => !!(state.settings && state.settings.EXCEL_SYNC === "on");   // 資料來源：on＝雲端 .xlsx 每分鐘匯入；off（預設）＝以分頁為準
-function deductFor(name, ym, book){ const heli = (state.heli || []).includes(name); return (state.deduct || []).filter(d => d.name === name && d.ym === ym && ((d.book || (heli ? "heli" : "acct")) === book)); }
-const deductSum = rows => rows.reduce((s, d) => s + (+d.amount || 0), 0);
-const deductText = rows => rows.map(d => `${d.item} ${(+d.amount).toLocaleString("zh-TW")}${d.note ? "（" + d.note + "）" : ""}`).join("、");
+function deductFor(name, ym, book){ return PAY.deductFor(state.deduct || [], state.heli || [], name, ym, book); }
+const deductSum = PAY.deductSum, deductText = PAY.deductText;
 
 /* ================================================================
  * 合理員額：印領清冊（本人、代課分開；本人那張接「保險計算」工作表）＋逐節明細
