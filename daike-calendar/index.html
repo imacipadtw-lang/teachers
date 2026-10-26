@@ -4665,69 +4665,70 @@ function buildAcctRange(K, months){
   ws.getCell(row,1).value = `註：1. 節數依課表逐節計算，明細見「節數細目」：單一班級 1 節；合班（兩個班以上一起上）而且只有這位老師上課，每節 1.5 節；合班但有協同老師一起上，每節 1 節。2. 每人每月節數加總後有 .5 一律進位成整數節（例 27.5→28），再乘以每節 ${RATE_SUB} 元；跨月時各月分別進位後相加。3. 國定假日、颱風假，課表上的課照常計算、照常給薪；請假由別人代的那幾節不算本人，由代課老師領原本那一節的節數（列「代課他人」）。4. 本表機關補助、應扣項目留白，由勞保承辦人依實際投保資料填寫。`;
   ws.getCell(row,1).font = font({size:9}); ws.getCell(row,1).alignment = {wrapText:true, vertical:"top"}; ws.getRow(row).height = 52;
   K.sig(ws, row + 2, NCq, [["製表員",1,3],["出納員",4,5],["勞保承辦人",6,8],["總務主任",9,11],["人事管理員",12,14],["會計主任",15,17],["校長",18,19]]);
-  // ---------- 每週課表（計算方式）：每位合理員額教師的課表，哪幾節算 1.5、哪幾節算 1 ----------
-  const s0 = wb.addWorksheet("每週課表（1節／1.5節）", {pageSetup: Object.assign({}, page, {orientation:"landscape"})});
-  const DAYS = ["一","二","三","四","五"], NC0 = 7;
-  s0.columns = [8,20,20,20,20,20,30].map(w => ({width:w}));
-  K.title(s0, NC0, `合理員額代課教師每週課表與節數計算方式（${monTxt}月適用）`, period);
-  let y0 = 5;
+  // ---------- 每人一張工作表：合理員額教師先放「每週課表（1 節／1.5 節）」，下面接逐節細目；代課老師只有逐節細目 ----------
+  const DAYS = ["一","二","三","四","五"], NCs = 12;
   const C15 = {type:"pattern", pattern:"solid", fgColor:{argb:"FFFCE4D6"}}, C1 = {type:"pattern", pattern:"solid", fgColor:{argb:"FFFFFFFF"}}, CX = {type:"pattern", pattern:"solid", fgColor:{argb:"FFF2F2F2"}};
-  (state.heli || []).forEach(T => {
-    const SL = heliSlots(T); if(!SL.length) return;
-    const n1 = SL.filter(x => x.w === 1).length, n15 = SL.filter(x => x.w === 1.5).length, maxP = Math.max(...SL.map(x => +x.p), 4);
-    s0.mergeCells(y0, 1, y0, NC0);
-    s0.getCell(y0, 1).value = `${T} 老師（每週 ${SL.length} 節）　每週應計：一般 ${n1} 節 × 1 ＋ 合班 ${n15} 節 × 1.5 ＝ ${unitsText(n1 + n15 * 1.5)} 節`;
-    s0.getCell(y0, 1).font = font({bold:true, size:12}); s0.getCell(y0, 1).fill = HEAD; y0++;
-    s0.getRow(y0).values = ["節次", ...DAYS.map(d => `星期${d}`), "說明"]; s0.getRow(y0).eachCell(c => { c.font = font({bold:true, size:10}); c.alignment = center; c.fill = HEAD; }); const top = y0; y0++;
-    for(let p = 1; p <= maxP; p++){
-      const R = s0.getRow(y0); R.getCell(1).value = `第${p}節`;
-      const notes = [];
-      DAYS.forEach((d, i) => { const x = SL.find(z => z.dow === d && z.p === String(p)), c = R.getCell(2 + i);
-        if(x){ const co = (x.co || []).length; c.value = `${x.subject}\n${x.cls}\n${x.w === 1.5 ? "算 1.5 節" : "算 1 節"}`; c.fill = x.w === 1.5 ? C15 : C1; c.font = font({size:10, bold: x.w === 1.5});
-          notes.push(`週${d}：${x.w === 1.5 ? `${x.cls}合班、只有 ${T} 上課 → 1.5` : /、|年級/.test(x.cls) ? `${x.cls}合班、和協同老師 ${(x.co || []).join("、")} 一起上 → 1` : `${x.cls}單班 → 1`}`); }
-        else { c.value = ""; c.fill = CX; }
-        c.alignment = {horizontal:"center", vertical:"middle", wrapText:true}; });
-      R.getCell(NC0).value = notes.join("；"); R.getCell(NC0).font = font({size:9}); R.getCell(NC0).alignment = {wrapText:true, vertical:"middle"};
-      R.getCell(1).font = font({bold:true, size:10}); R.getCell(1).alignment = center; R.height = 46; y0++;
-    }
-    boxAll(s0, top, 1, y0 - 1, NC0); y0 += 1;
-  });
-  s0.mergeCells(y0, 1, y0, NC0);
-  s0.getCell(y0, 1).value = `計算原則：單一班級每節 1 節；兩個班以上合班上課而且只有這位老師上，每節 1.5 節（淡橘色格）；合班但有協同老師一起上，每節 1 節。每月把當月實際上課（含國定假日、颱風假照常計薪）的節數加總，有 .5 進位成整數節，乘以每節 ${RATE_SUB} 元。請假由別人代的節次不算本人、由代課老師領原本那一節的節數。逐日逐節的明細見「節數細目」。`;
-  s0.getCell(y0, 1).font = font({size:10}); s0.getCell(y0, 1).alignment = {wrapText:true, vertical:"top"}; s0.getRow(y0).height = 48;
-  // ---------- 節數細目 ----------
-  const NCd = 12, s2 = wb.addWorksheet("節數細目", {pageSetup: Object.assign({printTitlesRow:"4:4"}, page, {orientation:"landscape"}), views:[{state:"frozen", ySplit:4}]});
-  s2.columns = [5,10,11,5,5,10,12,9,9,7,8,40].map(w => ({width:w}));
-  K.title(s2, NCd, `${monTxt}月合理員額鐘點費 節數細目（哪幾節算 1 節、哪幾節算 1.5 節）`, period);
-  K.head(s2, 4, ["序","類別","日期","星期","節次","班級","科目","原任課教師","上課教師","算幾節","計入節數","為什麼這樣算／狀態"]);
-  let q = 5, k = 0;
+  const used = new Set(["印領清冊", "法規依據"]);
   D.list.forEach(g => {
-    s2.mergeCells(q, 1, q, NCd); s2.getCell(q,1).value = `${g.name}${g.heli ? "（合理員額代課教師）" : ""}`; s2.getCell(q,1).font = font({bold:true, size:12}); s2.getCell(q,1).fill = HEAD; q++;
+    let nm = g.name.replace(/[\\\/?*\[\]:]/g, "").slice(0, 28) || "老師"; while(used.has(nm)) nm += "_"; used.add(nm);
+    const ws2 = wb.addWorksheet(nm, {pageSetup: Object.assign({}, page, {orientation:"landscape"})});
+    ws2.columns = [6,10,11,6,7,11,12,10,10,8,8,40].map(w => ({width:w}));
+    K.title(ws2, NCs, `${g.name}　${monTxt}月合理員額鐘點費計算明細（哪幾節算 1 節、哪幾節算 1.5 節）`, period);
+    let y = 5;
+    const band = (text, size) => { ws2.mergeCells(y, 1, y, NCs); const c = ws2.getCell(y, 1); c.value = text; c.font = font({bold:true, size: size || 12}); c.fill = HEAD; c.alignment = {vertical:"middle", wrapText:true}; ws2.getRow(y).height = 24; y++; };
+    // 1) 每週課表（只有合理員額教師）
+    const SL = g.heli ? heliSlots(g.name) : [];
+    if(SL.length){
+      const n1 = SL.filter(x => x.w === 1).length, n15 = SL.filter(x => x.w === 1.5).length, maxP = Math.max(...SL.map(x => +x.p), 4);
+      band(`一、每週課表（每週 ${SL.length} 節）：一般 ${n1} 節 × 1 ＋ 合班 ${n15} 節 × 1.5 ＝ 每週 ${unitsText(n1 + n15 * 1.5)} 節（淡橘色＝算 1.5 節）`);
+      // 課表用第 1～12 欄：節次(1-2) 星期一～五 各兩欄(3-12)
+      ws2.mergeCells(y, 1, y, 2); ws2.getCell(y, 1).value = "節次";
+      DAYS.forEach((d, i) => { ws2.mergeCells(y, 3 + i * 2, y, 4 + i * 2); ws2.getCell(y, 3 + i * 2).value = `星期${d}`; });
+      for(let c = 1; c <= NCs; c++){ const cell = ws2.getCell(y, c); cell.font = font({bold:true, size:10}); cell.alignment = center; cell.fill = HEAD; }
+      const top = y; y++;
+      const notes = [];
+      for(let p = 1; p <= maxP; p++){
+        ws2.mergeCells(y, 1, y, 2); ws2.getCell(y, 1).value = `第${p}節`; ws2.getCell(y, 1).font = font({bold:true, size:10}); ws2.getCell(y, 1).alignment = center;
+        DAYS.forEach((d, i) => { const x = SL.find(z => z.dow === d && z.p === String(p)), c0 = 3 + i * 2; ws2.mergeCells(y, c0, y, c0 + 1); const c = ws2.getCell(y, c0);
+          if(x){ c.value = `${x.subject}　${x.cls}\n${x.w === 1.5 ? "算 1.5 節" : "算 1 節"}`; c.fill = x.w === 1.5 ? C15 : C1; c.font = font({size:10, bold: x.w === 1.5});
+            notes.push(`週${d}第${p}節 ${x.cls} ${x.subject}：${x.w === 1.5 ? `合班、只有 ${g.name} 上課 → 1.5 節` : /、|年級/.test(x.cls) ? `合班、和協同老師 ${(x.co || []).join("、")} 一起上 → 1 節` : "單一班級 → 1 節"}`); }
+          else { c.value = ""; c.fill = CX; }
+          c.alignment = {horizontal:"center", vertical:"middle", wrapText:true}; });
+        ws2.getRow(y).height = 34; y++;
+      }
+      boxAll(ws2, top, 1, y - 1, NCs);
+      ws2.mergeCells(y, 1, y, NCs); ws2.getCell(y, 1).value = "說明：" + notes.join("；"); ws2.getCell(y, 1).font = font({size:9}); ws2.getCell(y, 1).alignment = {wrapText:true, vertical:"top"}; ws2.getRow(y).height = Math.max(30, Math.ceil(notes.join("；").length / 90) * 15); y += 2;
+    }
+    // 2) 逐節細目
+    band(`${SL.length ? "二、" : ""}逐節細目（${monTxt}月實際上課；灰字＝不計）`);
+    ws2.getRow(y).values = ["序","類別","日期","星期","節次","班級","科目","原任課教師","上課教師","算幾節","計入節數","為什麼這樣算／狀態"];
+    ws2.getRow(y).eachCell(c => { c.font = font({bold:true, size:10}); c.alignment = center; c.fill = HEAD; }); const top2 = y; y++;
+    let k = 0;
     ["本人","代課他人"].forEach(kind => {
-      const rows = g.rows.filter(x => x.kind === kind).sort((x, y) => x.date.localeCompare(y.date) || (+x.p) - (+y.p)); if(!rows.length) return;
+      const rows = g.rows.filter(x => x.kind === kind).sort((a, b) => a.date.localeCompare(b.date) || (+a.p) - (+b.p)); if(!rows.length) return;
       const o = kind === "本人" ? g.own : g.sub;
       rows.forEach(x => {
-        const R = s2.getRow(q);
+        const R = ws2.getRow(y);
         R.values = [++k, kind, rocDate(x.date), DOW[new Date(x.date + "T00:00:00").getDay()], `第${x.p}節`, x.cls, x.subj, x.owner, x.by || "—", x.w, x.counted ? x.w : 0, x.rule + "；" + x.note];
-        R.eachCell({includeEmpty:true}, (c, cc) => { if(cc <= NCd){ c.font = font({size:10, color: x.counted ? undefined : {argb:"FF888888"}, bold: cc === 10 && x.w === 1.5}); c.alignment = cc === NCd ? {wrapText:true, vertical:"middle"} : {horizontal:"center", vertical:"middle"}; if(cc === 10 || cc === 11) c.numFmt = "General"; if(cc === 10 && x.w === 1.5) c.fill = {type:"pattern", pattern:"solid", fgColor:{argb:"FFFCE4D6"}}; } });
-        q++;
+        R.eachCell({includeEmpty:true}, (c, cc) => { if(cc <= NCs){ c.font = font({size:10, color: x.counted ? undefined : {argb:"FF888888"}, bold: cc === 10 && x.w === 1.5}); c.alignment = cc === NCs ? {wrapText:true, vertical:"middle"} : {horizontal:"center", vertical:"middle"}; if(cc === 10 || cc === 11) c.numFmt = "General"; if(cc === 10 && x.w === 1.5) c.fill = C15; } });
+        y++;
       });
       o.m.forEach(m => {
-        s2.mergeCells(q, 1, q, 10);
-        s2.getCell(q,1).value = `${g.name}　${+m.ym.slice(5)}月${kind}小計：一般 ${m.n1} 節 × 1 ＋ 合班 ${m.n15} 節 × 1.5 ＝ ${unitsText(m.units)} 節${Number.isInteger(m.units) ? "" : `，進位 → ${m.pay} 節`}`;
-        s2.getCell(q,11).value = m.pay; s2.getCell(q,12).value = `${m.pay} 節 × ${RATE_SUB} ＝ ${f(m.amt)} 元`;
-        s2.getRow(q).eachCell({includeEmpty:true}, (c, cc) => { if(cc <= NCd){ c.font = font({bold:true, size:10}); c.fill = TOT; c.alignment = cc === 1 ? {horizontal:"left"} : {horizontal:"center"}; } });
-        q++;
+        ws2.mergeCells(y, 1, y, 10);
+        ws2.getCell(y, 1).value = `${+m.ym.slice(5)}月${kind}小計：一般 ${m.n1} 節 × 1 ＋ 合班 ${m.n15} 節 × 1.5 ＝ ${unitsText(m.units)} 節${Number.isInteger(m.units) ? "" : `，進位 → ${m.pay} 節`}`;
+        ws2.getCell(y, 11).value = m.pay; ws2.getCell(y, 12).value = `${m.pay} 節 × ${RATE_SUB} ＝ ${f(m.amt)} 元`;
+        ws2.getRow(y).eachCell({includeEmpty:true}, (c, cc) => { if(cc <= NCs){ c.font = font({bold:true, size:10}); c.fill = TOT; c.alignment = cc === 1 ? {horizontal:"left"} : {horizontal:"center"}; } });
+        y++;
       });
     });
-    s2.mergeCells(q, 1, q, NCd); s2.getCell(q,1).value = `${g.name} 合計：${g.own.pay ? `本人 ${g.own.pay} 節 ${f(g.own.amt)} 元` : ""}${g.own.pay && g.sub.pay ? "＋" : ""}${g.sub.pay ? `代課他人 ${g.sub.pay} 節 ${f(g.sub.amt)} 元` : ""}＝${f(g.own.amt + g.sub.amt)} 元（共 ${g.own.pay + g.sub.pay} 節）`;
-    s2.getCell(q,1).font = font({bold:true, color:{argb:"FF1E5AA0"}}); q++;
+    boxAll(ws2, top2, 1, y - 1, NCs);
+    ws2.mergeCells(y, 1, y, NCs);
+    ws2.getCell(y, 1).value = `${g.name} 合計：${g.own.pay ? `本人 ${g.own.pay} 節 ${f(g.own.amt)} 元` : ""}${g.own.pay && g.sub.pay ? "＋" : ""}${g.sub.pay ? `代課他人 ${g.sub.pay} 節 ${f(g.sub.amt)} 元` : ""}＝${f(g.own.amt + g.sub.amt)} 元（共 ${g.own.pay + g.sub.pay} 節）＝「印領清冊」${g.name}的小計(A)`;
+    ws2.getCell(y, 1).font = font({bold:true, size:12, color:{argb:"FF1E5AA0"}}); ws2.getRow(y).height = 24; y += 2;
+    ws2.mergeCells(y, 1, y, NCs);
+    ws2.getCell(y, 1).value = `計算原則：單一班級每節 1 節；兩個班以上合班上課而且只有這位老師上，每節 1.5 節（淡橘色）；合班但有協同老師一起上，每節 1 節。每月實際上課（含國定假日、颱風假照常計薪）節數加總，有 .5 進位成整數節，乘以每節 ${RATE_SUB} 元；請假由別人代的節次不算本人，由代課老師領原本那一節的節數。`;
+    ws2.getCell(y, 1).font = font({size:9}); ws2.getCell(y, 1).alignment = {wrapText:true, vertical:"top"}; ws2.getRow(y).height = 36;
   });
-  boxAll(s2, 4, 1, q - 1, NCd);
-  s2.mergeCells(q + 1, 1, q + 1, NCd);
-  s2.getCell(q + 1, 1).value = `核對：全部合計 ${f(totA)} 元＝「印領清冊」小計(A)。淡橘色格＝算 1.5 節；灰字＝不計（請假由別人代、調走），列出來方便和簽到表對照。`;
-  s2.getCell(q + 1, 1).font = font({bold:true});
-  // 節數細目最後一列「核對」用公式：細目計入金額合計 = 清冊 A
   return {totA, D, tr, monTxt};
 }
 async function acctRangeExcel(from, to){
