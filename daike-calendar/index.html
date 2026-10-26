@@ -3616,7 +3616,7 @@ function renderMonthly(){
         <button class="btn" type="button" id="hPrint">合理員額印領清冊（列印／PDF）</button>
         <button class="btn ghost" type="button" id="hExcel">合理員額試算表（雲端）</button>
         <button class="btn" type="button" id="hLedger">會計總帳（雲端試算表，全部工作表）</button></div>
-      <div class="mrow acct-range"><span class="si-t">會計對照表（可跨月、勞健保空白給護理師填；逐節列出 1 節／1.5 節）</span>
+      <div class="mrow acct-range"><span class="si-t">會計對照表（可跨月；計算明細 A4 一頁＋每人逐節 1 節／1.5 節）</span>
         <select id="arFrom" aria-label="開始月份">${months.map(v => `<option value="${v}" ${v===months[0]?"selected":""}>${+v.slice(0,4)-1911} 年 ${+v.slice(5)} 月</option>`).join("")}</select>
         <span>到</span>
         <select id="arTo" aria-label="結束月份">${months.map(v => `<option value="${v}" ${v===pick?"selected":""}>${+v.slice(0,4)-1911} 年 ${+v.slice(5)} 月</option>`).join("")}</select>
@@ -3985,6 +3985,7 @@ function bigPrint(wb){
     if(typeof v === "number"){ const f = String(c.numFmt || ""); return f.indexOf("0.00") >= 0 ? v.toFixed(2) : f.indexOf("0.0") >= 0 ? v.toFixed(1) : Math.round(v).toLocaleString("en-US"); }
     return v == null ? "" : String(v); };
   wb.eachSheet(ws => {
+    if(ws.__fixed) return;                                                // 已經自己排好一頁的（例：A4 計算明細表）不動
     const n = ws.columnCount; if(!n) return;
     const W = []; for(let c = 1; c <= n; c++) W[c] = ws.getColumn(c).width || 9;
     const merges = Object.values(ws._merges || {}).map(m => m.model || m);
@@ -4620,6 +4621,47 @@ function buildAcctRange(K, months){
   const all = state.events, D = acctRangeData(all, months), f = v => Number(v || 0).toLocaleString("zh-TW");
   const a = periodOf(months[0]), z = periodOf(months[months.length - 1]);
   const monTxt = a.mon === z.mon && a.y === z.y ? `${a.mon}` : `${a.mon}-${z.mon}`, period = `${a.rocY}/${a.mm}/01－${z.rocY}/${z.mm}/${z.last}`;
+  // ---------- 計算明細（A4 一頁）：給會計看總帳怎麼算出來——每人哪些課算 1 節、哪些算 1.5 節、進位 ----------
+  {
+    const NA = 11, sm = wb.addWorksheet("計算明細（A4一頁）", {pageSetup: {paperSize:9, orientation:"landscape", fitToPage:true, fitToWidth:1, fitToHeight:1, horizontalCentered:true, margins:{left:.5, right:.5, top:.45, bottom:.45, header:.2, footer:.2}}});
+    sm.__fixed = true;
+    const CW = [4,7,9,44,30,6,6,7,8,10,39]; sm.columns = CW.map(w => ({width:w}));
+    K.title(sm, NA, `${monTxt}月合理員額教師鐘點費　計算明細表（會計核對用）`, period);
+    K.head(sm, 4, ["序","姓名","類別","算 1 節的課（班級 科目 × 節數）","算 1.5 節的課（合班一人上）","一般\n節數","合班\n節數","合計\n節數","請領節數\n（進位）",`金額\n（×${RATE_SUB}）`,"說明（假日、請假代課、進位）"]);
+    sm.getRow(4).height = 34;
+    const grp = rows => { const m = {}; rows.forEach(x => { const k = `${x.cls} ${x.subj}${x.w === 1 && /、|年級/.test(x.cls) ? "（有協同老師）" : ""}`; m[k] = (m[k] || 0) + 1; }); return Object.entries(m).map(([k, n]) => `${k} ×${n}`).join("；"); };
+    let y = 5, k = 0, T = {n1:0, n15:0, units:0, pay:0, amt:0}; const top = 4;
+    D.list.forEach(g => {
+      ["本人","代課他人"].forEach(kind => {
+        const o = kind === "本人" ? g.own : g.sub; if(!o.pay && !o.units) return;
+        const rows = g.rows.filter(x => x.kind === kind), cnt = rows.filter(x => x.counted);
+        const r1 = cnt.filter(x => x.w === 1), r15 = cnt.filter(x => x.w === 1.5);
+        const notes = [];
+        const hol = cnt.filter(x => /照常計薪/.test(x.note)); if(hol.length){ const by = {}; hol.forEach(x => { const d = `${rocDate(x.date).slice(4)}${x.note.replace(/（照常計薪）/, "")}`; by[d] = (by[d] || 0) + 1; }); notes.push("國定假日照常計薪：" + Object.entries(by).map(([d, n]) => `${d} ${n} 節`).join("、")); }
+        const off = rows.filter(x => !x.counted && /代課/.test(x.note)); if(off.length){ const by = {}; off.forEach(x => { const n = (x.note.match(/由 (\S+) 代課/) || [])[1] || "他人"; by[n] = (by[n] || 0) + x.w; }); notes.push(`請假 ${off.length} 節不計（由 ${Object.entries(by).map(([n, w]) => `${n} ${unitsText(w)}`).join("、")} 代課，列在代課老師）`); }
+        const mv = rows.filter(x => !x.counted && !/代課/.test(x.note)); if(mv.length) notes.push(`不計 ${mv.length} 節（調課或停課）`);
+        if(kind === "代課他人") notes.unshift(`代 ${[...g.owners].join("、")} 的課（合理員額經費）`);
+        o.m.filter(m => !Number.isInteger(m.units)).forEach(m => notes.push(`${+m.ym.slice(5)}月 ${unitsText(m.units)} 節進位為 ${m.pay} 節`));
+        if(o.m.length > 1) notes.push(o.m.map(m => `${+m.ym.slice(5)}月 ${m.pay} 節`).join("＋") + "（各月分別進位）");
+        const R = sm.getRow(y);
+        R.values = [++k, g.name, kind === "本人" ? "合理員額\n代課教師" : "代課他人", grp(r1) || "—", grp(r15) || "—", o.n1, o.n15, {formula: `F${y}+G${y}*1.5`, result: o.units}, o.pay, {formula: `I${y}*${RATE_SUB}`, result: o.amt}, notes.join("；") || "—"];
+        R.eachCell({includeEmpty:true}, (c, cc) => { if(cc <= NA){ c.font = font({size:10, bold: cc === 2 || cc === 9 || cc === 10}); c.alignment = [4,5,11].includes(cc) ? {wrapText:true, vertical:"middle"} : {horizontal:"center", vertical:"middle", wrapText:true}; if(cc === 8) c.numFmt = "0.0"; if(cc === 10) c.numFmt = NUM; if(cc === 5 && r15.length) c.fill = {type:"pattern", pattern:"solid", fgColor:{argb:"FFFCE4D6"}}; } });
+        const ln = (t, c) => Math.ceil([...String(t)].length / (CW[c - 1] / 1.95));
+        R.height = Math.max(28, 13.5 * Math.max(ln(grp(r1) || "—", 4), ln(grp(r15) || "—", 5), ln(notes.join("；") || "—", 11), 2) + 6);
+        T.n1 += o.n1; T.n15 += o.n15; T.units += o.units; T.pay += o.pay; T.amt += o.amt; y++;
+      });
+    });
+    const TR = sm.getRow(y);
+    TR.values = ["", "合計", `${D.list.length} 人`, "", "", {formula: `SUM(F5:F${y-1})`, result: T.n1}, {formula: `SUM(G5:G${y-1})`, result: T.n15}, {formula: `SUM(H5:H${y-1})`, result: T.units}, {formula: `SUM(I5:I${y-1})`, result: T.pay}, {formula: `SUM(J5:J${y-1})`, result: T.amt}, `＝印領清冊小計(A)＝會計總帳 ${f(T.amt)} 元`];
+    TR.eachCell({includeEmpty:true}, (c, cc) => { if(cc <= NA){ c.font = font({bold:true, size:11}); c.fill = TOT; c.alignment = {horizontal: cc === 11 ? "left" : "center", vertical:"middle", wrapText:true}; if(cc === 8) c.numFmt = "0.0"; if(cc === 10) c.numFmt = NUM; } });
+    TR.height = 26;
+    boxAll(sm, top, 1, y, NA); y++;
+    sm.mergeCells(y, 1, y, NA); sm.getCell(y, 1).value = `請領金額合計新臺幣（大寫）：${bigNum(T.amt)}`; sm.getCell(y, 1).font = font({bold:true, size:12}); sm.getRow(y).height = 24; y++;
+    sm.mergeCells(y, 1, y, NA);
+    sm.getCell(y, 1).value = `計算方式：1. 單一班級每節算 1 節；兩個班以上合班上課、而且只有這位老師上，每節算 1.5 節（淡橘色欄）；合班但有協同老師一起上，每節算 1 節。2. 合計節數＝一般節數 × 1 ＋ 合班節數 × 1.5；每人每月加總後有 .5 一律進位成整數節（例：27.5 → 28），跨月時各月分別進位後相加。3. 金額＝請領節數 × ${RATE_SUB} 元。4. 國定假日、颱風假，課表上的課照常計算、照常給薪；老師請假由別人代的節次不算本人，由代課老師領原本那一節的節數（1 或 1.5 節）。5. 每一節的日期、班級、上課老師見各人工作表。`;
+    sm.getCell(y, 1).font = font({size:9}); sm.getCell(y, 1).alignment = {wrapText:true, vertical:"top"}; sm.getRow(y).height = 54; y += 2;
+    K.sig(sm, y, NA, [["製表員",1,3],["出納員",4,4],["會計主任",5,7],["校長",8,11]]);
+  }
   // ---------- 印領清冊（會計對照用） ----------
   const NCq = 19, ws = wb.addWorksheet("印領清冊", {pageSetup: Object.assign({printTitlesRow:"4:5"}, page), views:[{state:"frozen", ySplit:5, xSplit:1}]});
   ws.columns = [10,9,11,9,10,11,8,8,8,11,8,8,8,8,8,8,9,11,34].map(w => ({width:w}));
@@ -4659,16 +4701,16 @@ function buildAcctRange(K, months){
   boxAll(ws, 4, 1, tr, NCq);
   row = tr + 1;
   ws.mergeCells(row, 1, row, 12); ws.getCell(row,1).value = `請領鐘點費合計新臺幣（大寫）：${bigNum(totA)}`; ws.getCell(row,1).font = font({bold:true, size:12});
-  ws.mergeCells(row, 13, row, NCq); ws.getCell(row,13).value = "淡黃格（勞保、勞退、健保、所得稅、補充保費、其他）由勞保承辦人填寫；填了請領、實領自動重算，實領大寫請依實領合計填寫"; ws.getCell(row,13).font = font({size:9, color:{argb:"FF666666"}}); ws.getCell(row,13).alignment = {wrapText:true};
+  ws.mergeCells(row, 13, row, NCq);
   ws.getRow(row).height = 30; row++;
   ws.mergeCells(row, 1, row, NCq);
-  ws.getCell(row,1).value = `註：1. 節數依課表逐節計算，明細見「節數細目」：單一班級 1 節；合班（兩個班以上一起上）而且只有這位老師上課，每節 1.5 節；合班但有協同老師一起上，每節 1 節。2. 每人每月節數加總後有 .5 一律進位成整數節（例 27.5→28），再乘以每節 ${RATE_SUB} 元；跨月時各月分別進位後相加。3. 國定假日、颱風假，課表上的課照常計算、照常給薪；請假由別人代的那幾節不算本人，由代課老師領原本那一節的節數（列「代課他人」）。4. 本表機關補助、應扣項目留白，由勞保承辦人依實際投保資料填寫。`;
+  ws.getCell(row,1).value = `註：1. 節數依課表逐節計算，明細見「節數細目」：單一班級 1 節；合班（兩個班以上一起上）而且只有這位老師上課，每節 1.5 節；合班但有協同老師一起上，每節 1 節。2. 每人每月節數加總後有 .5 一律進位成整數節（例 27.5→28），再乘以每節 ${RATE_SUB} 元；跨月時各月分別進位後相加。3. 國定假日、颱風假，課表上的課照常計算、照常給薪；請假由別人代的那幾節不算本人，由代課老師領原本那一節的節數（列「代課他人」）。`;
   ws.getCell(row,1).font = font({size:9}); ws.getCell(row,1).alignment = {wrapText:true, vertical:"top"}; ws.getRow(row).height = 52;
   K.sig(ws, row + 2, NCq, [["製表員",1,3],["出納員",4,5],["勞保承辦人",6,8],["總務主任",9,11],["人事管理員",12,14],["會計主任",15,17],["校長",18,19]]);
   // ---------- 每人一張工作表：合理員額教師先放「每週課表（1 節／1.5 節）」，下面接逐節細目；代課老師只有逐節細目 ----------
   const DAYS = ["一","二","三","四","五"], NCs = 12;
   const C15 = {type:"pattern", pattern:"solid", fgColor:{argb:"FFFCE4D6"}}, C1 = {type:"pattern", pattern:"solid", fgColor:{argb:"FFFFFFFF"}}, CX = {type:"pattern", pattern:"solid", fgColor:{argb:"FFF2F2F2"}};
-  const used = new Set(["印領清冊", "法規依據"]);
+  const used = new Set(["印領清冊", "法規依據", "計算明細（A4一頁）"]);
   D.list.forEach(g => {
     let nm = g.name.replace(/[\\\/?*\[\]:]/g, "").slice(0, 28) || "老師"; while(used.has(nm)) nm += "_"; used.add(nm);
     const ws2 = wb.addWorksheet(nm, {pageSetup: Object.assign({}, page, {orientation:"landscape"})});
@@ -4745,7 +4787,7 @@ async function acctRangeExcel(from, to){
     buildLawSheet(K);
     const z = periodOf(to);
     await K.cloud(`土城國小_${z.rocY}年${R.monTxt}月_合理員額鐘點費_會計對照表`, "heliAcct", to, win);
-    toast(`已開啟 ${R.monTxt} 月會計對照表（勞健保空白給護理師填）`);
+    toast(`已開啟 ${R.monTxt} 月會計對照表`);
   }catch(err){ cloudFail(win, "產生失敗：" + err.message); }
   finally{ busy(false); applySettingsAt($("#mSel") ? $("#mSel").value : to); }
 }
