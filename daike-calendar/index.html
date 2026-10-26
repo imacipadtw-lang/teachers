@@ -706,6 +706,8 @@ main{container-type:inline-size}
 .sheet + .sheet{break-before:page}
 .heli-sign table{table-layout:fixed}
 .heli-sign td.hs{vertical-align:top;height:64px;padding:3px 4px;text-align:left}
+.heli-sign td.hs{position:relative}
+.heli-sign td.hs .sg{position:absolute;right:3px;bottom:2px;font-size:9px;color:#888;line-height:1}
 .heli-sign td.x{background:linear-gradient(to top right,transparent calc(50% - .6px),#888 50%,transparent calc(50% + .6px)),#EEE}
 .heli-sign .lb{font-size:10px;line-height:1.25;color:#333;border-bottom:1px solid #999;padding-bottom:2px;margin-bottom:2px;white-space:normal;word-break:break-all}
 .heli-sign .lb b{display:inline-block;border:1px solid #000;border-radius:3px;padding:0 3px;margin-right:2px;font-size:9.5px;color:#000}
@@ -3955,7 +3957,7 @@ async function printHeliSign(r, only){
     const cell = (date, p) => {
       const ls = t.L.filter(l => l.date === date && l.p === p); if(!ls.length) return `<td class="x"></td>`;
       return `<td class="hs">${ls.map(l => `<div class="lb">${l.w === 1.5 ? "<b>1.5</b>" : ""}${esc(l.subject)}-${esc(l.cls)}</div>${
-        l.st==="self" ? (l.swap ? `<div class="nt">${esc(l.why)}</div>` : "") : `<div class="nt${l.st==="sub" ? " sb" : ""}">${esc(l.st==="sub" ? `由 ${l.sub} 代課（請代課老師簽名）` : l.st==="hol" ? `${l.why}，不用簽` : l.why)}</div>`}`).join("")}</td>`;
+        l.st==="self" ? (l.swap ? `<div class="nt">${esc(l.why)}</div>` : "") : `<div class="nt${l.st==="sub" ? " sb" : ""}">${esc(l.st==="sub" ? `由 ${l.sub} 代課` : l.st==="hol" ? `${l.why}，不用簽` : l.why)}</div>`}`).join("")}${(() => { const st = ls[0].st; return st === "self" ? `<span class="sg">（簽名）</span>` : st === "sub" ? `<span class="sg">（代課老師簽名）</span>` : ""; })()}</td>`;
     };
     return `<div class="sheet heli-sign"><h1>南投縣草屯鎮土城國民小學</h1>
       <p class="sub" style="font-size:15px;font-weight:700">${esc(t.name)}老師－國小合理教師員額代課教師（${t.weekly}節/週）${rocY}年${mon}月份簽到表</p>
