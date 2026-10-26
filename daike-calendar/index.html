@@ -4023,7 +4023,7 @@ function bigPrint(wb){
     let sig = false; ws.eachRow({includeEmpty:false}, row => row.eachCell({includeEmpty:false}, cell => { if(cell.value === "製表員") sig = true; }));
     if(ws.pageSetup){ if(ws.pageSetup.orientation === "portrait" && total > 110) ws.pageSetup.orientation = "landscape";
       if(sig && ws.rowCount <= 40) ws.pageSetup = Object.assign({}, ws.pageSetup, {fitToPage:true, fitToWidth:1, fitToHeight:1});   // 印領清冊連簽章欄印在同一頁
-      if(ws.pageSetup.margins) ws.pageSetup.margins = Object.assign({}, ws.pageSetup.margins, {left:.3, right:.3}); }
+      ws.pageSetup.margins = Object.assign({}, ws.pageSetup.margins || {}, {left:.5, right:.5}); }   // 左右留 0.5 吋，印表機才不會切到邊框
   });
 }
 async function toCloud(wb, kind, ym, title, win){
