@@ -4662,7 +4662,8 @@ function buildAcctRange(K, months){
     TR.height = 28;
     boxAll(sm, top, 1, y, NA); y++;
     line(y, `核支總額：新臺幣${bigNum(T.amt).replace(/整$/, "")}整（NT$${f(T.amt)}）`, {font:{size:15, bold:true}, h:30}); y++;
-    sm.getRow(y).addPageBreak();                                          // 核算說明、法令依據放第二頁，兩頁都用大字
+    if(k > 5) sm.getRow(y).addPageBreak();                                // 筆數多：核算說明、法令依據放第二頁，兩頁都用大字
+    else sm.pageSetup.fitToHeight = 1;                                    // 筆數少（例：8 月只有 1 筆）：整份一頁
     // 核算說明
     line(y, "核算說明", {font:{size:18, bold:true}, h:32}); y++;
     [ `一、節數認定：單一班級授課每節以 1 節計；跨班合班授課且由單一教師授課者，每節以 1.5 節計（表列淡橘色欄）；合班而由二位以上教師協同教學者，各以實際授課節數 1 節計。`,
