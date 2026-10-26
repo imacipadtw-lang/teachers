@@ -4623,16 +4623,17 @@ function buildAcctRange(K, months){
   const monTxt = a.mon === z.mon && a.y === z.y ? `${a.mon}` : `${a.mon}-${z.mon}`, period = `${a.rocY}/${a.mm}/01－${z.rocY}/${z.mm}/${z.last}`;
   // ---------- 核算明細表（A4 一頁，主計格式）：每人哪些課以 1 節計、哪些以 1.5 節計、折算、進位、核支金額，附核算說明與法令依據 ----------
   {
-    const NA = 11, sm = wb.addWorksheet("核算明細表（A4）", {pageSetup: {paperSize:9, orientation:"landscape", fitToPage:true, fitToWidth:1, fitToHeight:1, horizontalCentered:true, margins:{left:.5, right:.5, top:.4, bottom:.4, header:.2, footer:.2}}});
+    const NA = 11, sm = wb.addWorksheet("核算明細表（A4）", {pageSetup: {paperSize:9, orientation:"landscape", fitToPage:true, fitToWidth:1, fitToHeight:2, horizontalCentered:true, margins:{left:.35, right:.35, top:.35, bottom:.35, header:.15, footer:.15}}});
     sm.__fixed = true;
-    const CW = [5,7,10,42,30,7,7,9,9,10,38]; sm.columns = CW.map(w => ({width:w}));
+    const CW = [5,8,10,39,29,7,7,10,10,11,38]; sm.columns = CW.map(w => ({width:w}));
     const line = (r, text, opt) => { sm.mergeCells(r, 1, r, NA); const c = sm.getCell(r, 1); c.value = text; c.font = font(Object.assign({size:10}, opt && opt.font)); c.alignment = Object.assign({vertical:"middle", wrapText:true}, opt && opt.align); if(opt && opt.h) sm.getRow(r).height = opt.h; return c; };
-    line(1, "南投縣草屯鎮土城國民小學", {font:{size:16, bold:true}, align:{horizontal:"center"}, h:24});
-    line(2, `${a.rocY}年${monTxt}月合理員額代課教師鐘點費核算明細表`, {font:{size:14, bold:true}, align:{horizontal:"center"}, h:22});
-    line(3, `經費別：合理員額經費　　計薪期間：${period}　　單位：新臺幣元　　製表日期：${printedAt()}`, {font:{size:10}, align:{horizontal:"right"}, h:18});
-    K.head(sm, 4, ["編號","姓名","支領身分","以 1 節計之課程\n（單一班級，或合班有協同教師）","以 1.5 節計之課程\n（跨班合班、單一教師授課）","一般\n節數\n(A)","合班\n節數\n(B)","折算節數\n(C)\n＝A＋1.5B","核支節數\n(D)\nC 進位整數",`核支金額\n(E)\n＝D×${RATE_SUB}`,"備　　註"]);
-    sm.getRow(4).height = 54;
-    const grp = rows => { const m = {}; rows.forEach(x => { const k = `${x.cls} ${x.subj}${x.w === 1 && /、|年級/.test(x.cls) ? "（協同教學）" : ""}`; m[k] = (m[k] || 0) + 1; }); return Object.entries(m).map(([k, n]) => `${k} ${n} 節`).join("；"); };
+    line(1, "南投縣草屯鎮土城國民小學", {font:{size:20, bold:true}, align:{horizontal:"center"}, h:27});
+    line(2, `${a.rocY}年${monTxt}月合理員額代課教師鐘點費核算明細表`, {font:{size:17, bold:true}, align:{horizontal:"center"}, h:24});
+    line(3, `經費別：合理員額經費　　計薪期間：${period}　　單位：新臺幣元　　製表日期：${printedAt()}`, {font:{size:12}, align:{horizontal:"right"}, h:20});
+    K.head(sm, 4, ["編號","姓名","支領身分","以 1 節計之課程\n（單一班級，或合班有協同教師）","以 1.5 節計之課程\n（跨班合班、單一教師授課）","一般\n節數\n(A)","合班\n節數\n(B)","折算節數\n(C)\nA＋1.5B","核支節數\n(D)\nC 進位",`核支金額\n(E)\nD×${RATE_SUB}`,"備　　註"]);
+    sm.getRow(4).eachCell(c => { c.font = font({bold:true, size:12}); }); sm.getRow(4).height = 72;
+    const grp = rows => { const m = {}; rows.forEach(x => { const sj = `${x.subj}${x.w === 1 && /、|年級/.test(x.cls) ? "（協同）" : ""}`; m[sj] = m[sj] || {}; m[sj][x.cls] = (m[sj][x.cls] || 0) + 1; });
+      return Object.entries(m).map(([sj, c]) => `${sj}：${Object.entries(c).map(([cl, n]) => `${cl} ${n}`).join("／")} 節`).join("；"); };
     const md = d => `${+d.slice(5,7)}/${+d.slice(8,10)}`;
     let y = 5, k = 0, T = {n1:0, n15:0, units:0, pay:0, amt:0}; const top = 4;
     D.list.forEach(g => {
@@ -4640,38 +4641,39 @@ function buildAcctRange(K, months){
         const o = kind === "本人" ? g.own : g.sub; if(!o.pay && !o.units) return;
         const rows = g.rows.filter(x => x.kind === kind), cnt = rows.filter(x => x.counted);
         const r1 = cnt.filter(x => x.w === 1), r15 = cnt.filter(x => x.w === 1.5), notes = [];
-        if(kind === "代課他人") notes.push(`代理 ${[...g.owners].join("、")} 請假課務，依原排節數核計`);
-        const hol = cnt.filter(x => /照常計薪/.test(x.note)); if(hol.length){ const by = {}; hol.forEach(x => { const d = `${md(x.date)}${x.note.replace(/（照常計薪）/, "")}`; by[d] = (by[d] || 0) + 1; }); notes.push("國定假日照常核計：" + Object.entries(by).map(([d, n]) => `${d} ${n} 節`).join("、")); }
-        const off = rows.filter(x => !x.counted && /代課/.test(x.note)); if(off.length){ const by = {}; off.forEach(x => { const n = (x.note.match(/由 (\S+) 代課/) || [])[1] || "他人"; by[n] = (by[n] || 0) + x.w; }); notes.push(`請假 ${off.length} 節由他人代課，不予核計（${Object.entries(by).map(([n, w]) => `${n} ${unitsText(w)} 節`).join("、")}）`); }
+        if(kind === "代課他人") notes.push(`代理 ${[...g.owners].join("、")} 課務，依原排節數核計`);
+        const hol = cnt.filter(x => /照常計薪/.test(x.note)); if(hol.length){ const by = {}; hol.forEach(x => { const d = `${md(x.date)}${x.note.replace(/（照常計薪）/, "")}`; by[d] = (by[d] || 0) + 1; }); notes.push(Object.entries(by).map(([d, n]) => `${d} ${n} 節`).join("、") + " 照常核計"); }
+        const off = rows.filter(x => !x.counted && /代課/.test(x.note)); if(off.length){ const by = {}; off.forEach(x => { const n = (x.note.match(/由 (\S+) 代課/) || [])[1] || "他人"; by[n] = (by[n] || 0) + x.w; }); notes.push(`請假 ${off.length} 節由他人代課，不予核計（列代課人）`); }
         const mv = rows.filter(x => !x.counted && !/代課/.test(x.note)); if(mv.length) notes.push(`調課、停課 ${mv.length} 節不予核計`);
         o.m.filter(m => !Number.isInteger(m.units)).forEach(m => notes.push(`${+m.ym.slice(5)}月折算 ${unitsText(m.units)} 節，進位為 ${m.pay} 節`));
-        if(o.m.length > 1) notes.push("分月核計：" + o.m.map(m => `${+m.ym.slice(5)}月 ${m.pay} 節`).join("＋"));
+        if(o.m.length > 1) notes.push("分月：" + o.m.map(m => `${+m.ym.slice(5)}月 ${m.pay}`).join("＋") + " 節");
         const R = sm.getRow(y);
         R.values = [++k, g.name, kind === "本人" ? "合理員額\n代課教師" : "代課", grp(r1) || "—", grp(r15) || "—", o.n1, o.n15, {formula: `F${y}+G${y}*1.5`, result: o.units}, o.pay, {formula: `I${y}*${RATE_SUB}`, result: o.amt}, notes.join("；") || "—"];
-        R.eachCell({includeEmpty:true}, (c, cc) => { if(cc <= NA){ c.font = font({size:10, bold: cc === 2 || cc === 10}); c.alignment = [4,5,11].includes(cc) ? {wrapText:true, vertical:"middle"} : cc >= 6 && cc <= 10 ? {horizontal:"right", vertical:"middle"} : {horizontal:"center", vertical:"middle", wrapText:true}; if(cc === 8) c.numFmt = "0.0"; if(cc >= 6 && cc <= 7 || cc === 9) c.numFmt = "0"; if(cc === 10) c.numFmt = '#,##0'; if(cc === 5 && r15.length) c.fill = {type:"pattern", pattern:"solid", fgColor:{argb:"FFFCE4D6"}}; } });
-        const ln = (t, c) => Math.ceil([...String(t)].length / (CW[c - 1] / 1.95));
-        R.height = Math.max(28, 13.5 * Math.max(ln(grp(r1) || "—", 4), ln(grp(r15) || "—", 5), ln(notes.join("；") || "—", 11), 2) + 6);
+        R.eachCell({includeEmpty:true}, (c, cc) => { if(cc <= NA){ c.font = font({size:12, bold: cc === 2 || cc === 10}); c.alignment = [4,5,11].includes(cc) ? {wrapText:true, vertical:"middle"} : cc >= 6 && cc <= 10 ? {horizontal:"right", vertical:"middle"} : {horizontal:"center", vertical:"middle", wrapText:true}; if(cc === 8) c.numFmt = "0.0"; if(cc >= 6 && cc <= 7 || cc === 9) c.numFmt = "0"; if(cc === 10) c.numFmt = '#,##0'; if(cc === 5 && r15.length) c.fill = {type:"pattern", pattern:"solid", fgColor:{argb:"FFFCE4D6"}}; } });
+        const ln = (t, c) => Math.ceil([...String(t)].length / (CW[c - 1] / 2.2));
+        R.height = Math.max(25, 14 * Math.max(ln(grp(r1) || "—", 4), ln(grp(r15) || "—", 5), ln(notes.join("；") || "—", 11), 2) + 6);
         T.n1 += o.n1; T.n15 += o.n15; T.units += o.units; T.pay += o.pay; T.amt += o.amt; y++;
       });
     });
     const TR = sm.getRow(y);
     TR.values = ["合　　計", "", "", `共 ${D.list.length} 人、${k} 筆`, "", {formula: `SUM(F5:F${y-1})`, result: T.n1}, {formula: `SUM(G5:G${y-1})`, result: T.n15}, {formula: `SUM(H5:H${y-1})`, result: T.units}, {formula: `SUM(I5:I${y-1})`, result: T.pay}, {formula: `SUM(J5:J${y-1})`, result: T.amt}, "與印領清冊小計(A)、會計總帳相符"];
     sm.mergeCells(y, 1, y, 3);
-    TR.eachCell({includeEmpty:true}, (c, cc) => { if(cc <= NA){ c.font = font({bold:true, size:11}); c.fill = TOT; c.alignment = {horizontal: cc >= 6 && cc <= 10 ? "right" : "center", vertical:"middle", wrapText:true}; if(cc === 8) c.numFmt = "0.0"; if(cc === 10) c.numFmt = '#,##0'; } });
-    TR.height = 24;
+    TR.eachCell({includeEmpty:true}, (c, cc) => { if(cc <= NA){ c.font = font({bold:true, size:13}); c.fill = TOT; c.alignment = {horizontal: cc >= 6 && cc <= 10 ? "right" : "center", vertical:"middle", wrapText:true}; if(cc === 8) c.numFmt = "0.0"; if(cc === 10) c.numFmt = '#,##0'; } });
+    TR.height = 28;
     boxAll(sm, top, 1, y, NA); y++;
-    line(y, `核支總額：新臺幣${bigNum(T.amt).replace(/整$/, "")}整（NT$${f(T.amt)}）`, {font:{size:12, bold:true}, h:24}); y++;
+    line(y, `核支總額：新臺幣${bigNum(T.amt).replace(/整$/, "")}整（NT$${f(T.amt)}）`, {font:{size:15, bold:true}, h:30}); y++;
+    sm.getRow(y).addPageBreak();                                          // 核算說明、法令依據放第二頁，兩頁都用大字
     // 核算說明
-    line(y, "核算說明", {font:{size:11, bold:true}, h:18}); y++;
+    line(y, "核算說明", {font:{size:18, bold:true}, h:32}); y++;
     [ `一、節數認定：單一班級授課每節以 1 節計；跨班合班授課且由單一教師授課者，每節以 1.5 節計（表列淡橘色欄）；合班而由二位以上教師協同教學者，各以實際授課節數 1 節計。`,
       `二、折算及進位：折算節數(C)＝一般節數(A)＋合班節數(B)×1.5；每人每月折算節數加總後，未滿一節者以一節計（.5 進位為整數），為核支節數(D)；跨月份者按月分別核計後加總。`,
       `三、核支金額：核支節數(D)×每節鐘點費 ${RATE_SUB} 元＝核支金額(E)。`,
       `四、國定假日及停班停課：課表排定節次遇國定假日、颱風停班停課，照常核計；調課依實際授課日期核計。`,
       `五、請假代課：合理員額代課教師請假，由校內教師代課者，該節不計入原教師，由實際授課者依原排節數（1 節或 1.5 節）核支，經費同屬合理員額經費。`,
       `六、資料來源：本校課表、合理員額代課教師簽到表、請假代課登記；逐日逐節明細詳本檔各員工作表。`
-    ].forEach(t => { line(y, t, {font:{size:9}, h:Math.max(14, 13 * Math.ceil([...t].length / 105))}); y++; });
+    ].forEach(t => { line(y, t, {font:{size:15}, h:Math.max(26, 22 * Math.ceil([...t].length / 66))}); y++; });
     // 法令依據
-    line(y, "法令依據", {font:{size:11, bold:true}, h:18}); y++;
+    y++; line(y, "法令依據", {font:{size:18, bold:true}, h:32}); y++;
     const LAW = [
       `一、每節鐘點費 ${RATE_SUB} 元：公立中小學兼任及代課教師鐘點費支給基準表（教育部 114 年 12 月 31 日臺教授國字第 1140140146 號函修正，自 114 年 9 月 1 日生效；115 年 7 月 28 日臺教授國字第 1156002300 號函修正）。`,
       `二、代課教師待遇以鐘點費支給：高級中等以下學校兼任代課及代理教師聘任辦法第 2 條第 2 款、第 16 條第 1 項第 1 款及第 2 項（教育部 114 年 6 月 27 日修正）。`,
@@ -4680,7 +4682,7 @@ function buildAcctRange(K, months){
       `五、合理員額編制及經費：國民小學與國民中學班級編制及教職員員額編制準則第 3 條（教育部 115 年 7 月 15 日修正）；教育部國民及學前教育署補助國民中小學提高教育人力實施要點第三點、第四點（114 年 1 月 8 日臺教國署國字第 1135506422A 號令修正）。`,
       `六、本校核算規定：每月節數加總進位、國定假日照常核計、代課節數歸屬，經本校教務組、會計室確認（115 年 10 月 24 日）。`
     ];
-    LAW.forEach(t => { line(y, t, {font:{size:9}, h:Math.max(14, 13 * Math.ceil([...t].length / 105))}); y++; });
+    LAW.forEach(t => { line(y, t, {font:{size:15}, h:Math.max(26, 22 * Math.ceil([...t].length / 66))}); y++; });
   }
   // ---------- 印領清冊（會計對照用） ----------
   const NCq = 19, ws = wb.addWorksheet("印領清冊", {pageSetup: Object.assign({printTitlesRow:"4:5"}, page), views:[{state:"frozen", ySplit:5, xSplit:1}]});
