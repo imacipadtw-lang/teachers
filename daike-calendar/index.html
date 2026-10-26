@@ -3951,7 +3951,7 @@ async function printHeliSign(r, only){
   const html = list.map(t => {
     const pNum = t.L.map(l => +l.p), minP = Math.min(...pNum), maxP = Math.max(...pNum), ps = Array.from({length: maxP - minP + 1}, (_, i) => String(minP + i));   // 只列這位老師有課的節次，簽名格比較寬
     const dates = [...new Set(t.L.map(l => l.date))].sort();
-    const rowMM = Math.max(15, Math.min(36, Math.floor(190 / Math.max(1, dates.length))));                                   // 依日期數撐滿 A4 直式，簽名格越大越好
+    const rowMM = Math.max(15, Math.min(36, Math.floor(172 / Math.max(1, dates.length))));                                   // 依日期數撐滿 A4 直式，簽名格越大越好
     const cell = (date, p) => {
       const ls = t.L.filter(l => l.date === date && l.p === p); if(!ls.length) return `<td class="x"></td>`;
       return `<td class="hs">${ls.map(l => `<div class="lb">${l.w === 1.5 ? "<b>1.5</b>" : ""}${esc(l.subject)}-${esc(l.cls)}</div>${
