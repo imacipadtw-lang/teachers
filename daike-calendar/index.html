@@ -3967,7 +3967,7 @@ async function printHeliSign(r, only){
           ? `<td colspan="${ps.length}" class="offd">${esc(dl[0].why)}${hol ? `：課表上 ${dl.length} 節照常計薪，不用簽` : "：不用簽"}</td>`
           : ps.map(p => cell(d, p)).join("")}</tr>`; }).join("")}</tbody></table>
       <p class="sumline">${mon}月合計：共 ＿＿＿＿ 節　　（系統計算：應計 ${t.n1 + t.n15} 節${t.hol ? `（含國定假日、颱風假照常計薪 ${t.hol} 節）` : ""}，其中合班 ${t.n15} 節算 1.5 節，合計 ${unitsText(t.units)} 節，進位請領 <b>${t.pay}</b> 節${t.subN ? `；請假由別人代 ${t.subN} 節` : ""}）</p>
-      <p class="note">框起來的「1.5」是合班、只有這位老師上的課，一節算 1.5 節。<b>月合計有 .5 節的，直接進位算 1 節（例：27.5 節 → 28 節）。</b>國定假日、颱風假照常計薪、不用簽；調走的課不用簽；別人代的課請代課老師簽名。</p>
+      <p class="note">框起來的「1.5」是合班、只有這位老師上的課，一節算 1.5 節；合班但有協同老師一起上，一節算 1 節（依「國民小學與國民中學混齡教學及混齡編班實施辦法」第 7 條）。<b>月合計有 .5 節的，直接進位算 1 節（例：27.5 節 → 28 節）。</b>國定假日、颱風假照常計薪、不用簽；調走的課不用簽；別人代的課請代課老師簽名。</p>
       <div class="sign big"><div>教師簽名：</div><div>承辦人：</div></div></div>`;
   }).join("");
   printSheets(html);
