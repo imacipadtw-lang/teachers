@@ -726,6 +726,24 @@ main{container-type:inline-size}
   .print-note{display:block;margin-bottom:10px;font-weight:700}
   body.print-sheet #app > *:not(#printArea){display:none!important}
   body.print-sheet #printArea{display:block}
+  /* 列印放大（10/26：字太小看不清楚）：表格、簽收單、簽到表、年曆都放大約 1.3 倍 */
+  .sheet{font-size:16px}
+  .sheet h1{font-size:23px}
+  .sheet .sub{font-size:17px!important}
+  .sheet .meta{font-size:15px}
+  .sheet th,.sheet td{padding:6px 6px}
+  .sheet .note{font-size:14.5px;line-height:1.55}
+  .sheet .sign{font-size:17px}
+  .sheet .stamp div{font-size:15px}
+  .heli-sign td.hs{height:54px;padding:2px 4px}
+  .heli-sign .sign{margin-top:14px}
+  .heli-sign .sign div{padding-bottom:16px}
+  .heli-sign .lb{font-size:13.5px;line-height:1.3}
+  .heli-sign .lb b{font-size:12.5px}
+  .heli-sign .nt{font-size:13px;line-height:1.3}
+  .heli-sign .sumline{font-size:17px}
+  .month{font-size:15px}
+  .d .cell-ev,.ev{font-size:14px}
 }
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 
@@ -2311,7 +2329,7 @@ function renderChecks(ym){
     try{
       let xlsx = "", xlsxName = "";
       const w = await ledgerWorkbook(ym);                                   // 同一本 Excel 存到雲端硬碟，會計看到的就是結帳那一刻的
-      if(w){ const buf = await w.wb.xlsx.writeBuffer(); let bin = ""; const u8 = new Uint8Array(buf); for(let i = 0; i < u8.length; i += 0x8000) bin += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); xlsx = btoa(bin); xlsxName = w.name; }
+      if(w){ bigPrint(w.wb); const buf = await w.wb.xlsx.writeBuffer(); let bin = ""; const u8 = new Uint8Array(buf); for(let i = 0; i < u8.length; i += 0x8000) bin += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); xlsx = btoa(bin); xlsxName = w.name; }
       $("#chkMsg").textContent = "結帳中…";
       const d = await apiPost({action:"close", name:state.cred.name, h:state.cred.h, ym, op:"close", data: JSON.stringify(snap), signin: JSON.stringify(snap.signin), note, xlsx, xlsxName});
       if(!d.ok) throw new Error(d.error || "結帳失敗"); state.closes = d.closes || state.closes;
@@ -3493,7 +3511,7 @@ $("#dlExcel").onclick = async () => {
     ws.pageSetup = {paperSize:9, orientation:"landscape", fitToPage:true, fitToWidth:1, fitToHeight:0, printTitlesRow:"4:4", margins:{left:.4, right:.4, top:.5, bottom:.5, header:.2, footer:.2}};
     const fname = `代課調課明細_${isAll() ? "全校" : state.viewing}_${r ? rangeLabel(r).replace(/ /g,"") : "115學年上學期"}`;
     if(cloud){ await toCloud(wb, "detail", r, fname, win); toast("已在新分頁開啟明細雲端試算表"); }
-    else { const buf = await wb.xlsx.writeBuffer(), a = document.createElement("a");
+    else { bigPrint(wb); const buf = await wb.xlsx.writeBuffer(), a = document.createElement("a");
       a.href = URL.createObjectURL(new Blob([buf], {type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"})); a.download = fname + ".xlsx";
       document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000); toast("已下載 Excel"); }
   }catch(err){ cloudFail(win, err.message); }
@@ -3944,7 +3962,72 @@ function cloudWin(){
   catch(e){ return null; }
 }
 function cloudFail(win, msg){ try{ if(win && !win.closed) win.close(); }catch(e){} toast(msg); }
+/* 列印放大（10/26 教務組：印出來字太小）：所有字 +2 級（最小 12）；欄寬不夠就加寬、自動換行的格子重算列高；
+   多出來的寬度從最寬的說明欄扣回去，整張總寬度不變 → 縮放到一頁寬時，印出來的字真的變大 */
+function bigPrint(wb){
+  if(!wb || wb.__big) return; wb.__big = 1;
+  const UP = s => Math.max(13, (s || 11) + 3);
+  const cw = ch => /[\u2E80-\uFFEF]/.test(ch) ? 2.15 : /[A-Z0-9#%]/.test(ch) ? 1.1 : 0.95;   // 1 欄寬 ≈ 11 號字的一個數字
+  const tw = (t, sz) => [...String(t)].reduce((x, ch) => x + cw(ch), 0) * sz / 11;
+  const shown = c => { let v = c.value; if(v && typeof v === "object"){ if("result" in v) v = v.result; else if(v.richText) v = v.richText.map(x => x.text).join(""); else if(v.formula) v = ""; else if(v instanceof Date) v = "2026/10/26"; }
+    if(typeof v === "number"){ const f = String(c.numFmt || ""); return f.indexOf("0.00") >= 0 ? v.toFixed(2) : f.indexOf("0.0") >= 0 ? v.toFixed(1) : Math.round(v).toLocaleString("en-US"); }
+    return v == null ? "" : String(v); };
+  wb.eachSheet(ws => {
+    const n = ws.columnCount; if(!n) return;
+    const W = []; for(let c = 1; c <= n; c++) W[c] = ws.getColumn(c).width || 9;
+    const merges = Object.values(ws._merges || {}).map(m => m.model || m);
+    const mergeOf = (r, c) => merges.find(m => r >= m.top && r <= m.bottom && c >= m.left && c <= m.right);
+    const slave = cell => cell.isMerged && cell.master && cell.master.address !== cell.address;   // 合併格只改左上那格（其他格和它共用格式，改了會疊加）
+    // 1) 字放大
+    ws.eachRow({includeEmpty:false}, row => row.eachCell({includeEmpty:false}, cell => { if(slave(cell)) return; const f = cell.font || {}; cell.font = Object.assign({}, f, {size: UP(f.size)}); }));
+    // 2) 數字和短字（不換行、沒合併）放不下就加寬那一欄；長句子本來就會延伸到旁邊的空格，不算
+    const need = W.map(() => 0), allWrap = W.map(() => true), has = W.map(() => false);
+    ws.eachRow({includeEmpty:false}, row => row.eachCell({includeEmpty:false}, cell => {
+      if(cell.isMerged || mergeOf(cell.row, cell.col)) return;
+      const t = shown(cell); if(!t) return;
+      const al = cell.alignment || {}; has[cell.col] = true; if(!al.wrapText) allWrap[cell.col] = false;
+      if(al.wrapText) return;
+      const isNum = typeof cell.value === "number" || (cell.value && typeof cell.value === "object" && typeof cell.value.result === "number");
+      if(!isNum && [...t].length > 8) return;
+      const w = tw(t, cell.font.size) + 1.6; if(w > need[cell.col]) need[cell.col] = Math.min(w, 40); }));
+    let added = 0; for(let c = 1; c <= n; c++) if(need[c] > W[c]){ added += need[c] - W[c]; W[c] = need[c]; }
+    // 3) 很寬、而且整欄都是自動換行的說明欄：縮到 32（多換幾行），再扣回加寬的部分（最少 28）
+    const narrowable = c => W[c] > 28 && has[c] && allWrap[c] && n > 3;
+    for(let c = 1; c <= n; c++) if(narrowable(c) && W[c] > 32) W[c] = 32;
+    for(let c = 1; c <= n && added > 0; c++) if(narrowable(c)){ const cut = Math.min(added, W[c] - 28); if(cut > 0){ W[c] -= cut; added -= cut; } }
+    for(let c = 1; c <= n; c++) ws.getColumn(c).width = Math.round(W[c] * 10) / 10;
+    // 3b) 合併格裡的長句子放不下就自動換行（不然會延伸到表格外面，整頁被縮小）
+    ws.eachRow({includeEmpty:false}, row => row.eachCell({includeEmpty:false}, cell => {
+      if(slave(cell)) return; const m = mergeOf(cell.row, cell.col); if(!m || m.bottom > m.top) return;
+      const al = cell.alignment || {}; if(al.wrapText) return; const t = shown(cell); if(!t) return;
+      const width = W.slice(m.left, m.right + 1).reduce((a, b) => a + b, 0);
+      if(Math.max(...t.split("\n").map(x => tw(x, cell.font.size))) > width - 1) cell.alignment = Object.assign({}, al, {wrapText:true, vertical: al.vertical || "top"}); }));
+    // 4) 列高：依每格內容重算（只加高，不縮）
+    ws.eachRow({includeEmpty:false}, row => {
+      let h = 0;
+      row.eachCell({includeEmpty:false}, cell => {
+        if(slave(cell)) return; const m = mergeOf(cell.row, cell.col);
+        if(m && m.bottom > m.top) return;                                   // 跨列合併的不算
+        const sz = cell.font.size, fx = cell.value && typeof cell.value === "object" && cell.value.formula && !("result" in cell.value);
+        const t = shown(cell) || (fx && (cell.alignment || {}).wrapText ? "核對結果文字核對結果文字核對結果文字核對結果文字" : ""); if(!t) return;   // 試算表才算的文字：先留兩三行高
+        const width = m ? W.slice(m.left, m.right + 1).reduce((a, b) => a + b, 0) : W[cell.col];
+        const wrap = (cell.alignment || {}).wrapText;
+        const lines = t.split("\n").reduce((x, seg) => x + (wrap ? Math.max(1, Math.ceil(tw(seg, sz) / Math.max(1, width * 0.96 - 0.8))) : 1), 0);
+        h = Math.max(h, lines * sz * 1.36 + 5);
+      });
+      if(h && (!row.height || row.height < h)) row.height = Math.round(h);
+      else if(row.height) row.height = Math.round(row.height * 1.2);
+    });
+    // 5) 版面：直式太寬的改橫式；左右邊界縮小一點
+    const total = W.slice(1).reduce((a, b) => a + b, 0);
+    let sig = false; ws.eachRow({includeEmpty:false}, row => row.eachCell({includeEmpty:false}, cell => { if(cell.value === "製表員") sig = true; }));
+    if(ws.pageSetup){ if(ws.pageSetup.orientation === "portrait" && total > 110) ws.pageSetup.orientation = "landscape";
+      if(sig && ws.rowCount <= 40) ws.pageSetup = Object.assign({}, ws.pageSetup, {fitToPage:true, fitToWidth:1, fitToHeight:1});   // 印領清冊連簽章欄印在同一頁
+      if(ws.pageSetup.margins) ws.pageSetup.margins = Object.assign({}, ws.pageSetup.margins, {left:.3, right:.3}); }
+  });
+}
 async function toCloud(wb, kind, ym, title, win){
+  bigPrint(wb);
   const buf = await wb.xlsx.writeBuffer(), u8 = new Uint8Array(buf); let bin = "";
   for(let i = 0; i < u8.length; i += 0x8000) bin += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
   const d = await apiPost({action:"sheet", name:state.cred.name, h:state.cred.h, kind, ym: ym || "", title, who: isAll() ? "全校" : (state.viewing || ""), xlsx: btoa(bin)});
