@@ -97,6 +97,38 @@ button.pill:hover{border-color:var(--sky);color:#fff}
 .lstats{display:flex;gap:10px 28px;justify-content:center;flex-wrap:wrap;margin-top:22px;color:var(--ink-2);font-size:14px}
 .lstats b{font-family:var(--digits);font-size:20px;color:#fff;margin-right:6px;font-variant-numeric:tabular-nums}
 .lfoot{text-align:center;color:var(--ink-3);font-size:12.5px;padding:16px}
+/* 公開週表（登入畫面）：誰請假、誰代課，一眼看完 */
+.wk{width:min(1240px,100%);text-align:left;margin-top:6px}
+.wk-head{display:flex;align-items:baseline;gap:6px 16px;flex-wrap:wrap;margin:0 2px 12px}
+.wk-head h2{margin:0;font-size:clamp(20px,2.4vw,26px);font-weight:800;letter-spacing:.03em}
+.wk-head .rng{font-family:var(--digits);color:var(--ink-2);font-size:15px}
+.wk-head .sum{margin-left:auto;color:var(--ink-2);font-size:14px}
+.wk-head .sum b{font-family:var(--digits);color:#fff;font-size:18px;margin:0 3px}
+.wk-grid{display:grid;grid-template-columns:repeat(var(--cols,5),minmax(0,1fr));gap:10px}
+.wk-day{background:rgba(15,31,53,.82);border:1px solid var(--line);border-radius:14px;padding:10px 10px 12px;min-height:120px;display:flex;flex-direction:column;gap:8px}
+.wk-day.today{border-color:var(--c-swap);box-shadow:0 0 0 1px var(--c-swap),0 0 24px rgba(242,184,75,.18)}
+.wk-day.past{opacity:.55}
+.wk-dh{display:flex;align-items:baseline;gap:8px;padding:0 2px 6px;border-bottom:1px solid var(--line-2)}
+.wk-dh .md{font-family:var(--digits);font-size:20px;font-weight:700;color:#fff}
+.wk-dh .dw{color:var(--ink-2);font-size:14px}
+.wk-dh .nt{margin-left:auto;font-size:12px;font-weight:700;color:#0B1626;background:var(--c-swap);border-radius:999px;padding:1px 9px}
+.wk-dh .cnt{margin-left:auto;color:var(--ink-3);font-size:12.5px}
+.wk-off{font-size:13px;color:#F4D9A0;background:rgba(242,184,75,.12);border-radius:8px;padding:5px 8px}
+.wk-none{color:var(--ink-3);font-size:13.5px;padding:4px 2px}
+.wk-it{border-left:3px solid var(--c-sub);padding:3px 0 3px 9px}
+.wk-it.tutor{border-left-color:var(--c-tutor)} .wk-it.swap{border-left-color:var(--c-swap)} .wk-it.todo{border-left-color:var(--c-leave)}
+.wk-it .w{font-size:12.5px;color:var(--ink-2);display:flex;gap:6px;align-items:baseline;flex-wrap:wrap}
+.wk-it .w .sl{font-family:var(--digits);font-weight:700;color:#fff}
+.wk-it .who{font-size:15px;font-weight:700;color:#fff;line-height:1.45;margin-top:1px}
+.wk-it .who .ar{color:var(--ink-3);font-weight:400;margin:0 4px}
+.wk-it .who .lv{color:var(--c-leave)}
+.wk-it .who .sb{color:var(--c-sub)} .wk-it.tutor .who .sb{color:var(--c-tutor)}
+.wk-it .who .tg{font-size:12px;font-weight:700;color:var(--ink-2);margin-left:6px}
+.wk-it.todo .who .tg{color:var(--c-leave)}
+.wk-it .x{font-size:12.5px;color:var(--ink-2)}
+.wk-note{color:var(--ink-3);font-size:12.5px;margin:10px 2px 0}
+.wk-load{color:var(--ink-3);font-size:14px;padding:18px 4px}
+@media (max-width:900px){ .wk-grid{grid-template-columns:1fr} .wk-day{min-height:0} .wk-day.past.empty{display:none} }
 .demo-tag{background:var(--sky-soft);color:var(--sky-deep);font-size:13px;padding:6px 10px;border-radius:8px;margin:0 auto 10px;display:inline-block}
 .pw-wrap{position:relative}
 .pw-wrap input{padding-right:64px}
@@ -251,6 +283,14 @@ details.settings>summary span{font-size:13px;color:var(--ink-3)}
 .hr-tbl td.sub b{font-family:var(--digits);font-size:15px}
 .hr-tbl td.sub.good b{color:var(--c-tutor)} .hr-tbl td.sub.bad b{color:var(--rose)}
 .hr-tbl tr.tot td{border-top:2px solid var(--line);font-weight:700}
+.hr-tbl td.risk input{border:2px solid #FF5A6E !important;background:rgba(255,90,110,.14);color:#FFD3DA}
+.hr-tbl td.risk .sysv{color:#FF7A8A;font-weight:700}
+.hr-tbl tr.risk-note td{padding:4px 12px 12px;color:#FFB3BE;font-size:13px;line-height:1.6;border-top:0;background:rgba(255,90,110,.07)}
+.hr-det .set-tbl{container-type:inline-size}
+.hr-tbl tr.risk-note .rn{position:sticky;left:12px;max-width:calc(100vw - 96px);max-width:calc(100cqw - 36px);white-space:normal}
+.hr-tbl tr.risk-note b{color:#FF7A8A} .hr-tbl tr.risk-note ol{margin:2px 0 0;padding-left:20px}
+.hr-riskline{margin:8px 0 0;font-size:13px;color:var(--ink-2)} .hr-riskline b{color:#FF7A8A}
+.hr-tbl .gross{background:rgba(242,184,75,.08);border-right:1px solid var(--line-2)} .hr-tbl td.sub.gross b{color:var(--c-swap);font-size:16px} .hr-tbl th.gross{color:var(--c-swap)}
 .chk-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px;font-size:13.5px}
 .chk-list li{display:flex;gap:8px;align-items:flex-start;line-height:1.45}
 .chk-list li i{font-style:normal;font-weight:800;width:18px;flex:none;text-align:center}
@@ -700,13 +740,12 @@ main{container-type:inline-size}
 <canvas id="net" aria-hidden="true"></canvas>
 <!-- 登入（版面參考教務組提供的影片：置中、四色標誌、流動漸層框；背景的節點可以用滑鼠拖） -->
 <section id="login">
-  <div class="banner">校內查詢專用：<b>每位老師只看得到自己的紀錄</b>，請勿把畫面轉傳給他人</div>
+  <div class="banner">這一頁公開本週<b>誰請假、誰代課</b>（不寫假別和事由）；個人紀錄、鐘點費要登入才看得到</div>
   <nav class="lnav">
     <div class="brand"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="txt">代課・調課查詢</span></div>
     <span class="term">南投縣草屯鎮土城國民小學　115 學年度上學期</span>
   </nav>
   <div class="lcenter">
-    <div class="logo4" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
     <h1>代課・調課查詢</h1>
     <p class="lead">選您的名字、輸入個人密碼，就能看到自己的代課、請假和調課。</p>
     <form class="login-card" id="loginForm" autocomplete="off">
@@ -735,6 +774,7 @@ main{container-type:inline-size}
       <div class="lstats" id="lstats"></div>
       <p class="hint">忘記密碼請找教務組 陳怡璇，會幫您恢復成初始密碼。登入後右上角可以更改密碼。</p>
     </form>
+    <section class="wk" id="pubWeek" aria-label="本週全校調代課"><div class="wk-load">本週調代課讀取中…</div></section>
   </div>
   <p class="lfoot">資料來源：教務組代課一覽表、調課單。金額為參考值，正式金額以教務組核算為準。背景的光點可以用滑鼠拖著走。</p>
 </section>
@@ -1484,16 +1524,47 @@ async function loadNames(){
   let cached = null; try{ cached = JSON.parse(store.get(K+"names", localStorage) || "null"); }catch(e){}
   if (Array.isArray(cached) && cached.length) fill(cached);          // 上次的名單：立刻顯示，不用等
   else loginStats(0);
+  try{ const w = JSON.parse(store.get(K+"week", localStorage) || "null"); if (Array.isArray(w)) renderPubWeek(w, true); }catch(_){}
   try{
     const d = await api({action:"names"});                            // 同時讓伺服器先把資料準備好
     if(!d.ok) throw new Error(d.error);
     if (JSON.stringify(d.names) !== JSON.stringify(cached)){ fill(d.names); store.set(K+"names", JSON.stringify(d.names), localStorage); }
     if (d.offToday) { state.offToday = d.offToday; loginStats(d.names.length); }
+    renderPubWeek(d.week); try{ store.set(K+"week", JSON.stringify(d.week||null), localStorage); }catch(_){}
   }catch(e){
+    if (!$("#pubWeek .wk-day")) $("#pubWeek").innerHTML = `<div class="wk-load">本週調代課讀取失敗，請重新整理</div>`;
     if (!cached){ sel.innerHTML = `<option value="">名單讀取失敗，請重新整理</option>`; $("#loginErr").textContent = e.message; }
   }
 }
 
+/* 公開週表：週一到週五固定五欄；週末有課務才多一欄。老資料（上次存的）先畫，等新的回來再換 */
+function renderPubWeek(week, stale){
+  const box = $("#pubWeek"); if (!box) return;
+  if (!Array.isArray(week) || !week.length){ box.hidden = true; return; }
+  box.hidden = false;
+  const t = new Date(), today = `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,"0")}-${String(t.getDate()).padStart(2,"0")}`;
+  const days = week.filter((d,i) => i < 5 || d.items.length || d.d === today);
+  const md = ymd => `${+ymd.slice(5,7)}/${+ymd.slice(8,10)}`, dw = ymd => DOW[new Date(ymd+"T00:00:00").getDay()];
+  const total = week.reduce((s,d)=>s+d.items.length,0), todo = week.reduce((s,d)=>s+d.items.filter(x=>x.k==="todo").length,0);
+  const thisWeek = today < week[0].d ? "下週" : "本週";            // 週六、週日打開：後端直接給下週
+  const slot = x => x.p === "導師" ? "導師" : x.p ? `第${esc(x.p)}節` : "";
+  const item = x => {
+    const w = `<div class="w"><span class="sl">${slot(x)}</span><span>${esc([x.c, x.j].filter(Boolean).join(" "))}</span></div>`;
+    if (x.k === "swap") return `<div class="wk-it swap">${w}<div class="who">${esc(x.m)}<span class="tg">調課</span></div>${x.x ? `<div class="x">${esc(x.x)}</div>` : ""}</div>`;
+    if (x.k === "todo") return `<div class="wk-it todo">${w}<div class="who"><span class="lv">${esc(x.a)}</span> 請假<span class="tg">尚未安排代課</span></div></div>`;
+    return `<div class="wk-it ${x.k}">${w}<div class="who"><span class="lv">${esc(x.a || "（未寫）")}</span><span class="ar" aria-label="由">→</span><span class="sb">${esc(x.b)}</span><span class="tg">${x.k === "tutor" ? "代導師" : "代課"}</span></div></div>`;
+  };
+  box.innerHTML = `<div class="wk-head"><h2>${thisWeek}全校調代課</h2><span class="rng">${md(week[0].d)}（一）～${md(week[6].d)}（日）</span>
+      <span class="sum">共<b>${total}</b>筆${todo ? `，<b style="color:var(--c-leave)">${todo}</b>筆尚未安排代課` : ""}</span></div>
+    <div class="wk-grid" style="--cols:${days.length}">${days.map(d => {
+      const isT = d.d === today, past = d.d < today;
+      return `<article class="wk-day${isT ? " today" : ""}${past ? " past" : ""}${d.items.length ? "" : " empty"}" aria-label="${md(d.d)} 星期${dw(d.d)}">
+        <div class="wk-dh"><span class="md">${md(d.d)}</span><span class="dw">星期${dw(d.d)}</span>${isT ? `<span class="nt">今天</span>` : d.items.length ? `<span class="cnt">${d.items.length} 筆</span>` : ""}</div>
+        ${d.off ? `<div class="wk-off">${esc(d.off)}</div>` : ""}
+        ${d.items.length ? d.items.map(item).join("") : d.off ? "" : `<div class="wk-none">沒有調代課</div>`}
+      </article>`; }).join("")}</div>
+    <p class="wk-note">${stale ? "更新中…　" : ""}紅色是請假的老師，藍色是代課的老師。只列節次、班級和人名，不寫假別和事由；有異動以教務組為準。</p>`;
+}
 function loginStats(n){
   const t = new Date(), off = state.offToday;
   $("#lstats").innerHTML = (n ? `<span><b>${n}</b>位老師</span>` : "")
@@ -1936,6 +2007,45 @@ function hrInsOf(ym){
   return state.hrIns[ym];
 }
 /* 人事保費核對的表格資料：每列人事值、系統值、是否一致、小計（自付＝勞保自付＋健保自付；單位＝勞保單位＋勞退＋健保單位） */
+/* 115 年分級表（勞保局 115.1.1 生效）
+ *  勞保：部分工時薪資 ≤11,100 → 11,100；11,101–12,540 → 12,540；超過 12,540 依職訓級距覈實申報（13,500～28,590）；再高 → 第 1 級 29,500 起
+ *  勞退：月提繳分級表 1,500、3,000、…、9,900、11,100、12,540、13,500 …（實際工資落在哪一級就提繳哪一級） */
+const LV_PENSION_LO = [1500,3000,4500,6000,7500,8700,9900];
+const lvLabor = w => LV_LABOR.find(x => x >= w) || LV_LABOR[LV_LABOR.length - 1];
+const lvPension = w => LV_PENSION_LO.concat(LV_LABOR, LV_PENSION_HI).find(x => x >= w) || 150000;
+/* 本月總薪資（扣保費前，同一個投保單位＝學校付的全部）：本人鐘點費＋代合理員額教師的課＋校內代課／代導師 */
+function hrGross(ym, H, name){
+  const A = acctOf(state.events, ym), t = H.T.find(x => x.name === name), s = H.S[name], a = A.T[name];
+  const parts = [["本人", t ? t.amt : 0], ["代合理員額", s ? s.amt : 0], ["校內代課", a ? a.amt + a.tamt : 0]];
+  return {sum: parts.reduce((x, p) => x + p[1], 0), parts: parts.filter(p => p[1])};
+}
+/* 需要護理師（勞健保承辦）核對的地方：回傳 {cells:{el,er,pe,nh,ne: true}, notes:[文字]}；只提醒，不自己改投保資料 */
+function hrRisk(ym, H, t){
+  const p = insOf(t.name), out = {cells:{}, notes:[]}, f = v => Number(v).toLocaleString("zh-TW");
+  if(!p){ out.notes.push("「保險設定」沒有這位老師，勞保、勞退都算 0；請確認是否已加保"); HR_FIELDS.forEach(([k]) => { out.cells[k] = 1; }); return out; }
+  const g = hrGross(ym, H, t.name).sum, c = insCalc(p, ym, t.amt), d = c.days, L = +p.labor || 0, P = +p.pension || 0;
+  if(!g) return out;
+  const wantL = lvLabor(g), wantP = lvPension(g), dd = d === 30 ? "" : `（${d} 天）`;
+  if(L && L !== wantL){
+    const el = laborEmp(wantL, d), er = laborEr(wantL, d) + occEr(wantL, c.occRate, d);
+    out.cells.el = out.cells.er = 1;
+    out.notes.push(`勞保：本月總薪資 ${f(g)} 元，115 年分級表對應投保薪資 ${f(wantL)}；目前用 ${f(L)}（${L > wantL ? "高報" : "低報"} ${f(Math.abs(L - wantL))}）。`
+      + `若改用 ${f(wantL)}${dd}：勞保自付 ${f(c.empLabor)}→${f(el)}（${el - c.empLabor > 0 ? "+" : ""}${f(el - c.empLabor)}）、單位（含職災）${f(c.erLaborAll)}→${f(er)}（${er - c.erLaborAll > 0 ? "+" : ""}${f(er - c.erLaborAll)}）`);
+  }
+  if(P && P !== wantP){
+    const pe = pensionEr(wantP, d); out.cells.pe = 1;
+    out.notes.push(`勞退：本月總薪資 ${f(g)} 元落在月提繳分級表 ${f(wantP)} 級；目前提繳工資 ${f(P)}。若改用 ${f(wantP)}${dd}：勞退 ${f(c.erPension)}→${f(pe)}（${pe - c.erPension > 0 ? "+" : ""}${f(pe - c.erPension)}）`);
+  }
+  if(!L){ out.cells.el = out.cells.er = 1; out.notes.push("勞保投保薪資空白，勞保算 0；請確認是否已加保"); }
+  if(!P){ out.cells.pe = 1; out.notes.push("勞退提繳工資空白，勞退算 0；學校須為受僱者提繳 6%，請確認"); }
+  if(d < 30 && +p.days && !(p.from > ym + "-01") && !(p.to && p.to < ym + "-31")){
+    out.cells.el = out.cells.er = out.cells.pe = 1;
+    out.notes.push(`投保天數：保險設定寫每月只算 ${d} 天，但${p.from || p.to ? `加保期間 ${p.from || "（未填）"}～${p.to || "（未填）"} 涵蓋整個月` : "沒有填加保、退保日期（看不出這個月是否中途加退保）"}；一直在保的話應按 30 天計（勞保自付 ${f(c.empLabor)}→${f(laborEmp(L, 30))}、單位 ${f(c.erLaborAll)}→${f(laborEr(L, 30) + occEr(L, c.occRate, 30))}、勞退 ${f(c.erPension)}→${f(pensionEr(P, 30))}）。若是每次上課才加退保，請以實際在保天數為準`);
+  }
+  const hrs = Math.round((t.weekly || 0) * 40 / 60 * 10) / 10;           // 國小一節 40 分鐘
+  if(!+p.nhi && hrs >= 12){ out.cells.nh = out.cells.ne = 1; out.notes.push(`健保：每週 ${t.weekly} 節（約 ${hrs} 小時）已達 12 小時，健保署規定雇主應為其投保，目前沒有健保投保金額，請確認`); }
+  return out;
+}
 function hrInsTable(ym, H){
   const si = hrInsOf(ym), rows = (H ? H.T : []).map(t => { const c = insCalc(insOf(t.name), ym, t.amt), e = si[t.name] || {}, cells = {};
     HR_FIELDS.forEach(([k, label, ck]) => { const has = !(e[k] == null || e[k] === ""), v = has ? +e[k] : c[ck];   // 沒填＝先帶入系統算的（預填），人事給的不一樣再改
@@ -2010,7 +2120,7 @@ function insAuditChecks(ym, H){
     if(L && !LV_LABOR.includes(L)) C.push({lv:"err", k:"insaudit", text:`${t.name} 勞保投保薪資 ${f(L)} 不是 115 年勞保分級表的級距（部分工時 11,100／12,540，職訓級距 13,500～28,590，第 1 級起 ${main.map(f).slice(0, 3).join("、")}…），請人事確認`});
     if(P && !LV_ALL().includes(P)) C.push({lv:"err", k:"insaudit", text:`${t.name} 勞退提繳工資 ${f(P)} 不是 115 年勞退月提繳分級表的級距（27,601–28,590 → 28,590；28,591–29,500 → 29,500；28,800 已刪除），請人事確認`});
     if(N && N < INS.minWage) C.push({lv:"warn", k:"insaudit", text:`${t.name} 健保投保金額 ${f(N)} 低於 115 年第 1 級 ${f(INS.minWage)}，請確認`});
-    if(L && t.amt > L && L < INS.minWage) C.push({lv:"warn", k:"insaudit", text:`${t.name} 本月鐘點費 ${f(t.amt)} 高於勞保投保薪資 ${f(L)}。部分工時勞工薪資超過 12,540 時，勞保分級表備註二規定要按實際薪資申報級距（${f(t.amt)} 落在 ${f(LV_LABOR.find(x => x >= t.amt) || 45800)} 級）；低報投保薪資有被勞保局調整、補繳的風險，請人事確認（系統照目前設定算，不會自己改）`});
+    hrRisk(ym, H, t).notes.forEach(n => C.push({lv:"warn", k:"insaudit", text:`${t.name} 需請護理師核對｜${n}`}));
     if(p.occ && +p.occ !== INS.occDefault) C.push({lv:"info", k:"insaudit", text:`${t.name} 職災費率 ${p.occ}%（教育業 114–116 年：行業 0.05%＋通勤 0.07%＝0.12%）`});
     if(+p.days && +p.days < 30 && !p.from && !p.to) C.push({lv:"info", k:"insaudit", text:`${t.name} 每月固定投保 ${p.days} 天（人事指定），保費都按 ${p.days}/30 算`});
   });
@@ -2148,16 +2258,23 @@ function renderChecks(ym){
     <div class="steps sop"><span><b>1</b>月初印簽到表</span><span><b>2</b>請假、代課隨時登記</span><span><b>3</b>月底收簽到表，填合計節數比對</span><span><b>4</b>檢查全綠</span><span><b>5</b>下載會計總帳、印清冊</span><span><b>6</b>送會計</span><span><b>7</b>本月結帳</span></div>
     ${heli.length ? `<div class="si-row"><span class="si-t">簽到表核對（紙本合計節數）</span>${sign}</div>` : ""}
     ${H && heli.length ? (() => { const T = hrInsTable(ym, H), f = v => Number(v).toLocaleString("zh-TW"), saved = state.hrInsSaved && state.hrInsSaved[ym], savedAt = saved ? Object.values(saved).map(x => x.at).sort().pop() : "", savedBy = saved ? (Object.values(saved)[0] || {}).by : "";
-      const cell = (name, k, ck, c) => `<td><input inputmode="numeric" class="num ${c.auto ? "auto" : c.ok === true ? "good" : c.ok === false ? "bad" : ""}" data-hr="${esc(name)}|${k}" value="${c.v ?? ""}" placeholder="系統 ${f(c.sys)}" title="${c.auto ? "系統預填：人事給的數字不一樣就直接改" : "人事數字"}" ${RO ? "disabled" : ""}><small class="sysv">${c.auto ? "系統預填" : "系統 " + f(c.sys)}</small></td>`;
+      const cell = (name, k, ck, c, risk) => `<td class="${risk ? "risk" : ""}"><input inputmode="numeric" class="num ${c.auto ? "auto" : c.ok === true ? "good" : c.ok === false ? "bad" : ""}" data-hr="${esc(name)}|${k}" value="${c.v ?? ""}" placeholder="系統 ${f(c.sys)}" title="${risk ? "可能有誤，請護理師核對（原因在這一列下面）" : c.auto ? "系統預填：人事給的數字不一樣就直接改" : "人事數字"}" ${RO ? "disabled" : ""}><small class="sysv">${risk ? "⚠ 需核對" : c.auto ? "系統預填" : "系統 " + f(c.sys)}</small></td>`;
       const subc = (v, sys) => `<td class="sub ${v == null ? "" : v === sys ? "good" : "bad"}"><b>${v == null ? "–" : f(v)}</b><small class="sysv">系統 ${f(sys)}</small></td>`;
+      // 總薪資（本月應發、扣保費前）＝本人鐘點費＋代合理員額教師的課＋校內代課／代導師；下面小字拆開，給護理師核對投保
+      const G = T.rows.map(r => hrGross(ym, H, r.name)), gTot = G.reduce((x, g) => x + g.sum, 0);
+      const RK = T.rows.map(r => hrRisk(ym, H, H.T.find(x => x.name === r.name))), riskN = RK.filter(x => x.notes.length).length;
+      const hrsOf = name => { const t = H.T.find(x => x.name === name); return t ? `每週 ${t.weekly} 節（約 ${Math.round(t.weekly * 40 / 6) / 10} 小時）` : ""; };
+      const gcell = g => `<td class="sub gross"><b>${f(g.sum)}</b><small class="sysv">${g.parts.length > 1 ? g.parts.map(p => p[0] + " " + f(p[1])).join("＋") : g.parts.length ? g.parts[0][0] + "鐘點費" : "本月沒有鐘點費"}</small></td>`;
       return `<details class="hr-det" open><summary>勞保、勞退、健保（合理員額代課教師）<small>系統已依「保險設定」的投保資料先算好（灰字＝系統預填）；人事或帳單的數字不一樣就直接改，系統會說明差在哪</small></summary>
-      <div class="set-tbl"><table class="hr-tbl"><thead><tr><th>姓名</th>${HR_FIELDS.map(x => `<th>${x[1]}</th>`).join("")}<th>自付小計</th><th>單位小計</th></tr></thead>
-      <tbody>${T.rows.map(r => `<tr><td>${esc(r.name)}</td>${HR_FIELDS.map(([k, label, ck]) => cell(r.name, k, ck, r.cells[k])).join("")}${subc(r.empV, r.empS)}${subc(r.erV, r.erS)}</tr>`).join("")}
-      <tr class="tot"><td>合計</td>${HR_FIELDS.map(([k]) => subc(T.tot[k].v, T.tot[k].sys)).join("")}${subc(T.tot.empV, T.tot.empS)}${subc(T.tot.erV, T.tot.erS)}</tr></tbody></table></div>
+      <div class="set-tbl"><table class="hr-tbl"><thead><tr><th>姓名</th><th class="gross" title="本月應發鐘點費，扣勞健保前">總薪資</th>${HR_FIELDS.map(x => `<th>${x[1]}</th>`).join("")}<th>自付小計</th><th>單位小計</th></tr></thead>
+      <tbody>${T.rows.map((r, i) => `<tr class="${RK[i].notes.length ? "has-risk" : ""}"><td>${esc(r.name)}<small class="sysv" style="text-align:left">${esc(hrsOf(r.name))}</small></td>${gcell(G[i])}${HR_FIELDS.map(([k, label, ck]) => cell(r.name, k, ck, r.cells[k], RK[i].cells[k])).join("")}${subc(r.empV, r.empS)}${subc(r.erV, r.erS)}</tr>`
+        + (RK[i].notes.length ? `<tr class="risk-note"><td colspan="${HR_FIELDS.length + 4}"><div class="rn"><b>⚠ ${esc(r.name)} 需核對：</b><ol>${RK[i].notes.map(n => `<li>${esc(n)}</li>`).join("")}</ol></div></td></tr>` : "")).join("")}
+      <tr class="tot"><td>合計</td><td class="sub gross"><b>${f(gTot)}</b><small class="sysv">本月應發</small></td>${HR_FIELDS.map(([k]) => subc(T.tot[k].v, T.tot[k].sys)).join("")}${subc(T.tot.empV, T.tot.empS)}${subc(T.tot.erV, T.tot.erS)}</tr></tbody></table></div>
+      <p class="hr-riskline">${riskN ? `<b>紅框＝可能有誤，請護理師核對</b>：共 ${riskN} 人，原因和改用正確級距後的金額寫在各人下面。比對依據：115 年勞保投保薪資分級表（部分工時 11,100／12,540，超過 12,540 依 13,500～28,590 覈實申報）、勞退月提繳分級表、本月總薪資。投保薪資若是依約定月薪申報（每年 2、8 月調整），月薪資起伏可以不必每月改，請護理師確認後告訴教務組。系統只提醒，不會自己改。` : `✓ 本月投保薪資、提繳工資都和總薪資的級距相符；健保依「保險設定」（每週未達 12 小時的，學校不必投保健保）。`}</p>
       <div class="mrow set-act">${RO ? "" : `<button class="btn" type="button" id="hrSave" ${ready ? "" : "disabled"}>儲存核對</button>`}
         ${RO ? "" : `<button class="btn ghost small" type="button" id="hrConfirm" ${T.autoN ? "" : "disabled"}>預填的都正確（全部確認）</button><button class="btn ghost small" type="button" id="hrReset">全部改回系統預填</button>`}
         <span class="set-msg" id="hrMsg">${T.bad ? `✗ 有 ${T.bad} 人的數字和系統不一致（紅框），原因在上面的檢查` : T.autoN === T.cellN ? "全部是系統預填（灰字），請對照人事資料，不一樣的直接改" : T.autoN ? `已確認 ${T.cellN - T.autoN} 格，還有 ${T.autoN} 格是系統預填` : "✓ 全部已確認，和系統一致"}${savedAt ? `　｜已存：${esc(savedAt)}${savedBy ? "（" + esc(savedBy) + "）" : ""}` : ""}</span></div>
-      <p class="hint" style="margin:6px 0 0">灰字＝系統預填（投保資料改了會自動重算）；改過或按「全部確認」就變成確定的數字（綠框＝和系統一樣，紅框＝不一樣）。把格子清空就回到系統預填。自付小計＝勞保自付＋健保自付（老師實際被扣的）；單位小計＝勞保單位（含職災）＋勞退＋健保單位（機關補助）。按「儲存核對」寫進資料表「人事保費核對」分頁（人事數字和系統數字並列），有不一致會先問。結帳時也會一起存進月結紀錄。</p></details>`; })() : ""}
+      <p class="hint" style="margin:6px 0 0">灰字＝系統預填（投保資料改了會自動重算）；改過或按「全部確認」就變成確定的數字（綠框＝和系統一樣，粉紅框＝人事數字和系統不一樣；紅底「⚠ 需核對」＝投保級距可能有誤，原因寫在那一列下面）。把格子清空就回到系統預填。總薪資＝本月應發鐘點費（扣保費前；本人＋代合理員額教師的課＋校內代課、代導師），小字是組成，方便截圖給護理師核對；自付小計＝勞保自付＋健保自付（老師實際被扣的）；單位小計＝勞保單位（含職災）＋勞退＋健保單位（機關補助）。按「儲存核對」寫進資料表「人事保費核對」分頁（人事數字和系統數字並列），有不一致會先問。結帳時也會一起存進月結紀錄。</p></details>`; })() : ""}
     <ul class="chk-list">${C.map(x => `<li class="${x.lv}"><i>${CHECK_ICON[x.lv]}</i><span>${esc(x.text)}</span></li>`).join("")}</ul>
     <div class="mrow set-act">
       <button class="btn ghost small" type="button" id="chkRun">重新檢查</button>
@@ -4541,7 +4658,12 @@ function demoEvents(){
 }
 async function demoApi(p){
   const ok = async (n,h)=> h === (demoPw[n] || await sha256(n+":demo"));
-  if(p.action==="names") return {ok:true,names:DEMO_NAMES};
+  if(p.action==="names"){
+    const t=new Date(), wd=t.getDay(), mon=new Date(t.getFullYear(),t.getMonth(),t.getDate()+(wd===0?1:wd===6?2:1-wd));
+    const ymd=i=>{const d=new Date(mon.getFullYear(),mon.getMonth(),mon.getDate()+i);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;};
+    const it=[[{p:"2",c:"三年甲班",k:"sub",j:"國語",a:"甲老師",b:"乙老師"},{p:"導師",c:"三年甲班",k:"tutor",j:"",a:"甲老師",b:"丙老師"}],[],[{p:"5",c:"五年乙班",k:"todo",j:"數學",a:"丁老師",b:""}],[{p:"3",c:"四年甲班",k:"swap",m:"改由 乙老師 上自然",x:"丙老師 的社會移到 週五 第4節"}],[]];
+    return {ok:true,names:DEMO_NAMES,week:[0,1,2,3,4,5,6].map(i=>({d:ymd(i),off:"",items:it[i]||[]}))};
+  }
   if(!DEMO_NAMES.includes(p.name) || !(await ok(p.name,p.h))) return {ok:false,error:p.action==="change"?"目前的密碼不正確":"姓名或密碼不正確（示範模式密碼是 demo）"};
   if(p.action==="change"){ demoPw[p.name]=p.nh; return {ok:true}; }
   if(p.action==="reset"){ delete demoPw[p.target]; return {ok:true}; }
