@@ -735,9 +735,16 @@ main{container-type:inline-size}
   .sheet .note{font-size:14.5px;line-height:1.55}
   .sheet .sign{font-size:17px}
   .sheet .stamp div{font-size:15px}
-  .heli-sign td.hs{height:54px;padding:2px 4px}
-  .heli-sign .sign{margin-top:14px}
-  .heli-sign .sign div{padding-bottom:16px}
+  .heli-sign td.hs{height:auto;padding:2px 4px}
+  .heli-sign h1{font-size:22px}
+  .heli-sign th{font-size:14px}
+  .heli-sign td.nw{font-size:16px}
+  .heli-sign .lb{font-size:12px;line-height:1.25;border-bottom:1px dashed #999;padding-bottom:2px;margin-bottom:0}
+  .heli-sign .lb b{font-size:12px}
+  .heli-sign .nt{font-size:12px}
+  .heli-sign .note{font-size:12.5px}
+  .heli-sign .sign.big{margin-top:12px;font-size:18px}
+  .heli-sign .sign.big div{padding-bottom:30px}
   .heli-sign .lb{font-size:13.5px;line-height:1.3}
   .heli-sign .lb b{font-size:12.5px}
   .heli-sign .nt{font-size:13px;line-height:1.3}
@@ -3942,8 +3949,9 @@ async function printHeliSign(r, only){
   if(!list.length){ toast(`${rangeLabel(r)}沒有合理員額的課`); return; }
   const rocY = +r.slice(0,4) - 1911, mon = +r.slice(5,7);
   const html = list.map(t => {
-    const maxP = Math.max(7, ...t.L.map(l => +l.p)), ps = Array.from({length: maxP}, (_, i) => String(i + 1));
+    const pNum = t.L.map(l => +l.p), minP = Math.min(...pNum), maxP = Math.max(...pNum), ps = Array.from({length: maxP - minP + 1}, (_, i) => String(minP + i));   // 只列這位老師有課的節次，簽名格比較寬
     const dates = [...new Set(t.L.map(l => l.date))].sort();
+    const rowMM = Math.max(15, Math.min(36, Math.floor(190 / Math.max(1, dates.length))));                                   // 依日期數撐滿 A4 直式，簽名格越大越好
     const cell = (date, p) => {
       const ls = t.L.filter(l => l.date === date && l.p === p); if(!ls.length) return `<td class="x"></td>`;
       return `<td class="hs">${ls.map(l => `<div class="lb">${l.w === 1.5 ? "<b>1.5</b>" : ""}${esc(l.subject)}-${esc(l.cls)}</div>${
@@ -3951,14 +3959,14 @@ async function printHeliSign(r, only){
     };
     return `<div class="sheet heli-sign"><h1>南投縣草屯鎮土城國民小學</h1>
       <p class="sub" style="font-size:15px;font-weight:700">${esc(t.name)}老師－國小合理教師員額代課教師（${t.weekly}節/週）${rocY}年${mon}月份簽到表</p>
-      <table><thead><tr><th style="width:9%">日期</th><th style="width:5%">星期</th>${ps.map(p => `<th>${p}</th>`).join("")}</tr></thead>
+      <table><thead><tr><th style="width:10%">日期</th><th style="width:6%">星期</th>${ps.map(p => `<th>第 ${p} 節</th>`).join("")}</tr></thead>
       <tbody>${dates.map(d => { const dl = t.L.filter(l => l.date === d), off = dl.every(l => l.st === "off" || l.st === "hol"), hol = dl.every(l => l.st === "hol");
-        return `<tr><td class="nw"><b>${fmtMD(d)}</b></td><td>${DOW[new Date(d+"T00:00:00").getDay()]}</td>${off
+        return `<tr style="height:${rowMM}mm"><td class="nw"><b>${fmtMD(d)}</b></td><td>${DOW[new Date(d+"T00:00:00").getDay()]}</td>${off
           ? `<td colspan="${ps.length}" class="offd">${esc(dl[0].why)}${hol ? `：課表上 ${dl.length} 節照常計薪，不用簽` : "：不用簽"}</td>`
           : ps.map(p => cell(d, p)).join("")}</tr>`; }).join("")}</tbody></table>
       <p class="sumline">${mon}月合計：共 ＿＿＿＿ 節　　（系統計算：應計 ${t.n1 + t.n15} 節${t.hol ? `（含國定假日、颱風假照常計薪 ${t.hol} 節）` : ""}，其中合班 ${t.n15} 節算 1.5 節，合計 ${unitsText(t.units)} 節，進位請領 <b>${t.pay}</b> 節${t.subN ? `；請假由別人代 ${t.subN} 節` : ""}）</p>
       <p class="note">框起來的「1.5」是合班、只有這位老師上的課，一節算 1.5 節。國定假日、颱風假照常計薪、不用簽；調走的課不用簽；別人代的課請代課老師簽名。</p>
-      <div class="sign"><div>教師簽名：</div><div>承辦人：</div></div></div>`;
+      <div class="sign big"><div>教師簽名：</div><div>承辦人：</div></div></div>`;
   }).join("");
   printSheets(html);
   toast("每位老師一頁；列印視窗選「另存為 PDF」就能存成 PDF");
