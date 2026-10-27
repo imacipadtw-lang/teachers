@@ -865,6 +865,13 @@ select{background-color:#fff}
 .hr-tbl tr.risk-note td{color:#8E2238}
 .chk-list li.err span{color:#9E1F37}
 .wb-nav{background:rgba(255,247,250,.97)}
+.abs-ps{display:flex;flex-wrap:wrap;gap:8px;margin:-4px 0 14px}
+.abs-sc{font-size:13px;color:var(--c-leave);font-weight:700}
+.abs-list{list-style:none;margin:0 0 8px;padding:0;font-size:14px;display:flex;flex-direction:column;gap:4px}
+.abs-list li{padding:4px 10px;border-radius:8px;background:var(--surface-2)}
+.abs-list li.todo{background:var(--rose-soft);color:var(--rose);font-weight:700}
+.abs-list li.ok{color:var(--sage)}
+.abs-none{margin:0 0 6px;color:var(--ink-3);font-size:14px}
 @media print{
   :root{--mist:#fff;--surface:#fff;--surface-2:#fff;--ink:#000;--ink-2:#333;--ink-3:#666;--line:#999;--line-2:#ccc;--glow:#000;--c-swap:#000}
   html,body{background:#fff!important}
@@ -1030,6 +1037,7 @@ select{background-color:#fff}
       <div class="seg" role="tablist">
         <button type="button" role="tab" data-kind="swap" aria-selected="true">調課</button>
         <button type="button" role="tab" data-kind="sub" aria-selected="false">代課</button>
+        <button type="button" role="tab" data-kind="absent" aria-selected="false">請假</button>
       </div>
       <button type="button" class="x" id="planClose" aria-label="關閉">×</button>
     </div>
@@ -1284,6 +1292,18 @@ var CF = (function () {
     return uniq(out);
   }
 
+  /* 請假登記（假單）：同一位老師同一天的請假時段重疊＝已經登記過；週末、放假提醒 */
+  function absent(r, ctx) {
+    var out = [];
+    if (!r.date) return out;
+    closed(ctx, r.date, null, "日期", out);
+    ctx.ev.forEach(function (e) {
+      if (e.type !== "absent" || e.who !== r.teacher || e.date !== r.date) return;
+      for (var p = 1; p <= 8; p++) if (covers(e, p) && covers(r, p)) { out.push(r.teacher + md(r.date) + "已經登記過請假（" + (e.id || "已登記") + "，" + absText(e) + "）"); return; }
+    });
+    return uniq(out);
+  }
+
   /* 那一節有空的老師（課表沒課、沒請假、沒在代課或調課） */
   function free(ctx, teachers, date, p, exclude) {
     return teachers.filter(function (t) {
@@ -1303,13 +1323,14 @@ var CF = (function () {
                                 { type: "leave", id: "這張單", who: r.leaver, other: r.sub, date: r.date, period: r.period, cls: r.cls }];
     if (kind === "tutor") return [{ type: "tutor", who: r.sub, other: r.leaver, date: r.date, cls: r.cls },
                                   { type: "tutorLeave", who: r.leaver, other: r.sub, date: r.date, cls: r.cls }];
+    if (kind === "absent") return [{ type: "absent", id: "這張單", who: r.teacher, other: "", date: r.date, scope: r.scope, periods: r.periods || [], leaveType: r.leaveType }];
     return [];
   }
 
   /* 一次檢查整張單：回傳 [{kind, index, msgs}] */
   function checkAll(ctx, form) {
     var c = { tt: ctx.tt, tSlot: ctx.tSlot, has: ctx.has, ev: ctx.ev.slice(), off: ctx.off }, res = [];
-    [["swap", form.swaps || [], swap], ["sub", form.subs || [], sub], ["tutor", form.tutors || [], tutor]].forEach(function (k) {
+    [["absent", form.absents || [], absent], ["swap", form.swaps || [], swap], ["sub", form.subs || [], sub], ["tutor", form.tutors || [], tutor]].forEach(function (k) {
       k[1].forEach(function (r, i) {
         res.push({ kind: k[0], index: i, msgs: k[2](r, c) });
         asEvents(k[0], r).forEach(function (e) { c.ev.push(e); });
@@ -1417,7 +1438,7 @@ var CF = (function () {
     return issues.sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
   }
 
-  return { dow: dow, md: md, covers: covers, absText: absText, leaveAt: leaveAt, busyAt: busyAt, leaveOn: leaveOn, swap: swap, sub: sub, tutor: tutor, free: free, checkAll: checkAll, asEvents: asEvents, offOf: offOf, audit: audit };
+  return { dow: dow, md: md, covers: covers, absText: absText, leaveAt: leaveAt, busyAt: busyAt, leaveOn: leaveOn, swap: swap, sub: sub, tutor: tutor, absent: absent, free: free, checkAll: checkAll, asEvents: asEvents, offOf: offOf, audit: audit };
 })();
 /* ====== 鐘點費、合理員額、勞健保、扣款（網頁與 Apps Script 共用同一份程式，兩邊數字一定一樣） ======
  * 網頁：heliOf／acctOf／insCalc 等都是這裡的薄包裝；Apps Script：產生「會計報表（即時）」試算表時用同一套。
@@ -2624,7 +2645,8 @@ function evRow(e){
   const repBtn = state.role==="teacher" ? `<button type="button" class="rep" data-date="${esc(e.date)}" data-about="${esc(about)}">這筆有錯？回報</button>` : "";
   const fl = (e.flags||[]).map(f=>`<div class="fl">⚠ ${esc(f)}</div>`).join("");
   const fr = state.role==="admin" ? fixRef(e) : null;
-  const fixBtn = fr ? `<button type="button" class="fixbtn" data-fix="${esc(fr.key)}" aria-label="修改這筆：${esc(md(e.date)+" "+d.p)}">修改</button>` : "";
+  const fixBtn = fr ? `<button type="button" class="fixbtn" data-fix="${esc(fr.key)}" aria-label="修改這筆：${esc(md(e.date)+" "+d.p)}">修改</button>`
+    : state.role==="admin" && e.type==="absent" && /^假-/.test(e.id||"") ? `<button type="button" class="fixbtn" data-absdel="${esc(e.id)}" aria-label="刪除這筆請假：${esc(md(e.date))}">刪除這筆請假</button>` : "";
   const fixd = e.fix ? `<div class="fixd">✎ ${state.role==="admin" ? "已修正："+esc(e.fix.text)+(e.fix.pending && exSyncOn() ?"（Excel 還沒改）":"") : "教務組已更正這筆資料"}</div>` : "";
   return `<div class="ev t-${e.type}${fl?" flag":""}"><div class="p"><span class="k">${KIND[e.type]||""}</span>${esc(d.p)}</div><div class="w">${esc(d.w)}</div><div class="f">${esc(d.f)}</div>${fl}${fixd}${e.stamp?`<div class="stp${e.stamp.indexOf("已核章完成")===0?"":" wait"}">${e.stamp.indexOf("已核章完成")===0?"✓ ":"⏳ "}${esc(e.stamp)}</div>`:""}${e.note?`<div class="x">備註：${esc(e.note)}</div>`:""}${repBtn}${fixBtn}</div>`;
 }
@@ -2787,7 +2809,8 @@ let plan = null;
 function resetPlan(date){
   plan = { kind:"swap", force:false, server:null, scan:null, scanKeys:null,
     swap:{teacher:"", applyDate:todayYmd(), reason:"", rows:[Object.assign(newSwapRow(), date?{fromDate:date}:{})]},
-    sub:{leaver:"", leaveType:"公假", date:date||"", note:"", rows:[], tutor:false, tutorSub:""} };
+    sub:{leaver:"", leaveType:"公假", date:date||"", note:"", rows:[], tutor:false, tutorSub:""},
+    absent:{teacher:"", leaveType:"公假", applyDate:todayYmd(), from:date||"", to:"", scope:"全天", periods:[], reason:"", scanSubs:{}, saved:null} };
 }
 async function openPlan(date){
   if(!plan || date) resetPlan(date);
@@ -2859,7 +2882,81 @@ function fillDay(){                          // 把請假老師那天所有的�
   if(!rows.length) toast(`${L} ${CF.md(d)} 課表上沒有課`);
 }
 
+/* 請假那一天：請假時段裡的課，哪些已經有人代或調走、哪些還沒安排 */
+function absDayInfo(T, d, A){
+  const ctx = ctxOf(), dw = CF.dow(d), todo = [], done = [], off = [];
+  for(let p = 1; p <= 7; p++){
+    if(!CF.covers(A, p)) continue;
+    const o = CF.offOf(ctx, d, p);
+    const tt = state.meta.tSlot[dw+"|"+p+"|"+T] || [], busy = CF.busyAt(ctx, T, d, p, "");
+    tt.forEach(c => {
+      const a = ttAt(d, String(p), c), subj = a ? a.subject : "";
+      if(o){ off.push({p, cls:c, subject:subj, how:o.name}); return; }
+      if(busy.includes(c+"（課表上的課）")){ todo.push({p, cls:c, subject:subj}); return; }
+      const lv = ctx.ev.find(e => e.type==="leave" && e.who===T && e.date===d && String(e.period)===String(p) && e.other);
+      const sw = ctx.ev.find(e => e.type==="swap" && e.date===d && String(e.period)===String(p) && ((e.dir==="調出" && e.teacher===T) || (e.dir==="調入" && e.partner===T)));
+      done.push({p, cls:c, subject:subj, how: lv ? `由 ${lv.other} 代課` : sw ? `已調課（${sw.id}）` : "已安排"});
+    });
+    busy.filter(b => !/（課表上的課）$/.test(b)).forEach(b => { if(!o) todo.push({p, cls:b.split("（")[0], subject:"", extra:b}); });
+  }
+  return {todo, done, off};
+}
+function renderAbsInfo(){
+  const A = plan.absent;
+  absDays().forEach((d,i) => {
+    const el = document.querySelector(`#planBody [data-absinfo="${i}"]`); if(!el) return;
+    if(!A.teacher || !state.meta){ el.innerHTML = ""; return; }
+    const x = absDayInfo(A.teacher, d, A), sub = (A.scanSubs||{})[d] || {};
+    const li = [].concat(
+      x.todo.map(t => `<li class="todo">第${t.p}節 ${esc((t.cls + " " + t.subject).trim())}：${t.extra ? "⚠ 這節要上 " + esc(t.extra) : "⚠ 還沒安排"}${sub[t.p] ? `（假單寫 ${esc(sub[t.p])} 代）` : ""}</li>`),
+      x.done.map(t => `<li class="ok">第${t.p}節 ${esc((t.cls + " " + t.subject).trim())}：✓ ${esc(t.how)}</li>`),
+      x.off.map(t => `<li>第${t.p}節 ${esc(t.cls)}：${esc(t.how)}（放假）</li>`)).sort((a,b) => (+a.match(/第(\d)節/)[1]) - (+b.match(/第(\d)節/)[1]));
+    el.innerHTML = li.length ? `<ul class="abs-list">${li.join("")}</ul>` + (x.todo.filter(t => !t.extra).length ? `<button type="button" class="btn small" data-absub="${i}">排這天的代課（${x.todo.filter(t => !t.extra).length} 節）</button>` : "")
+                             : `<p class="abs-none">這段時間 ${esc(A.teacher)} 沒有課</p>`;
+  });
+}
+/* 「排這天的代課」：切到「代課」，請假老師、日期、假別、還沒安排的節次都帶好；假單上寫的代課老師也帶入 */
+function absToSub(i){
+  const A = plan.absent, d = absDays()[i]; if(!d || !A.teacher) return;
+  const x = absDayInfo(A.teacher, d, A), sub = (A.scanSubs||{})[d] || {};
+  plan.sub = {leaver:A.teacher, leaveType:A.leaveType, date:d, note: A.leaveType==="其他" ? A.reason : "", rows:[], tutor:false, tutorSub:""};
+  plan.sub.rows = x.todo.filter(t => !t.extra).map(t => Object.assign(newSubRow(), {period:String(t.p), cls:t.cls, subject:t.subject, sub: sub[t.p] || "", auto:{subject:1}}));
+  plan.kind = "sub"; plan.force = false; plan.server = null;
+  plan.scan = Object.keys(sub).length ? {title:"已帶入假單上的代課老師（黃框），請核對", warn:[], photo:""} : null;
+  plan.scanKeys = plan.sub.rows.map((r,k) => r.sub ? `r.${k}.sub` : "").filter(Boolean);
+  renderPlan();
+}
+$("#planBody").addEventListener("change", e=>{
+  const p = e.target.dataset.ap; if(p===undefined) return;
+  const A = plan.absent, s = String(p);
+  A.periods = e.target.checked ? A.periods.concat(A.periods.includes(s) ? [] : [s]) : A.periods.filter(x => x !== s);
+  A.saved = null; plan.force = false; renderPlan();
+});
+document.addEventListener("click", async e => {
+  const b = e.target.closest("[data-absdel]"); if(!b) return;
+  e.stopPropagation();
+  const id = b.dataset.absdel, ev = state.events.find(x => x.type==="absent" && x.id===id);
+  if(!confirm(`刪除這筆請假？\n${id}　${ev ? ev.who + " " + md(ev.date) + "（" + CF.absText(ev) + "）" : ""}\n（之後可以在「變更紀錄與復原」還原）`)) return;
+  busy(true);
+  try{ const d = await apiPost({action:"absentDel", name:state.cred.name, h:state.cred.h, ids:[id]}); if(!d.ok) throw new Error(d.error||"刪除失敗"); toast("已刪除 " + id); state.meta = null; await reload(true, true); }
+  catch(err){ toast("刪除失敗：" + err.message); }
+  finally{ busy(false); }
+});
+/* 請假的每一天（週六、週日不列；最多 31 天） */
+function absDays(){
+  const A = plan.absent, from = A.from, to = A.to && A.to >= A.from ? A.to : A.from, out = [];
+  if(!from) return out;
+  for(let d = new Date(from+"T12:00:00"); out.length < 31; d.setDate(d.getDate()+1)){
+    const y = ymd(d); if(y > to) break;
+    if(d.getDay()!==0 && d.getDay()!==6) out.push(y);
+  }
+  return out;
+}
 function formData(){
+  if(plan.kind==="absent"){
+    const A = plan.absent;
+    return {absents: absDays().map(d => ({teacher:A.teacher, applyDate:A.applyDate, leaveType:A.leaveType, date:d, scope:A.scope, periods:A.scope==="節次" ? A.periods.slice().sort((x,y)=>x-y) : [], reason:A.reason}))};
+  }
   if(plan.kind==="swap"){
     const S = plan.swap;
     return {swaps:S.rows.map(r=>({teacher:S.teacher, applyDate:S.applyDate, reason:S.reason, cls:r.cls, fromDate:r.fromDate, fromPeriod:r.fromPeriod, fromSubject:r.fromSubject,
@@ -2876,12 +2973,15 @@ function missingOf(kind, r){
   else if(kind==="sub"){ if(!r.leaver) m.push("請假老師"); if(!r.date) m.push("日期"); if(!r.period) m.push("節次"); if(!r.cls) m.push("班級"); if(!r.sub) m.push("代課老師");
     if(r.sub && r.sub===r.leaver) m.push("（代課老師不能是請假老師本人）");
     if(r.leaveType==="其他" && !String(r.note||"").trim()) m.push("備註（假別選「其他」要寫明是什麼假）"); }
+  else if(kind==="absent"){ if(!r.teacher) m.push("請假老師"); if(!r.date) m.push("日期"); if(!r.leaveType) m.push("假別");
+    if(r.scope==="節次" && !(r.periods||[]).length) m.push("節次（範圍選「節次」要勾選）");
+    if(r.leaveType==="其他" && !String(r.reason||"").trim()) m.push("事由（假別選「其他」要寫明是什麼假）"); }
   else { if(!r.sub) m.push("代導師"); if(r.leaveType==="其他" && !String(r.note||"").trim()) m.push("備註（假別選「其他」要寫明是什麼假）"); }
   return m;
 }
 function termOf(kind, r){                    // 不在本學期的日期
   const bad = [], chk = (d,l) => { if(d && !inTerm(d)) bad.push(`${l} ${CF.md(d)}`); };
-  if(kind==="swap"){ chk(r.fromDate,"原日期"); chk(r.toDate,"調整後日期"); } else chk(r.date,"日期");
+  if(kind==="swap"){ chk(r.fromDate,"原日期"); chk(r.toDate,"調整後日期"); } else chk(r.date,"日期");   // 請假也是看 r.date
   return bad;
 }
 /* 每節金額（和後端 rateOf_ 相同）：合班 RATE_COMB 元；代的是協同老師（課表上排第二位以後）的課 RATE_SUB 元 */
@@ -2922,14 +3022,14 @@ function checkBox(kind, r, msgs){
   const out = termOf(kind, r);
   if(out.length) return `<div class="chk bad" role="alert"><b>⚠ 日期不在本學期（${esc(termText())}）</b>：${esc(out.join("、"))}</div>`;
   if(soft.length) return `<div class="chk bad" role="alert"><b>⚠ 提醒（${soft.length}）</b><ul>${soft.map(m=>`<li>${esc(m)}</li>`).join("")}</ul></div>`;
-  return `<div class="chk good">✓ 檢查過了，沒有衝堂、沒有請假</div>`;
+  return kind==="absent" ? `<div class="chk good">✓ 可以登記</div>` : `<div class="chk good">✓ 檢查過了，沒有衝堂、沒有請假</div>`;
 }
 
 function renderPlan(){
   document.querySelectorAll("#planModal .seg button").forEach(b=>b.setAttribute("aria-selected", b.dataset.kind===plan.kind));
   const focusKey = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.k : null;
   let html = `<div class="scanbar"><button type="button" class="btn" id="scanBtn">📷 拍紙本／上傳照片，自動填好</button>
-    <span>調課單、代課單都可以；拍正、拍清楚。辨識完會先填進下面的欄位（黃框），請核對後再按「儲存」。</span>
+    <span>假單、調課單、代課單都可以；拍正、拍清楚。辨識完會先填進下面的欄位（黃框），請核對後再按「儲存」；看不清楚的會列在上面請您確認。</span>
     <input type="file" id="scanFile" accept="image/*,application/pdf" hidden></div>`;
   if(plan.scan) html += `<div class="scanres" role="status"><b>${esc(plan.scan.title)}</b>${plan.scan.warn.length ? `<ul>${plan.scan.warn.map(w => `<li>${esc(w)}</li>`).join("")}</ul>` : ""}${plan.scan.photo ? `<div><a href="${esc(plan.scan.photo)}" target="_blank" rel="noopener">開啟原始照片對照</a></div>` : ""}</div>`;
   if(plan.kind==="swap"){
@@ -2956,6 +3056,22 @@ function renderPlan(){
         </div><div class="auto-hint" data-hint="${i}" hidden></div><div data-chk="swap.${i}"></div></div>`;
     });
     html += `<button type="button" class="addrow" id="addRow">＋ 再加一列</button>`;
+  } else if(plan.kind==="absent"){
+    const A = plan.absent, days = absDays();
+    html += `<div class="fields">
+      <div><label for="aT">請假老師</label><select id="aT" data-k="a.teacher">${teacherOpts(A.teacher)}</select></div>
+      <div><label for="aL">假別</label><select id="aL" data-k="a.leaveType">${LEAVES.map(l=>opt(l,l,A.leaveType)).join("")}</select></div>
+      <div><label for="aF">請假日期（起）</label><input type="date" id="aF" data-k="a.from" value="${esc(A.from)}" min="${state.term.from}" max="${state.term.to}"><div class="dow-tag" data-dow="a.from"></div></div>
+      <div><label for="aTo">到（迄，一天就不用填）</label><input type="date" id="aTo" data-k="a.to" value="${esc(A.to)}" min="${esc(A.from||state.term.from)}" max="${state.term.to}"><div class="dow-tag" data-dow="a.to"></div></div>
+      <div><label for="aS">範圍</label><select id="aS" data-k="a.scope">${["全天","上午","下午","節次"].map(x=>opt(x, x==="上午"?"上午（第1～4節）":x==="下午"?"下午（第5節起）":x==="節次"?"指定節次":x, A.scope)).join("")}</select></div>
+      <div style="grid-column:span 2"><label for="aR">事由（只存在雲端表格，不會顯示在網頁上）</label><input id="aR" data-k="a.reason" value="${esc(A.reason)}" placeholder="${A.leaveType==="其他"?"假別選「其他」一定要寫，例如：公傷假":"選填"}"></div></div>`;
+    if(A.scope==="節次") html += `<div class="abs-ps" role="group" aria-label="請假節次">${[1,2,3,4,5,6,7].map(p=>`<label class="set-chk"><input type="checkbox" data-ap="${p}" ${A.periods.includes(String(p))?"checked":""}> 第${p}節</label>`).join("")}</div>`;
+    html += `<p class="hintline">一天一列（週六、週日不列）。每一天會列出${esc(A.teacher||"請假老師")}在請假時段的課：還沒安排的，按「排這天的代課」會依課表帶入，再選代課老師。</p>`;
+    days.forEach((d,i)=>{
+      html += `<div class="rowc"><div class="rhead"><b>${esc(CF.md(d))}</b><span class="abs-sc">${esc(CF.absText(A))}</span></div>
+        <div class="absinfo" data-absinfo="${i}"></div><div data-chk="absent.${i}"></div></div>`;
+    });
+    if(!days.length && A.from) html += `<div class="empty">這段期間都是週末，沒有要登記的日子</div>`;
   } else {
     const U = plan.sub, home = U.leaver && state.meta.homeroom[U.leaver];
     const ctx = ctxOf();
@@ -2992,7 +3108,7 @@ function renderPlan(){
 /* 局部更新：自動帶入的值、星期、有空老師、衝突提醒、摘要（不重畫欄位，正在填的格子不會被換掉） */
 function valOf(k){
   const [scope,a,b] = k.split(".");
-  if(scope==="s") return plan.swap[a]; if(scope==="u") return plan.sub[a];
+  if(scope==="s") return plan.swap[a]; if(scope==="u") return plan.sub[a]; if(scope==="a") return plan.absent[a];
   const row = (plan.kind==="swap"?plan.swap.rows:plan.sub.rows)[+a]; return row ? row[b] : "";
 }
 function refreshPlan(){
@@ -3028,20 +3144,25 @@ function refreshPlan(){
       fee.innerHTML = `代課 <b>${n}</b> 節${comb ? `（其中合班 ${comb} 節，每節 ${RATE_COMB} 元）` : ` × ${RATE_SUB} 元`} ＝ <b>${rates.reduce((a,b)=>a+b,0).toLocaleString()} 元</b>（由各代課老師領）${U.tutor&&home?`；代導師 1 日 <b>${RATE_TUTOR} 元</b>（由代導師領）`:""}`;
     }
   }
+  if(plan.kind==="absent") renderAbsInfo();
   if(plan.kind==="swap") document.querySelectorAll("#planBody [data-hint]").forEach(el=>{ const h = swapHint(plan.swap.rows[+el.dataset.hint]||{}); el.textContent = h ? "💡 " + h : ""; el.hidden = !h; });
   document.querySelectorAll("#planBody [data-chk]").forEach(el=>{
     const [kind,i] = el.dataset.chk.split(".");
-    const row = (kind==="swap"?form.swaps:kind==="sub"?form.subs:form.tutors)||[];
-    el.innerHTML = checkBox(kind, row[+i]||{}, msgsOf(kind,+i));
+    const row = (kind==="swap"?form.swaps:kind==="sub"?form.subs:kind==="absent"?form.absents:form.tutors)||[];
+    el.innerHTML = kind==="absent" && plan.absent.saved ? "" : checkBox(kind, row[+i]||{}, msgsOf(kind,+i));
   });
   // 摘要與儲存按鈕
   const all = res.filter(x=>x.msgs.length).length, hardN = res.filter(x=>hardOf(x.msgs).length).length;
-  const rowsN = (form.swaps||form.subs||[]).length + ((form.tutors||[]).length);
-  const anyMissing = (form.swaps||[]).some(r=>missingOf("swap",r).length) || (form.subs||[]).some(r=>missingOf("sub",r).length) || (form.tutors||[]).some(r=>missingOf("tutor",r).length);
-  const anyOut = (form.swaps||[]).some(r=>termOf("swap",r).length) || (form.subs||[]).some(r=>termOf("sub",r).length) || (form.tutors||[]).some(r=>termOf("tutor",r).length);
-  $("#planSum").innerHTML = !rowsN ? "還沒有資料" : hardN ? `<span style="color:var(--rose);font-weight:800">⛔ 有 ${hardN} 列衝堂或請假，不能儲存，請改選老師</span>` : anyMissing ? `還有欄位沒填完` : anyOut ? `<span style="color:var(--rose);font-weight:700">⚠ 有日期不在本學期（${esc(termText())}）</span>` : all ? `<span style="color:var(--rose);font-weight:700">⚠ 有 ${all} 列需要確認</span>` : `<span style="color:var(--sage);font-weight:700">✓ 共 ${rowsN} 列，沒有衝堂、沒有請假</span>`;
+  const rowsN = (form.swaps||form.subs||form.absents||[]).length + ((form.tutors||[]).length);
+  const anyMissing = (form.swaps||[]).some(r=>missingOf("swap",r).length) || (form.subs||[]).some(r=>missingOf("sub",r).length) || (form.tutors||[]).some(r=>missingOf("tutor",r).length) || (form.absents||[]).some(r=>missingOf("absent",r).length) || (plan.kind==="absent" && !rowsN && plan.absent.from ? true : false);
+  const anyOut = (form.swaps||[]).some(r=>termOf("swap",r).length) || (form.subs||[]).some(r=>termOf("sub",r).length) || (form.tutors||[]).some(r=>termOf("tutor",r).length) || (form.absents||[]).some(r=>termOf("absent",r).length);
+  $("#planSum").innerHTML = !rowsN ? "還沒有資料" : hardN ? `<span style="color:var(--rose);font-weight:800">⛔ 有 ${hardN} 列衝堂或請假，不能儲存，請改選老師</span>` : anyMissing ? `還有欄位沒填完` : anyOut ? `<span style="color:var(--rose);font-weight:700">⚠ 有日期不在本學期（${esc(termText())}）</span>` : all ? `<span style="color:var(--rose);font-weight:700">⚠ 有 ${all} 列需要確認</span>` : (plan.kind==="absent" ? `<span style="color:var(--sage);font-weight:700">✓ 共 ${rowsN} 天，可以登記</span>` : `<span style="color:var(--sage);font-weight:700">✓ 共 ${rowsN} 列，沒有衝堂、沒有請假</span>`);
   $("#planSave").textContent = plan.force ? "仍要儲存（我已確認提醒）" : "儲存到雲端表格";
   $("#planSave").disabled = !rowsN || anyMissing || anyOut || hardN > 0;
+  if(plan.kind==="absent" && plan.absent.saved){
+    $("#planSum").innerHTML = `<span style="color:var(--sage);font-weight:700">✓ 已儲存請假（${esc(plan.absent.saved)}）。還沒安排的課，按各天的「排這天的代課」。</span>`;
+    $("#planSave").disabled = true; $("#planSave").textContent = "已儲存";
+  }
 }
 
 /* 欄位變動：更新資料 → 自動帶入 → 重新檢查 */
@@ -3050,6 +3171,7 @@ function setField(k, v){
   plan.force = false;
   if(scope==="s") plan.swap[a] = v;
   else if(scope==="u") plan.sub[a] = v;
+  else if(scope==="a"){ plan.absent[a] = v; plan.absent.saved = null; if(a==="from" && plan.absent.to && plan.absent.to < v) plan.absent.to = ""; return; }
   else if(scope==="r"){
     const row = (plan.kind==="swap" ? plan.swap.rows : plan.sub.rows)[+a];
     row[b] = v; delete row.auto[b];
@@ -3076,13 +3198,13 @@ $("#planBody").addEventListener("change", e=>{
     showBlock(added);
     return;
   }
-  if(k==="u.leaver" || k==="u.tutor" || k==="u.date") renderPlan();   // 會改變版面的才整個重畫
+  if(k==="u.leaver" || k==="u.tutor" || k==="u.date" || k.indexOf("a.")===0) renderPlan();   // 會改變版面的才整個重畫
   else refreshPlan();
 });
 $("#planBody").addEventListener("input", e=>{            // 打字中：只記下來，不重畫（避免游標跳掉）
   const k = e.target.dataset.k; if(!k || e.target.tagName!=="INPUT" || e.target.type==="date" || e.target.type==="checkbox") return;
   const [scope,a,b] = k.split(".");
-  if(scope==="s") plan.swap[a]=e.target.value; else if(scope==="u") plan.sub[a]=e.target.value;
+  if(scope==="s") plan.swap[a]=e.target.value; else if(scope==="u") plan.sub[a]=e.target.value; else if(scope==="a") plan.absent[a]=e.target.value;
   else { const row=(plan.kind==="swap"?plan.swap.rows:plan.sub.rows)[+a]; row[b]=e.target.value; delete row.auto[b]; }
   plan.force = false;
 });
@@ -3096,6 +3218,7 @@ $("#planBody").addEventListener("click", e=>{
   if(t.dataset.del!==undefined){ (plan.kind==="swap"?plan.swap.rows:plan.sub.rows).splice(+t.dataset.del,1); if(plan.kind==="swap"&&!plan.swap.rows.length) plan.swap.rows.push(newSwapRow()); renderPlan(); }
   if(t.id==="fillDay"){ fillDay(); renderPlan(); }
   if(t.id==="scanBtn") $("#scanFile").click();
+  if(t.dataset.absub!==undefined) absToSub(+t.dataset.absub);
 });
 $("#planBody").addEventListener("change", e=>{ if(e.target.id === "scanFile" && e.target.files[0]) scanPaper(e.target.files[0]); });
 /* ---------- 拍紙本自動填寫：照片縮小 → 後端 Gemini 辨識 → 填進排調代課的欄位（不自動儲存） ---------- */
@@ -3130,7 +3253,34 @@ function applyScan(d){
   const ymdOk = v => /^\d{4}-\d{2}-\d{2}$/.test(v || "") ? v : "";
   const clsOk = v => { v = String(v || "").replace(/\s/g, ""); if(CLASSES.includes(v)) return v; if(v) warn.push(`班級照片上寫「${v}」，請手動選`); return ""; };
   const pOk = v => /^[1-7]$/.test(String(v || "")) ? String(v) : "";
-  if(!recs.length){ plan.scan = {title:"照片裡沒有找到調課或代課的資料，請手動填寫", warn:[], photo:d.photo}; plan.scanKeys = []; renderPlan(); return; }
+  if(!recs.length){ plan.scan = {title:"照片裡沒有找到請假、調課或代課的資料，請手動填寫", warn:[], photo:d.photo}; plan.scanKeys = []; renderPlan(); return; }
+  const absRecs = recs.filter(r => r.type === "請假");
+  if(absRecs.length){                                // 假單：填「請假」；同一張上的代課安排記下來，按「排這天的代課」時帶入
+    const A = plan.absent, r0 = absRecs[0];
+    plan.kind = "absent"; A.saved = null; A.scanSubs = {};
+    A.teacher = who(r0.teacher, "請假老師：") || A.teacher;
+    if(r0.leaveType && LEAVES.includes(r0.leaveType)) A.leaveType = r0.leaveType; else if(r0.leaveType) warn.push(`假別照片上寫「${r0.leaveType}」，請手動選`);
+    A.from = ymdOk(r0.date) || A.from; const t2 = ymdOk(r0.toDate); A.to = t2 && t2 !== A.from ? t2 : "";
+    if(!ymdOk(r0.date)) warn.push(`請假日期看不懂（照片上寫「${r0.date||"沒寫"}」），請手動填`);
+    const sc = ["全天","上午","下午","節次"].includes(r0.scope) ? r0.scope : "全天";
+    if(r0.scope && sc !== r0.scope) warn.push(`請假範圍照片上寫「${r0.scope}」，先填「全天」，請核對`);
+    A.scope = sc; A.periods = sc === "節次" ? (r0.periods||[]).map(pOk).filter(Boolean) : [];
+    if(sc === "節次" && !A.periods.length) warn.push("範圍是節次，但看不出是哪幾節，請勾選");
+    A.reason = r0.reason || A.reason;
+    if(absRecs.length > 1) warn.push(`照片上還有其他請假（${absRecs.slice(1).map(r => (r.teacher||"") + " " + (r.date||"")).join("、")}），這次只填第一筆，其他請再拍一次或手動登記`);
+    recs.filter(r => r.type === "代課").forEach(r => {
+      const d0 = ymdOk(r.date) || A.from, o = who(r.other, "代課老師："); if(!d0 || !o) return;
+      (A.scanSubs[d0] = A.scanSubs[d0] || {}); (r.periods||[]).map(pOk).filter(Boolean).forEach(p => { A.scanSubs[d0][p] = o; });
+    });
+    if(Object.keys(A.scanSubs).length) warn.push("照片上有代課安排：按該天的「排這天的代課」會一起帶入代課老師");
+    absRecs.concat(recs.filter(r => r.type === "代課")).forEach(r => { if(r.unclear) warn.push("看不清楚：" + r.unclear); });
+    keys.push("a.teacher","a.leaveType","a.from","a.scope"); if(A.to) keys.push("a.to"); if(A.reason) keys.push("a.reason");
+    if(d.stamp) warn.push("核章：" + d.stamp);
+    for(let i = warn.length - 1; i >= 0; i--) if(warn.indexOf(warn[i]) < i) warn.splice(i, 1);
+    plan.scan = {title: `已依假單填好請假（黃框＝照片辨識的），共 ${absDays().length} 天，請核對後再儲存`, warn, photo: d.photo};
+    plan.scanKeys = keys; plan.force = false; plan.server = null;
+    renderPlan(); return;
+  }
   const swaps = recs.filter(r => r.type !== "代課" && r.type !== "代導師" && (r.toDate || r.toPeriods.length)), subs = recs.filter(r => r.type === "代課" || r.type === "代導師" || (!r.toDate && !r.toPeriods.length));
   if(swaps.length >= subs.length){
     plan.kind = "swap"; const r0 = swaps[0], S = plan.swap;
@@ -3185,7 +3335,12 @@ $("#planSave").onclick = async ()=>{
   busy(true);
   try{
     const d = await apiPost(Object.assign({action:"save", name:state.cred.name, h:state.cred.h, force:plan.force}, form));
-    if(d.ok){
+    if(d.ok && plan.kind==="absent"){               // 請假存好後留在這個畫面，接著排代課
+      const keep = plan.absent; keep.saved = (d.ids||[]).join("、");
+      state.meta = null; await reload(true); await openPlan();
+      plan.kind = "absent"; plan.absent = keep; plan.scan = null; plan.scanKeys = null; renderPlan();
+      toast(`已儲存請假（${keep.saved}）`);
+    } else if(d.ok){
       resetPlan(); state.meta = null; closePlan(); await reload(true);
       toast(`已儲存到雲端表格（${(d.ids||[]).join("、")}）`);
     } else if(d.blocked){                       // 伺服器用最新資料檢查到衝堂／請假（例如別人剛登記）→ 一律擋下
