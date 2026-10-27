@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>土城國小 代課・調課 年曆查詢</title>
+<title>土城國小 代課・調課（教務組專用）</title>
+<meta name="theme-color" content="#FDEBF2">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&display=swap&text=0123456789%2F%3A.-%E2%80%93" rel="stylesheet">
 <style>
@@ -766,6 +767,110 @@ main{container-type:inline-size}
 .month,.list .grp,.panel,.admin-box,.reports,.alerts{background:rgba(17,34,58,.94)}
 .ev .x{color:var(--ink-3)}
 
+/* ===================================================================
+   10/27 教務組專用版：粉紅色（看到粉紅色＝最新版本）
+   淺粉紅底、白色卡片、深莓色文字；四色（代課藍、請假紅、調課金、代導師綠）加深，白底也看得清楚。
+   只用覆蓋的方式改顏色，原本的深藍版樣式留在上面，要改回去刪掉這一段即可。
+   =================================================================== */
+:root{
+  --mist:#FDEBF2; --surface:#FFFFFF; --surface-2:#FFF7FA; --ink:#3B1E2B; --ink-2:#6B4656; --ink-3:#8F6878;
+  --line:#EFC3D3; --line-2:#F6DCE6;
+  --navy:#B23A6B; --navy-2:#962E59; --navy-3:#7E234A;
+  --sky:#D0457A; --sky-deep:#B8336A; --sky-soft:rgba(208,69,122,.12); --sky-mist:rgba(208,69,122,.05); --glow:#B8336A;
+  --c-sub:#2C74B8; --c-leave:#D0384F; --c-swap:#A86B0C; --c-tutor:#14825C;
+  --rose:#C42B47; --rose-soft:rgba(196,43,71,.10);
+  --sage:#14825C; --sage-soft:rgba(20,130,92,.10);
+  --amber:#9A6200; --amber-soft:rgba(214,146,20,.14);
+}
+html,body{background:var(--mist)}
+body{background:radial-gradient(1100px 560px at 50% -12%,#FFD3E3 0%,transparent 62%),var(--mist);background-attachment:fixed}
+#net{display:none!important}
+::selection{background:rgba(208,69,122,.25)}
+option,optgroup{background:#fff;color:var(--ink)}
+input,select,textarea{background-color:#fff}
+.btn{color:#fff}
+.btn:hover{background:#9E2C5A;border-color:#9E2C5A;box-shadow:0 0 0 4px rgba(208,69,122,.15),0 8px 22px rgba(208,69,122,.22)}
+.btn.ghost{background:#fff;color:var(--ink);border-color:var(--line)}
+.btn.ghost:hover{background:var(--sky-soft);border-color:var(--sky);color:var(--sky-deep)}
+.btn.danger,.chk.stop{color:#fff}
+.btn.line{color:#fff}
+.banner{background:#FFE6F0;border-bottom-color:var(--line);color:var(--ink-2)}
+.banner b{color:var(--sky-deep)}
+.gfield > *,.gfield select,.gfield input{background-color:#fff}
+.gfield select{background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%238F6878' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 14px center}
+select{background-color:#fff}
+.pill{background:#fff}
+.pill.act,button.pill:hover{color:var(--sky-deep)}
+.lstats b,.wk-head .sum b,.wk-dh .md,.wk-it .w .sl,.wk-it .who{color:var(--ink)}
+.wk-day{background:#fff}
+.wk-off{background:var(--amber-soft);color:var(--amber)}
+.eye:hover{color:var(--sky-deep)}
+.topbar{background:rgba(253,235,242,.88);border-bottom-color:var(--line)}
+.ver-tag{display:inline-block;font-size:12px;font-weight:800;color:#fff;background:var(--sky);border-radius:999px;padding:2px 10px;margin-left:8px;vertical-align:middle;letter-spacing:.02em}
+/* 課務看板：深莓色（主角），白字 */
+.board{background:linear-gradient(180deg,#9C2E5C,#7A2147);border-color:#7A2147;box-shadow:0 18px 40px rgba(122,33,71,.25)}
+.board .today-line,.brow .bw,.brow.none > span,.meter b small{color:#F7D6E3}
+.board .today-line b{color:#FFE7A8}
+.board .board-cap,.brow .bf small,.brow.head > span,.meter span{color:#EBB7CB}
+.brow > span{background:rgba(255,255,255,.13)}
+.brow .bd,.brow .bp,.brow .bf{color:#FFE3EE}
+.brow .bx{color:#FFF3F8}
+.brow.alert .bx{color:#FFD0D6}
+.meters{background:rgba(255,255,255,.12)}
+.meter{background:rgba(70,14,38,.45)}
+.meter .k{color:#F2C3D5}
+/* 卡片：白底 */
+.month,.list .grp,.panel,.admin-box,.reports,.alerts,.monthly,.fixes{background:#fff}
+.month,.panel,.admin-box,.list .grp{box-shadow:0 2px 10px rgba(178,58,107,.06)}
+.set-tbl th,.acct th,.minetbl th{background:#FBE5EE}
+.acct-kpi div{background:var(--surface-2)}
+.acct-kpi .k{color:var(--ink-2)}
+.acct-kpi b{color:var(--ink)}
+.acct-kpi b small,.acct-kpi .kk{color:var(--ink-2)}
+.acct-kpi .total{background:linear-gradient(160deg,rgba(208,69,122,.16),#FFF7FA)}
+.wb{background:#fff;box-shadow:0 10px 30px rgba(178,58,107,.10)}
+.wb-card{background:var(--surface-2)}
+.wb-todo li{background:#fff}
+.wb-track li.done i,.wb-track li.cur i{color:#fff}
+.seg2{background:#fff}
+.tab[aria-selected=true]{color:var(--sky-deep)}
+/* 年曆 */
+.d{background:#fff;color:var(--ink)}
+.d.we{background:#FBEFF4}
+.d.off{background:repeating-linear-gradient(135deg,rgba(214,146,20,.16) 0 6px,#FFF8EC 6px 12px);border-color:rgba(214,146,20,.45)}
+.d.has{background:#FFF1F7;border-color:rgba(208,69,122,.55)}
+.d.has:hover{box-shadow:inset 3px 0 0 var(--sky),0 0 14px rgba(208,69,122,.22)}
+.d.has .n{color:var(--ink)}
+.ev .p .k{background:rgba(44,116,184,.12)}
+.ev.t-leave .p .k,.ev.t-tutorLeave .p .k,.ev.t-absent .p .k{background:rgba(208,56,79,.12)}
+.ev.t-tutor .p .k{background:rgba(20,130,92,.12)}
+.ev .fixbtn{background:#fff}
+.ev .fixbtn:hover,.ev .fixbtn:focus-visible,.fixes li button:hover{color:var(--sky-deep)}
+/* 彈窗 */
+.modal{background:rgba(70,20,44,.42)}
+.plan-head{background:var(--navy)}
+.seg button{color:#F7D6E3}
+.seg button[aria-selected=true]{background:#fff;color:var(--sky-deep)}
+.plan-head .x{color:#F7D6E3}
+.scanres{background:var(--amber-soft);color:#6B4300}
+.scanres b{color:var(--ink)}
+.scanbar{background:var(--sky-mist)}
+.notice.line{background:rgba(6,150,70,.10);color:#0B6B34}
+.line-code{color:var(--ink)}
+.toast{background:var(--ink);color:#fff}
+.undo-bar{background:#fff}
+/* 勞健保核對的紅框（白底版） */
+.hr-tbl td.risk input{color:#9E1F37;background:rgba(255,90,110,.10)}
+.hr-tbl td.risk .sysv,.hr-tbl tr.risk-note b,.hr-riskline b{color:#C42B47}
+.hr-tbl tr.risk-note td{color:#8E2238}
+.chk-list li.err span{color:#9E1F37}
+.wb-nav{background:rgba(255,247,250,.97)}
+@media print{
+  :root{--mist:#fff;--surface:#fff;--surface-2:#fff;--ink:#000;--ink-2:#333;--ink-3:#666;--line:#999;--line-2:#ccc;--glow:#000;--c-swap:#000}
+  html,body{background:#fff!important}
+  .board{background:#fff} .ver-tag{display:none}
+}
+
 </style>
 </head>
 <body>
@@ -773,14 +878,14 @@ main{container-type:inline-size}
 <canvas id="net" aria-hidden="true"></canvas>
 <!-- 登入（版面參考教務組提供的影片：置中、四色標誌、流動漸層框；背景的節點可以用滑鼠拖） -->
 <section id="login">
-  <div class="banner">這一頁公開本週<b>誰請假、誰代課</b>（不寫假別和事由）；個人紀錄、鐘點費要登入才看得到</div>
+  <div class="banner"><b>教務組專用版</b>（粉紅色＝最新版本）：只有教務組帳號能登入，老師不開放</div>
   <nav class="lnav">
     <div class="brand"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="txt">代課・調課查詢</span></div>
     <span class="term">南投縣草屯鎮土城國民小學　115 學年度上學期</span>
   </nav>
   <div class="lcenter">
-    <h1>代課・調課查詢</h1>
-    <p class="lead">選您的名字、輸入個人密碼，就能看到自己的代課、請假和調課。</p>
+    <h1>代課・調課・請假　核對系統</h1>
+    <p class="lead">教務組專用：紙本登錄、課務查詢、代課鐘點費核對。</p>
     <form class="login-card" id="loginForm" autocomplete="off">
       <p class="demo-tag" id="demoTag" hidden>示範模式：資料是假的，密碼一律 demo</p>
       <div class="gbox">
@@ -805,11 +910,11 @@ main{container-type:inline-size}
         <span class="pill"><i style="background:var(--c-swap)"></i>調課</span><span class="pill"><i style="background:var(--c-tutor)"></i>代導師</span>
       </div>
       <div class="lstats" id="lstats"></div>
-      <p class="hint">忘記密碼請找教務組 陳怡璇，會幫您恢復成初始密碼。登入後右上角可以更改密碼。</p>
+      <p class="hint">只有教務組帳號可以登入。</p>
     </form>
     <section class="wk" id="pubWeek" aria-label="本週全校調代課"><div class="wk-load">本週調代課讀取中…</div></section>
   </div>
-  <p class="lfoot">資料來源：教務組代課一覽表、調課單。金額為參考值，正式金額以教務組核算為準。背景的光點可以用滑鼠拖著走。</p>
+  <p class="lfoot">資料來源：代課一覽表、調課登記、請假登記（雲端資料表）。</p>
 </section>
 
 <div class="progress" id="progress" aria-hidden="true"></div>
@@ -817,7 +922,7 @@ main{container-type:inline-size}
 <!-- 主畫面 -->
 <section id="app">
   <header class="topbar">
-    <div class="brand"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="txt">代課・調課查詢</span></div>
+    <div class="brand"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="txt">代課・調課查詢</span><span class="ver-tag">教務組專用</span></div>
     <div class="who" id="who"></div>
     <div class="spacer"></div>
     <span class="updated" id="updated"></span>
@@ -829,7 +934,7 @@ main{container-type:inline-size}
     <button class="btn ghost small" id="logout" type="button">登出</button>
   </header>
   <div class="notice line" id="lineNotice" hidden>
-    開啟 LINE 通知：每天早上 7:30 用 LINE 提醒您當天的代課、調課。
+    開啟 LINE 通知：用 LINE 簡單提醒您今天和這一週的調代課。
     <button class="btn line small" type="button" id="openLine2">現在設定</button>
     <button class="btn ghost small" type="button" id="lineNoticeX">先不用</button>
   </div>
@@ -892,7 +997,7 @@ main{container-type:inline-size}
 <div class="modal" id="lineModal" hidden>
   <div class="modal-card line-card" role="dialog" aria-modal="true" aria-labelledby="lineTitle">
     <h2 id="lineTitle">LINE 通知</h2>
-    <p class="sub">每天早上 7:30，當天有代課或調課，會用 LINE 私訊提醒您；當天有新增或取消，也會再通知一次。</p>
+    <p class="sub">LINE 會簡單提醒您今天有哪些調代課，每週一提醒這一週的行程；當天有新增或取消，也會再通知一次。</p>
     <div id="lineBody" aria-live="polite"></div>
     <div class="modal-actions"><button class="btn ghost" type="button" id="lineClose">關閉</button></div>
   </div>
@@ -1736,7 +1841,7 @@ function renderLine(loading){
   if(!L.on){ h = `<p>教務組還在設定 LINE 通知，請過幾天再來看看。</p>`; }
   else if(L.bound){
     h = `<div class="line-ok"><strong>✅ 已綁定</strong>LINE：${esc(L.dn||"（未顯示名稱）")}${L.at?`，${esc(L.at)} 綁定`:""}
-      <ul><li>每天早上 7:30，當天有代課或調課會私訊您</li><li>在 LINE 點「今天」「一週」「一個月」，或打日期（例如 11/2）隨時查詢</li></ul></div>
+      <ul><li>當天有調代課會簡單提醒您；每週一提醒這一週的行程</li><li>在 LINE 點「今天」「一週」「一個月」，或打日期（例如 11/2）隨時查詢</li></ul></div>
       <p style="margin-top:12px"><button class="btn ghost small" type="button" id="lineUnbind">解除綁定（不再收到通知）</button></p>`;
   } else {
     const left = Math.max(0, Math.round((lineUI.until - Date.now())/1000));
@@ -3175,7 +3280,7 @@ function renderFix(){
     const ch = fixChanges(), L = {}; FIXF[r.kind].forEach(([k,l]) => L[k] = l);
     body = `<table class="fix-diff"><thead><tr><th scope="col">欄位</th><th scope="col">原本</th><th scope="col">改成</th></tr></thead><tbody>`
       + Object.keys(ch).map(k => `<tr><td>${esc(L[k])}</td><td class="old">${esc(fixShow(k, fx.orig[k]))}</td><td class="new">${esc(fixShow(k, ch[k]))}</td></tr>`).join("")
-      + `</tbody></table><p class="fix-tip">按「確認修改」立刻生效。如果是今天的課、而且換了人、時間或班級，有綁定 LINE 的老師會收到異動通知（7:30～17:00）。</p>`;
+      + `</tbody></table><p class="fix-tip">按「確認修改」立刻生效。如果是今天的課、而且換了人、時間或班級，LINE 會傳更新給您。</p>`;
     acts = `<span class="r"><button type="button" class="btn ghost" data-fxa="back">返回修改</button><button type="button" class="btn" data-fxa="save">確認修改</button></span>`;
   } else {
     body = `<p style="font-size:16px;font-weight:700;margin:12px 0 0">✓ ${esc(fx.doneText)}</p>`
@@ -3494,7 +3599,7 @@ function wbTodos(ym, P){
   const fx = (state.fixes || []).filter(x => x.warn); if(fx.length) L.push({lv:"warn", text:`${fx.length} 筆修正要留意（原始資料又變了或找不到）`, verb:"去看", act: () => wbGo("#alerts")});
   P.err.slice(0, 4).forEach(x => L.push({lv:"err", text: x.text, verb:"去處理", act: () => wbGo("#checkBox")}));
   if(P.err.length > 4) L.push({lv:"err", text:`還有 ${P.err.length - 4} 個檢查紅字`, verb:"看檢查", act: () => wbGo("#checkBox")});
-  if(state.line && state.line.on && !state.line.bound) L.push({lv:"info", text:"您還沒綁定 LINE：綁了每天 7:30 收到全校課務、老師回報也會傳到 LINE", verb:"現在綁定", act: () => $("#openLine").click()});
+  if(state.line && state.line.on && !state.line.bound) L.push({lv:"info", text:"您還沒綁定 LINE：綁了就會收到今天和這一週的調代課提醒", verb:"現在綁定", act: () => $("#openLine").click()});
   // 明天（下一個有紀錄的日子）的課務
   const nxt = state.events.filter(e => e.date > today && describe(e)).sort((a,b) => a.date.localeCompare(b.date));
   if(nxt.length){ const d = nxt[0].date, n = nxt.filter(e => e.date === d), fl = n.filter(e => (e.flags||[]).length).length;
