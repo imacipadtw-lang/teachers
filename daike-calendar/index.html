@@ -484,14 +484,14 @@ main{container-type:inline-size}
 .list .grp h4{margin:0;padding:14px 0 2px;font-size:17px;font-weight:800}
 .list .grp .msum{font-size:13px;color:var(--ink-2);margin:0 0 4px}
 .ev{padding:8px 0 8px 12px;border-left:3px solid var(--c-sub)}
-.ev.t-leave,.ev.t-tutorLeave{border-left-color:var(--c-leave)}
+.ev.t-leave,.ev.t-tutorLeave,.ev.t-absent{border-left-color:var(--c-leave)}
 .ev.t-tutor{border-left-color:var(--c-tutor)}
 .ev.t-swap{border-left-color:var(--c-swap)}
 .ev.flag{border-left-color:var(--rose)}
 .ev + .ev{margin-top:8px}
 .ev .p{font-size:13px;color:var(--ink-2)}
 .ev .p .k{display:inline-block;font-size:12px;font-weight:700;padding:0 8px;border-radius:999px;background:rgba(92,200,240,.15);color:var(--c-sub);margin-right:6px}
-.ev.t-leave .p .k,.ev.t-tutorLeave .p .k{background:rgba(239,122,155,.15);color:var(--c-leave)}
+.ev.t-leave .p .k,.ev.t-tutorLeave .p .k,.ev.t-absent .p .k{background:rgba(239,122,155,.15);color:var(--c-leave)}
 .ev.t-tutor .p .k{background:rgba(79,209,161,.15);color:var(--c-tutor)}
 .ev.t-swap .p .k{background:var(--amber-soft);color:var(--c-swap)}
 .ev .w{font-size:16px;font-weight:800;line-height:1.4}
@@ -1050,6 +1050,13 @@ var CF = (function () {
   function md(ymd) { if (!ymd) return "?"; var p = String(ymd).split("-").map(Number); return p[1] + "/" + p[2] + "（" + dow(ymd) + "）"; }
   function same(a, b) { return String(a) === String(b); }
   function uniq(a) { return a.filter(function (x, i) { return a.indexOf(x) === i; }); }
+  /* 請假登記（type absent）：範圍是全天、上午（第 1～4 節）、下午（第 5 節以後）或指定節次；p 空白＝當天任何時段 */
+  function covers(e, p) {
+    if (p == null || p === "") return true;
+    var s = e.scope;
+    return s === "上午" ? +p <= 4 : s === "下午" ? +p >= 5 : s === "節次" ? (e.periods || []).map(String).indexOf(String(p)) >= 0 : true;
+  }
+  function absText(e) { return e.scope === "節次" ? "第" + (e.periods || []).join("、") + "節" : (e.scope || "全天"); }
 
   /* 某人在某天某節正在上哪些課（課表＋代課＋調課後的實際情形） */
   function busyAt(ctx, person, date, p, exceptCls) {
@@ -1070,12 +1077,19 @@ var CF = (function () {
     });
     return Object.keys(map).filter(function (c) { return c !== exceptCls; }).map(function (c) { return c + "（" + map[c] + "）"; });
   }
-  /* 某人某天的請假紀錄 */
+  /* 某人某天的請假紀錄（代課單上的請假＋請假登記） */
   function leaveOn(ctx, person, date, p) {
     return ctx.ev.filter(function (e) {
-      return (e.type === "leave" || e.type === "tutorLeave") && e.who === person && e.date === date && (p == null || e.type === "tutorLeave" || same(e.period, p));
+      if (e.who !== person || e.date !== date) return false;
+      if (e.type === "absent") return covers(e, p);
+      return (e.type === "leave" || e.type === "tutorLeave") && (p == null || e.type === "tutorLeave" || same(e.period, p));
     });
   }
+  /* 排調代課用：代課單上的請假整天都算；請假登記只算請假的那幾節 */
+  function leaveAt(ctx, person, date, p) {
+    return leaveOn(ctx, person, date).filter(function (e) { return e.type !== "absent" || covers(e, p); });
+  }
+  function leaveMsg(l) { var a = l.filter(function (e) { return e.type === "absent"; })[0]; return a ? "（請假登記：" + absText(a) + "）" : ""; }
   function weekend(date, label, out) { var d = dow(date); if (d === "六" || d === "日") out.push(label + " " + md(date) + " 是週末"); }
   /* 國定假日、颱風假（半天的只算上午 1～4 節或下午 5～7 節） */
   function offOf(ctx, date, p) {
@@ -1110,12 +1124,14 @@ var CF = (function () {
     if (r.toDate && r.toPeriod && r.teacher) {
       var x = busyAt(ctx, r.teacher, r.toDate, r.toPeriod, r.cls);
       if (x.length) out.push("衝堂：" + r.teacher + "在" + md(r.toDate) + "第" + r.toPeriod + "節已經有 " + x.join("、"));
-      if (leaveOn(ctx, r.teacher, r.toDate).length) out.push(r.teacher + "在" + md(r.toDate) + "有請假紀錄");
+      var lt = leaveAt(ctx, r.teacher, r.toDate, r.toPeriod);
+      if (lt.length) out.push(r.teacher + "在" + md(r.toDate) + "有請假紀錄" + leaveMsg(lt));
     }
     if (r.partner && r.partner !== r.teacher) {
       var y = busyAt(ctx, r.partner, r.fromDate, r.fromPeriod, r.cls);
       if (y.length) out.push("衝堂：" + r.partner + "在" + md(r.fromDate) + "第" + r.fromPeriod + "節已經有 " + y.join("、"));
-      if (leaveOn(ctx, r.partner, r.fromDate).length) out.push(r.partner + "在" + md(r.fromDate) + "有請假紀錄");
+      var lp = leaveAt(ctx, r.partner, r.fromDate, r.fromPeriod);
+      if (lp.length) out.push(r.partner + "在" + md(r.fromDate) + "有請假紀錄" + leaveMsg(lp));
     }
     ctx.ev.forEach(function (e) {
       if (e.type === "swap" && e.cls === r.cls && ((e.date === r.fromDate && same(e.period, r.fromPeriod)) || (r.toDate && e.date === r.toDate && same(e.period, r.toPeriod))))
@@ -1139,8 +1155,8 @@ var CF = (function () {
     if (r.sub) {
       var x = busyAt(ctx, r.sub, r.date, r.period, "");
       if (x.length) out.push("衝堂：代課老師" + r.sub + "在" + md(r.date) + "第" + r.period + "節已經有 " + x.join("、"));
-      var l = leaveOn(ctx, r.sub, r.date);
-      if (l.length) out.push("代課老師" + r.sub + "在" + md(r.date) + "有請假紀錄");
+      var l = leaveAt(ctx, r.sub, r.date, r.period);
+      if (l.length) out.push("代課老師" + r.sub + "在" + md(r.date) + "有請假紀錄" + leaveMsg(l));
     }
     ctx.ev.forEach(function (e) {
       if (e.type === "leave" && e.who === r.leaver && e.date === r.date && same(e.period, r.period))
@@ -1154,7 +1170,8 @@ var CF = (function () {
     var out = [];
     if (!r.date) return out;
     closed(ctx, r.date, null, "日期", out);
-    if (r.sub && leaveOn(ctx, r.sub, r.date).length) out.push("代導師" + r.sub + "在" + md(r.date) + "有請假紀錄");
+    var lu = r.sub ? leaveOn(ctx, r.sub, r.date) : [];
+    if (lu.length) out.push("代導師" + r.sub + "在" + md(r.date) + "有請假紀錄" + leaveMsg(lu));
     ctx.ev.forEach(function (e) {
       if (e.type === "tutorLeave" && e.who === r.leaver && e.date === r.date) out.push(r.leaver + md(r.date) + "已經登記過代導師（" + (e.other || "") + "）");
       if (e.type === "tutor" && e.who === r.sub && e.date === r.date) out.push(r.sub + md(r.date) + "已經在代" + e.other + "的導師");
@@ -1261,10 +1278,41 @@ var CF = (function () {
       var x = offs[k], ids2 = uniq(x.list.map(function (e) { return e.id || ""; }).filter(String));
       add("off|" + k, "off", k, md(k) + " " + x.o.name + (x.o.kind === "颱風假" ? "停止上課" : "放假") + "，還有 " + x.list.length + " 筆紀錄" + (x.o.kind === "颱風假" ? "，請取消假單／代課" : "，請確認") + "（" + ids2.join("、") + "）", x.list);
     }
+    // 4. 請假登記：同一天登記兩次；請假的時段裡，自己課表上的課還沒安排代課或調課
+    var firstAbs = {};
+    ev.forEach(function (e) {
+      if (e.type !== "absent") return;
+      var ka = e.who + "|" + e.date;
+      if (firstAbs[ka]) {
+        add("absdup|" + ka, "dup", e.date, "重複登錄：" + e.who + " " + md(e.date) + " 的請假登記了兩次以上（" + uniq([firstAbs[ka].id || "", e.id || ""]).join("、") + "），請確認範圍", [firstAbs[ka], e]);
+        flag(e, "同一天還有另一筆請假登記（" + (firstAbs[ka].id || "") + "），請確認");
+      } else firstAbs[ka] = e;
+      var d = dow(e.date); if (d === "六" || d === "日") return;
+      var miss = [];
+      for (var p = 1; p <= 8; p++) {
+        if (!covers(e, p) || offOf(ctx, e.date, p)) continue;
+        busyAt(ctx, e.who, e.date, p, "").forEach(function (b) { if (/（課表上的課）$/.test(b)) miss.push("第" + p + "節 " + b.replace(/（課表上的課）$/, "")); });
+      }
+      if (miss.length) {
+        var m4 = e.who + " " + md(e.date) + " 請假（" + absText(e) + "），還沒安排代課或調課：" + miss.join("、");
+        add("absmiss|" + ka + "|" + (e.id || ""), "todo", e.date, m4, [e]);
+        flag(e, "還沒安排代課或調課：" + miss.join("、"));
+      }
+    });
+    // 5. 調課那一節要上課的老師，當天有請假登記
+    ev.forEach(function (e) {
+      if (e.type !== "swap" || !e.date || !e.period || !e.toDate) return;
+      var taker = e.dir === "調出" ? e.partner : e.teacher;
+      var la = taker ? leaveOn(ctx, taker, e.date, e.period).filter(function (x) { return x.type === "absent"; }) : [];
+      if (!la.length) return;
+      var m5 = "調課（" + (e.id || "") + "）：" + taker + " " + md(e.date) + "第" + e.period + "節要上 " + e.cls + "，但這節有請假登記（" + absText(la[0]) + "）";
+      add("absswap|" + (e.id || "") + "|" + e.date + "|" + e.period, "leave", e.date, m5, [e]);
+      flag(e, m5);
+    });
     return issues.sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
   }
 
-  return { dow: dow, md: md, busyAt: busyAt, leaveOn: leaveOn, swap: swap, sub: sub, tutor: tutor, free: free, checkAll: checkAll, asEvents: asEvents, offOf: offOf, audit: audit };
+  return { dow: dow, md: md, covers: covers, absText: absText, leaveAt: leaveAt, busyAt: busyAt, leaveOn: leaveOn, swap: swap, sub: sub, tutor: tutor, free: free, checkAll: checkAll, asEvents: asEvents, offOf: offOf, audit: audit };
 })();
 /* ====== 鐘點費、合理員額、勞健保、扣款（網頁與 Apps Script 共用同一份程式，兩邊數字一定一樣） ======
  * 網頁：heliOf／acctOf／insCalc 等都是這裡的薄包裝；Apps Script：產生「會計報表（即時）」試算表時用同一套。
@@ -1292,6 +1340,8 @@ var PAY = (function () {
   function unitsText(u) { return Number.isInteger(u) ? String(u) : u.toFixed(1); }
   function heliCls(cs) { return cs.length > 1 && cs.every(function (c) { return /^.甲$/.test(c); }) ? cs.map(function (c) { return c[0]; }).join("、") + "甲" : cs.join("、"); }
   function isHeliSub(e, heli) { return e.type === "sub" && heli.indexOf(e.other) >= 0; }
+  function absCovers(e, p) { var s = e.scope; return s === "上午" ? +p <= 4 : s === "下午" ? +p >= 5 : s === "節次" ? (e.periods || []).map(String).indexOf(String(p)) >= 0 : true; }
+  function absLabel(e) { return e.scope === "節次" ? "第" + (e.periods || []).join("、") + "節" : (e.scope || "全天"); }
 
   /* ---- 勞健保 ---- */
   function days(p, ym) {
@@ -1382,6 +1432,14 @@ var PAY = (function () {
         if (!x) { if (!e.nofee && !offAt(e.date, e.period)) warn.push(name + " " + fmtMD(e.date) + " 第" + e.period + "節的請假紀錄，對不到合理員額課表上的課（不影響本人金額，請確認）"); return; }
         x.st = e.other ? "sub" : "none"; x.sub = e.other || ""; x.lt = e.leaveType || "";
         x.why = e.other ? "請假（" + (e.leaveType || "未填假別") + "），由 " + e.other + " 代課" + (e.nofee ? "（不計費：" + (e.exempt || "不列入") + "）" : "") : "請假（" + (e.leaveType || "未填假別") + "），還沒安排代課";
+      });
+      // 請假登記（假單）：請假時段裡還是「本人上課」的節＝沒有人代 → 誰都不領（教務組 10/27 確認：照規定不算，亮紅提醒）
+      all.filter(function (e) { return e.type === "absent" && e.who === name && e.date.indexOf(r) === 0; }).forEach(function (e) {
+        L.forEach(function (l) {
+          if (l.date !== e.date || l.st !== "self" || !absCovers(e, l.p)) return;
+          l.st = "none"; l.sub = ""; l.lt = e.leaveType || "";
+          l.why = "請假（" + (e.leaveType || "未填假別") + "，" + absLabel(e) + "），還沒安排代課";
+        });
       });
       L.sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : (+a.p) - (+b.p); });
       var self = L.filter(function (l) { return l.st === "self" || l.st === "hol"; }), n1 = self.filter(function (l) { return l.w === 1; }).length, n15 = self.filter(function (l) { return l.w === 1.5; }).length;
@@ -1584,6 +1642,7 @@ function renderPubWeek(week, stale){
   const item = x => {
     const w = `<div class="w"><span class="sl">${slot(x)}</span><span>${esc([x.c, x.j].filter(Boolean).join(" "))}</span></div>`;
     if (x.k === "swap") return `<div class="wk-it swap">${w}<div class="who">${esc(x.m)}<span class="tg">調課</span></div>${x.x ? `<div class="x">${esc(x.x)}</div>` : ""}</div>`;
+    if (x.k === "absent") return `<div class="wk-it todo absent"><div class="w"><span class="sl">${esc(x.p)}</span></div><div class="who"><span class="lv">${esc(x.a)}</span> 請假</div></div>`;
     if (x.k === "todo") return `<div class="wk-it todo">${w}<div class="who"><span class="lv">${esc(x.a)}</span> 請假<span class="tg">尚未安排代課</span></div></div>`;
     return `<div class="wk-it ${x.k}">${w}<div class="who"><span class="lv">${esc(x.a || "（未寫）")}</span><span class="ar" aria-label="由">→</span><span class="sb">${esc(x.b)}</span><span class="tg">${x.k === "tutor" ? "代導師" : "代課"}</span></div></div>`;
   };
@@ -2433,6 +2492,7 @@ function describe0(e){
       case "leave": return o ? null : {p:`${per} ${courseOf(e)}`, w:`${w} ${leaveWord(e)}`, f:"還沒有安排代課老師"};
       case "tutorLeave": return o ? null : {p:`${e.cls} 導師`, w:`${w} ${leaveWord(e)}`, f:"還沒有安排代導師"};
       case "swap": { const v=swapView(e); return {p:"調課・"+v.p, w:v.w, f:v.f+"（調課沒有代課費）"}; }
+      case "absent": return absentView(e);
     }
     return null;
   }
@@ -2444,8 +2504,14 @@ function describe0(e){
     case "tutorLeave": return o ? {p:`${e.cls} 導師・${w}${leaveWord(e)}`, w:`${o} 代 ${w} 當導師`, f:`代導費 ${yuan(f)} 由 ${o} 領`}
                                 : {p:`${e.cls} 導師`, w:`${w}${leaveWord(e)}`, f:"還沒有安排代導師"};
     case "swap": { const v=swapView(e); return {p:"調課・"+v.p, w:v.w, f:v.f+"（調課沒有代課費）"}; }
+    case "absent": return absentView(e);
   }
   return null;
+}
+/* 請假登記（假單）：只是讓系統知道誰請假，本身沒有金額 */
+function absentView(e){
+  const miss = (e.flags||[]).some(f => /^還沒安排/.test(f));
+  return {p:`請假・${CF.absText(e)}`, w:`${e.who} ${leaveWord(e)}`, f: miss ? "請假的節次還有課沒安排（見下面）" : "請假登記（這筆沒有金額）"};
 }
 function evRow(e){
   const d = describe(e); if(!d) return "";
@@ -2460,7 +2526,7 @@ function evRow(e){
 
 /* 月曆格子用：每一節分開寫，寫出班級、科目、誰代誰、誰領多少錢 */
 function cellEntries(evs){
-  const order = e => e.type==="tutor"||e.type==="tutorLeave" ? 0 : (+e.period || (+e.fromPeriod) || 9);
+  const order = e => e.type==="absent" ? -1 : e.type==="tutor"||e.type==="tutorLeave" ? 0 : (+e.period || (+e.fromPeriod) || 9);
   return evs.filter(e=>describe(e)).sort((a,b)=>order(a)-order(b)).map(e=>Object.assign(cellEntry(e), {fl: shortFlag(e)}));
 }
 function cellEntry(e){
@@ -2468,6 +2534,7 @@ function cellEntry(e){
     const o=e.other, w=e.who, fee=feeOf(e);
     const course = [e.period?`第${e.period}節`:"", e.cls, e.subject].filter(Boolean).join(" ");
     if(e.type==="swap"){ const v=swapView(e); return {p:"調課・"+v.p, w:v.w, f:v.f}; }
+    if(e.type==="absent") return {p:`請假・${CF.absText(e)}`, w:`${w}${leaveWord(e)}`, f:""};
     if(isAll()) switch(e.type){
       case "sub":   return {p:course, w:`${w}代${o}`, f:`${o}${leaveWord(e)}・${w}領 ${yuan(fee)}`};
       case "tutor": return {p:`${e.cls} 導師`, w:`${w}代${o}當導師`, f:`${o}${leaveWord(e)}・${w}領 ${yuan(fee)}`};
@@ -3043,7 +3110,7 @@ const FIXF = {
 };
 const fixKind = e => e.type==="swap" ? "調課" : (e.type==="tutor"||e.type==="tutorLeave") ? "代導師" : "代課";
 function fixRef(e){
-  if(!e || !e.id || /^調課第/.test(e.id)) return null;          // 沒有序號的分不出是哪一列，不能改
+  if(!e || !e.id || /^調課第/.test(e.id) || e.type==="absent") return null;   // 沒有序號的分不出是哪一列，不能改；請假登記直接改「請假登記」分頁
   const kind = fixKind(e), src = kind==="調課" ? "表單" : (e.src==="Excel" ? "Excel" : "網頁");
   return {kind, src, id:e.id, key:[kind,src,e.id].join("|")};
 }
@@ -3298,7 +3365,7 @@ document.addEventListener("click", async e=>{
 /* ================================================================
  * 看板、提醒、下載 Excel、列印表格、每月簽收單
  * ================================================================ */
-const KIND = {sub:"代課", leave:"請假", tutor:"代導師", tutorLeave:"請假", swap:"調課"};
+const KIND = {sub:"代課", leave:"請假", tutor:"代導師", tutorLeave:"請假", swap:"調課", absent:"請假"};
 const reduceMotion = () => window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
 function countUp(el, to, fmtFn){
   if(reduceMotion() || !to){ el.innerHTML = fmtFn(to); return; }
@@ -3506,7 +3573,7 @@ function renderAlerts(){
   const a = state.audit || [], t = state.typhoon;
   const typh = `<p class="typh">颱風假自動檢查：${t ? esc(t.at) + "　" + (t.ok ? "正常，" : "沒有成功，") + esc(t.msg) : "還沒開始（請在資料表按「代課工具 → 開始自動處理」）"}。颱風假也可以自己寫在資料表「假日與停班停課」分頁。</p>`;
   if(!a.length){ box.innerHTML = `<div class="alerts ok"><h3>資料檢查 <span class="tag">✓ 沒有發現衝堂或重複登錄</span></h3>${typh}</div>` + fixesCard(); return; }
-  const kd = {dup:"重複", clash:"衝堂", leave:"請假", off:"假日", weekend:"日期", dow:"日期"};
+  const kd = {dup:"重複", clash:"衝堂", leave:"請假", off:"假日", weekend:"日期", dow:"日期", todo:"未安排"};
   const li = i => `<li class="${i.kind}"><span class="kd">${kd[i.kind]||"提醒"}</span><span>${esc(i.msg)}</span></li>`;
   const n = a.filter(i=>i.kind==="clash"||i.kind==="leave").length, d = a.filter(i=>i.kind==="dup").length;
   box.innerHTML = `<div class="alerts" role="alert"><h3>⚠ 資料檢查發現 ${a.length} 個問題
@@ -3551,7 +3618,7 @@ const inRange = (e, r) => !r || e.date.startsWith(r);
 
 /* 表格的一列：日期、星期、節次、類別、班級、科目、內容、假別、金額、領費的人、說明 */
 function tableRows(evs){
-  return evs.filter(e => describe(e)).map(e => {
+  return evs.filter(e => e.type!=="absent" && describe(e)).map(e => {     // 明細表（給會計）只列代課、調課；請假登記沒有金額不列
     const d = new Date(e.date+"T00:00:00"), x = describe(e);
     const tutorish = e.type==="tutor"||e.type==="tutorLeave";
     const kind = e.type==="leave" ? (e.other ? "請假（有人代）" : "請假（未安排）") : e.type==="tutorLeave" ? "請假（代導師）" : KIND[e.type];
