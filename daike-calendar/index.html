@@ -2001,7 +2001,7 @@ function renderAdmin(){
       <span class="st ${p.changed?"c":""}">${p.changed?"已自訂 "+esc(p.at):"初始密碼"}</span>
       ${p.changed && p.name!==state.cred.name ? `<button type="button" data-reset="${esc(p.name)}">恢復初始</button>` : `<span style="width:62px"></span>`}</div>`).join("");
   const html = `<label>查看哪位老師</label><select class="viewAs">${opts}</select>
-    <div class="pw-tip">一般老師登入只會看到自己的。</div>
+    <div class="pw-tip">網站目前只開放教務組；選老師可以看他的課務。</div>
     <details class="pw-list"><summary>老師密碼狀態</summary>${pwRows}
     <div class="pw-tip">老師忘記密碼時按「恢復初始」，就能用密碼表上的初始密碼登入。</div></details>`;
   box.innerHTML = html; mob.innerHTML = `<div class="admin-box">${html}</div>`;
@@ -2483,7 +2483,7 @@ function renderChecks(ym){
       const RK = T.rows.map(r => hrRisk(ym, H, H.T.find(x => x.name === r.name))), riskN = RK.filter(x => x.notes.length).length;
       const hrsOf = name => { const t = H.T.find(x => x.name === name); return t ? `每週 ${t.weekly} 節（約 ${Math.round(t.weekly * 40 / 6) / 10} 小時）` : ""; };
       const gcell = g => `<td class="sub gross"><b>${f(g.sum)}</b><small class="sysv">${g.parts.length > 1 ? g.parts.map(p => p[0] + " " + f(p[1])).join("＋") : g.parts.length ? g.parts[0][0] + "鐘點費" : "本月沒有鐘點費"}</small></td>`;
-      return `<details class="hr-det" open><summary>勞保、勞退、健保（合理員額代課教師）<small>系統已依「保險設定」的投保資料先算好（灰字＝系統預填）；人事或帳單的數字不一樣就直接改，系統會說明差在哪</small></summary>
+      return `<details class="hr-det"><summary>勞保、勞退、健保（合理員額代課教師；人事、出納核對用，平常不用打開）<small>系統已依「保險設定」的投保資料先算好（灰字＝系統預填）；人事或帳單的數字不一樣就直接改，系統會說明差在哪</small></summary>
       <div class="set-tbl"><table class="hr-tbl"><thead><tr><th>姓名</th><th class="gross" title="本月應發鐘點費，扣勞健保前">總薪資</th>${HR_FIELDS.map(x => `<th>${x[1]}</th>`).join("")}<th>自付小計</th><th>單位小計</th></tr></thead>
       <tbody>${T.rows.map((r, i) => `<tr class="${RK[i].notes.length ? "has-risk" : ""}"><td>${esc(r.name)}<small class="sysv" style="text-align:left">${esc(hrsOf(r.name))}</small></td>${gcell(G[i])}${HR_FIELDS.map(([k, label, ck]) => cell(r.name, k, ck, r.cells[k], RK[i].cells[k])).join("")}${subc(r.empV, r.empS)}${subc(r.erV, r.erS)}</tr>`
         + (RK[i].notes.length ? `<tr class="risk-note"><td colspan="${HR_FIELDS.length + 4}"><div class="rn"><b>⚠ ${esc(r.name)} 需核對：</b><ol>${RK[i].notes.map(n => `<li>${esc(n)}</li>`).join("")}</ol></div></td></tr>` : "")).join("")}
@@ -2828,7 +2828,7 @@ function closePlan(){ $("#planModal").hidden = true; document.body.style.overflo
 function prefetchMeta(){                      // 管理者登入後在背景先讀好課表，按「排調代課」就不用等
   if((state.role!=="admin" && state.role!=="acct") || state.meta || prefetchMeta.p || !state.cred) return;
   prefetchMeta.p = api({action:"meta", name:state.cred.name, h:state.cred.h})
-    .then(m=>{ if(m.ok && m.tt) state.meta = m; }).catch(()=>{}).finally(()=>{ prefetchMeta.p = null; });
+    .then(m=>{ if(m.ok && m.tt){ state.meta = m; try{ renderWorkbench(); }catch(e){ console.error(e); } } }).catch(()=>{}).finally(()=>{ prefetchMeta.p = null; });
 }
 $("#openPlan").onclick = ()=>openPlan();
 $("#planClose").onclick = closePlan; $("#planCancel").onclick = closePlan;
@@ -2938,10 +2938,11 @@ document.addEventListener("click", async e => {
   const id = b.dataset.absdel, ev = state.events.find(x => x.type==="absent" && x.id===id);
   if(!confirm(`刪除這筆請假？\n${id}　${ev ? ev.who + " " + md(ev.date) + "（" + CF.absText(ev) + "）" : ""}\n（之後可以在「變更紀錄與復原」還原）`)) return;
   busy(true);
-  try{ const d = await apiPost({action:"absentDel", name:state.cred.name, h:state.cred.h, ids:[id]}); if(!d.ok) throw new Error(d.error||"刪除失敗"); toast("已刪除 " + id); state.meta = null; await reload(true, true); }
+  try{ const d = await apiPost({action:"absentDel", name:state.cred.name, h:state.cred.h, ids:[id]}); if(!d.ok) throw new Error(d.error==="不支援的動作" ? OLD_BACKEND_MSG : (d.error||"刪除失敗")); toast("已刪除 " + id); state.meta = null; await reload(true, true); }
   catch(err){ toast("刪除失敗：" + err.message); }
   finally{ busy(false); }
 });
+const OLD_BACKEND_MSG = "雲端程式還沒更新到新版（v27），請假暫時不能從網站儲存或刪除；沒有寫入任何資料。可先直接在試算表「請假登記」分頁填寫。";
 /* 請假的每一天（週六、週日不列；最多 31 天） */
 function absDays(){
   const A = plan.absent, from = A.from, to = A.to && A.to >= A.from ? A.to : A.from, out = [];
@@ -3349,7 +3350,8 @@ $("#planSave").onclick = async ()=>{
     } else if(d.conflicts){
       plan.force = true; renderPlan();
       $("#planSum").innerHTML = `<span style="color:var(--rose);font-weight:700">⚠ 伺服器檢查到 ${d.conflicts.length} 列需要確認（內容在各列下方）。確定要登記就再按一次。</span>`;
-    } else throw new Error(d.error||"儲存失敗");
+    } else if(plan.kind==="absent" && /^(沒有要登記的資料|不支援的動作)$/.test(d.error||"")) throw new Error(OLD_BACKEND_MSG);
+    else throw new Error(d.error||"儲存失敗");
   }catch(err){ toast("儲存失敗："+err.message.split("\n")[0]); $("#planSum").textContent = err.message; }
   finally{ busy(false); }
 };
@@ -3549,6 +3551,7 @@ function renderReports(){
     return;
   }
   const todo = list.filter(r=>r.status==="待處理"), done = list.filter(r=>r.status!=="待處理");
+  if(!list.length){ box.innerHTML = ""; return; }                  // 10/27 起老師不能登入，沒有回報就不顯示這一區
   const item = r => `<div class="rp"><span class="st ${r.status==="待處理"?"todo":"done"}">${esc(r.status)}</span><b>${esc(r.teacher)}</b>　${esc(r.kind||"")}<button type="button" class="btn dghost small rdel" style="float:right" data-rdel="${esc(r.id)}">刪除</button>
       <div>${esc(r.text)}</div><div class="meta">${esc(r.id)}・${esc(r.time)}${r.record?"・"+esc(r.record):""}</div>
       ${r.status==="待處理"
@@ -3793,14 +3796,14 @@ function renderWorkbench(){
         <button type="button" class="btn ghost" data-q="ledger">會計總帳（雲端）</button>
         <button type="button" class="btn ghost" data-q="live">會計報表（即時）</button>
         <button type="button" class="btn ghost" data-q="set">系統設定</button>
-        <button type="button" class="btn ghost" data-q="pw">老師密碼</button>
+        <button type="button" class="btn ghost" data-q="scan">拍紙本登錄（假單／調代課單）</button>
         <button type="button" class="btn ghost" data-q="reload">重新整理</button></div>
         <p class="hint">「印簽到表」「下載會計總帳」「送會計」是在這台裝置記錄的，換裝置看不到；其餘步驟依資料自動判斷。</p></div>
     </div></section>`;
   if(P){ box.querySelectorAll("[data-step]").forEach(b => b.onclick = () => { const s = P.steps[+b.dataset.step]; if(s.k === "sent" && s.done && !P.closed){ if(confirm("取消「已送會計」的記錄？")) { wbFlag(ym, "sent", false); renderWorkbench(); } return; } s.act(); });
     if($("#wbNext")) $("#wbNext").onclick = () => P.cur.act(); }
   box.querySelectorAll("[data-todo]").forEach(b => b.onclick = () => todos[+b.dataset.todo].act());
-  const Q = {plan: () => openPlan(), sign: () => printHeliSign(ym), check: () => wbGo("#checkBox"), ledger: () => ledgerExcel(ym), live: () => state.liveUrl ? window.open(state.liveUrl, "_blank", "noopener") : wbGo(".live-box"), set: () => wbOpenSettings(), pw: () => WB_FUNCS.find(x => x[0] === "老師密碼")[1](), reload: () => reload()};
+  const Q = {plan: () => openPlan(), sign: () => printHeliSign(ym), check: () => wbGo("#checkBox"), ledger: () => ledgerExcel(ym), live: () => state.liveUrl ? window.open(state.liveUrl, "_blank", "noopener") : wbGo(".live-box"), set: () => wbOpenSettings(), pw: () => WB_FUNCS.find(x => x[0] === "老師密碼")[1](), scan: async () => { await openPlan(); const f = $("#scanFile"); if(f) f.click(); }, reload: () => reload()};
   box.querySelectorAll("[data-q]").forEach(b => b.onclick = () => Q[b.dataset.q]());
   $("#wbFind").onsubmit = e => { e.preventDefault(); wbFind($("#wbQ").value); };
   $("#wbQ").onchange = () => { const v = $("#wbQ").value.trim(); if(v && (teachers.includes(v) || months.includes(v) || WB_FUNCS.some(x => x[0] === v))) wbFind(v); };
@@ -4140,7 +4143,7 @@ function renderHeli(r){
   if(!isAll()){ box.innerHTML = `<p class="hint" style="margin:0">合理員額總覽看的是全校：上方「查看哪位老師」切回「全校總覽」就會出現。</p>`; return; }
   if(!state.meta){
     box.innerHTML = `<p class="hint" style="margin:0">讀取課表中…</p>`;
-    ensureMeta().then(() => { if($("#mSel") && $("#mSel").value === r){ renderHeli(r); renderChecks(r); } })
+    ensureMeta().then(() => { if($("#mSel") && $("#mSel").value === r){ renderHeli(r); renderChecks(r); } try{ renderWorkbench(); }catch(e){ console.error(e); } })   // 課表讀到後報帳進度也要重算
       .catch(err => { box.innerHTML = `<p class="hint" style="margin:0">讀取課表失敗：${esc(err.message)}（按「重新整理」再試一次）</p>`; });
     return;
   }
