@@ -649,6 +649,12 @@ main{container-type:inline-size}
 .fields label,.rowc label{margin:0 0 4px;font-size:13px;color:var(--ink-2);font-weight:600}
 .fields input,.fields select,.rowc input,.rowc select{padding:9px 10px;font-size:15px}
 .hintline{font-size:13px;color:var(--ink-2);margin:-6px 0 14px}
+.scanbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;border:1.5px dashed var(--sky);border-radius:12px;padding:12px 14px;margin:0 0 16px;background:rgba(92,200,240,.06)}
+.scanbar .btn{font-size:15px}
+.scanbar span{color:var(--ink-2);font-size:13.5px}
+.scanres{border-radius:10px;padding:10px 14px;margin:-6px 0 16px;font-size:13.5px;line-height:1.6;background:var(--amber-soft);color:#F4D9A0}
+.scanres b{color:#fff} .scanres ul{margin:4px 0 0;padding-left:20px} .scanres a{color:var(--sky)}
+#planBody .scanned{outline:2px solid var(--c-swap);outline-offset:1px}
 .rowc{border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:12px;background:var(--surface)}
 .rowc .rhead{display:flex;align-items:center;gap:10px;margin-bottom:8px}
 .rowc .rhead b{color:var(--sky-deep)}
@@ -2607,7 +2613,7 @@ const newSubRow  = () => ({period:"",cls:"",subject:"",sub:"",auto:{}});
 let plan = null;
 
 function resetPlan(date){
-  plan = { kind:"swap", force:false, server:null,
+  plan = { kind:"swap", force:false, server:null, scan:null, scanKeys:null,
     swap:{teacher:"", applyDate:todayYmd(), reason:"", rows:[Object.assign(newSwapRow(), date?{fromDate:date}:{})]},
     sub:{leaver:"", leaveType:"公假", date:date||"", note:"", rows:[], tutor:false, tutorSub:""} };
 }
@@ -2750,7 +2756,10 @@ function checkBox(kind, r, msgs){
 function renderPlan(){
   document.querySelectorAll("#planModal .seg button").forEach(b=>b.setAttribute("aria-selected", b.dataset.kind===plan.kind));
   const focusKey = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.k : null;
-  let html = "";
+  let html = `<div class="scanbar"><button type="button" class="btn" id="scanBtn">📷 拍紙本／上傳照片，自動填好</button>
+    <span>調課單、代課單都可以；拍正、拍清楚。辨識完會先填進下面的欄位（黃框），請核對後再按「儲存」。</span>
+    <input type="file" id="scanFile" accept="image/*,application/pdf" hidden></div>`;
+  if(plan.scan) html += `<div class="scanres" role="status"><b>${esc(plan.scan.title)}</b>${plan.scan.warn.length ? `<ul>${plan.scan.warn.map(w => `<li>${esc(w)}</li>`).join("")}</ul>` : ""}${plan.scan.photo ? `<div><a href="${esc(plan.scan.photo)}" target="_blank" rel="noopener">開啟原始照片對照</a></div>` : ""}</div>`;
   if(plan.kind==="swap"){
     const S = plan.swap;
     html += `<div class="fields">
@@ -2803,6 +2812,7 @@ function renderPlan(){
     }
   }
   $("#planBody").innerHTML = html;
+  if(plan.scanKeys) plan.scanKeys.forEach(k => { const el = document.querySelector(`#planBody [data-k="${k}"]`); if(el) el.classList.add("scanned"); });
   refreshPlan();
   if(focusKey){ const el = document.querySelector(`#planBody [data-k="${focusKey}"]`); if(el) el.focus(); }
 }
@@ -2913,7 +2923,89 @@ $("#planBody").addEventListener("click", e=>{
   }
   if(t.dataset.del!==undefined){ (plan.kind==="swap"?plan.swap.rows:plan.sub.rows).splice(+t.dataset.del,1); if(plan.kind==="swap"&&!plan.swap.rows.length) plan.swap.rows.push(newSwapRow()); renderPlan(); }
   if(t.id==="fillDay"){ fillDay(); renderPlan(); }
+  if(t.id==="scanBtn") $("#scanFile").click();
 });
+$("#planBody").addEventListener("change", e=>{ if(e.target.id === "scanFile" && e.target.files[0]) scanPaper(e.target.files[0]); });
+/* ---------- 拍紙本自動填寫：照片縮小 → 後端 Gemini 辨識 → 填進排調代課的欄位（不自動儲存） ---------- */
+function shrinkImage(file){
+  return new Promise((ok, no) => {
+    if(file.type === "application/pdf"){ const fr = new FileReader(); fr.onload = () => ok({mime:"application/pdf", data: String(fr.result).split(",")[1]}); fr.onerror = () => no(new Error("讀不到檔案")); fr.readAsDataURL(file); return; }
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = () => { const k = Math.min(1, 2200 / Math.max(img.width, img.height)), c = document.createElement("canvas");
+      c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+      ok({mime:"image/jpeg", data: c.toDataURL("image/jpeg", .88).split(",")[1]}); };
+    img.onerror = () => { URL.revokeObjectURL(url); no(new Error("這個格式瀏覽器打不開（iPhone 的 HEIC 請改用「最相容」格式拍，或先截圖再上傳）")); };
+    img.src = url;
+  });
+}
+async function scanPaper(file){
+  if(file.size > 15 * 1024 * 1024){ toast("檔案超過 15MB，請縮小或改拍一次"); return; }
+  busy(true); $("#planSum").textContent = "辨識紙本中…約 10～30 秒";
+  try{
+    const img = await shrinkImage(file);
+    const d = await apiPost({action:"scan", name:state.cred.name, h:state.cred.h, mime:img.mime, data:img.data});
+    if(!d.ok) throw new Error(d.error || "辨識失敗");
+    applyScan(d);
+    $("#planSum").textContent = "已依照片填好，請核對黃框欄位再儲存";
+  }catch(err){ toast("辨識失敗：" + err.message); $("#planSum").textContent = "辨識失敗：" + err.message; }
+  finally{ busy(false); const f = $("#scanFile"); if(f) f.value = ""; }
+}
+function applyScan(d){
+  const T = state.meta.teachers, recs = d.records || [], warn = [], keys = [];
+  const who = (n, label) => { n = String(n || "").replace(/\s/g, ""); if(!n) return ""; if(T.includes(n)) return n;
+    const hit = T.filter(t => t.includes(n) || n.includes(t)); if(hit.length === 1) return hit[0];
+    warn.push(`${label}照片上寫「${n}」，名單裡找不到這位老師，請手動選`); return ""; };
+  const ymdOk = v => /^\d{4}-\d{2}-\d{2}$/.test(v || "") ? v : "";
+  const clsOk = v => { v = String(v || "").replace(/\s/g, ""); if(CLASSES.includes(v)) return v; if(v) warn.push(`班級照片上寫「${v}」，請手動選`); return ""; };
+  const pOk = v => /^[1-7]$/.test(String(v || "")) ? String(v) : "";
+  if(!recs.length){ plan.scan = {title:"照片裡沒有找到調課或代課的資料，請手動填寫", warn:[], photo:d.photo}; plan.scanKeys = []; renderPlan(); return; }
+  const swaps = recs.filter(r => r.type !== "代課" && r.type !== "代導師" && (r.toDate || r.toPeriods.length)), subs = recs.filter(r => r.type === "代課" || r.type === "代導師" || (!r.toDate && !r.toPeriods.length));
+  if(swaps.length >= subs.length){
+    plan.kind = "swap"; const r0 = swaps[0], S = plan.swap;
+    S.teacher = who(r0.teacher, "申請人：") || S.teacher; S.applyDate = ymdOk(r0.applyDate) || S.applyDate; S.reason = r0.reason || S.reason;
+    keys.push("s.teacher", "s.applyDate"); if(r0.reason) keys.push("s.reason");
+    S.rows = [];
+    swaps.forEach(r => {
+      if(r.teacher && who(r.teacher, "申請人：") && who(r.teacher, "") !== S.teacher) warn.push(`照片上有不同的申請人（${r.teacher}），這張只填 ${S.teacher}；其他人請另外登記`);
+      const ps = r.periods.length ? r.periods : [""], tps = r.toPeriods.length ? r.toPeriods : [""];
+      const n = Math.max(ps.length, tps.length);
+      if(ps.length !== tps.length && ps.length > 1 && tps.length > 1) warn.push(`${r.date || ""} 原節次（${ps.join("、")}）和調整後節次（${tps.join("、")}）數量不一樣，請核對`);
+      for(let k = 0; k < n; k++){
+        const row = Object.assign(newSwapRow(), {cls: clsOk(r.cls), fromDate: ymdOk(r.date), fromPeriod: pOk(ps[Math.min(k, ps.length-1)]), fromSubject: r.subject || "",
+          toDate: ymdOk(r.toDate), toPeriod: pOk(tps[Math.min(k, tps.length-1)]), toSubject: r.toSubject || "", partner: who(r.other, "調(代)課教師：")});
+        const i = S.rows.length; S.rows.push(row);
+        ["cls","fromDate","fromPeriod","fromSubject","toDate","toPeriod","toSubject","partner"].forEach(f => { if(row[f]) keys.push(`r.${i}.${f}`); });
+      }
+      if(r.unclear) warn.push("看不清楚：" + r.unclear);
+    });
+    if(!S.rows.length) S.rows.push(newSwapRow());
+    S.rows.forEach(autoSwap);
+  } else {
+    plan.kind = "sub"; const r0 = subs[0], U = plan.sub;
+    U.leaver = who(r0.teacher, "請假老師：") || U.leaver; U.date = ymdOk(r0.date) || U.date;
+    if(r0.leaveType && LEAVES.includes(r0.leaveType)) U.leaveType = r0.leaveType; else if(r0.leaveType) warn.push(`假別照片上寫「${r0.leaveType}」，請手動選`);
+    if(r0.note) U.note = r0.note;
+    keys.push("u.leaver", "u.date", "u.leaveType");
+    U.rows = [];
+    subs.forEach(r => {
+      if(r.type === "代導師"){ U.tutor = true; U.tutorSub = who(r.other, "代導師：") || U.tutorSub; keys.push("u.tutorSub"); return; }
+      if(r.date && ymdOk(r.date) && ymdOk(r.date) !== U.date) warn.push(`照片上還有 ${r.date} 的代課，這張只填 ${U.date}；其他天請另外登記`);
+      (r.periods.length ? r.periods : [""]).forEach(p => {
+        const tc = U.leaver && U.date && pOk(p) ? (CF.busyAt(ctxOf(), U.leaver, U.date, +p, "")[0] || "").split("（")[0] : "";   // 課表上這節的班級（和「帶入這天的課」一樣）
+        const a = tc ? ttAt(U.date, pOk(p), tc) : null;
+        const row = Object.assign(newSubRow(), {period: pOk(p), cls: tc || clsOk(r.cls), subject: (a && a.subject) || r.subject || "", sub: who(r.other, "代課老師：")});
+        if(U.leaver && U.date && pOk(p) && !tc) warn.push(`課表上 ${U.leaver} ${CF.md(U.date)} 第${p}節沒有課，請核對照片`);
+        const i = U.rows.length; U.rows.push(row); ["period","cls","subject","sub"].forEach(f => { if(row[f]) keys.push(`r.${i}.${f}`); });
+      });
+      if(r.unclear) warn.push("看不清楚：" + r.unclear);
+    });
+  }
+  if(d.stamp) warn.push("核章：" + d.stamp);
+  for(let i = warn.length - 1; i >= 0; i--) if(warn.indexOf(warn[i]) < i) warn.splice(i, 1);   // 同樣的提醒只列一次
+  plan.scan = {title: `已依照片填好 ${plan.kind === "swap" ? plan.swap.rows.length : plan.sub.rows.length} 列（黃框＝照片辨識的），請逐一核對後再儲存`, warn, photo: d.photo};
+  plan.scanKeys = keys; plan.force = false; plan.server = null;
+  renderPlan();
+}
 $("#planSave").onclick = async ()=>{
   const form = formData();
   const hm = hardMap(), hard = [].concat(...Object.values(hm));
