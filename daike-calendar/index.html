@@ -491,6 +491,12 @@ main{container-type:inline-size}
 .ev.flag{border-left-color:var(--rose)}
 .ev + .ev{margin-top:8px}
 .ev .p{font-size:13px;color:var(--ink-2)}
+.sid-card{width:min(460px,100%)}
+.sid-list{margin:10px 0 4px;padding-left:22px}
+.sid-list li{margin:6px 0;font-size:14px;color:var(--ink-2)}
+.sid-list li b{display:inline-block;min-width:150px;font-size:20px;letter-spacing:.02em;color:var(--ink);font-variant-numeric:tabular-nums}
+.sid-list li .ok{color:var(--sage);font-weight:700;margin-left:4px}
+.sid-msg{margin:6px 0 0;font-weight:700;color:var(--sage)}
 .ev .sid{float:right;font-size:11.5px;color:var(--ink-3);font-variant-numeric:tabular-nums;margin-left:8px}
 .ev.hit{background:#f9eeda;border-radius:0 8px 8px 0;transition:background .6s}
 .ev .p .k{display:inline-block;font-size:12px;font-weight:700;padding:0 8px;border-radius:999px;background:rgba(92,200,240,.15);color:var(--c-sub);margin-right:6px}
@@ -1053,6 +1059,19 @@ select{background-color:#fff}
 </div>
 
 <!-- 回報問題（老師） -->
+<div class="modal" id="sidModal" hidden>
+  <div class="modal-card sid-card" role="dialog" aria-modal="true" aria-labelledby="sidTitle">
+    <h2 id="sidTitle">紙本序號</h2>
+    <p class="sub" id="sidWho"></p>
+    <ol class="sid-list" id="sidList"></ol>
+    <p class="sid-msg" id="sidMsg" aria-live="polite"></p>
+    <div class="modal-actions">
+      <button class="btn ghost" type="button" id="sidCopy">複製序號</button>
+      <button class="btn ghost" type="button" id="sidClose">關閉</button>
+      <button class="btn" type="button" id="sidOk">確認已核章完成</button>
+    </div>
+  </div>
+</div>
 <div class="modal" id="repModal" hidden>
   <form class="modal-card" id="repForm" autocomplete="off">
     <h2>回報問題</h2>
@@ -2659,8 +2678,10 @@ function evRow(e){
   const fr = state.role==="admin" ? fixRef(e) : null;
   const fixBtn = fr ? `<button type="button" class="fixbtn" data-fix="${esc(fr.key)}" aria-label="修改這筆：${esc(md(e.date)+" "+d.p)}">修改</button>`
     : state.role==="admin" && e.type==="absent" && /^假-/.test(e.id||"") ? `<button type="button" class="fixbtn" data-absdel="${esc(e.id)}" aria-label="刪除這筆請假：${esc(md(e.date))}">刪除這筆請假</button>` : "";
+  const stampDone = /^已核章完成/.test(e.stamp || "");
+  const stampBtn = state.role==="admin" && sid ? `<button type="button" class="fixbtn" data-stampid="${esc(e.id)}" aria-label="${stampDone ? "看紙本序號" : "核章完成，看紙本序號"}：${esc(sid)}">${stampDone ? "看序號" : "核章完成"}</button>` : "";
   const fixd = e.fix ? `<div class="fixd">✎ ${state.role==="admin" ? "已修正："+esc(e.fix.text)+(e.fix.pending && exSyncOn() ?"（Excel 還沒改）":"") : "教務組已更正這筆資料"}</div>` : "";
-  return `<div class="ev t-${e.type}${fl?" flag":""}"${sid ? ` data-sid="${esc(sid)}"` : ""}><div class="p">${sid ? `<span class="sid">序號 ${esc(sid)}</span>` : ""}<span class="k">${KIND[e.type]||""}</span>${esc(d.p)}</div><div class="w">${esc(d.w)}</div><div class="f">${esc(d.f)}</div>${fl}${fixd}${e.stamp?`<div class="stp${e.stamp.indexOf("已核章完成")===0?"":" wait"}">${e.stamp.indexOf("已核章完成")===0?"✓ ":"⏳ "}${esc(e.stamp)}</div>`:""}${e.note?`<div class="x">備註：${esc(e.note)}</div>`:""}${repBtn}${fixBtn}</div>`;
+  return `<div class="ev t-${e.type}${fl?" flag":""}"${sid ? ` data-sid="${esc(sid)}"` : ""}><div class="p">${sid ? `<span class="sid">序號 ${esc(sid)}</span>` : ""}<span class="k">${KIND[e.type]||""}</span>${esc(d.p)}</div><div class="w">${esc(d.w)}</div><div class="f">${esc(d.f)}</div>${fl}${fixd}${e.stamp?`<div class="stp${e.stamp.indexOf("已核章完成")===0?"":" wait"}">${e.stamp.indexOf("已核章完成")===0?"✓ ":"⏳ "}${esc(e.stamp)}</div>`:""}${e.note?`<div class="x">備註：${esc(e.note)}</div>`:""}${repBtn}${fixBtn}${stampBtn}</div>`;
 }
 
 /* 月曆格子用：每一節分開寫，寫出班級、科目、誰代誰、誰領多少錢 */
@@ -3776,6 +3797,51 @@ function wbTodos(ym, P){
     L.push({lv:"info", text:`${md(d)} 有 ${n.length} 筆課務${fl ? `，${fl} 筆標 ⚠` : ""}`, verb:"看明細", act: () => wbOpenDay(d)}); }
   return L;
 }
+/* 紙本核章（10/29）：按「核章完成」→ 列出同一張紙本（同一位老師、同一天、同一種單）的序號 → 確認後記在「核章紀錄」，把序號寫在紙本上 */
+const stampFam = e => e.type==="sub"||e.type==="leave" ? "代課" : e.type==="tutor"||e.type==="tutorLeave" ? "代導師" : e.type==="swap" ? "調課" : e.type==="absent" ? "請假" : "";
+const stampOwner = e => e.type==="sub"||e.type==="tutor" ? e.other : e.type==="swap" ? (e.teacher || (e.dir==="調入" ? e.other : e.who)) : e.who;
+const stampDay = e => e.type==="swap" ? (e.fromDate || e.date) : e.date;
+const isStamped = e => /^已核章完成/.test(e.stamp || "");
+let sidGroup = [];
+function openSidModal(id){
+  const e0 = state.events.find(x => x.id === id); if(!e0) return;
+  const f = stampFam(e0), who = stampOwner(e0), day = stampDay(e0), seen = new Set();
+  sidGroup = state.events.filter(x => x.id && sidOf(x) && stampFam(x)===f && stampOwner(x)===who && stampDay(x)===day)
+    .filter(x => { if(seen.has(x.id)) return false; seen.add(x.id); return true; })
+    .sort((a,b) => (+(a.fromPeriod||a.period)||0) - (+(b.fromPeriod||b.period)||0));
+  if(!sidGroup.length) sidGroup = [e0];
+  $("#sidWho").textContent = `${who} ${md(day)} 的${f}${f==="請假" ? "單" : f==="代導師" ? "" : "單"}，共 ${sidGroup.length} 筆`;
+  renderSidList(); $("#sidMsg").textContent = "";
+  $("#sidModal").hidden = false; ($("#sidOk").hidden ? $("#sidClose") : $("#sidOk")).focus();
+}
+function renderSidList(){
+  $("#sidList").innerHTML = sidGroup.map(x => { const d = describe(x) || {p:""}; const done = isStamped(state.events.find(y => y.id===x.id) || x);
+    return `<li><b>${esc(sidOf(x))}</b>${esc(d.p)}${done ? `<span class="ok">✓ 已核章完成</span>` : ""}</li>`; }).join("");
+  const todo = sidGroup.filter(x => !isStamped(state.events.find(y => y.id===x.id) || x));
+  $("#sidOk").hidden = !todo.length;
+  $("#sidOk").textContent = todo.length === sidGroup.length ? "確認已核章完成" : `確認其餘 ${todo.length} 筆已核章完成`;
+}
+document.addEventListener("click", e => { const b = e.target.closest("[data-stampid]"); if(!b) return; e.stopPropagation(); openSidModal(b.dataset.stampid); });
+$("#sidClose").onclick = () => { $("#sidModal").hidden = true; };
+$("#sidModal").addEventListener("keydown", e => { if(e.key === "Escape") $("#sidModal").hidden = true; });
+$("#sidCopy").onclick = async () => {
+  const t = sidGroup.map(sidOf).join("、");
+  try{ await navigator.clipboard.writeText(t); toast("已複製：" + t); }catch(err){ toast("序號：" + t); }
+};
+$("#sidOk").onclick = async () => {
+  const ids = sidGroup.filter(x => !isStamped(state.events.find(y => y.id===x.id) || x)).map(x => x.id); if(!ids.length) return;
+  busy(true);
+  try{
+    const d = await apiPost({action:"stampDone", name:state.cred.name, h:state.cred.h, ids});
+    if(!d.ok) throw new Error(d.error === "不支援的動作" ? "雲端程式還沒更新到新版（v29），還不能記錄核章；沒有寫入任何資料。" : (d.error || "記錄失敗"));
+    const txt = `已核章完成（教務組 ${new Date().getMonth()+1}/${new Date().getDate()} 確認）`;
+    state.events.forEach(x => { if(ids.includes(x.id)) x.stamp = txt; });
+    renderSidList(); renderList(); if(state.selected) renderPanel(state.selected);
+    $("#sidMsg").textContent = `✓ 已記錄 ${ids.length} 筆已核章完成。請把序號寫在紙本上：${sidGroup.map(sidOf).join("、")}`;
+    $("#sidClose").focus();
+  }catch(err){ $("#sidMsg").textContent = "沒有記錄：" + err.message; $("#sidMsg").style.color = "var(--rose)"; setTimeout(() => { $("#sidMsg").style.color = ""; }, 6000); }
+  finally{ busy(false); }
+};
 function wbOpenSid(e){
   const sid = sidOf(e); wbOpenDay(e.date);
   setTimeout(() => { const el = [...document.querySelectorAll("#panelBody .ev[data-sid]")].find(x => x.dataset.sid === sid);
