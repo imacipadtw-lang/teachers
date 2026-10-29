@@ -1046,6 +1046,7 @@ select{background-color:#fff}
         <button type="button" role="tab" data-kind="swap" aria-selected="true">調課</button>
         <button type="button" role="tab" data-kind="sub" aria-selected="false">代課</button>
         <button type="button" role="tab" data-kind="absent" aria-selected="false">請假</button>
+        <button type="button" role="tab" data-kind="tutor" aria-selected="false">代導師</button>
       </div>
       <button type="button" class="x" id="planClose" aria-label="關閉">×</button>
     </div>
@@ -2843,7 +2844,8 @@ function resetPlan(date){
   plan = { kind:"swap", force:false, server:null, scan:null, scanKeys:null,
     swap:{teacher:"", applyDate:todayYmd(), reason:"", rows:[Object.assign(newSwapRow(), date?{fromDate:date}:{})]},
     sub:{leaver:"", leaveType:"公假", date:date||"", note:"", rows:[], tutor:false, tutorSub:""},
-    absent:{teacher:"", leaveType:"公假", applyDate:todayYmd(), from:date||"", to:"", scope:"全天", periods:[], reason:"", scanSubs:{}, saved:null} };
+    absent:{teacher:"", leaveType:"公假", applyDate:todayYmd(), from:date||"", to:"", scope:"全天", periods:[], reason:"", scanSubs:{}, saved:null},
+    tutor:{leaver:"", leaveType:"公假", from:date||"", to:"", sub:"", note:""} };
 }
 async function openPlan(date){
   if(!plan || date) resetPlan(date);
@@ -2986,7 +2988,18 @@ function absDays(){
   }
   return out;
 }
+/* 代導師的每一天（週六、週日不列；最多 31 天） */
+function tutDays(){
+  const T = plan.tutor, to = T.to && T.to >= T.from ? T.to : T.from, out = [];
+  if(!T.from) return out;
+  for(let d = new Date(T.from+"T12:00:00"); out.length < 31; d.setDate(d.getDate()+1)){ const y = ymd(d); if(y > to) break; if(d.getDay()!==0 && d.getDay()!==6) out.push(y); }
+  return out;
+}
 function formData(){
+  if(plan.kind==="tutor"){
+    const T = plan.tutor, home = T.leaver && state.meta.homeroom[T.leaver];
+    return {tutors: tutDays().map(d => ({leaver:T.leaver, leaveType:T.leaveType, date:d, cls:home||"", sub:T.sub, note:T.note}))};
+  }
   if(plan.kind==="absent"){
     const A = plan.absent;
     return {absents: absDays().map(d => ({teacher:A.teacher, applyDate:A.applyDate, leaveType:A.leaveType, date:d, scope:A.scope, periods:A.scope==="節次" ? A.periods.slice().sort((x,y)=>x-y) : [], reason:A.reason}))};
@@ -3010,7 +3023,9 @@ function missingOf(kind, r){
   else if(kind==="absent"){ if(!r.teacher) m.push("請假老師"); if(!r.date) m.push("日期"); if(!r.leaveType) m.push("假別");
     if(r.scope==="節次" && !(r.periods||[]).length) m.push("節次（範圍選「節次」要勾選）");
     if(r.leaveType==="其他" && !String(r.reason||"").trim()) m.push("事由（假別選「其他」要寫明是什麼假）"); }
-  else { if(!r.sub) m.push("代導師"); if(r.leaveType==="其他" && !String(r.note||"").trim()) m.push("備註（假別選「其他」要寫明是什麼假）"); }
+  else { if(!r.leaver) m.push("請假導師"); else if(!r.cls) m.push("（" + r.leaver + "不是導師，請改選）"); if(!r.date) m.push("日期"); if(!r.sub) m.push("代導師");
+    if(r.sub && r.sub===r.leaver) m.push("（代導師不能是請假導師本人）");
+    if(r.leaveType==="其他" && !String(r.note||"").trim()) m.push("備註（假別選「其他」要寫明是什麼假）"); }
   return m;
 }
 function termOf(kind, r){                    // 不在本學期的日期
@@ -3041,7 +3056,10 @@ function hardMap(){                            // {"sub.0": [擋下的原因…]
 }
 let blockBack = null;
 function showBlock(msgs, sub){
-  $("#blockSub").textContent = sub || "這位老師那時候已經有課或請假，剛才的選擇已經取消。";
+  const dupOnly = msgs.length && msgs.every(m => /已經登記過|已經有調課紀錄|已經登記代課|已經在代/.test(m));   // 重複登記：不是衝堂
+  $("#blockSub").textContent = sub || (dupOnly ? "這筆已經登記過了，剛才的選擇已經取消。" : "這位老師那時候已經有課或請假，剛才的選擇已經取消。");
+  $("#blockTitle").textContent = dupOnly ? "⛔ 重複登錄：不能再登一次" : "⛔ 衝堂警示：不能這樣安排";
+  $(".block-tip").textContent = dupOnly ? "括號裡是原本那筆的序號，可以在工作台搜尋序號、回查紙本。" : "請改請這一節「有空」的老師（代課老師清單最上面一組）。";
   $("#blockList").innerHTML = msgs.map(m=>`<li>${esc(m)}</li>`).join("");
   blockBack = document.activeElement;
   $("#blockModal").hidden = false; $("#blockOk").focus();
@@ -3090,6 +3108,22 @@ function renderPlan(){
         </div><div class="auto-hint" data-hint="${i}" hidden></div><div data-chk="swap.${i}"></div></div>`;
     });
     html += `<button type="button" class="addrow" id="addRow">＋ 再加一列</button>`;
+  } else if(plan.kind==="tutor"){
+    const T = plan.tutor, days = tutDays(), hr = state.meta.homeroom || {}, home = T.leaver && hr[T.leaver];
+    const homeOpts = `<option value="">請選擇</option>` + Object.keys(hr).sort((a,b) => CLASSES.indexOf(hr[a]) - CLASSES.indexOf(hr[b])).map(t => opt(t, `${t}（${hr[t]}導師）`, T.leaver)).join("");
+    html += `<div class="fields">
+      <div><label for="tL">請假導師</label><select id="tL" data-k="t.leaver">${homeOpts}</select></div>
+      <div><label for="tLt">假別</label><select id="tLt" data-k="t.leaveType">${LEAVES.map(l=>opt(l,l,T.leaveType)).join("")}</select></div>
+      <div><label for="tF">日期（起）</label><input type="date" id="tF" data-k="t.from" value="${esc(T.from)}" min="${state.term.from}" max="${state.term.to}"><div class="dow-tag" data-dow="t.from"></div></div>
+      <div><label for="tT">到（迄，一天就不用填）</label><input type="date" id="tT" data-k="t.to" value="${esc(T.to)}" min="${esc(T.from||state.term.from)}" max="${state.term.to}"><div class="dow-tag" data-dow="t.to"></div></div>
+      <div><label for="tS">代導師</label><select id="tS" data-k="t.sub">${teacherOpts(T.sub)}</select></div>
+      <div><label for="tN">備註</label><input id="tN" data-k="t.note" value="${esc(T.note)}" placeholder="${T.leaveType==="其他"?"假別選「其他」一定要寫，例如：公傷假":"選填"}"></div></div>
+      <p class="hintline">${home ? `${esc(T.leaver)}是 <b>${esc(home)}</b> 導師。` : ""}一天一列（週六、週日不列），每天代導師費 ${RATE_TUTOR} 元，由代導師領。只登代導師；那幾天的課要代課，請到「代課」或「請假」分頁登記。</p>`;
+    days.forEach((d,i)=>{
+      html += `<div class="rowc"><div class="rhead"><b>${esc(CF.md(d))}</b><span class="abs-sc">${esc(home||"")}${home ? " 導師" : ""}${T.sub ? "・由 " + esc(T.sub) + " 代" : ""}</span></div><div data-chk="tutor.${i}"></div></div>`;
+    });
+    if(!days.length && T.from) html += `<div class="empty">這段期間都是週末，沒有要登記的日子</div>`;
+    if(days.length && T.sub) html += `<p class="fee">代導師 <b>${days.length}</b> 日 × ${RATE_TUTOR} 元 ＝ <b>${(days.length*RATE_TUTOR).toLocaleString()} 元</b>（由 ${esc(T.sub)} 領）</p>`;
   } else if(plan.kind==="absent"){
     const A = plan.absent, days = absDays();
     html += `<div class="fields">
@@ -3142,7 +3176,7 @@ function renderPlan(){
 /* 局部更新：自動帶入的值、星期、有空老師、衝突提醒、摘要（不重畫欄位，正在填的格子不會被換掉） */
 function valOf(k){
   const [scope,a,b] = k.split(".");
-  if(scope==="s") return plan.swap[a]; if(scope==="u") return plan.sub[a]; if(scope==="a") return plan.absent[a];
+  if(scope==="s") return plan.swap[a]; if(scope==="u") return plan.sub[a]; if(scope==="a") return plan.absent[a]; if(scope==="t") return plan.tutor[a];
   const row = (plan.kind==="swap"?plan.swap.rows:plan.sub.rows)[+a]; return row ? row[b] : "";
 }
 function refreshPlan(){
@@ -3190,7 +3224,7 @@ function refreshPlan(){
   const rowsN = (form.swaps||form.subs||form.absents||[]).length + ((form.tutors||[]).length);
   const anyMissing = (form.swaps||[]).some(r=>missingOf("swap",r).length) || (form.subs||[]).some(r=>missingOf("sub",r).length) || (form.tutors||[]).some(r=>missingOf("tutor",r).length) || (form.absents||[]).some(r=>missingOf("absent",r).length) || (plan.kind==="absent" && !rowsN && plan.absent.from ? true : false);
   const anyOut = (form.swaps||[]).some(r=>termOf("swap",r).length) || (form.subs||[]).some(r=>termOf("sub",r).length) || (form.tutors||[]).some(r=>termOf("tutor",r).length) || (form.absents||[]).some(r=>termOf("absent",r).length);
-  $("#planSum").innerHTML = !rowsN ? "還沒有資料" : hardN ? `<span style="color:var(--rose);font-weight:800">⛔ 有 ${hardN} 列衝堂或請假，不能儲存，請改選老師</span>` : anyMissing ? `還有欄位沒填完` : anyOut ? `<span style="color:var(--rose);font-weight:700">⚠ 有日期不在本學期（${esc(termText())}）</span>` : all ? `<span style="color:var(--rose);font-weight:700">⚠ 有 ${all} 列需要確認</span>` : (plan.kind==="absent" ? `<span style="color:var(--sage);font-weight:700">✓ 共 ${rowsN} 天，可以登記</span>` : `<span style="color:var(--sage);font-weight:700">✓ 共 ${rowsN} 列，沒有衝堂、沒有請假</span>`);
+  $("#planSum").innerHTML = !rowsN ? "還沒有資料" : hardN ? `<span style="color:var(--rose);font-weight:800">⛔ 有 ${hardN} 列衝堂或請假，不能儲存，請改選老師</span>` : anyMissing ? `還有欄位沒填完` : anyOut ? `<span style="color:var(--rose);font-weight:700">⚠ 有日期不在本學期（${esc(termText())}）</span>` : all ? `<span style="color:var(--rose);font-weight:700">⚠ 有 ${all} 列需要確認</span>` : (plan.kind==="absent" || plan.kind==="tutor" ? `<span style="color:var(--sage);font-weight:700">✓ 共 ${rowsN} 天，可以登記</span>` : `<span style="color:var(--sage);font-weight:700">✓ 共 ${rowsN} 列，沒有衝堂、沒有請假</span>`);
   $("#planSave").textContent = plan.force ? "仍要儲存（我已確認提醒）" : "儲存到雲端表格";
   $("#planSave").disabled = !rowsN || anyMissing || anyOut || hardN > 0;
   if(plan.kind==="absent" && plan.absent.saved){
@@ -3206,6 +3240,7 @@ function setField(k, v){
   if(scope==="s") plan.swap[a] = v;
   else if(scope==="u") plan.sub[a] = v;
   else if(scope==="a"){ plan.absent[a] = v; plan.absent.saved = null; if(a==="from" && plan.absent.to && plan.absent.to < v) plan.absent.to = ""; return; }
+  else if(scope==="t"){ plan.tutor[a] = v; if(a==="from" && plan.tutor.to && plan.tutor.to < v) plan.tutor.to = ""; return; }
   else if(scope==="r"){
     const row = (plan.kind==="swap" ? plan.swap.rows : plan.sub.rows)[+a];
     row[b] = v; delete row.auto[b];
@@ -3232,13 +3267,13 @@ $("#planBody").addEventListener("change", e=>{
     showBlock(added);
     return;
   }
-  if(k==="u.leaver" || k==="u.tutor" || k==="u.date" || k.indexOf("a.")===0) renderPlan();   // 會改變版面的才整個重畫
+  if(k==="u.leaver" || k==="u.tutor" || k==="u.date" || k.indexOf("a.")===0 || (k.indexOf("t.")===0 && k!=="t.note")) renderPlan();   // 會改變版面的才整個重畫
   else refreshPlan();
 });
 $("#planBody").addEventListener("input", e=>{            // 打字中：只記下來，不重畫（避免游標跳掉）
   const k = e.target.dataset.k; if(!k || e.target.tagName!=="INPUT" || e.target.type==="date" || e.target.type==="checkbox") return;
   const [scope,a,b] = k.split(".");
-  if(scope==="s") plan.swap[a]=e.target.value; else if(scope==="u") plan.sub[a]=e.target.value; else if(scope==="a") plan.absent[a]=e.target.value;
+  if(scope==="s") plan.swap[a]=e.target.value; else if(scope==="u") plan.sub[a]=e.target.value; else if(scope==="a") plan.absent[a]=e.target.value; else if(scope==="t") plan.tutor[a]=e.target.value;
   else { const row=(plan.kind==="swap"?plan.swap.rows:plan.sub.rows)[+a]; row[b]=e.target.value; delete row.auto[b]; }
   plan.force = false;
 });
