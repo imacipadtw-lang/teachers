@@ -491,6 +491,8 @@ main{container-type:inline-size}
 .ev.flag{border-left-color:var(--rose)}
 .ev + .ev{margin-top:8px}
 .ev .p{font-size:13px;color:var(--ink-2)}
+.ev .sid{float:right;font-size:11.5px;color:var(--ink-3);font-variant-numeric:tabular-nums;margin-left:8px}
+.ev.hit{background:#f9eeda;border-radius:0 8px 8px 0;transition:background .6s}
 .ev .p .k{display:inline-block;font-size:12px;font-weight:700;padding:0 8px;border-radius:999px;background:rgba(92,200,240,.15);color:var(--c-sub);margin-right:6px}
 .ev.t-leave .p .k,.ev.t-tutorLeave .p .k,.ev.t-absent .p .k{background:rgba(239,122,155,.15);color:var(--c-leave)}
 .ev.t-tutor .p .k{background:rgba(79,209,161,.15);color:var(--c-tutor)}
@@ -1250,7 +1252,7 @@ var CF = (function () {
       if (e.type === "swap" && e.cls === r.cls && ((e.date === r.fromDate && same(e.period, r.fromPeriod)) || (r.toDate && e.date === r.toDate && same(e.period, r.toPeriod))))
         out.push(md(e.date) + "第" + e.period + "節的" + e.cls + "已經有調課紀錄（" + (e.id || "已登記") + "）");
       if (e.type === "leave" && e.cls === r.cls && ((e.date === r.fromDate && same(e.period, r.fromPeriod)) || (r.toDate && e.date === r.toDate && same(e.period, r.toPeriod))))
-        out.push(md(e.date) + "第" + e.period + "節的" + e.cls + "已經登記代課（" + e.who + "請假" + (e.other ? "，" + e.other + "代" : "") + "）");
+        out.push(md(e.date) + "第" + e.period + "節的" + e.cls + "已經登記代課（" + (e.id ? e.id + "，" : "") + e.who + "請假" + (e.other ? "，" + e.other + "代" : "") + "）");
     });
     return uniq(out);
   }
@@ -1286,12 +1288,14 @@ var CF = (function () {
     var lu = r.sub ? leaveOn(ctx, r.sub, r.date) : [];
     if (lu.length) out.push("代導師" + r.sub + "在" + md(r.date) + "有請假紀錄" + leaveMsg(lu));
     ctx.ev.forEach(function (e) {
-      if (e.type === "tutorLeave" && e.who === r.leaver && e.date === r.date) out.push(r.leaver + md(r.date) + "已經登記過代導師（" + (e.other || "") + "）");
-      if (e.type === "tutor" && e.who === r.sub && e.date === r.date) out.push(r.sub + md(r.date) + "已經在代" + e.other + "的導師");
+      if (e.type === "tutorLeave" && e.who === r.leaver && e.date === r.date) out.push(r.leaver + md(r.date) + "已經登記過代導師（" + (sidTxt(e) ? sidTxt(e) + "，" : "") + (e.other || "") + "）");
+      if (e.type === "tutor" && e.who === r.sub && e.date === r.date) out.push(r.sub + md(r.date) + "已經在代" + e.other + "的導師" + (sidTxt(e) ? "（" + sidTxt(e) + "）" : ""));
     });
     return uniq(out);
   }
 
+  /* 序號（給人看的）：代導師的紀錄序號是「代導」＋分頁序號，網站登記的顯示成 導-11511001 */
+  function sidTxt(e) { return String((e && e.id) || "").replace(/^代導(?=導-)/, ""); }
   /* 請假登記（假單）：同一位老師同一天的請假時段重疊＝已經登記過；週末、放假提醒 */
   function absent(r, ctx) {
     var out = [];
@@ -2639,8 +2643,16 @@ function absentView(e){
   const miss = (e.flags||[]).some(f => /^還沒安排/.test(f));
   return {p:`請假・${CF.absText(e)}`, w:`${e.who} ${leaveWord(e)}`, f: miss ? "請假的節次還有課沒安排（見下面）" : "請假登記（這筆沒有金額）"};
 }
+/* 這筆紀錄的序號（查詢用）：字頭＋民國年＋月＋該月流水號，例如 調-11511001（115 年 11 月第 1 筆調課）、代-11511001、假-11511001、導-11511001；
+ * 代課一覽表（會計格式）A11501025；Excel 的代導師 代導1。沒有序號的回傳 "" */
+function sidOf(e){
+  const id = String((e && e.id) || ""); if(!id || /^調課第|^這張單$|示範/.test(id)) return "";
+  return /^代導導-/.test(id) ? id.slice(2) : id;
+}
+const sidKey = v => String(v || "").toUpperCase().replace(/\s/g, "").replace(/^(\D*?)-?0*(\d+)$/, "$1|$2");   // 「調11511001」「調-11511001」都對得到
 function evRow(e){
   const d = describe(e); if(!d) return "";
+  const sid = sidOf(e);
   const about = `${md(e.date)} ${d.p}｜${d.w}｜${d.f}`;
   const repBtn = state.role==="teacher" ? `<button type="button" class="rep" data-date="${esc(e.date)}" data-about="${esc(about)}">這筆有錯？回報</button>` : "";
   const fl = (e.flags||[]).map(f=>`<div class="fl">⚠ ${esc(f)}</div>`).join("");
@@ -2648,7 +2660,7 @@ function evRow(e){
   const fixBtn = fr ? `<button type="button" class="fixbtn" data-fix="${esc(fr.key)}" aria-label="修改這筆：${esc(md(e.date)+" "+d.p)}">修改</button>`
     : state.role==="admin" && e.type==="absent" && /^假-/.test(e.id||"") ? `<button type="button" class="fixbtn" data-absdel="${esc(e.id)}" aria-label="刪除這筆請假：${esc(md(e.date))}">刪除這筆請假</button>` : "";
   const fixd = e.fix ? `<div class="fixd">✎ ${state.role==="admin" ? "已修正："+esc(e.fix.text)+(e.fix.pending && exSyncOn() ?"（Excel 還沒改）":"") : "教務組已更正這筆資料"}</div>` : "";
-  return `<div class="ev t-${e.type}${fl?" flag":""}"><div class="p"><span class="k">${KIND[e.type]||""}</span>${esc(d.p)}</div><div class="w">${esc(d.w)}</div><div class="f">${esc(d.f)}</div>${fl}${fixd}${e.stamp?`<div class="stp${e.stamp.indexOf("已核章完成")===0?"":" wait"}">${e.stamp.indexOf("已核章完成")===0?"✓ ":"⏳ "}${esc(e.stamp)}</div>`:""}${e.note?`<div class="x">備註：${esc(e.note)}</div>`:""}${repBtn}${fixBtn}</div>`;
+  return `<div class="ev t-${e.type}${fl?" flag":""}"${sid ? ` data-sid="${esc(sid)}"` : ""}><div class="p">${sid ? `<span class="sid">序號 ${esc(sid)}</span>` : ""}<span class="k">${KIND[e.type]||""}</span>${esc(d.p)}</div><div class="w">${esc(d.w)}</div><div class="f">${esc(d.f)}</div>${fl}${fixd}${e.stamp?`<div class="stp${e.stamp.indexOf("已核章完成")===0?"":" wait"}">${e.stamp.indexOf("已核章完成")===0?"✓ ":"⏳ "}${esc(e.stamp)}</div>`:""}${e.note?`<div class="x">備註：${esc(e.note)}</div>`:""}${repBtn}${fixBtn}</div>`;
 }
 
 /* 月曆格子用：每一節分開寫，寫出班級、科目、誰代誰、誰領多少錢 */
@@ -3764,6 +3776,12 @@ function wbTodos(ym, P){
     L.push({lv:"info", text:`${md(d)} 有 ${n.length} 筆課務${fl ? `，${fl} 筆標 ⚠` : ""}`, verb:"看明細", act: () => wbOpenDay(d)}); }
   return L;
 }
+function wbOpenSid(e){
+  const sid = sidOf(e); wbOpenDay(e.date);
+  setTimeout(() => { const el = [...document.querySelectorAll("#panelBody .ev[data-sid]")].find(x => x.dataset.sid === sid);
+    if(el){ el.classList.add("hit"); el.scrollIntoView({block:"center", behavior:"smooth"}); setTimeout(() => el.classList.remove("hit"), 4000); } }, 150);
+  toast(`序號 ${sid}：${md(e.date)} ${(describe(e)||{}).p || ""}`);
+}
 function wbOpenDay(d){ if(!d.startsWith(state.range || d)) setRange(d.slice(0,7)); state.selected = d; renderYear(); renderPanel(d); const ag = document.getElementById("ag-" + d); if(ag && ag.offsetParent) wbGo(ag); else wbGo("#side"); }
 function renderWorkbench(){
   const box = $("#workbench"); if(!box) return;
@@ -3784,7 +3802,7 @@ function renderWorkbench(){
   box.innerHTML = `<section class="wb" aria-label="教務組工作台">
     <div class="wb-top">
       <div class="wb-greet"><h2>${hi}，${esc2(state.user)}</h2><p>今天 ${esc2(md(today))}${off ? `・${esc2(off.name)}` : ""}・看的是 <b>${roc}</b>（月份選單可換）</p></div>
-      <form class="wb-find" id="wbFind" autocomplete="off"><input id="wbQ" list="wbList" placeholder="找老師、日期（10/27）或功能（設定、結帳、簽到表…）" aria-label="找老師、日期或功能"><datalist id="wbList">${teachers.map(t => `<option value="${esc2(t)}">`).join("")}${months.map(m => `<option value="${m}">`).join("")}${WB_FUNCS.map(x => `<option value="${esc2(x[0])}">`).join("")}</datalist><button class="btn small" type="submit">前往</button></form>
+      <form class="wb-find" id="wbFind" autocomplete="off"><input id="wbQ" list="wbList" placeholder="找老師、日期（10/27）、序號（調-11511001）或功能" aria-label="找老師、日期、序號或功能"><datalist id="wbList">${teachers.map(t => `<option value="${esc2(t)}">`).join("")}${months.map(m => `<option value="${m}">`).join("")}${WB_FUNCS.map(x => `<option value="${esc2(x[0])}">`).join("")}</datalist><button class="btn small" type="submit">前往</button></form>
     </div>
     <div class="wb-grid">
       <div class="wb-card wb-prog"><h3>${roc} 報帳進度 <small>${P ? `${P.doneN}／7` : ""}</small></h3>${steps}${next}</div>
@@ -3812,6 +3830,15 @@ function renderWorkbench(){
 /* 找：老師 → 切到那位老師；日期 → 打開那天；月份 → 切月份；功能 → 跳過去 */
 function wbFind(q){
   q = String(q || "").trim(); if(!q) return;
+  if(/\d/.test(q) && !/[\/月日]/.test(q)){                       // 序號：調-11511001、代-11511001、假-11511001、導-11511001、A11501025
+    const k = sidKey(q.replace(/^序號/, "")), seen = new Set();
+    let hit = state.events.filter(e => sidOf(e) && sidKey(sidOf(e)) === k);
+    if(!hit.length && /^\|/.test(k)) hit = state.events.filter(e => sidOf(e) && sidKey(sidOf(e)).split("|")[1] === k.slice(1));   // 只打數字 11511001
+    hit = hit.filter(e => { const x = sidOf(e); if(seen.has(x)) return false; seen.add(x); return true; });
+    if(hit.length === 1){ wbOpenSid(hit[0]); return; }
+    if(hit.length > 1){ toast(`有 ${hit.length} 筆序號是 ${q}：${hit.map(sidOf).join("、")}，請加上字頭（調、代、假、導）`); return; }
+    if(/^[A-Za-z\u4e00-\u9fff]{0,3}-?\d+$/.test(q.replace(/^序號/, ""))){ toast(`找不到序號「${q}」（例：調-11511001、代-11511001、假-11511001）`); return; }
+  }
   const teachers = state.teachers || [];
   const t = teachers.find(n => n === q) || teachers.find(n => n.includes(q) || q.includes(n));
   if(t){ const sel = document.querySelector(".viewAs"); if(sel){ sel.value = t; sel.dispatchEvent(new Event("change")); toast(`切換到 ${t} 老師`); } return; }
