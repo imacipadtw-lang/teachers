@@ -1666,9 +1666,14 @@ var HR = (function () {
       var hit = p == null ? hasAny : !!covered[T + "|" + e.date + "|" + p];
       if (!hit) noHr.push({ who: T, date: e.date, p: p, id: e.id, label: label, type: e.type, sameDay: hasAny, soft: e.type === "swap" });
     });
+    // 名單層級：本系統整學期有請假／代課／調課／代導師紀錄，但人事資料裡完全沒有這個人（不限日期範圍）
+    var hrNames = {}; P.leaves.forEach(function (r) { hrNames[r.who] = 1; });
+    var sysDays = {};
+    ev.forEach(function (e) { var w = e.type === "leave" || e.type === "tutorLeave" || e.type === "absent" ? e.who : e.type === "swap" && e.dir === "調出" ? e.teacher : null; if (!w) return; (sysDays[w] = sysDays[w] || {})[e.date] = 1; });
+    var noName = Object.keys(sysDays).filter(function (w) { return !hrNames[w]; }).map(function (w) { return { who: w, dates: Object.keys(sysDays[w]).sort() }; });
     var key = function (x) { return x.who + "|" + x.date + "|" + (x.p === "導" ? 0 : +x.p || 0); };
     [missing, noHr, typeDiff, okList].forEach(function (L) { L.sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : key(a) < key(b) ? -1 : 1; }); });
-    return { missing: missing, noHr: noHr, typeDiff: typeDiff, ok: okList, range: [minD, maxD], leaves: P.leaves.length, cancels: P.cancels.length, warn: P.warn, md: md };
+    return { missing: missing, noHr: noHr, typeDiff: typeDiff, ok: okList, noName: noName, hrNames: Object.keys(hrNames), range: [minD, maxD], leaves: P.leaves.length, cancels: P.cancels.length, warn: P.warn, md: md };
   }
   return { parse: parse, slots: slots, periodTimes: periodTimes, compare: compare, md: md, DEF_TIMES: DEF_TIMES };
 })();
@@ -4275,6 +4280,9 @@ function renderHrBox(){
       ${R.missing.length ? `<ul>${R.missing.map(x => li(x, esc(`${per(x)} ${x.cls}${x.subject && x.p!=="導" ? " " + x.subject : ""}　人事：${x.leaveType}${x.hours ? "（" + x.hours + "）" : ""}${x.tutor ? "　→ 整天請假的導師，代導師還沒登" : "　→ 可能還沒交代課單或調課單"}`))).join("")}</ul>` : `<p class="none">沒有。</p>`}
       <h4 class="warn">本系統有登記、人事系統沒有這位老師這天的請假<span class="n">${R.noHr.length}</span></h4>
       ${R.noHr.length ? `<ul>${R.noHr.map(x => li(x, esc(`${x.label}${x.sameDay ? "（人事同一天有請假，但時段不含這節）" : ""}`) + (x.soft ? `<span class="soft">　調課不一定要請假，請確認</span>` : ""))).join("")}</ul>` : `<p class="none">沒有。</p>`}
+      <h4 class="warn">人事資料裡完全沒有這位老師（本系統整學期卻有他的請假、代課或調課）<span class="n">${R.noName.length}</span></h4>
+      ${R.noName.length ? `<ul>${R.noName.map(x => `<li><b>${esc(x.who)}</b>　${esc(x.dates.map(d => md(d)).join("、"))}</li>`).join("")}</ul>` : `<p class="none">沒有。</p>`}
+      <p class="hint">人事資料裡有出現的老師：${esc(R.hrNames.join("、") || "—")}</p>
       ${R.typeDiff.length ? `<h4 class="warn">假別不一樣<span class="n">${R.typeDiff.length}</span></h4><ul>${R.typeDiff.map(x => li(x, esc(`第${x.p}節 ${x.cls}：人事「${x.hr}」、系統「${x.sys}」（${x.id || ""}）`))).join("")}</ul>` : ""}
       <details><summary class="hint" style="cursor:pointer">兩邊都有的 ${R.ok.length} 節</summary><ul>${R.ok.map(x => li(x, esc(`第${x.p}節 ${x.cls}：${x.how}`))).join("")}</ul></details></div>`;
   box.innerHTML = `<div class="hrbox"><h3>人事差勤系統核對</h3>
