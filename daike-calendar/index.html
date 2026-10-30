@@ -386,7 +386,7 @@ details.settings>summary span{font-size:13px;color:var(--ink-3)}
 @media (max-width:760px){
   .wb{padding:14px 14px 12px}.wb-grid{grid-template-columns:1fr}
   .wb-track b{font-size:11px}.wb-track small{display:none}.wb-track i{width:28px;height:28px;font-size:13px}.wb-track::before{top:14px}
-  .wb-nav{position:fixed;left:0;right:0;bottom:0;z-index:40;display:grid;grid-template-columns:repeat(4,1fr);background:rgba(11,22,38,.96);border-top:1px solid var(--line);backdrop-filter:blur(8px);padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
+  .wb-nav{position:fixed;left:0;right:0;bottom:0;z-index:40;display:grid;grid-template-columns:repeat(5,1fr);background:rgba(11,22,38,.96);border-top:1px solid var(--line);backdrop-filter:blur(8px);padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
   .wb-nav[hidden]{display:none}
   .wb-nav button{background:none;border:0;color:var(--ink-2);font-size:12px;font-weight:700;padding:7px 2px;border-radius:8px}
   .wb-nav button.on{color:var(--sky);background:var(--sky-soft)}
@@ -1027,6 +1027,15 @@ select{background-color:#fff}
 @media (max-width:560px){.dkpi{grid-template-columns:repeat(2,minmax(0,1fr))}.dmini{grid-template-columns:1fr}}
 @media print{.dash,.dash-tip{display:none!important}}
 
+/* ---------- 本週調代課圖卡 ---------- */
+.week-card{width:min(980px,100%);max-height:calc(100vh - 32px);overflow:auto}
+.week-nav{display:flex;align-items:center;gap:10px;margin:8px 0 10px}
+.week-nav span{font-weight:800;font-family:var(--digits);font-size:16px}
+.week-body{display:grid;grid-template-columns:1.1fr 1fr;gap:14px;align-items:start}
+.week-body img{width:100%;height:auto;border:1px solid var(--line);border-radius:12px;background:#fff}
+.week-body textarea{width:100%;min-height:360px;font:inherit;font-size:14px;line-height:1.6;border:1px solid var(--line);border-radius:10px;padding:10px;resize:vertical;color:var(--ink)}
+@media (max-width:760px){.week-body{grid-template-columns:1fr}}
+
 /* ---------- 頁尾、使用說明 ---------- */
 .appfoot{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;margin:24px 0 8px;padding:14px 4px 0;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink-3)}
 .appfoot .ver{font-family:var(--digits);font-weight:700;color:var(--ink-2)}
@@ -1292,7 +1301,7 @@ html[data-theme=dark] .calmode button[aria-pressed=true]{background:var(--sky-de
       </div>
     </aside>
   </div>
-  <nav class="wb-nav" id="wbNav" hidden aria-label="管理者導覽"><button type="button" class="on" data-nav="#workbench">工作台</button><button type="button" data-nav="#year">年曆</button><button type="button" data-nav="#monthly">報表</button><button type="button" data-nav="set">設定</button></nav>
+  <nav class="wb-nav" id="wbNav" hidden aria-label="管理者導覽"><button type="button" class="on" data-nav="#workbench">工作台</button><button type="button" data-nav="#year">年曆</button><button type="button" data-nav="#monthly">報表</button><button type="button" data-nav="set">設定</button><button type="button" data-nav="cmd" aria-label="快速指令：找老師、日期、序號、功能">搜尋</button></nav>
   <div id="printArea"></div>
 </section>
 
@@ -1354,6 +1363,20 @@ html[data-theme=dark] .calmode button[aria-pressed=true]{background:var(--sky-de
     <p class="sub" id="remSub"></p>
     <div id="remBody"></div>
     <div class="modal-actions"><button class="btn ghost" type="button" id="remClose">關閉</button></div>
+  </div>
+</div>
+<div class="modal" id="weekModal" hidden>
+  <div class="modal-card week-card" role="dialog" aria-modal="true" aria-labelledby="weekTitle">
+    <h2 id="weekTitle">本週調代課圖卡</h2>
+    <p class="sub" id="weekSub"></p>
+    <div class="week-nav"><button type="button" class="btn ghost small" id="weekPrev">‹ 上一週</button><span id="weekRange"></span><button type="button" class="btn ghost small" id="weekNext">下一週 ›</button></div>
+    <div class="week-body"><img id="weekImg" alt="本週調代課圖卡預覽"><textarea id="weekText" aria-label="本週調代課文字"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn ghost" type="button" id="weekClose">關閉</button>
+      <button class="btn ghost" type="button" id="weekCopyText">複製文字</button>
+      <button class="btn ghost" type="button" id="weekDl">下載圖片</button>
+      <button class="btn" type="button" id="weekShare">分享圖片（LINE）</button>
+    </div>
   </div>
 </div>
 <div class="modal" id="helpModal" hidden>
@@ -3447,6 +3470,13 @@ function renderDash(){
   document.addEventListener("scroll", () => { tip.hidden = true; }, {passive:true});
 })();
 
+/* 這個月每位老師已經代了幾節（全校紀錄；颱風假等不計費的不算） */
+function subLoad(date){
+  const ym = String(date || "").slice(0, 7), out = {}; if(!ym) return out;
+  const ev = isAll() ? state.events : (state.school || state.events);
+  ev.forEach(e => { if(e.type === "sub" && !e.nofee && e.date.startsWith(ym)) out[e.who] = (out[e.who] || 0) + 1; });
+  return out;
+}
 /* ---------- 快速指令（10/31）：Ctrl＋K 或 / 打開；輸入老師、日期、序號、功能；也有單鍵快捷鍵 ---------- */
 const CMD_ACTIONS = () => [
   {ic:"＋", t:"排調代課", d:"登記調課、代課、請假、代導師", k:"N", kw:"登記 新增 代課 調課 請假", run:() => openPlan()},
@@ -3464,6 +3494,7 @@ const CMD_ACTIONS = () => [
   {ic:"年", t:"年曆", d:"整個月一個畫面", kw:"年曆 月曆 行事曆", run:() => wbGo("#year")},
   {ic:"⟳", t:"重新整理資料", d:"重新讀取雲端資料表", kw:"重新整理 更新 同步", run:() => $("#reload").click()},
   {ic:"印", t:"列印年曆", d:"", kw:"列印 印", run:() => $("#printCal").click()},
+  {ic:"週", t:"本週調代課圖卡", d:"一週的調代課做成圖片或文字，傳 LINE", k:"W", kw:"本週 一週 圖卡 圖片 公告 LINE 提醒", run:() => openWeekCard()},
   {ic:"?", t:"使用說明與快捷鍵", d:"常用流程、所有快捷鍵", k:"?", kw:"說明 幫助 help 快捷鍵 教學", run:() => helpOpen()},
   {ic:"⇩", t:"安裝成 App", d:installEvt ? "放到桌面／主畫面，像一般軟體一樣開" : "用瀏覽器選單的「安裝」或手機的「加入主畫面」", kw:"安裝 app 桌面 主畫面 捷徑", run:() => installApp()}
 ];
@@ -3477,6 +3508,81 @@ async function installApp(){
   toast(/iPhone|iPad/.test(navigator.userAgent) ? "iPhone／iPad：按 Safari 下方的「分享」→「加入主畫面」" : "請按瀏覽器網址列右邊的「安裝」圖示，或選單裡的「安裝網頁」／「加到主畫面」");
 }
 let cmdSel = 0, cmdItems = [];
+/* ---------- 本週調代課圖卡（10/31）：週一到週五每天的調代課（和「LINE 調代課提醒」同一套文字），做成公版圖片＋文字 ---------- */
+let weekAnchor = null, weekBlob = null;
+function weekDays(anchor){
+  const d = new Date(anchor + "T00:00:00"), w = d.getDay();
+  const mon = new Date(d); mon.setDate(d.getDate() + (w === 0 ? 1 : w === 6 ? 2 : 1 - w));   // 週末 → 下一週
+  return [0,1,2,3,4].map(i => { const x = new Date(mon); x.setDate(mon.getDate() + i); return ymd(x); });
+}
+function weekData(anchor){
+  const days = weekDays(anchor), roc = s => { const t = new Date(s + "T00:00:00"); return `${t.getFullYear()-1911}年${t.getMonth()+1}月${t.getDate()}日`; };
+  const list = days.map(d => ({ d, items: remindItems(d), off: (state.off || {})[d] }));
+  const text = `【本週調代課提醒】${roc(days[0])}～${(+days[4].slice(5,7))}月${+days[4].slice(8)}日\n`
+    + list.map(x => `\n${md(x.d)}` + (x.off ? `　${x.off.name}` : "") + "\n" + (x.items.length ? x.items.map((it, i) => `${i+1}. ${it.line}`).join("\n") : "（無）")).join("\n")
+    + `\n\n請相關老師留意，謝謝。\n教務組 敬啟`;
+  return { days, list, text, n: list.reduce((a, x) => a + x.items.length, 0) };
+}
+function weekCanvas(W){
+  const FF = '"PingFang TC","Microsoft JhengHei","Noto Sans CJK TC","Noto Sans TC",sans-serif', S = 2, w = 1080, pad = 64;
+  const c = document.createElement("canvas"), g = c.getContext("2d");
+  const wrap = (txt, font, maxW) => { g.font = font; const out = []; let line = ""; for(const ch of txt){ if(g.measureText(line + ch).width > maxW && line){ out.push(line); line = ch; } else line += ch; } if(line) out.push(line); return out; };
+  // 先量高度
+  const blocks = W.list.map(x => ({ x, lines: x.items.length ? x.items.map((it, i) => wrap(`${i+1}. ${it.line}`, `500 30px ${FF}`, w - pad * 2 - 30)) : [[x.off ? "（" + x.off.name + "，不上課）" : "（無）"]] }));
+  let h = 200 + 36;
+  blocks.forEach(b => { h += 58 + b.lines.reduce((a, l) => a + l.length * 44, 0) + 18; });
+  h += 150;
+  c.width = w * S; c.height = h * S; g.scale(S, S);
+  g.fillStyle = "#FFFFFF"; g.fillRect(0, 0, w, h);
+  const grd = g.createLinearGradient(0, 0, w, 0); grd.addColorStop(0, "#B8336A"); grd.addColorStop(1, "#7A2147");
+  g.fillStyle = grd; g.fillRect(0, 0, w, 168);
+  g.fillStyle = "#FFFFFF"; g.font = `800 52px ${FF}`; g.textBaseline = "alphabetic"; g.fillText("本週調代課提醒", pad, 86);
+  const d0 = new Date(W.days[0] + "T00:00:00"), d4 = new Date(W.days[4] + "T00:00:00");
+  g.font = `600 30px ${FF}`; g.fillStyle = "#FFE3EE"; g.fillText(`${d0.getFullYear()-1911} 年 ${d0.getMonth()+1}/${d0.getDate()}（一）～ ${d4.getMonth()+1}/${d4.getDate()}（五）`, pad, 136);
+  let y = 200 + 36;
+  blocks.forEach(b => {
+    const t = new Date(b.x.d + "T00:00:00");
+    g.fillStyle = "#FBE5EE"; g.beginPath(); if(g.roundRect) g.roundRect(pad - 16, y - 38, w - pad * 2 + 32, 50, 12); else g.rect(pad - 16, y - 38, w - pad * 2 + 32, 50); g.fill();
+    g.fillStyle = "#7A2147"; g.font = `800 32px ${FF}`; g.fillText(`${t.getMonth()+1}/${t.getDate()}（${DOW[t.getDay()]}）`, pad, y);
+    if(b.x.off){ g.font = `600 26px ${FF}`; g.fillStyle = "#9A6200"; g.fillText(b.x.off.name, pad + 210, y); }
+    y += 58;
+    g.font = `500 30px ${FF}`;
+    b.lines.forEach(ls => ls.forEach((l, k) => { g.fillStyle = b.x.items.length ? "#3B1E2B" : "#8F6878"; g.fillText(l, pad + (k ? 30 : 0), y); y += 44; }));
+    y += 18;
+  });
+  g.strokeStyle = "#EFC3D3"; g.lineWidth = 2; g.beginPath(); g.moveTo(pad, y); g.lineTo(w - pad, y); g.stroke();
+  g.fillStyle = "#3B1E2B"; g.font = `600 30px ${FF}`; g.fillText("請相關老師留意，謝謝。", pad, y + 58);
+  g.textAlign = "right"; g.font = `800 30px ${FF}`; g.fillText("教務組 敬啟", w - pad, y + 108); g.textAlign = "left";
+  return c;
+}
+function openWeekCard(anchor){
+  if(!isAll()){ toast("請先切回「全校總覽」再做本週圖卡"); return; }
+  weekAnchor = anchor || state.selected || ymd(new Date());
+  const W = weekData(weekAnchor), c = weekCanvas(W);
+  $("#weekRange").textContent = `${md(W.days[0])}～${md(W.days[4])}`;
+  $("#weekSub").textContent = W.n ? `這一週共 ${W.n} 項調代課。文字可以先改再複製；圖片照系統資料產生。` : "這一週沒有調代課。";
+  $("#weekText").value = W.text;
+  weekBlob = null; c.toBlob(b => { weekBlob = b; }, "image/png");
+  $("#weekImg").src = c.toDataURL("image/png");
+  $("#weekModal").hidden = false; setTimeout(() => $("#weekClose").focus(), 0);
+}
+$("#weekClose").onclick = () => { $("#weekModal").hidden = true; };
+$("#weekModal").addEventListener("keydown", e => { if(e.key === "Escape") $("#weekModal").hidden = true; });
+$("#weekModal").addEventListener("click", e => { if(e.target.id === "weekModal") $("#weekModal").hidden = true; });
+$("#weekPrev").onclick = () => { const d = new Date(weekDays(weekAnchor)[0] + "T00:00:00"); d.setDate(d.getDate() - 7); openWeekCard(ymd(d)); };
+$("#weekNext").onclick = () => { const d = new Date(weekDays(weekAnchor)[0] + "T00:00:00"); d.setDate(d.getDate() + 7); openWeekCard(ymd(d)); };
+$("#weekCopyText").onclick = async () => { const ok = await copyText($("#weekText").value); toast(ok ? "已複製，貼到 LINE 就可以傳" : "請按 Ctrl＋C 複製"); };
+const weekFile = () => `本週調代課_${weekDays(weekAnchor)[0].replace(/-/g, "")}.png`;
+$("#weekDl").onclick = () => { const a = document.createElement("a"); a.href = $("#weekImg").src; a.download = weekFile(); document.body.appendChild(a); a.click(); a.remove(); };
+$("#weekShare").onclick = async () => {
+  try{
+    if(!weekBlob) weekBlob = await (await fetch($("#weekImg").src)).blob();
+    const f = new File([weekBlob], weekFile(), {type:"image/png"});
+    if(navigator.canShare && navigator.canShare({files:[f]})){ await navigator.share({files:[f], title:"本週調代課提醒"}); return; }
+    if(window.ClipboardItem && navigator.clipboard && navigator.clipboard.write){ await navigator.clipboard.write([new ClipboardItem({"image/png": weekBlob})]); toast("圖片已複製，到 LINE 對話框按 Ctrl＋V 貼上"); return; }
+    $("#weekDl").click(); toast("已下載圖片，請在 LINE 傳送這張圖");
+  }catch(err){ if(err && err.name === "AbortError") return; $("#weekDl").click(); toast("已下載圖片，請在 LINE 傳送這張圖"); }
+};
 function helpOpen(){ $("#helpVer").textContent = APP_VERSION + "・只有教務組帳號能登入"; $("#helpModal").hidden = false; setTimeout(() => $("#helpClose").focus(), 0); }
 function helpClose(){ $("#helpModal").hidden = true; }
 $("#helpClose").onclick = helpClose; $("#helpBtn").onclick = helpOpen;
@@ -3959,13 +4065,15 @@ function refreshPlan(){
     const U = plan.sub, ctx = ctxOf();
     U.rows.forEach((r,i)=>{
       const sel = document.querySelector(`#planBody [data-k="r.${i}.sub"]`); if(!sel) return;
-      const free = U.date && r.period ? CF.free(ctx, state.meta.teachers, U.date, r.period, U.leaver) : [];
-      const sig = U.date+"|"+r.period+"|"+U.leaver+"|"+free.join(",")+"|"+r.sub;
+      const free0 = U.date && r.period ? CF.free(ctx, state.meta.teachers, U.date, r.period, U.leaver) : [];
+      // 10/31：有空的老師再依「這個月已經代了幾節」由少到多排（工作量平均）；只影響排序，不影響金額
+      const load = subLoad(U.date), free = free0.map((t, k) => [t, k]).sort((a, b) => (load[a[0]] || 0) - (load[b[0]] || 0) || a[1] - b[1]).map(x => x[0]);
+      const sig = U.date+"|"+r.period+"|"+U.leaver+"|"+free.join(",")+"|"+r.sub+"|"+free.map(t => load[t] || 0).join(",");
       if(sel.dataset.sig !== sig && sel !== active){
         const busy = state.meta.teachers.filter(t=>t!==U.leaver && free.indexOf(t)<0);
         const why = t => { if(!U.date || !r.period) return t; const b = CF.busyAt(ctx, t, U.date, r.period, ""); const l = CF.leaveOn(ctx, t, U.date, r.period);
                            return t + "　⚠ " + (b.length ? "衝堂：" + b.join("、") : l.length ? "當天請假" : "這節不能代"); };
-        sel.innerHTML = `<option value="">請選擇</option>` + (free.length?`<optgroup label="這節有空">${free.map(t=>opt(t,t,r.sub)).join("")}</optgroup>`:"")
+        sel.innerHTML = `<option value="">請選擇</option>` + (free.length?`<optgroup label="這節有空（本月代比較少的排前面）">${free.map(t=>opt(t,`${t}　本月已代 ${load[t] || 0} 節`,r.sub)).join("")}</optgroup>`:"")
                       + `<optgroup label="${free.length?"這節不能代（選了會衝堂）":"老師"}">${busy.map(t=>opt(t,why(t),r.sub)).join("")}</optgroup>`;
         sel.dataset.sig = sig;
       }
@@ -4491,7 +4599,8 @@ function renderBoard(){
   const todays = state.events.filter(e => e.date === today && describe(e));
   $("#todayLine").innerHTML = `今天 ${esc(md(today))}` + (off ? `・<b>${esc(off.name)}${off.kind==="颱風假"?"，停止上課":"，放假"}</b>` : "")
     + (todays.length ? `・今天有 ${todays.length} 筆紀錄` : (me ? "・今天沒有代課紀錄" : "・今天沒有代課紀錄"))
-    + (state.role==="admin" && !me && remindItems(today).length ? `<button type="button" class="btn small rem-btn" onclick="openRemind('${today}')">LINE 調代課提醒</button>` : "");
+    + (state.role==="admin" && !me && remindItems(today).length ? `<button type="button" class="btn small rem-btn" onclick="openRemind('${today}')">LINE 調代課提醒</button>` : "")
+    + (state.role==="admin" && !me ? `<button type="button" class="btn ghost small rem-btn" onclick="openWeekCard()">本週圖卡</button>` : "");
   let up = state.events.filter(e => e.date >= today && describe(e)), cap = "接下來的紀錄";
   if(!up.length){ up = state.events.filter(e => describe(e)).slice(-4).reverse(); cap = "最近的紀錄"; }
   up = up.slice(0, me ? 4 : 5);
@@ -4756,7 +4865,7 @@ function renderWorkbench(){
   box.querySelectorAll("[data-q]").forEach(b => b.onclick = () => Q[b.dataset.q]());
   $("#wbFind").onsubmit = e => { e.preventDefault(); wbFind($("#wbQ").value); };
   $("#wbQ").onchange = () => { const v = $("#wbQ").value.trim(); if(v && (teachers.includes(v) || months.includes(v) || WB_FUNCS.some(x => x[0] === v))) wbFind(v); };
-  if(nav){ nav.querySelectorAll("button").forEach(b => b.onclick = () => { const t = b.dataset.nav; if(t === "set") wbOpenSettings(); else wbGo(t); nav.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); }); }
+  if(nav){ nav.querySelectorAll("button").forEach(b => b.onclick = () => { const t = b.dataset.nav; if(t === "cmd"){ cmdOpen(); return; } if(t === "set") wbOpenSettings(); else wbGo(t); nav.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); }); }
 }
 /* 找：老師 → 切到那位老師；日期 → 打開那天；月份 → 切月份；功能 → 跳過去 */
 function wbFind(q){
