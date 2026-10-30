@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>土城國小 代課・調課（教務組專用）</title>
 <meta name="theme-color" content="#FDEBF2">
+<script>try{if(localStorage.getItem("theme")==="dark"){document.documentElement.setAttribute("data-theme","dark");document.querySelector('meta[name=theme-color]').setAttribute("content","#070D1A")}}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&display=swap&text=0123456789%2F%3A.-%E2%80%93" rel="stylesheet">
 <style>
@@ -960,6 +961,181 @@ select{background-color:#fff}
   .board{background:#fff} .ver-tag{display:none}
 }
 
+/* ---------- 數據儀表板（10/31）：只顯示、不改任何數字；金額沿用 tally()／feeOf() ---------- */
+.dash{margin:0 0 18px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:0;box-shadow:0 2px 10px rgba(178,58,107,.06)}
+.dash > summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:16px 20px}
+.dash > summary::-webkit-details-marker{display:none}
+.dash > summary h3{margin:0;font-size:17px}
+.dash > summary .rg{font-size:13px;color:var(--ink-3)}
+.dash > summary .tg{margin-left:auto;font-size:13px;color:var(--ink-2);font-weight:700}
+.dash > summary .tg::after{content:"展開 ▾"}
+.dash[open] > summary .tg::after{content:"收合 ▴"}
+.dash > summary:focus-visible{outline:2px solid var(--sky);outline-offset:-2px;border-radius:18px}
+.dash-body{padding:0 20px 20px;display:grid;gap:14px}
+.dkpi{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+.dkpi > div{background:var(--surface-2);border:1px solid var(--line-2);border-radius:12px;padding:10px 12px;min-width:0}
+.dkpi .k{font-size:12.5px;color:var(--ink-2);font-weight:700}
+.dkpi b{display:block;font-family:var(--digits);font-size:26px;line-height:1.15;color:var(--ink);font-variant-numeric:tabular-nums;margin-top:2px}
+.dkpi b small{font-family:var(--font);font-size:13px;font-weight:600;color:var(--ink-2);margin-left:3px}
+.dkpi .dd{font-size:12px;color:var(--ink-3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dkpi .dd.up{color:var(--rose)} .dkpi .dd.dn{color:var(--sage)}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.dcard{border:1px solid var(--line-2);border-radius:14px;padding:12px 14px;background:var(--surface);min-width:0}
+.dcard h4{margin:0 0 2px;font-size:14.5px}
+.dcard .sub{margin:0 0 8px;font-size:12.5px;color:var(--ink-3)}
+.dcard.wide{grid-column:1 / -1}
+.dmini{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.dmini h5{margin:0 0 4px;font-size:13px;color:var(--ink-2);display:flex;align-items:center;gap:6px}
+.dmini h5 i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.dsvg{width:100%;height:auto;display:block;overflow:visible}
+.dsvg text{font-family:var(--digits);font-size:11px;fill:var(--ink-3)}
+.dsvg text.v{fill:var(--ink);font-weight:700}
+.dsvg .base{stroke:var(--line);stroke-width:1}
+.dsvg .bar{transition:opacity .15s}
+.dsvg .hit{fill:transparent;cursor:default}
+.dsvg .hit:hover + .bar,.dsvg .hit:focus + .bar{opacity:1!important}
+.dsvg .hit:focus{outline:none}
+.hbars{display:grid;grid-template-columns:auto 1fr auto;gap:5px 10px;align-items:center;font-size:13.5px}
+.hbars .n{color:var(--ink);font-weight:700;white-space:nowrap}
+.hbars .t{height:12px;border-radius:0 4px 4px 0;background:var(--line-2);position:relative;overflow:hidden}
+.hbars .t i{position:absolute;left:0;top:0;bottom:0;border-radius:0 4px 4px 0}
+.hbars .v{font-family:var(--digits);font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;text-align:right;min-width:2.2em}
+.hbars [data-tip]{cursor:default}
+.hbars .more{grid-column:1 / -1;font-size:12.5px;color:var(--ink-3)}
+.heat{display:grid;grid-template-columns:auto repeat(5,minmax(0,1fr));gap:3px;font-size:12px}
+.heat .h{color:var(--ink-3);text-align:center;font-weight:700;padding:2px 0}
+.heat .p{color:var(--ink-3);font-weight:700;padding-right:6px;display:flex;align-items:center;justify-content:flex-end;white-space:nowrap}
+.heat .c{height:30px;border-radius:6px;display:grid;place-items:center;font-family:var(--digits);font-weight:700;font-size:13px;color:var(--ink);background:var(--surface-2);cursor:default}
+.heat .c.z{color:transparent}
+.heat .c.hi{color:#fff}
+.heat .c:focus-visible{outline:2px solid var(--ink);outline-offset:1px}
+.heat-lg{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-3);margin-top:8px}
+.heat-lg i{display:inline-block;width:90px;height:8px;border-radius:4px;background:linear-gradient(90deg,rgba(208,69,122,.10),rgba(208,69,122,.95))}
+.dash-tip{position:fixed;z-index:90;pointer-events:none;background:var(--ink);color:var(--surface);font-size:12.5px;line-height:1.45;padding:6px 10px;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.25);max-width:260px;white-space:pre-line}
+.dtable{font-size:13px}
+.dtable summary{cursor:pointer;color:var(--ink-2);font-weight:700}
+.dtable table{border-collapse:collapse;margin-top:6px;width:100%}
+.dtable th,.dtable td{border:1px solid var(--line-2);padding:4px 8px;text-align:right}
+.dtable th:first-child,.dtable td:first-child{text-align:left}
+.dash .none{color:var(--ink-3);font-size:13px;margin:4px 0}
+@media (max-width:900px){.dkpi{grid-template-columns:repeat(3,minmax(0,1fr))}.dgrid{grid-template-columns:1fr}}
+@media (max-width:560px){.dkpi{grid-template-columns:repeat(2,minmax(0,1fr))}.dmini{grid-template-columns:1fr}}
+@media print{.dash,.dash-tip{display:none!important}}
+
+/* ---------- 快速指令（Ctrl+K） ---------- */
+.cmdk{align-items:flex-start;padding-top:12vh}
+.cmd-card{width:min(640px,calc(100vw - 32px));background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:0 24px 60px rgba(40,10,25,.35);overflow:hidden;margin:0 auto}
+.cmd-in{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.cmd-in input{flex:1;border:0;outline:0;font:inherit;font-size:17px;background:transparent!important;color:var(--ink);padding:6px 0}
+kbd{font-family:var(--digits);font-size:11.5px;font-weight:700;color:var(--ink-2);background:var(--surface-2);border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:1px 6px;white-space:nowrap}
+#cmdList{list-style:none;margin:0;padding:6px;max-height:min(420px,56vh);overflow:auto}
+#cmdList .grp{font-size:12px;font-weight:700;color:var(--ink-3);padding:8px 10px 4px}
+#cmdList li[role=option]{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;cursor:pointer;color:var(--ink)}
+#cmdList li[role=option] .ic{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-size:13px;font-weight:800;background:var(--sky-soft);color:var(--sky-deep);flex:none}
+#cmdList li[role=option] .tx{flex:1;min-width:0}
+#cmdList li[role=option] .tx small{display:block;color:var(--ink-3);font-size:12px}
+#cmdList li[role=option][aria-selected=true]{background:var(--sky-soft)}
+#cmdList li.empty{padding:14px 10px;color:var(--ink-3)}
+.cmd-foot{display:flex;gap:14px;flex-wrap:wrap;padding:9px 16px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-3);background:var(--surface-2)}
+.cmd-foot .r{margin-left:auto}
+.kbd-hint{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-3)}
+@media (max-width:760px){.cmd-foot .r,.kbd-hint{display:none}}
+@media print{.cmdk{display:none!important}}
+
+/* ===================================================================
+   10/31 專業版外觀（科技感）
+   粉色仍是預設；加上：點陣網格底紋、頂端漸層光線、系統狀態燈與時鐘、可切換的「深色科技」模式。
+   深色模式只影響螢幕；列印一律白底黑字（上面的 @media print 不受影響）。
+   =================================================================== */
+body{background-image:radial-gradient(rgba(184,51,106,.09) 1px,transparent 1.4px),radial-gradient(1100px 560px at 50% -12%,#FFD3E3 0%,transparent 62%);background-size:22px 22px,auto;background-color:var(--mist);background-attachment:fixed}
+.topbar::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2px;background:linear-gradient(90deg,transparent 0,var(--c-sub) 18%,var(--sky) 50%,#8B5CF6 78%,transparent 100%);opacity:.55;pointer-events:none}
+.brand .mark{animation:markIn .9s cubic-bezier(.2,.8,.2,1) both}
+.brand .mark i{box-shadow:0 0 8px currentColor}
+@keyframes markIn{from{transform:rotate(-120deg) scale(.4);opacity:0}to{transform:none;opacity:1}}
+.sys{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink-2);padding:4px 11px;border:1px solid var(--line);border-radius:999px;background:var(--surface);font-variant-numeric:tabular-nums;white-space:nowrap}
+.sys > i{width:8px;height:8px;border-radius:50%;background:var(--ink-3);flex:none}
+.sys.ok > i{background:#16A34A;box-shadow:0 0 0 0 rgba(22,163,74,.55);animation:sysPulse 2.4s ease-out infinite}
+.sys.err{color:var(--rose);border-color:var(--rose)}
+.sys.err > i{background:var(--rose)}
+.sys .clock{font-family:var(--digits);font-weight:600;color:var(--ink);padding-left:8px;border-left:1px solid var(--line)}
+.sys .clock:empty{display:none}
+@keyframes sysPulse{0%{box-shadow:0 0 0 0 rgba(22,163,74,.5)}70%{box-shadow:0 0 0 7px rgba(22,163,74,0)}100%{box-shadow:0 0 0 0 rgba(22,163,74,0)}}
+.theme-btn{display:inline-flex;align-items:center;gap:6px}
+.theme-btn .tb-ic{width:14px;height:14px;border-radius:50%;background:linear-gradient(90deg,#0F1830 50%,#FFD3E3 50%);box-shadow:0 0 0 1.5px currentColor}
+@media (max-width:760px){.sys .clock,.sys #sysTxt{display:none}.sys{padding:6px}.theme-btn .tb-t{display:none}}
+@media print{.sys,.theme-btn,.topbar::after{display:none!important}body{background-image:none!important}}
+
+/* ---------- 深色科技模式（只在螢幕上） ---------- */
+@media screen{
+html[data-theme=dark]{color-scheme:dark;
+  --mist:#070D1A; --surface:#0F1830; --surface-2:#142142; --ink:#E8EEF8; --ink-2:#AAB8D0; --ink-3:#7A8BA8;
+  --line:#26375C; --line-2:#1C2A4A;
+  --navy:#1A2648; --navy-2:#22305A; --navy-3:#2C3C6E;
+  --sky:#FF6FAE; --sky-deep:#D63C78; --sky-soft:rgba(255,111,174,.15); --sky-mist:rgba(255,111,174,.06); --glow:#5CE1FF;
+  --c-sub:#5CC8F0; --c-leave:#FF7A9B; --c-swap:#F2B84B; --c-tutor:#4FD1A1;
+  --rose:#FF6B85; --rose-soft:rgba(255,107,133,.15);
+  --sage:#4FD1A1; --sage-soft:rgba(79,209,161,.14);
+  --amber:#F2C26B; --amber-soft:rgba(242,184,75,.14)}
+html[data-theme=dark],html[data-theme=dark] body{background-color:var(--mist)}
+html[data-theme=dark] body{background-image:radial-gradient(rgba(92,225,255,.10) 1px,transparent 1.4px),radial-gradient(1000px 560px at 50% -14%,rgba(214,60,120,.30) 0%,transparent 62%),radial-gradient(800px 500px at 100% 0,rgba(92,225,255,.12) 0%,transparent 60%);background-size:22px 22px,auto,auto}
+html[data-theme=dark] ::selection{background:rgba(255,111,174,.35)}
+html[data-theme=dark] option,html[data-theme=dark] optgroup{background:#0F1830;color:var(--ink)}
+html[data-theme=dark] input,html[data-theme=dark] select,html[data-theme=dark] textarea{background-color:#0A1328;color:var(--ink);border-color:var(--line)}
+html[data-theme=dark] .gfield > *,html[data-theme=dark] .gfield select,html[data-theme=dark] .gfield input{background-color:#0A1328}
+html[data-theme=dark] .btn:hover{background:#E24A88;border-color:#E24A88;box-shadow:0 0 0 4px rgba(255,111,174,.18),0 8px 26px rgba(255,111,174,.32)}
+html[data-theme=dark] .btn.ghost{background:var(--surface-2);color:var(--ink);border-color:var(--line)}
+html[data-theme=dark] .btn.ghost:hover{background:var(--sky-soft);border-color:var(--sky);color:var(--sky)}
+html[data-theme=dark] .banner{background:#1A1534;border-bottom-color:var(--line);color:var(--ink-2)}
+html[data-theme=dark] .banner b{color:var(--sky)}
+html[data-theme=dark] .pill{background:var(--surface-2)}
+html[data-theme=dark] .pill.act,html[data-theme=dark] button.pill:hover,html[data-theme=dark] .eye:hover,html[data-theme=dark] .tab[aria-selected=true]{color:var(--sky)}
+html[data-theme=dark] .wk-day{background:var(--surface)}
+html[data-theme=dark] .topbar{background:rgba(7,13,26,.80)}
+html[data-theme=dark] .topbar::after{opacity:.9}
+html[data-theme=dark] .ver-tag{background:linear-gradient(90deg,#D63C78,#7C5CFF)}
+html[data-theme=dark] .board{background:linear-gradient(180deg,#16224A,#0C1532);border-color:var(--line);box-shadow:0 18px 44px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.05)}
+html[data-theme=dark] .meter{background:rgba(0,0,0,.30)}
+html[data-theme=dark] .month,html[data-theme=dark] .list .grp,html[data-theme=dark] .panel,html[data-theme=dark] .admin-box,html[data-theme=dark] .reports,html[data-theme=dark] .alerts,html[data-theme=dark] .monthly,html[data-theme=dark] .fixes,html[data-theme=dark] .hrbox{background:var(--surface)}
+html[data-theme=dark] .month,html[data-theme=dark] .panel,html[data-theme=dark] .admin-box,html[data-theme=dark] .list .grp{box-shadow:0 2px 16px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.03)}
+html[data-theme=dark] .set-tbl th,html[data-theme=dark] .acct th,html[data-theme=dark] .minetbl th{background:var(--surface-2)}
+html[data-theme=dark] .acct-kpi .total{background:linear-gradient(160deg,rgba(255,111,174,.22),var(--surface-2))}
+html[data-theme=dark] .wb{background:var(--surface);box-shadow:0 10px 30px rgba(0,0,0,.45)}
+html[data-theme=dark] .wb-todo li{background:var(--surface)}
+html[data-theme=dark] .seg2{background:var(--surface-2)}
+html[data-theme=dark] .wb-nav{background:rgba(7,13,26,.95)}
+html[data-theme=dark] .d{background:var(--surface);color:var(--ink)}
+html[data-theme=dark] .d.we{background:#0B1328}
+html[data-theme=dark] .d.off{background:repeating-linear-gradient(135deg,rgba(242,184,75,.16) 0 6px,rgba(242,184,75,.04) 6px 12px);border-color:rgba(242,184,75,.45)}
+html[data-theme=dark] .d.has{background:#1A1A3C;border-color:rgba(255,111,174,.55)}
+html[data-theme=dark] .d.has:hover{box-shadow:inset 3px 0 0 var(--sky),0 0 18px rgba(255,111,174,.32)}
+html[data-theme=dark] .d .addp{background:var(--surface-2)}
+html[data-theme=dark] .ev .p .k{background:rgba(92,200,240,.15)}
+html[data-theme=dark] .ev.t-leave .p .k,html[data-theme=dark] .ev.t-tutorLeave .p .k,html[data-theme=dark] .ev.t-absent .p .k{background:rgba(255,122,155,.15)}
+html[data-theme=dark] .ev.t-tutor .p .k{background:rgba(79,209,161,.15)}
+html[data-theme=dark] .ev.t-swap .p .k{background:rgba(242,184,75,.15)}
+html[data-theme=dark] .ev .fixbtn{background:var(--surface-2)}
+html[data-theme=dark] .ev .fixbtn:hover,html[data-theme=dark] .ev .fixbtn:focus-visible,html[data-theme=dark] .fixes li button:hover{color:var(--sky)}
+html[data-theme=dark] .hrmis li{background:var(--surface-2)}
+html[data-theme=dark] .modal{background:rgba(2,6,16,.62)}
+html[data-theme=dark] .plan-head{background:linear-gradient(90deg,#1A2648,#2A1F55)}
+html[data-theme=dark] .scanres{background:var(--amber-soft);color:#F6DDA8}
+html[data-theme=dark] .scanres b{color:var(--ink)}
+html[data-theme=dark] .notice.line{background:rgba(6,150,70,.16);color:#86E6AE}
+html[data-theme=dark] .toast{background:#E8EEF8;color:#0A1020}
+html[data-theme=dark] .undo-bar{background:var(--surface)}
+html[data-theme=dark] .hr-tbl td.risk input{color:#FFA3B3;background:rgba(255,90,110,.16)}
+html[data-theme=dark] .hr-tbl td.risk .sysv,html[data-theme=dark] .hr-tbl tr.risk-note b,html[data-theme=dark] .hr-riskline b{color:#FF8DA1}
+html[data-theme=dark] .hr-tbl tr.risk-note td,html[data-theme=dark] .chk-list li.err span{color:#FF8DA1}
+html[data-theme=dark] .scanres a,html[data-theme=dark] a{color:#8FD8FF}
+html[data-theme=dark] .theme-btn .tb-ic{background:linear-gradient(90deg,#FFD3E3 50%,#0F1830 50%)}
+html[data-theme=dark] .sys{background:var(--surface-2)}
+html[data-theme=dark] .cmd-card{box-shadow:0 24px 60px rgba(0,0,0,.6),0 0 0 1px rgba(255,111,174,.15)}
+html[data-theme=dark] #cmdList li[role=option] .ic{color:var(--sky)}
+html[data-theme=dark] .dash{box-shadow:0 2px 16px rgba(0,0,0,.35)}
+html[data-theme=dark] .heat-lg i{background:linear-gradient(90deg,rgba(255,111,174,.12),rgba(255,111,174,.95))}
+html[data-theme=dark] .sys.ok > i{background:#3BE38A}
+html[data-theme=dark] .calmode button[aria-pressed=true]{background:var(--sky-deep);border-color:var(--sky-deep)}
+}
 </style>
 </head>
 <body>
@@ -967,7 +1143,7 @@ select{background-color:#fff}
 <canvas id="net" aria-hidden="true"></canvas>
 <!-- 登入（版面參考教務組提供的影片：置中、四色標誌、流動漸層框；背景的節點可以用滑鼠拖） -->
 <section id="login">
-  <div class="banner"><b>教務組專用版</b>（粉紅色＝最新版本）：只有教務組帳號能登入，老師不開放</div>
+  <div class="banner"><b>教務組專用版</b>（<span id="appVer"></span>）：只有教務組帳號能登入，老師不開放</div>
   <nav class="lnav">
     <div class="brand"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="txt">代課・調課查詢</span></div>
     <span class="term">南投縣草屯鎮土城國民小學　115 學年度上學期</span>
@@ -1015,6 +1191,9 @@ select{background-color:#fff}
     <div class="who" id="who"></div>
     <div class="spacer"></div>
     <span class="updated" id="updated"></span>
+    <span class="sys" id="sys" role="status" aria-live="polite" title="和雲端資料表的連線狀態"><i aria-hidden="true"></i><span id="sysTxt">連線中…</span><span class="clock" id="clock"></span></span>
+    <button class="btn ghost small" id="cmdBtn" type="button" hidden title="快速指令（Ctrl＋K）">快速指令 <kbd class="kbd-hint">Ctrl K</kbd></button>
+    <button class="btn ghost small theme-btn" id="themeBtn" type="button" aria-pressed="false" title="切換粉色／深色科技模式"><span aria-hidden="true" class="tb-ic"></span><span class="tb-t">深色</span></button>
     <button class="btn ghost small" id="reload" type="button">重新整理</button>
     <button class="btn small" id="openPlan" type="button" hidden>＋ 排調代課</button>
     <button class="btn ghost small" id="openReport" type="button" hidden>回報問題</button>
@@ -1043,6 +1222,8 @@ select{background-color:#fff}
         <div class="rows" id="boardRows"></div>
         <div class="meters" id="summary"></div>
       </section>
+      <details class="dash" id="dash" hidden></details>
+      <div class="dash-tip" id="dashTip" role="tooltip" hidden></div>
       <div id="alerts"></div>
       <div id="hrBox"></div>
       <div id="monthly"></div>
@@ -1149,6 +1330,13 @@ select{background-color:#fff}
     <p class="sub" id="remSub"></p>
     <div id="remBody"></div>
     <div class="modal-actions"><button class="btn ghost" type="button" id="remClose">關閉</button></div>
+  </div>
+</div>
+<div class="modal cmdk" id="cmdModal" hidden>
+  <div class="cmd-card" role="dialog" aria-modal="true" aria-label="快速指令">
+    <div class="cmd-in"><kbd aria-hidden="true">Ctrl K</kbd><input id="cmdQ" placeholder="輸入老師、日期（10/27）、序號或功能…" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="true" aria-controls="cmdList" aria-autocomplete="list"></div>
+    <ul id="cmdList" role="listbox" aria-label="符合的項目"></ul>
+    <div class="cmd-foot"><span><kbd>↑</kbd><kbd>↓</kbd> 選擇</span><span><kbd>Enter</kbd> 執行</span><span><kbd>Esc</kbd> 關閉</span><span class="r">任何地方按 <kbd>Ctrl</kbd>＋<kbd>K</kbd> 或 <kbd>/</kbd> 打開</span></div>
   </div>
 </div>
 <div class="modal" id="sidModal" hidden>
@@ -1919,7 +2107,45 @@ var PAY = (function () {
 
 /* ---------- 呼叫後端 ---------- */
 const DEMO = location.search.includes("demo=1");          // 只有網址加 ?demo=1 才是示範模式
+/* 系統狀態燈（10/31）：最後一次和雲端連線成功／失敗、花多少時間 */
+function sysMark(ok, ms){
+  const el = document.getElementById("sys"), t = document.getElementById("sysTxt"); if(!el || !t) return;
+  const now = new Date(), hm = `${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
+  el.classList.toggle("ok", ok); el.classList.toggle("err", !ok);
+  t.textContent = ok ? "雲端已連線" : "雲端連線失敗";
+  el.title = ok ? `最後同步 ${hm}，回應 ${(ms/1000).toFixed(1)} 秒` : `${hm} 連線失敗，請檢查網路後按「重新整理」`;
+}
+function tickClock(){
+  const c = document.getElementById("clock"); if(!c) return;
+  const d = new Date(), W = "日一二三四五六";
+  c.textContent = `${d.getMonth()+1}/${d.getDate()}（${W[d.getDay()]}）${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+}
+tickClock(); setInterval(tickClock, 20000);
+/* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
+const APP_VERSION = "專業版 2026.10.31";
+{ const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; }
+function setTheme(t){
+  const dark = t === "dark";
+  if(dark) document.documentElement.setAttribute("data-theme","dark"); else document.documentElement.removeAttribute("data-theme");
+  try{ localStorage.setItem("theme", dark ? "dark" : "pink"); }catch(e){}
+  const m = document.querySelector('meta[name=theme-color]'); if(m) m.setAttribute("content", dark ? "#070D1A" : "#FDEBF2");
+  const b = document.getElementById("themeBtn");
+  if(b){ b.setAttribute("aria-pressed", dark); b.querySelector(".tb-t").textContent = dark ? "粉色" : "深色"; b.title = dark ? "切回粉色模式" : "切換深色科技模式"; }
+  if(typeof renderDash === "function" && state && state.cred) try{ renderDash(); }catch(e){}
+}
+setTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "pink");
+document.getElementById("themeBtn").onclick = () => setTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "pink" : "dark");
 async function api(params){
+  const t0 = performance.now();
+  try{ const x = await api0(params); sysMark(true, performance.now() - t0); return x; }
+  catch(e){ sysMark(false); throw e; }
+}
+async function apiPost(body){
+  const t0 = performance.now();
+  try{ const x = await apiPost0(body); sysMark(true, performance.now() - t0); return x; }
+  catch(e){ sysMark(false); throw e; }
+}
+async function api0(params){
   if (DEMO) return demoApi(params);
   if (!API_URL) throw new Error("網頁還沒連上資料表：請教務組把 Apps Script 網址填進 index.html 的 API_URL。");
   const u = new URL(API_URL);
@@ -1936,7 +2162,7 @@ async function api(params){
   }
 }
 const fetchData = (name, h, as, fresh) => api({action:"data", name, h, as, fresh: fresh ? "1" : ""});
-async function apiPost(body){
+async function apiPost0(body){
   if (DEMO) return demoPost(body);
   if (!API_URL) throw new Error("網頁還沒連上資料表");
   // 用純文字送 JSON，瀏覽器不會先做跨網域預檢，Apps Script 可以直接收
@@ -2236,7 +2462,7 @@ function applyData(d){
   $("#openLine").hidden = state.role==="acct" || !(state.line && state.line.on);
   $("#lineNotice").hidden = state.role==="acct" || !(state.line && state.line.on && !state.line.bound) || store.get("lineNoticeOff", localStorage) === "1";
   state.pwStatus = d.pwStatus || [];
-  $("#openPlan").hidden = state.role!=="admin";
+  $("#openPlan").hidden = state.role!=="admin"; $("#cmdBtn").hidden = state.role!=="admin";
   $("#dlExcel").textContent = state.role==="admin" || state.role==="acct" ? "明細試算表（雲端）" : "下載 Excel";
   $("#openReport").hidden = state.role!=="teacher";                 // 老師回報：只有老師用
   state.reports = d.reports || []; state.notify = d.notify;
@@ -2249,7 +2475,7 @@ function applyData(d){
   if(d.hrIns){ state.hrInsSaved = d.hrIns; state.hrIns = null; }                      // 已存的人事保費核對（以資料表為準，重讀時蓋掉暫存）
   state.fixes = d.fixes || []; state.leaveTypes = d.leaveTypes || null;
   renderReports();
-  renderAdmin(); renderRange(); renderBoard(); renderAlerts(); renderHrBox(); hrAuto(); renderMonthly(); renderHeliMine(); renderSettings(); renderYear(); renderList(); renderPanel(null); renderWorkbench();
+  renderAdmin(); renderRange(); renderBoard(); renderDash(); renderAlerts(); renderHrBox(); hrAuto(); renderMonthly(); renderHeliMine(); renderSettings(); renderYear(); renderList(); renderPanel(null); renderWorkbench();
   if (state.role==="admin" || state.role==="acct") setTimeout(prefetchMeta, 300);   // 先把課表讀好（排課、合理員額清冊都要）
   state.shown = true;                       // 一進來先看看板；要看這個月按「回到今天」
 }
@@ -3059,6 +3285,181 @@ function renderYear(){
     state.selected=date; renderYear(); renderPanel(date);                                         // 寬螢幕：側欄看備註
   });
 }
+
+/* ---------- 數據儀表板（10/31）：只讀現有紀錄算筆數；金額一律用 tally()（和看板、報表同一套） ---------- */
+const DASH_W = ["一","二","三","四","五"];
+function dashData(r){
+  const ev = state.events.filter(e => inRange(e, r));
+  const ok = e => !(e.nofee && e.type !== "swap");
+  const subs = ev.filter(e => e.type === "sub" && ok(e)), leaves = ev.filter(e => e.type === "leave" && ok(e));
+  const swaps = ev.filter(e => e.type === "swap" && e.dir === "調出");
+  const t = tally(ev), absN = ev.filter(e => e.type === "absent").length;
+  const cnt = (arr, key) => { const m = {}; arr.forEach(e => { const k = key(e); if(k) m[k] = (m[k] || 0) + 1; }); return Object.entries(m).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "zh-Hant")); };
+  const heat = {}; let heatMax = 0;
+  subs.concat(swaps).forEach(e => { const w = new Date(e.date + "T00:00:00").getDay(), p = String(e.period || ""); if(w < 1 || w > 5 || !/^[1-7]$/.test(p)) return;
+    const k = w + "|" + p; heat[k] = (heat[k] || 0) + 1; heatMax = Math.max(heatMax, heat[k]); });
+  const byDay = cnt(subs.concat(swaps), e => e.date);
+  return { t, swapN: swaps.length, absN, subBy: cnt(subs, e => e.who), leaveBy: cnt(leaves, e => e.who), types: cnt(leaves, e => (String(e.leaveType || "").trim() || "未填假別")), heat, heatMax, busy: byDay[0] };
+}
+function dashMonths(){
+  return termMonths().map(([y, m]) => { const ym = `${y}-${String(m+1).padStart(2,"0")}`, evs = state.events.filter(e => e.date.startsWith(ym)), t = tally(evs);
+    return { ym, label: `${m+1}月`, sub: t.subN, swap: evs.filter(e => e.type === "swap" && e.dir === "調出").length, tutor: t.tutorD }; });
+}
+function dashBars(rows, key, color, sel){                       // 直條小圖（一個數列一個顏色；選到的月份實心、其他淡一點）
+  const W = 300, H = 120, top = 18, bot = 20, n = rows.length || 1, gap = 8, bw = Math.max(8, Math.min(34, (W - gap * (n + 1)) / n));
+  const max = Math.max(1, ...rows.map(r => r[key])), x0 = (W - (bw * n + gap * (n - 1))) / 2;
+  const hi = rows.reduce((a, r, i) => r[key] > rows[a][key] ? i : a, 0);
+  const bars = rows.map((r, i) => {
+    const h = Math.round((H - top - bot) * r[key] / max), x = x0 + i * (bw + gap), y = H - bot - h, on = !sel || r.ym === sel;
+    const rad = Math.min(4, h, bw / 2), d = h > 0 ? `M${x},${H-bot} V${y+rad} Q${x},${y} ${x+rad},${y} H${x+bw-rad} Q${x+bw},${y} ${x+bw},${y+rad} V${H-bot} Z` : "";
+    const tip = `${r.label}：${r[key]}`;
+    return `<rect class="hit" x="${x - gap/2}" y="${top - 6}" width="${bw + gap}" height="${H - top - bot + 6}" tabindex="0" data-tip="${esc(tip)}" aria-label="${esc(tip)}"></rect>`
+      + (d ? `<path class="bar" d="${d}" fill="${color}" opacity="${on ? 1 : .38}"></path>` : "")
+      + ((r.ym === sel || (!sel && i === hi)) && r[key] ? `<text class="v" x="${x + bw/2}" y="${y - 5}" text-anchor="middle">${r[key]}</text>` : "")
+      + `<text x="${x + bw/2}" y="${H - 5}" text-anchor="middle">${esc(r.label)}</text>`;
+  }).join("");
+  return `<svg class="dsvg" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(rows.map(r => r.label + " " + r[key]).join("、"))}"><line class="base" x1="0" x2="${W}" y1="${H-bot}" y2="${H-bot}"></line>${bars}</svg>`;
+}
+function dashHBars(list, color, unit, limit){
+  if(!list.length) return `<p class="none">這段期間沒有資料</p>`;
+  const max = list[0][1], top = list.slice(0, limit || 8);
+  return `<div class="hbars">${top.map(([k, v]) => `<span class="n">${esc(k)}</span><span class="t" data-tip="${esc(k)}：${v} ${unit}"><i style="width:${Math.max(3, v / max * 100).toFixed(1)}%;background:${color}"></i></span><span class="v">${v}</span>`).join("")}
+    ${list.length > top.length ? `<span class="more">另有 ${list.length - top.length} 位（${list.slice(top.length).reduce((a, x) => a + x[1], 0)} ${unit}）</span>` : ""}</div>`;
+}
+function dashHeat(D){
+  if(!D.heatMax) return `<p class="none">這段期間沒有代課或調課</p>`;
+  const dark = document.documentElement.getAttribute("data-theme") === "dark", rgb = dark ? "255,111,174" : "208,69,122";
+  let h = `<div class="heat" role="table" aria-label="星期與節次的代課、調課次數"><span></span>${DASH_W.map(w => `<span class="h" role="columnheader">星期${w}</span>`).join("")}`;
+  for(let p = 1; p <= 7; p++){
+    h += `<span class="p" role="rowheader">第${p}節</span>`;
+    for(let w = 1; w <= 5; w++){ const v = D.heat[w + "|" + p] || 0, a = v ? .12 + .83 * v / D.heatMax : 0;
+      h += `<span class="c${v ? "" : " z"}${a > .55 ? " hi" : ""}" role="cell" tabindex="0" style="${v ? `background:rgba(${rgb},${a.toFixed(2)})` : ""}" data-tip="星期${DASH_W[w-1]} 第${p}節：${v} 次" aria-label="星期${DASH_W[w-1]} 第${p}節 ${v} 次">${v || "0"}</span>`; }
+  }
+  return h + `</div><div class="heat-lg"><span>少</span><i></i><span>多</span>　顏色越深＝這一節越常需要代課或調課（最多 ${D.heatMax} 次）</div>`;
+}
+let dashAnimated = false;
+function renderDash(){
+  const box = $("#dash"); if(!box) return;
+  if(state.role !== "admin" || !isAll()){ box.hidden = true; box.innerHTML = ""; return; }
+  box.hidden = false;
+  const r = state.range, D = dashData(r), M = dashMonths();
+  let prev = null;
+  if(r){ const i = M.findIndex(x => x.ym === r); if(i > 0) prev = M[i-1]; }
+  const diff = prev ? D.t.subN - prev.sub : null;
+  const busy = D.busy ? `${fmt(D.busy[0])}（代課＋調課）` : "—";
+  const kpi = [
+    ["代課", D.t.subN, "節", diff == null ? (r ? "" : "整學期") : diff === 0 ? "和上個月一樣" : `比上個月${diff > 0 ? "多" : "少"} ${Math.abs(diff)} 節`, ""],
+    ["代課費＋代導費", D.t.subFee + D.t.tutorFee, "元", `代課 ${yuan(D.t.subFee)}・代導 ${yuan(D.t.tutorFee)}`, ""],
+    ["調課", D.swapN, "筆", "調課沒有代課費", ""],
+    ["代導師", D.t.tutorD, "日", "", ""],
+    ["請假登記", D.absN, "筆", D.t.unN ? `還沒安排代課 ${D.t.unN} 筆` : "都已安排", D.t.unN ? "up" : ""],
+    ["最忙的一天", D.busy ? D.busy[1] : 0, "筆", busy, ""]
+  ];
+  const open = store.get(K+"dashOpen", localStorage) !== "0";
+  box.open = open;
+  box.innerHTML = `<summary><h3>數據儀表板</h3><span class="rg">${esc(rangeLabel(r))}・依目前登記的資料即時統計</span><span class="tg"></span></summary>
+    <div class="dash-body">
+      <div class="dkpi">${kpi.map(([k, v, u, d, c]) => `<div><div class="k">${esc(k)}</div><b data-n="${v}">${(+v).toLocaleString("zh-TW")}<small>${u}</small></b><div class="dd ${c}" title="${esc(d)}">${esc(d) || "&nbsp;"}</div></div>`).join("")}</div>
+      <div class="dgrid">
+        <div class="dcard wide"><h4>本學期每個月</h4><p class="sub">${r ? `深色是目前選的 ${+r.slice(5,7)} 月；` : ""}滑鼠移到長條上看數字。</p>
+          <div class="dmini">
+            <div><h5><i style="background:var(--c-sub)"></i>代課節數</h5>${dashBars(M, "sub", "var(--c-sub)", r)}</div>
+            <div><h5><i style="background:var(--c-swap)"></i>調課筆數</h5>${dashBars(M, "swap", "var(--c-swap)", r)}</div>
+            <div><h5><i style="background:var(--c-tutor)"></i>代導師日數</h5>${dashBars(M, "tutor", "var(--c-tutor)", r)}</div>
+          </div>
+          <details class="dtable"><summary>看數字表格</summary><table><thead><tr><th>月份</th><th>代課（節）</th><th>調課（筆）</th><th>代導師（日）</th></tr></thead><tbody>${M.map(x => `<tr><td>${esc(x.label)}</td><td>${x.sub}</td><td>${x.swap}</td><td>${x.tutor}</td></tr>`).join("")}</tbody></table></details>
+        </div>
+        <div class="dcard"><h4>誰代最多節</h4><p class="sub">代課老師的代課節數（看工作量是否平均）</p>${dashHBars(D.subBy, "var(--c-sub)", "節", 8)}</div>
+        <div class="dcard"><h4>哪些老師的課最常要人代</h4><p class="sub">請假、由別人代課的節數</p>${dashHBars(D.leaveBy, "var(--c-leave)", "節", 8)}</div>
+        <div class="dcard"><h4>星期 × 節次 熱點</h4><p class="sub">代課＋調課出現在哪一節（排課、找代課時參考）</p>${dashHeat(D)}</div>
+        <div class="dcard"><h4>假別</h4><p class="sub">代課紀錄上的假別（節）</p>${dashHBars(D.types, "var(--c-leave)", "節", 8)}</div>
+      </div>
+    </div>`;
+  box.querySelector("summary").onclick = () => setTimeout(() => store.set(K+"dashOpen", box.open ? "1" : "0", localStorage), 0);
+  if(!dashAnimated && open && !matchMedia("(prefers-reduced-motion: reduce)").matches){         // 第一次打開：數字從 0 跳到目前的值（只有這一次）
+    dashAnimated = true;
+    box.querySelectorAll(".dkpi b[data-n]").forEach(b => { const n = +b.dataset.n, u = b.querySelector("small").outerHTML, t0 = performance.now();
+      if(!n) return; const step = now => { const k = Math.min(1, (now - t0) / 700), v = Math.round(n * (1 - Math.pow(1 - k, 3)));
+        b.innerHTML = v.toLocaleString("zh-TW") + u; if(k < 1) requestAnimationFrame(step); }; requestAnimationFrame(step); });
+  }
+}
+/* 儀表板的提示框：滑鼠移到（或鍵盤移到）有 data-tip 的長條、格子上就顯示 */
+(() => {
+  const tip = $("#dashTip"); if(!tip) return;
+  const show = (el, x, y) => { tip.textContent = el.dataset.tip; tip.hidden = false; const r = tip.getBoundingClientRect();
+    tip.style.left = Math.min(innerWidth - r.width - 8, Math.max(8, x + 12)) + "px"; tip.style.top = Math.max(8, y - r.height - 10) + "px"; };
+  document.addEventListener("mousemove", e => { const el = e.target.closest && e.target.closest("#dash [data-tip]"); if(el) show(el, e.clientX, e.clientY); else tip.hidden = true; });
+  document.addEventListener("focusin", e => { const el = e.target.closest && e.target.closest("#dash [data-tip]"); if(el){ const r = el.getBoundingClientRect(); show(el, r.left + r.width / 2, r.top); } else tip.hidden = true; });
+  document.addEventListener("scroll", () => { tip.hidden = true; }, {passive:true});
+})();
+
+/* ---------- 快速指令（10/31）：Ctrl＋K 或 / 打開；輸入老師、日期、序號、功能；也有單鍵快捷鍵 ---------- */
+const CMD_ACTIONS = () => [
+  {ic:"＋", t:"排調代課", d:"登記調課、代課、請假、代導師", k:"N", kw:"登記 新增 代課 調課 請假", run:() => openPlan()},
+  {ic:"今", t:"回到今天", d:"年曆跳到這個月", k:"T", kw:"今天 年曆", run:() => { setRange(""); jumpToday(true); }},
+  {ic:"▦", t:"數據儀表板", d:"統計、趨勢、熱點", k:"G", kw:"統計 圖表 分析 儀表板", run:() => WB_FUNCS.find(x => x[0] === "數據儀表板")[1]()},
+  {ic:"◐", t:"切換深色／粉色模式", d:"深色科技模式或粉色模式", k:"D", kw:"深色 粉色 主題 夜間 外觀", run:() => setTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "pink" : "dark")},
+  {ic:"人", t:"人事差勤核對", d:"貼上文字或上傳截圖", kw:"人事 差勤 請假系統 截圖 核對", run:() => wbGo("#hrBox")},
+  {ic:"✓", t:"資料檢查", d:"衝堂、重複、未安排", kw:"檢查 衝堂 重複", run:() => wbGo("#alerts")},
+  {ic:"$", t:"每月報表", d:"簽收單、會計月報表", kw:"報表 會計 簽收 月報", run:() => wbGo("#monthly")},
+  {ic:"¥", t:"會計總覽", d:"本月金額核對", kw:"會計 金額 總覽", run:() => wbGo("#acctBox")},
+  {ic:"合", t:"合理員額鐘點費", d:"四位合理員額老師", kw:"合理員額 鐘點費 簽到", run:() => wbGo("#heliBox")},
+  {ic:"結", t:"報帳前檢查與月結", d:"簽到表、月結", kw:"月結 結帳 檢查 簽到表", run:() => wbGo("#checkBox")},
+  {ic:"⚙", t:"系統設定", d:"費率、名單、保險、異動紀錄", kw:"設定 費率 保險", run:() => wbOpenSettings()},
+  {ic:"回", t:"老師回報", d:"回覆老師的問題", kw:"回報 回覆", run:() => wbGo("#myReports")},
+  {ic:"年", t:"年曆", d:"整個月一個畫面", kw:"年曆 月曆 行事曆", run:() => wbGo("#year")},
+  {ic:"⟳", t:"重新整理資料", d:"重新讀取雲端資料表", kw:"重新整理 更新 同步", run:() => $("#reload").click()},
+  {ic:"印", t:"列印年曆", d:"", kw:"列印 印", run:() => $("#printCal").click()}
+];
+let cmdSel = 0, cmdItems = [];
+function cmdBuild(q){
+  q = String(q || "").trim(); const ql = q.toLowerCase(), out = [];
+  const acts = CMD_ACTIONS().filter(a => !q || (a.t + a.kw + a.d).toLowerCase().includes(ql));
+  const teachers = (state.teachers || []).filter(t => q && t.includes(q));
+  const looksGo = q && (/\d/.test(q) || /月|日|年/.test(q));
+  if(looksGo) out.push({grp:"前往", ic:"→", t:`前往「${q}」`, d:/[\/月日]/.test(q) ? "日期或月份" : "序號（調-、代-、假-、導-、A115…）", run:() => wbFind(q)});
+  teachers.slice(0, 6).forEach(t => out.push({grp:"老師", ic:t.slice(0,1), t:`看 ${t} 老師的課務`, d:"切換到這位老師（年曆仍列出全校）", run:() => wbFind(t)}));
+  acts.forEach(a => out.push(Object.assign({grp:"功能"}, a)));
+  if(!out.length && q) out.push({grp:"前往", ic:"→", t:`搜尋「${q}」`, d:"用工作台的搜尋規則找", run:() => wbFind(q)});
+  return out;
+}
+function cmdRender(){
+  const ul = $("#cmdList"); cmdItems = cmdBuild($("#cmdQ").value); if(cmdSel >= cmdItems.length) cmdSel = 0;
+  let last = "";
+  ul.innerHTML = cmdItems.length ? cmdItems.map((x, i) => { const g = x.grp !== last ? `<li class="grp" role="presentation">${esc(x.grp)}</li>` : ""; last = x.grp;
+    return g + `<li role="option" id="cmd-${i}" data-i="${i}" aria-selected="${i === cmdSel}"><span class="ic" aria-hidden="true">${esc(x.ic)}</span><span class="tx">${esc(x.t)}${x.d ? `<small>${esc(x.d)}</small>` : ""}</span>${x.k ? `<kbd>${x.k}</kbd>` : ""}</li>`; }).join("")
+    : `<li class="empty">找不到符合的項目</li>`;
+  $("#cmdQ").setAttribute("aria-activedescendant", cmdItems.length ? "cmd-" + cmdSel : "");
+  const on = ul.querySelector('[aria-selected="true"]'); if(on) on.scrollIntoView({block:"nearest"});
+}
+function cmdOpen(q){
+  if(state.role !== "admin" || !state.cred) return;
+  $("#cmdModal").hidden = false; $("#cmdQ").value = q || ""; cmdSel = 0; cmdRender(); setTimeout(() => $("#cmdQ").focus(), 0);
+}
+function cmdClose(){ $("#cmdModal").hidden = true; }
+function cmdRun(i){ const x = cmdItems[i]; if(!x) return; cmdClose(); setTimeout(() => { try{ x.run(); }catch(err){ toast("沒辦法執行：" + err.message); } }, 30); }
+$("#cmdQ").addEventListener("input", () => { cmdSel = 0; cmdRender(); });
+$("#cmdQ").addEventListener("keydown", e => {
+  if(e.key === "ArrowDown"){ e.preventDefault(); cmdSel = (cmdSel + 1) % Math.max(1, cmdItems.length); cmdRender(); }
+  else if(e.key === "ArrowUp"){ e.preventDefault(); cmdSel = (cmdSel - 1 + cmdItems.length) % Math.max(1, cmdItems.length); cmdRender(); }
+  else if(e.key === "Enter"){ e.preventDefault(); cmdRun(cmdSel); }
+  else if(e.key === "Escape"){ e.preventDefault(); cmdClose(); }
+});
+$("#cmdList").addEventListener("click", e => { const li = e.target.closest("li[role=option]"); if(li) cmdRun(+li.dataset.i); });
+$("#cmdList").addEventListener("mousemove", e => { const li = e.target.closest("li[role=option]"); if(li && +li.dataset.i !== cmdSel){ cmdSel = +li.dataset.i; cmdRender(); } });
+$("#cmdModal").addEventListener("click", e => { if(e.target.id === "cmdModal") cmdClose(); });
+$("#cmdBtn").onclick = () => cmdOpen();
+document.addEventListener("keydown", e => {
+  if(state.role !== "admin" || !state.cred) return;
+  if((e.ctrlKey || e.metaKey) && !e.altKey && (e.key === "k" || e.key === "K")){ e.preventDefault(); $("#cmdModal").hidden ? cmdOpen() : cmdClose(); return; }
+  const t = e.target, typing = t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable);
+  if(typing || e.ctrlKey || e.metaKey || e.altKey) return;
+  if(document.querySelector(".modal:not([hidden])")) return;                 // 有視窗開著就不搶按鍵
+  const k = e.key.toLowerCase();
+  if(k === "/"){ e.preventDefault(); cmdOpen(); return; }
+  const a = CMD_ACTIONS().find(x => x.k && x.k.toLowerCase() === k);
+  if(a){ e.preventDefault(); a.run(); }
+});
 
 /* ---------- 清單 ---------- */
 function renderList(){
@@ -4072,7 +4473,8 @@ const WB_FUNCS = [
   ["老師回報", () => wbGo("#myReports")], ["回報", () => wbGo("#myReports")],
   ["老師密碼", () => { const d = document.querySelector("#adminBox .pw-list") || document.querySelector("#adminMobile .pw-list"); if(d) d.open = true; wbGo(d && d.offsetParent ? d : "#adminMobile"); }], ["密碼", () => $("#openPw").click()],
   ["LINE", () => { if(!$("#openLine").hidden) $("#openLine").click(); else toast("LINE 通知還沒設定（資料表選單「設定 LINE」）"); }], ["年曆", () => wbGo("#year")], ["清單", () => { document.querySelector('.tab[data-view="list"]').click(); wbGo("#list"); }],
-  ["整學期", () => { setRange(""); wbGo("#year"); }]
+  ["整學期", () => { setRange(""); wbGo("#year"); }],
+  ["數據儀表板", () => { const d = $("#dash"); if(d){ d.open = true; store.set(K+"dashOpen", "1", localStorage); } wbGo("#dash"); }], ["統計", () => { const d = $("#dash"); if(d) d.open = true; wbGo("#dash"); }], ["儀表板", () => { const d = $("#dash"); if(d) d.open = true; wbGo("#dash"); }]
 ];
 function wbGo(sel, fallback){
   const el = typeof sel === "string" ? document.querySelector(sel) : sel;
@@ -4482,7 +4884,7 @@ function setRange(r, from){
   if($("#rangeSel").value !== state.range) $("#rangeSel").value = state.range;
   const m = $("#mSel");
   if(m && state.range && m.value !== state.range && from !== "mSel"){ m.value = state.range; renderAcct(state.range); renderHeli(state.range); }
-  renderYear(); renderList(); renderSummary(); renderHeliMine();
+  renderYear(); renderList(); renderSummary(); renderHeliMine(); renderDash();
   const nm = $("#rangeNote"); if(nm) nm.textContent = state.range ? `目前顯示 ${rangeLabel(state.range)}；要看整學期請選「整學期」。` : "";
 }
 $("#rangeSel").addEventListener("change", () => setRange($("#rangeSel").value, "rangeSel"));
