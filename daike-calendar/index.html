@@ -500,6 +500,10 @@ main{container-type:inline-size}
 @media print{.d .addp{display:none}}
 .view-note{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 10px;padding:10px 14px;border-radius:12px;background:var(--amber-soft);color:var(--ink);font-size:14.5px;border:1px solid rgba(154,98,0,.25)}
 .view-note .btn{margin-left:auto}
+.cell-ev.other{opacity:.5}
+.ev-other{opacity:.72}
+.ev-other button{display:none}
+.ev-other-h{margin:10px 16px 2px;font-size:13px;font-weight:700;color:var(--ink-3)}
 @media print{.view-note{display:none!important}}
 .rem-card{width:min(620px,100%);max-height:88vh;overflow:auto}
 .rem-item{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:10px 0;background:var(--surface-2)}
@@ -2018,6 +2022,7 @@ function applyData(d){
   state.teachers = d.teachers || [];
   state.events = (d.events||[]).filter(e=>inTerm(e.date)).sort((a,b)=>a.date.localeCompare(b.date)||(a.period||0)-(b.period||0));
   state.viewing = d.viewing || d.name;
+  if(state.viewing === "__all__") state.school = state.events;                // 全校紀錄留一份：看某位老師時，年曆照樣列出全校（10/30）
   const label = state.viewing==="__all__" ? "全校總覽" : state.viewing+" 老師";
   $("#login").style.display="none"; $("#app").style.display="block";
   $("#who").innerHTML = `${esc(label)}${state.role==="admin"?"<small>教務組管理者</small>":state.role==="acct"?"<small>會計（唯讀）</small>":""}`;
@@ -2066,6 +2071,7 @@ function renderAdmin(){
     busy(true);
     try{ const d = await fetchData(state.cred.name, state.cred.h, state.viewing); if(d.ok) applyData(d); }
     finally{ busy(false); }
+    if(!isAll() && !state.school) allEvents().then(ev => { state.school = ev; renderYear(); if(state.selected) renderPanel(state.selected); }).catch(() => {});
   });
   document.querySelectorAll("[data-reset]").forEach(b=>b.onclick = async ()=>{
     const t = b.dataset.reset;
@@ -2780,13 +2786,21 @@ function renderViewNote(){
   const el = $("#viewNote"); if(!el) return;
   if(state.role !== "admin" || isAll()){ el.hidden = true; el.innerHTML = ""; return; }
   el.hidden = false;
-  el.innerHTML = `<span>年曆和清單目前只顯示 <b>${esc(state.viewing)}</b> 老師的紀錄，其他老師的調代課不會出現。</span><button type="button" class="btn small" id="viewAll">看全校</button>`;
+  el.innerHTML = `<span>正在看 <b>${esc(state.viewing)}</b> 老師：年曆照樣列出全校的紀錄，<b>${esc(state.viewing)}</b> 老師的用深色，其他老師的用淡色。</span><button type="button" class="btn small" id="viewAll">看全校</button>`;
   $("#viewAll").onclick = () => { const s = document.querySelector(".viewAs"); if(s){ s.value = ""; s.dispatchEvent(new Event("change")); } };
 }
+/* 看某位老師時，全校紀錄裡「沒有這位老師」的那些（年曆、明細用淡色列出） */
+function othersOf(){
+  if(state.role !== "admin" || isAll() || !state.school) return [];
+  const T = state.viewing;
+  return state.school.filter(e => ![e.who, e.other, e.teacher, e.partner].includes(T));
+}
+function asSchool(fn){ const v = state.viewing; state.viewing = "__all__"; try{ return fn(); } finally{ state.viewing = v; } }   // 用全校的說法描述
 function renderYear(){
   renderViewNote();
-  const byDate = {};
+  const byDate = {}, otherBy = {};
   for(const e of state.events) (byDate[e.date] ||= []).push(e);
+  for(const e of othersOf()) (otherBy[e.date] ||= []).push(e);
   const today = ymd(new Date());
   const months = termMonths().filter(([y,m]) => !state.range || `${y}-${String(m+1).padStart(2,"0")}` === state.range);   // 選了月份就只畫那個月
   $("#year").innerHTML = months.map(([y,m])=>{
@@ -2798,14 +2812,15 @@ function renderYear(){
     for(let d=1; d<=days; d++){
       const key = `${ym}-${String(d).padStart(2,"0")}`, dow=new Date(y,m,d).getDay();
       if(!inTerm(key)){ cells += `<div class="d out${dow===0||dow===6?" we":""}" title="不在本學期"><span class="n">${d}</span></div>`; continue; }
-      const ents = cellEntries(byDate[key]||[]);
-      const has = ents.length>0, off = (state.off||{})[key], flagged = ents.some(x=>x.fl);
+      const ents = cellEntries(byDate[key]||[]), oth = otherBy[key] ? asSchool(() => cellEntries(otherBy[key])) : [];
+      const has = ents.length>0 || oth.length>0, off = (state.off||{})[key], flagged = ents.some(x=>x.fl);
       const offTxt = off ? off.name + (off.scope && off.scope!=="全天" ? "（" + off.scope + "）" : "") : "";
       const canAdd = state.role==="admin" && dow!==0 && dow!==6;                 // 管理者：平日格子右上角「＋」直接補登（10/30）
-      const evHtml = ents.map(x=>`<div class="cell-ev"><div class="p">${esc(x.p)}</div><div class="w">${esc(x.w)}</div>${x.f?`<div class="f">${esc(x.f)}</div>`:""}${x.fl?`<div class="fl">${esc(x.fl)}</div>`:""}</div>`).join("");
+      const evHtml = ents.map(x=>`<div class="cell-ev"><div class="p">${esc(x.p)}</div><div class="w">${esc(x.w)}</div>${x.f?`<div class="f">${esc(x.f)}</div>`:""}${x.fl?`<div class="fl">${esc(x.fl)}</div>`:""}</div>`).join("")
+        + oth.map(x=>`<div class="cell-ev other"><div class="p">${esc(x.p)}</div><div class="w">${esc(x.w)}</div></div>`).join("");
       cells += `<${has?"button type=\"button\"":"div"} class="d${has?" has":""}${canAdd&&!has?" canadd":""}${off?" off":""}${flagged?" flag":""}${key===today?" today":""}${dow===0||dow===6?" we":""}${key===state.selected?" sel":""}" data-date="${key}"${has?` aria-label="${m+1}月${d}日，${ents.length} 則紀錄${flagged?"，有需要確認的紀錄":""}"`:""}${off?` title="${esc(offTxt)}"`:""}><span class="n">${d}</span>${canAdd?`<span class="addp" role="button" tabindex="0" data-plan="${key}" title="補登這天的調代課" aria-label="補登 ${m+1}月${d}日的調代課">＋</span>`:""}${off?`<span class="offl">${esc(offTxt)}</span>`:""}${flagged?`<span class="mk">⚠</span>`:""}${evHtml}</${has?"button":"div"}>`;
       if(has || (off && dow!==0 && dow!==6)){
-        agenda += `<div class="ag-day" id="ag-${key}"><div class="ag-date">${m+1}/${d}<small>星期${DOW[dow]}</small></div><div>${off?`<div class="ag-off">${esc(offTxt)}${off.kind==="颱風假"?"：停止上課":"：放假"}</div>`:""}${(byDate[key]||[]).map(e=>evRow(e)).join("")}</div></div>`;
+        agenda += `<div class="ag-day" id="ag-${key}"><div class="ag-date">${m+1}/${d}<small>星期${DOW[dow]}</small></div><div>${off?`<div class="ag-off">${esc(offTxt)}${off.kind==="颱風假"?"：停止上課":"：放假"}</div>`:""}${(byDate[key]||[]).map(e=>evRow(e)).join("")}${otherBy[key] ? `<div class="ev-other">${asSchool(() => otherBy[key].map(e=>evRow(e)).join(""))}</div>` : ""}</div></div>`;
       }
     }
     return `<section class="month" id="m-${y}-${m+1}"><h3><span class="ym">${m+1}月</span><span style="font-size:14px;color:var(--ink-3);font-weight:600">${y}</span></h3><p class="msum">${esc(monthSummary(monthEvs))}</p>
@@ -2842,9 +2857,10 @@ function renderPanel(date){
   const side=$("#side");
   if(!date){ side.classList.remove("open"); $("#panelTitle").textContent="點一個日期看明細"; $("#panelBody").innerHTML=`<div class="empty">點年曆上有框線的日子，這裡會列出那天的完整明細和備註。</div>`; }
   else{
-    const d=new Date(date+"T00:00:00"), evs=state.events.filter(e=>e.date===date);
+    const d=new Date(date+"T00:00:00"), evs=state.events.filter(e=>e.date===date), oth=othersOf().filter(e=>e.date===date);
     $("#panelTitle").textContent=`${d.getMonth()+1} 月 ${d.getDate()} 日（${DOW[d.getDay()]}）`;
-    $("#panelBody").innerHTML = (evs.map(e=>evRow(e)).join("") || `<div class="empty">這天沒有紀錄</div>`)
+    $("#panelBody").innerHTML = (evs.map(e=>evRow(e)).join("") || (oth.length ? `<div class="empty">${esc(state.viewing)} 老師這天沒有紀錄</div>` : `<div class="empty">這天沒有紀錄</div>`))
+      + (oth.length ? `<div class="ev-other"><p class="ev-other-h">其他老師的紀錄</p>${asSchool(() => oth.map(e=>evRow(e)).join(""))}</div>` : "")
       + (state.role==="admin" ? `<div style="padding:12px 16px;display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn small" onclick="openPlan('${date}')">＋ 這天排調代課</button>${remindItems(date).length ? `<button type="button" class="btn ghost small" onclick="openRemind('${date}')">LINE 調代課提醒</button>` : ""}</div>` : "");
     side.classList.add("open");
   }
