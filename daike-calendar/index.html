@@ -507,6 +507,13 @@ main{container-type:inline-size}
 .hrbox textarea{width:100%;min-height:110px;font:inherit;font-size:13.5px;line-height:1.5;border:1px solid var(--line);border-radius:10px;padding:8px 10px;resize:vertical;background:#fff;color:var(--ink)}
 .hrbox .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
 .hrbox .row input{width:460px;max-width:100%;font:inherit;font-size:13px;border:1px solid var(--line);border-radius:8px;padding:5px 8px}
+.hrscan{margin:10px 0 0;font-size:13px}
+.hrscan summary{cursor:pointer;color:var(--ink-2);font-weight:700}
+.hrscan table{width:100%;border-collapse:collapse;margin-top:6px}
+.hrscan th,.hrscan td{border:1px solid var(--line-2);padding:4px 6px;text-align:left;vertical-align:top}
+.hrscan th{background:var(--surface-2);font-weight:700}
+.hrscan td small{display:block;color:var(--ink-3)}
+.hrscan tr.bad td{background:var(--rose-soft)}
 .hrbox .hint{font-size:12.5px;color:var(--ink-3);margin:6px 0 0}
 .hrres{margin-top:12px}
 .hrres h4{margin:12px 0 4px;font-size:14.5px}
@@ -2916,7 +2923,7 @@ function evRow(e){
   const stampDone = /^已核章完成/.test(e.stamp || "");
   const stampBtn = state.role==="admin" && sid ? `<button type="button" class="fixbtn" data-stampid="${esc(e.id)}" aria-label="${stampDone ? "看紙本序號" : "核章完成，看紙本序號"}：${esc(sid)}">${stampDone ? "看序號" : "核章完成"}</button>` : "";
   const fixd = e.fix ? `<div class="fixd">✎ ${state.role==="admin" ? "已修正："+esc(e.fix.text)+(e.fix.pending && exSyncOn() ?"（Excel 還沒改）":"") : "教務組已更正這筆資料"}</div>` : "";
-  return `<div class="ev t-${e.type}${fl?" flag":""}"${sid ? ` data-sid="${esc(sid)}"` : ""}><div class="p">${sid ? `<span class="sid">序號 ${esc(sid)}</span>` : ""}<span class="k">${KIND[e.type]||""}</span>${esc(d.p)}</div><div class="w">${esc(d.w)}</div><div class="f">${esc(d.f)}</div>${fl}${fixd}${e.stamp?`<div class="stp${e.stamp.indexOf("已核章完成")===0?"":" wait"}">${e.stamp.indexOf("已核章完成")===0?"✓ ":"⏳ "}${esc(e.stamp)}</div>`:""}${e.note?`<div class="x">備註：${esc(e.note)}</div>`:""}${repBtn}${fixBtn}${stampBtn}</div>`;
+  return `<div class="ev t-${e.type}${fl?" flag":""}"${sid ? ` data-sid="${esc(sid)}"` : ""}><div class="p">${sid ? `<span class="sid">序號 ${esc(sid)}</span>` : ""}<span class="k">${KIND[e.type]||""}</span>${esc(d.p)}</div><div class="w">${esc(d.w)}</div><div class="f">${esc(d.f)}</div>${fl}${fixd}${e.stamp?`<div class="stp${e.stamp.indexOf("已核章完成")===0?"":" wait"}">${e.stamp.indexOf("已核章完成")===0?"✓ ":"⏳ "}${esc(e.stamp)}</div>`:""}${e.note?`<div class="x">備註：${esc(e.note)}</div>`:""}${repBtn}${fixBtn}${stampBtn}${state.role==="admin" ? `<button type="button" class="fixbtn" data-copyev aria-label="複製這筆紀錄的文字">複製</button>` : ""}</div>`;
 }
 
 /* 月曆格子用：每一節分開寫，寫出班級、科目、誰代誰、誰領多少錢 */
@@ -4195,6 +4202,17 @@ function renderSidList(){
   $("#sidOk").hidden = !todo.length;
   $("#sidOk").textContent = todo.length === sidGroup.length ? "確認已核章完成" : `確認其餘 ${todo.length} 筆已核章完成`;
 }
+/* 每筆紀錄的「複製」（10/31）：日期＋類別＋內容＋金額＋序號，貼到 LINE 或公文都可以 */
+function evCopyText(el){
+  const ev = el.closest(".ev"); if(!ev) return "";
+  const g = sel => { const x = ev.querySelector(sel); return x ? x.textContent.replace(/\s+/g, " ").trim() : ""; };
+  const day = ev.closest(".ag-day");
+  const dateTxt = day ? (day.querySelector(".ag-date").firstChild.textContent + "（" + day.querySelector(".ag-date small").textContent.replace("星期", "") + "）") : ($("#panelTitle").textContent || "").replace(/\s/g, "");
+  const k = g(".p .k"), p = (ev.querySelector(".p") ? [...ev.querySelector(".p").childNodes].filter(n => !(n.classList && (n.classList.contains("sid") || n.classList.contains("k")))).map(n => n.textContent).join("") : "").trim().replace(k ? new RegExp("^" + k + "・") : /^$/, "");
+  return [`${dateTxt}　${k ? "【" + k + "】" : ""}${p}`, g(".w"), g(".f"), g(".x"), ev.dataset.sid ? "序號 " + ev.dataset.sid : ""].filter(Boolean).join("\n");
+}
+document.addEventListener("click", async e => { const b = e.target.closest("[data-copyev]"); if(!b) return; e.stopPropagation();
+  const t = evCopyText(b); const ok = await copyText(t); toast(ok ? "已複製這筆紀錄" : "沒辦法自動複製，請手動選取"); });
 document.addEventListener("click", e => { const b = e.target.closest("[data-stampid]"); if(!b) return; e.stopPropagation(); openSidModal(b.dataset.stampid); });
 $("#sidClose").onclick = () => { $("#sidModal").hidden = true; };
 $("#sidModal").addEventListener("keydown", e => { if(e.key === "Escape") $("#sidModal").hidden = true; });
@@ -4321,6 +4339,76 @@ function hrAuto(){                                 // 重新整理後：有貼�
   const t = store.get(K+"hrText", localStorage); if(!t) return;
   hrAuto.t = setTimeout(() => { hrAuto.t = null; hrRun(t).catch(()=>{}); }, 600);
 }
+/* 人事差勤截圖（10/31）：一次可選好幾張 → 後端 Gemini 逐筆抄下 → 換成和「貼上文字」一樣的格式，接在文字框後面 → 自動核對。
+ * 讀到的每一筆列在「截圖讀到的」讓管理者對照截圖；名字對不上名單、看不清楚的都會提醒。 */
+const HR_DOW = ["日","一","二","三","四","五","六"];
+function hrRocDT(v){                                         // "115-9-5 8:30"、"115/09/05(五) 08:30" → {d:"115-09-05(五)", t:"08:30"}
+  const m = String(v || "").replace(/[（(][一二三四五六日][)）]/g, " ").match(/(\d{2,4})\s*[-\/.年]\s*(\d{1,2})\s*[-\/.月]\s*(\d{1,2})日?(?:\s+(\d{1,2})\s*[:：]\s*(\d{2}))?/);
+  if(!m) return null;
+  let y = +m[1]; if(y > 1911) y -= 1911;
+  const mo = +m[2], da = +m[3], dt = new Date(y + 1911, mo - 1, da);
+  if(dt.getMonth() !== mo - 1 || dt.getDate() !== da) return null;
+  const d = `${y}-${String(mo).padStart(2,"0")}-${String(da).padStart(2,"0")}(${HR_DOW[dt.getDay()]})`;
+  return { d, t: m[4] != null ? `${String(+m[4]).padStart(2,"0")}:${m[5]}` : "" };
+}
+function hrScanToText(recs, teachers){
+  const T = teachers || [], warn = [], rows = [], lines = [];
+  const near = (a, b) => a.length === b.length && [...a].filter((c, i) => c !== b[i]).length === 1;
+  recs.forEach((r, i) => {
+    let who = String(r.who || "").replace(/\s/g, ""), note = [];
+    if(!who){ warn.push(`第 ${i+1} 筆看不出姓名，沒有放進核對`); return; }
+    if(!T.includes(who)){
+      const hit = T.filter(t => t.includes(who) || who.includes(t) || near(t, who));
+      if(hit.length === 1){ note.push(`截圖讀成「${who}」，當作 ${hit[0]}`); who = hit[0]; }
+      else note.push("名單裡沒有這個名字（可能不是老師，或字讀錯了）");
+    }
+    const f = hrRocDT(r.from), t0 = hrRocDT(r.to), ap = hrRocDT(r.applied);
+    const to = t0 ? { d: t0.d, t: t0.t || (f && f.t) } : (f && /^\d{2}:\d{2}$/.test(String(r.to || "").trim()) ? { d: f.d, t: String(r.to).trim() } : null);
+    if(!f || !f.t || !to || !to.t) note.push("看不出請假期間，這筆不核對");
+    const hm = String(r.hours || "").replace(/\s/g, "").match(/^(?:(\d+)日)?(?:(\d+)小?時)?$/), hours = hm && (hm[1] || hm[2]) ? `${+(hm[1]||0)}日${+(hm[2]||0)}小時` : "";
+    if(r.unclear) note.push("看不清楚：" + r.unclear);
+    lines.push(who, r.form || "請假");
+    if(ap && ap.t) lines.push(`${ap.d} ${ap.t}`);
+    if(f && f.t && to && to.t) lines.push(`期間：\t${f.d} ${f.t} ~ ${to.d} ${to.t}`);
+    if(hours) lines.push(`時數：\t${hours}`);
+    lines.push(/不同意|退回/.test(r.result || "") ? (r.result.match(/不同意|退回/)[0]) : "同意");
+    rows.push({ who, form: r.form || "", from: f && f.t ? `${f.d} ${f.t}` : "", to: to && to.t ? `${to.d} ${to.t}` : "", hours, result: r.result || "", note: note.join("；") });
+  });
+  return { text: lines.join("\n"), rows, warn };
+}
+async function hrScanFiles(files){
+  files = [...(files || [])]; if(!files.length) return;
+  const big = files.find(f => f.size > 15 * 1024 * 1024); if(big){ toast(`「${big.name}」超過 15MB，請縮小再上傳`); return; }
+  busy(true); const all = { rows: [], warn: [], text: "" };
+  try{
+    try{ await ensureMeta(); }catch(_){}
+    for(let i = 0; i < files.length; i++){
+      toast(`讀取人事截圖 ${i+1}／${files.length}…約 10～30 秒`);
+      const img = await shrinkImage(files[i]);
+      const d = await apiPost({action:"hrScan", name:state.cred.name, h:state.cred.h, mime:img.mime, data:img.data});
+      if(!d.ok) throw new Error((d.error === "不支援的動作" ? "雲端程式還沒更新，暫時不能讀截圖；請先用貼上文字的方式" : d.error) || "辨識失敗");
+      const c = hrScanToText(d.records || [], (state.meta && state.meta.teachers) || []);
+      c.rows.forEach(r => r.file = files.length > 1 ? `第 ${i+1} 張` : "");
+      all.rows.push(...c.rows); all.warn.push(...c.warn.map(w => (files.length > 1 ? `第 ${i+1} 張：` : "") + w));
+      if(c.text) all.text += (all.text ? "\n" : "") + c.text;
+      if(!(d.records || []).length) all.warn.push(`${files.length > 1 ? `第 ${i+1} 張` : "這張截圖"}沒有讀到任何請假案件`);
+    }
+    const ta = $("#hrText"), old = ta ? ta.value.trim() : (store.get(K+"hrText", localStorage) || "").trim();
+    const text = all.text ? (old ? old + "\n" + all.text : all.text) : old;
+    state.hrScan = all;
+    if(text) await hrRun(text); else renderHrBox();
+    toast(all.rows.length ? `截圖讀到 ${all.rows.length} 筆，已核對；請對照「截圖讀到的」確認沒有讀錯` : "截圖沒有讀到請假案件");
+  }catch(err){ toast("截圖辨識失敗：" + err.message); renderHrBox(); }
+  finally{ busy(false); const f = $("#hrFile"); if(f) f.value = ""; }
+}
+function hrScanHtml(){
+  const S = state.hrScan; if(!S) return "";
+  const bad = S.rows.filter(r => r.note).length;
+  return `<details class="hrscan"${bad || S.warn.length ? " open" : ""}><summary>截圖讀到的 ${S.rows.length} 筆${bad ? `（<b>${bad} 筆要確認</b>）` : ""}：請對照截圖，讀錯就直接改上面的文字再按「核對」</summary>
+    ${S.warn.length ? `<p class="hint" style="color:var(--rose)">⚠ ${esc(S.warn.join("；"))}</p>` : ""}
+    <table><thead><tr><th>姓名</th><th>表單</th><th>期間</th><th>時數</th><th>結果</th><th>要確認</th></tr></thead><tbody>
+    ${S.rows.map(r => `<tr${r.note ? ' class="bad"' : ""}><td>${esc(r.who)}${r.file ? `<small>${esc(r.file)}</small>` : ""}</td><td>${esc(r.form)}</td><td>${esc(r.from)}${r.to ? " ～ " + esc(r.to) : ""}</td><td>${esc(r.hours)}</td><td>${esc(r.result || "同意")}</td><td>${esc(r.note)}</td></tr>`).join("")}</tbody></table></details>`;
+}
 function renderHrBox(){
   const box = $("#hrBox"); if(!box) return;
   if(state.role!=="admin" || !isAll()){ box.innerHTML = ""; return; }
@@ -4338,15 +4426,18 @@ function renderHrBox(){
       <div class="hrmis"><h4>⚠ 當天當節對不起來，請特別留意<span class="n">${R.missing.length + R.noHr.length}</span></h4>
         ${mis || `<p class="none">全部對得起來。</p>`}</div>
       ${R.typeDiff.length ? `<h4 class="warn">假別不一樣<span class="n">${R.typeDiff.length}</span></h4><ul>${R.typeDiff.map(x => li(x, esc(`第${x.p}節 ${x.cls}：人事「${x.hr}」、系統「${x.sys}」（${x.id || ""}）`))).join("")}</ul>` : ""}
+      ${hrScanHtml()}
       <details><summary class="hint" style="cursor:pointer">兩邊都有、對得起來的 ${R.ok.length} 節</summary><ul>${R.ok.map(x => li(x, esc(`第${x.p}節 ${x.cls}：${x.how}`))).join("")}</ul></details></div>`;
   box.innerHTML = `<div class="hrbox"><h3>人事差勤系統核對</h3>
-    <p class="hint">到差勤系統「已批核案件」把整頁文字選取、複製，貼在下面（可以一次貼好幾頁），按「核對」。系統會找出：人事有請假但這裡沒登代課／調課的（可能沒交紙本），以及這裡有登記、人事卻沒有請假的。本土語直播共學的課不算。</p>
+    <p class="hint">兩種方式都可以：① 到差勤系統「已批核案件」把整頁文字選取、複製，貼在下面（可以一次貼好幾頁），按「核對」（最準）；② 按「上傳人事截圖」，一次可選好幾張，系統讀完會把文字接在下面並自動核對。系統會找出：人事有請假但這裡沒登代課／調課的（可能沒交紙本），以及這裡有登記、人事卻沒有請假的。本土語直播共學的課不算。</p>
     <textarea id="hrText" placeholder="申請人　表單　申請時間　摘要　批核結果…">${esc(text)}</textarea>
-    <div class="row"><button type="button" class="btn small" id="hrGo">核對</button><button type="button" class="btn ghost small" id="hrClear">清除</button>
+    <div class="row"><button type="button" class="btn small" id="hrGo">核對</button><button type="button" class="btn small" id="hrUp">上傳人事截圖</button><input type="file" id="hrFile" accept="image/*,application/pdf" multiple hidden><button type="button" class="btn ghost small" id="hrClear">清除</button>
       <label class="hint" for="hrTimes" style="margin:0">節次時間</label><input id="hrTimes" value="${esc(hrTimes())}" aria-label="節次時間，例：0840-0920,0930-1010,…"></div>
     <p class="hint">節次時間用來把請假的「幾點到幾點」換算成第幾節（預設 08:40–09:20、09:30–10:10、10:30–11:10、11:20–12:00、13:30–14:10、14:20–15:00、15:10–15:50）；和本校作息不同就改上面那格，再按「核對」。</p>${res}</div>`;
   $("#hrGo").onclick = () => { store.set(K+"hrTimes", $("#hrTimes").value.trim(), localStorage); busy(true); hrRun($("#hrText").value).finally(() => busy(false)); };
-  $("#hrClear").onclick = () => { $("#hrText").value = ""; hrRun(""); };
+  $("#hrClear").onclick = () => { $("#hrText").value = ""; state.hrScan = null; hrRun(""); };
+  $("#hrUp").onclick = () => $("#hrFile").click();
+  $("#hrFile").onchange = e => { store.set(K+"hrTimes", $("#hrTimes").value.trim(), localStorage); hrScanFiles(e.target.files); };
 }
 /* ---------- 管理者：資料檢查、颱風假狀態 ---------- */
 function renderAlerts(){
