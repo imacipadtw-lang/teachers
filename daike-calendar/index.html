@@ -512,6 +512,16 @@ main{container-type:inline-size}
 .hrres li .soft{color:var(--ink-3)}
 .hrres .none{font-size:13.5px;color:var(--ink-3);margin:2px 0}
 .fl.hrfl{color:var(--rose)}
+.hrmis{margin-top:10px;padding:12px 14px;border:2px solid var(--rose);border-radius:12px;background:var(--rose-soft)}
+.hrmis h4{margin:0 0 6px;color:var(--rose)}
+.hrday{margin:8px 0 0}
+.hrdate{font-weight:800;font-size:14px;margin-bottom:2px}
+.hrmis ul{list-style:none;padding-left:0}
+.hrmis li{padding:5px 8px;margin:3px 0;border-radius:8px;background:#fff;border-left:4px solid var(--rose)}
+.hrmis li.nohr{border-left-color:var(--amber)}
+.hrmis li.soft{opacity:.75}
+.hrmis .tag{display:inline-block;font-size:12px;padding:0 6px;border-radius:999px;background:var(--rose-soft);color:var(--rose);margin:0 2px}
+.hrmis li.nohr .tag{background:var(--amber-soft);color:var(--amber)}
 .view-note{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 10px;padding:10px 14px;border-radius:12px;background:var(--amber-soft);color:var(--ink);font-size:14.5px;border:1px solid rgba(154,98,0,.25)}
 .view-note .btn{margin-left:auto}
 .cell-ev.other{opacity:.5}
@@ -4274,17 +4284,18 @@ function renderHrBox(){
   const text = store.get(K+"hrText", localStorage) || "", R = state.hr, md = HR.md;
   const per = x => x.p==="導" ? "導師" : `第${x.p}節`;
   const li = (x, extra) => `<li><b>${esc(x.who)}</b>　${esc(md(x.date))}　${extra}</li>`;
+  const byDay = {};                                   // 當天當節對不起來的，兩個方向合在一區，依日期排
+  (R ? R.missing : []).forEach(x => (byDay[x.date] = byDay[x.date] || []).push({x, kind:"miss"}));
+  (R ? R.noHr : []).forEach(x => (byDay[x.date] = byDay[x.date] || []).push({x, kind:"nohr"}));
+  const mis = Object.keys(byDay).sort().map(d => `<div class="hrday"><div class="hrdate">${esc(md(d))}</div><ul>${byDay[d].sort((a,b) => (a.x.p==="導"?0:+a.x.p||0) - (b.x.p==="導"?0:+b.x.p||0)).map(({x, kind}) => kind==="miss"
+      ? `<li class="miss"><b>${esc(x.who)}</b>　${esc(per(x))} ${esc(x.cls)}${x.subject && x.p!=="導" ? " " + esc(x.subject) : ""}　<span class="tag">人事有請假（${esc(x.leaveType)}${x.hours ? "，" + esc(x.hours) : ""}）、系統沒有${x.tutor ? "代導師" : "代課／調課"}</span>　→ ${x.tutor ? "請登記代導師" : "可能還沒交紙本，請登記"}</li>`
+      : `<li class="nohr${x.soft ? " soft" : ""}"><b>${esc(x.who)}</b>　${esc(x.label)}　<span class="tag">系統有登記、人事沒有這位老師這${x.p==null ? "天" : "節"}的請假</span>${x.sameDay ? "（人事同一天有請假，但時段不含這節）" : ""}${x.soft ? "　調課不一定要請假" : "　→ 請確認是否漏請假或登錯"}</li>`).join("")}</ul></div>`).join("");
   const res = !R ? "" : `<div class="hrres">
-      <p class="hint">${esc(R.at)} 核對：人事資料 ${R.leaves} 筆請假${R.cancels ? `（另有 ${R.cancels} 筆撤銷已扣掉）` : ""}，涵蓋 ${R.range[0] ? esc(md(R.range[0])) + "～" + esc(md(R.range[1])) : "—"}；下面的「人事沒有請假」只看這段期間。${R.warn.length ? "　⚠ " + esc(R.warn.join("；")) : ""}</p>
-      <h4>人事有請假、本系統沒有代課或調課<span class="n">${R.missing.length}</span></h4>
-      ${R.missing.length ? `<ul>${R.missing.map(x => li(x, esc(`${per(x)} ${x.cls}${x.subject && x.p!=="導" ? " " + x.subject : ""}　人事：${x.leaveType}${x.hours ? "（" + x.hours + "）" : ""}${x.tutor ? "　→ 整天請假的導師，代導師還沒登" : "　→ 可能還沒交代課單或調課單"}`))).join("")}</ul>` : `<p class="none">沒有。</p>`}
-      <h4 class="warn">本系統有登記、人事系統沒有這位老師這天的請假<span class="n">${R.noHr.length}</span></h4>
-      ${R.noHr.length ? `<ul>${R.noHr.map(x => li(x, esc(`${x.label}${x.sameDay ? "（人事同一天有請假，但時段不含這節）" : ""}`) + (x.soft ? `<span class="soft">　調課不一定要請假，請確認</span>` : ""))).join("")}</ul>` : `<p class="none">沒有。</p>`}
-      <h4 class="warn">人事資料裡完全沒有這位老師（本系統整學期卻有他的請假、代課或調課）<span class="n">${R.noName.length}</span></h4>
-      ${R.noName.length ? `<ul>${R.noName.map(x => `<li><b>${esc(x.who)}</b>　${esc(x.dates.map(d => md(d)).join("、"))}</li>`).join("")}</ul>` : `<p class="none">沒有。</p>`}
-      <p class="hint">人事資料裡有出現的老師：${esc(R.hrNames.join("、") || "—")}</p>
+      <p class="hint">${esc(R.at)} 核對：人事資料 ${R.leaves} 筆請假${R.cancels ? `（另有 ${R.cancels} 筆撤銷已扣掉）` : ""}，涵蓋 ${R.range[0] ? esc(md(R.range[0])) + "～" + esc(md(R.range[1])) : "—"}。人事資料裡有的老師：${esc(R.hrNames.join("、") || "—")}${R.warn.length ? "　⚠ " + esc(R.warn.join("；")) : ""}</p>
+      <div class="hrmis"><h4>⚠ 當天當節對不起來，請特別留意<span class="n">${R.missing.length + R.noHr.length}</span></h4>
+        ${mis || `<p class="none">全部對得起來。</p>`}</div>
       ${R.typeDiff.length ? `<h4 class="warn">假別不一樣<span class="n">${R.typeDiff.length}</span></h4><ul>${R.typeDiff.map(x => li(x, esc(`第${x.p}節 ${x.cls}：人事「${x.hr}」、系統「${x.sys}」（${x.id || ""}）`))).join("")}</ul>` : ""}
-      <details><summary class="hint" style="cursor:pointer">兩邊都有的 ${R.ok.length} 節</summary><ul>${R.ok.map(x => li(x, esc(`第${x.p}節 ${x.cls}：${x.how}`))).join("")}</ul></details></div>`;
+      <details><summary class="hint" style="cursor:pointer">兩邊都有、對得起來的 ${R.ok.length} 節</summary><ul>${R.ok.map(x => li(x, esc(`第${x.p}節 ${x.cls}：${x.how}`))).join("")}</ul></details></div>`;
   box.innerHTML = `<div class="hrbox"><h3>人事差勤系統核對</h3>
     <p class="hint">到差勤系統「已批核案件」把整頁文字選取、複製，貼在下面（可以一次貼好幾頁），按「核對」。系統會找出：人事有請假但這裡沒登代課／調課的（可能沒交紙本），以及這裡有登記、人事卻沒有請假的。本土語直播共學的課不算。</p>
     <textarea id="hrText" placeholder="申請人　表單　申請時間　摘要　批核結果…">${esc(text)}</textarea>
