@@ -533,6 +533,18 @@ main{container-type:inline-size}
 .ev-other button{display:none}
 .ev-other-h{margin:10px 16px 2px;font-size:13px;font-weight:700;color:var(--ink-3)}
 @media print{.view-note{display:none!important}}
+/* 年曆三種顯示：代課＋調課／只看代課（含請假、代導師）／只看調課（10/30） */
+.calmode{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 10px}
+.calmode-l{font-size:14px;color:var(--ink-3);font-weight:700;margin-right:2px}
+.calmode button{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);padding:6px 14px;border-radius:999px;font:inherit;font-size:14px;font-weight:700;cursor:pointer}
+.calmode button:hover{border-color:var(--sky-deep);color:var(--ink)}
+.calmode button[aria-pressed=true]{background:var(--sky-deep);border-color:var(--sky-deep);color:#fff}
+.calmode button:focus-visible{outline:2px solid var(--sky-deep);outline-offset:2px}
+.calmode .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.calmode .dot.sub{background:var(--c-sub)} .calmode .dot.swap{background:var(--c-swap)}
+.calmode button[aria-pressed=true] .dot{box-shadow:0 0 0 2px #fff}
+.calmode-n{font-size:13.5px;color:var(--ink-3);margin-left:4px}
+@media print{.calmode button,.calmode-l{display:none!important}.calmode-n{font-size:12px;color:#000}}
 .rem-card{width:min(620px,100%);max-height:88vh;overflow:auto}
 .rem-item{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:10px 0;background:var(--surface-2)}
 .rem-item h3{margin:0 0 6px;font-size:15px}
@@ -1047,6 +1059,13 @@ select{background-color:#fff}
       </div>
       <p class="fee-note"><span id="rangeNote"></span><span id="feeRates">金額依每節 405 元（合班 608 元，代協同老師的課仍是 405 元）、代導師每日 133 元計算，正式金額以教務組核算為準。</span><span id="termNote"></span></p>
       <div class="print-note" id="printNote"></div>
+      <div class="calmode" id="calMode" role="group" aria-label="年曆要顯示哪些紀錄">
+        <span class="calmode-l">顯示</span>
+        <button type="button" data-cm="all">代課＋調課</button>
+        <button type="button" data-cm="sub"><i class="dot sub"></i>只看代課</button>
+        <button type="button" data-cm="swap"><i class="dot swap"></i>只看調課</button>
+        <span class="calmode-n" id="calModeNote"></span>
+      </div>
       <div class="view-note" id="viewNote" hidden></div>
       <div class="year" id="year"></div>
       <div class="list" id="list"></div>
@@ -2972,12 +2991,28 @@ function othersOf(){
   const T = state.viewing;
   return state.school.filter(e => ![e.who, e.other, e.teacher, e.partner].includes(T));
 }
+/* 年曆顯示模式：all＝代課＋調課、sub＝只看代課（含請假、代導師）、swap＝只看調課；記在這台電腦 */
+const CAL_MODES = { all:"代課＋調課", sub:"只看代課", swap:"只看調課" };
+function calMode(){ const m = store.get(K+"calMode", localStorage); return CAL_MODES[m] ? m : "all"; }
+const calShow = e => { const m = calMode(); return m === "all" || (m === "swap") === (e.type === "swap"); };
+function renderCalMode(){
+  const m = calMode();
+  document.querySelectorAll("#calMode [data-cm]").forEach(b => b.setAttribute("aria-pressed", b.dataset.cm === m));
+  const n = $("#calModeNote"); if(!n) return;
+  if(m === "all"){ n.textContent = ""; return; }
+  const hid = state.events.concat(othersOf()).filter(e => !calShow(e) && describe(e) && inRange(e, state.range)).length;
+  n.textContent = (m === "sub" ? "代課、請假、代導師" : "調課") + (hid ? `；另有 ${hid} 筆${m === "sub" ? "調課" : "代課／請假"}暫時不顯示` : "");
+}
+document.querySelectorAll("#calMode [data-cm]").forEach(b => b.onclick = () => {
+  store.set(K+"calMode", b.dataset.cm, localStorage);
+  renderYear(); renderList(); if(state.selected) renderPanel(state.selected);
+});
 function asSchool(fn){ const v = state.viewing; state.viewing = "__all__"; try{ return fn(); } finally{ state.viewing = v; } }   // 用全校的說法描述
 function renderYear(){
-  renderViewNote();
+  renderViewNote(); renderCalMode();
   const byDate = {}, otherBy = {};
-  for(const e of state.events) (byDate[e.date] ||= []).push(e);
-  for(const e of othersOf()) (otherBy[e.date] ||= []).push(e);
+  for(const e of state.events) if(calShow(e)) (byDate[e.date] ||= []).push(e);
+  for(const e of othersOf()) if(calShow(e)) (otherBy[e.date] ||= []).push(e);
   const today = ymd(new Date());
   const months = termMonths().filter(([y,m]) => !state.range || `${y}-${String(m+1).padStart(2,"0")}` === state.range);   // 選了月份就只畫那個月
   $("#year").innerHTML = months.map(([y,m])=>{
@@ -3021,7 +3056,7 @@ function renderYear(){
 /* ---------- 清單 ---------- */
 function renderList(){
   const list=$("#list");
-  const rows = state.events.filter(e=>describe(e) && inRange(e, state.range));
+  const rows = state.events.filter(e=>calShow(e) && describe(e) && inRange(e, state.range));
   if(!rows.length){ list.innerHTML=`<div class="grp"><div class="empty">${state.range ? rangeLabel(state.range) + "沒有紀錄。" : "目前沒有任何紀錄。表單登錄後重新整理即可看到。"}</div></div>`; return; }
   const groups={}; for(const e of rows) (groups[e.date.slice(0,7)] ||= []).push(e);
   list.innerHTML = Object.entries(groups).map(([ym,evs])=>{
@@ -3038,7 +3073,7 @@ function renderPanel(date){
   const side=$("#side");
   if(!date){ side.classList.remove("open"); $("#panelTitle").textContent="點一個日期看明細"; $("#panelBody").innerHTML=`<div class="empty">點年曆上有框線的日子，這裡會列出那天的完整明細和備註。</div>`; }
   else{
-    const d=new Date(date+"T00:00:00"), evs=state.events.filter(e=>e.date===date), oth=othersOf().filter(e=>e.date===date);
+    const d=new Date(date+"T00:00:00"), evs=state.events.filter(e=>e.date===date && calShow(e)), oth=othersOf().filter(e=>e.date===date && calShow(e));
     $("#panelTitle").textContent=`${d.getMonth()+1} 月 ${d.getDate()} 日（${DOW[d.getDay()]}）`;
     $("#panelBody").innerHTML = (evs.map(e=>evRow(e)).join("") || (oth.length ? `<div class="empty">${esc(state.viewing)} 老師這天沒有紀錄</div>` : `<div class="empty">這天沒有紀錄</div>`))
       + (oth.length ? `<div class="ev-other"><p class="ev-other-h">其他老師的紀錄</p>${asSchool(() => oth.map(e=>evRow(e)).join(""))}</div>` : "")
