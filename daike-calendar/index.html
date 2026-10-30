@@ -1082,7 +1082,7 @@ select{background-color:#fff}
 <!-- 回報問題（老師） -->
 <div class="modal" id="remModal" hidden>
   <div class="modal-card rem-card" role="dialog" aria-modal="true" aria-labelledby="remTitle">
-    <h2 id="remTitle">給老師的溫馨小提醒</h2>
+    <h2 id="remTitle">LINE 調代課提醒</h2>
     <p class="sub" id="remSub"></p>
     <div id="remBody"></div>
     <div class="modal-actions"><button class="btn ghost" type="button" id="remClose">關閉</button></div>
@@ -2832,7 +2832,7 @@ function renderPanel(date){
     const d=new Date(date+"T00:00:00"), evs=state.events.filter(e=>e.date===date);
     $("#panelTitle").textContent=`${d.getMonth()+1} 月 ${d.getDate()} 日（${DOW[d.getDay()]}）`;
     $("#panelBody").innerHTML = (evs.map(e=>evRow(e)).join("") || `<div class="empty">這天沒有紀錄</div>`)
-      + (state.role==="admin" ? `<div style="padding:12px 16px;display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn small" onclick="openPlan('${date}')">＋ 這天排調代課</button>${remindItems(date).length ? `<button type="button" class="btn ghost small" onclick="openRemind('${date}')">💌 給老師的溫馨提醒（LINE）</button>` : ""}</div>` : "");
+      + (state.role==="admin" ? `<div style="padding:12px 16px;display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn small" onclick="openPlan('${date}')">＋ 這天排調代課</button>${remindItems(date).length ? `<button type="button" class="btn ghost small" onclick="openRemind('${date}')">LINE 調代課提醒</button>` : ""}</div>` : "");
     side.classList.add("open");
   }
   const today=ymd(new Date()), next=state.events.find(e=>e.date>=today && describe(e));
@@ -3757,7 +3757,7 @@ function renderBoard(){
   const todays = state.events.filter(e => e.date === today && describe(e));
   $("#todayLine").innerHTML = `今天 ${esc(md(today))}` + (off ? `・<b>${esc(off.name)}${off.kind==="颱風假"?"，停止上課":"，放假"}</b>` : "")
     + (todays.length ? `・今天有 ${todays.length} 筆紀錄` : (me ? "・今天沒有代課紀錄" : "・今天沒有代課紀錄"))
-    + (state.role==="admin" && !me && remindItems(today).length ? `<button type="button" class="btn small rem-btn" onclick="openRemind('${today}')">💌 傳 LINE 溫馨提醒</button>` : "");
+    + (state.role==="admin" && !me && remindItems(today).length ? `<button type="button" class="btn small rem-btn" onclick="openRemind('${today}')">LINE 調代課提醒</button>` : "");
   let up = state.events.filter(e => e.date >= today && describe(e)), cap = "接下來的紀錄";
   if(!up.length){ up = state.events.filter(e => describe(e)).slice(-4).reverse(); cap = "最近的紀錄"; }
   up = up.slice(0, me ? 4 : 5);
@@ -3870,53 +3870,40 @@ async function planFromCal(date){
   const k = plan && plan.kind; await openPlan(date);
   if(k && k !== plan.kind){ plan.kind = k; renderPlan(); }
 }
-/* 給老師的溫馨小提醒（10/30）：某一天的調代課，替每位相關老師各寫一則有禮貌的 LINE 訊息，另附一則給全體老師的群組版。
+/* 調代課提醒（公版，10/30）：某一天的調代課整理成一則正式、簡單的 LINE 訊息，格式每天一樣。
  * 只產生文字，不會自動傳；按「複製」或「用 LINE 傳送」由教務組自己傳。 */
 function remindItems(d){
   const out = [], seen = new Set(), nm = n => n || "（未填）";
   state.events.filter(e => e.date === d && describe(e)).forEach(e => {
-    const p = e.period ? `第${e.period}節` : "", course = [e.cls, e.subject].filter(Boolean).join(" ");
+    const p = e.period ? `第${e.period}節` : "";
     if(e.type === "sub" || e.type === "leave"){
       const sub = e.type === "sub" ? e.who : e.other, leaver = e.type === "sub" ? e.other : e.who;
       const k = ["sl", e.id || "", leaver, e.period, e.cls].join("|"); if(seen.has(k)) return; seen.add(k);
       if(!sub) return;                                            // 還沒安排代課的不寫
-      out.push({p:+e.period||0, group:`${p} ${course}：${leaver}老師請假，由${sub}老師代課`,
-        to:[[sub, `${p}　請到${e.cls}代${leaver}老師的${e.subject || "課"}`], [leaver, `${p}　${course}已請${sub}老師代課，請您放心`]]});
+      out.push({p:+e.period||0, line:`${p} ${[e.cls, e.subject].filter(Boolean).join(" ")}：由${sub}老師代課`});
     } else if(e.type === "tutor" || e.type === "tutorLeave"){
       const sub = e.type === "tutor" ? e.who : e.other, leaver = e.type === "tutor" ? e.other : e.who;
       const k = ["tu", leaver, e.date].join("|"); if(seen.has(k) || !sub) return; seen.add(k);
-      out.push({p:0, group:`${e.cls}導師：${leaver}老師請假，由${sub}老師代導師`,
-        to:[[sub, `請幫忙代${leaver}老師${e.cls}的導師工作（早自習、午餐、打掃、放學）`], [leaver, `${e.cls}的導師工作已請${sub}老師幫忙`]]});
+      out.push({p:0, line:`${e.cls}導師：由${sub}老師代理`});
     } else if(e.type === "swap" && e.dir){
       const k = ["sw", e.id || "", e.date, e.period, e.cls].join("|"); if(seen.has(k)) return; seen.add(k);
-      const atFrom = e.dir === "調出", X = atFrom ? e.partner : e.teacher, xs = (atFrom ? e.toSubject : e.fromSubject) || "課";
-      const Y = atFrom ? e.teacher : e.partner, ys = (atFrom ? e.fromSubject : e.toSubject) || "課", dD = atFrom ? e.toDate : e.fromDate, dP = atFrom ? e.toPeriod : e.fromPeriod;
-      if(X === Y){ out.push({p:+e.period||0, group:`${p} ${e.cls}：${nm(X)}老師改上${xs}（原本的${ys}移到 ${md(dD)} 第${dP}節）`, to:[[X, `${p}　${e.cls}改上${xs}（原本的${ys}移到 ${md(dD)} 第${dP}節）`]]}); return; }
-      out.push({p:+e.period||0, group:`${p} ${e.cls}：改由${nm(X)}老師上${xs}（和${nm(Y)}老師調課）`,
-        to:[[X, `${p}　請到${e.cls}上${xs}（和${nm(Y)}老師調課）`], [Y, `${p}　${e.cls}的${ys}改由${nm(X)}老師上，您的課移到 ${md(dD)} 第${dP}節`]]});
+      const atFrom = e.dir === "調出", X = atFrom ? e.partner : e.teacher, xs = (atFrom ? e.toSubject : e.fromSubject) || "課", Y = atFrom ? e.teacher : e.partner;
+      out.push({p:+e.period||0, line: X === Y ? `${p} ${e.cls}：改上${xs}（調課）` : `${p} ${e.cls}：改由${nm(X)}老師上${xs}（調課）`});
     }
   });
   return out.sort((a,b) => a.p - b.p);
 }
-function remindTexts(d){
-  const items = remindItems(d), today = ymd(new Date()), tmr = ymd(new Date(Date.now() + 864e5));
-  const when = d === today ? `今天 ${md(d)}` : d === tmr ? `明天 ${md(d)}` : md(d);
-  const h = new Date().getHours(), hi = d !== today ? "您好" : h < 11 ? "早安" : h < 18 ? "午安" : "晚安";
-  const me = String(state.user || state.cred.name || ""), sign = `教務組 ${me.length === 3 ? me.slice(1) : me} 敬上`;
-  const per = {};
-  items.forEach(it => it.to.forEach(([t, line]) => { if(t) (per[t] = per[t] || []).push(line); }));
-  const msgs = Object.keys(per).map(t => ({who: t, text:
-    `${t}老師${hi} 🌷\n${when}有${per[t].length > 1 ? " " + per[t].length + " 則" : "一則"}調代課的溫馨小提醒：\n${per[t].map(x => "・" + x).join("\n")}\n麻煩老師了，謝謝您的幫忙與體諒 🙏\n祝您${d === today ? "今天" : ""}教學順利、一切平安！\n${sign}`}));
-  const group = items.length ? `各位老師${hi} ☀️\n教務組溫馨小提醒：${when}的調代課如下，再麻煩相關老師留意時間 🙏\n${items.map(it => "・" + it.group).join("\n")}\n謝謝大家互相幫忙、彼此支援，辛苦了！\n${sign}` : "";
-  return {when, msgs, group};
+function remindText(d){
+  const items = remindItems(d); if(!items.length) return "";
+  const t = new Date(d+"T00:00:00"), day = `${t.getFullYear()-1911}年${t.getMonth()+1}月${t.getDate()}日（星期${DOW[t.getDay()]}）`;
+  return `【調代課提醒】${day}\n${items.map((it, i) => `${i+1}. ${it.line}`).join("\n")}\n請相關老師留意，謝謝。\n教務組 敬啟`;
 }
 function openRemind(d){
-  const R = remindTexts(d);
-  if(!R.group){ toast(`${md(d)} 沒有要提醒的調代課`); return; }
-  $("#remSub").textContent = `${R.when}：每位相關老師各一則，另附一則群組用的。可以先改文字，再按「複製」或「用 LINE 傳送」。`;
-  const box = (title, text, i) => `<div class="rem-item"><h3>${esc(title)}</h3><textarea id="remT${i}" aria-label="${esc(title)}的訊息">${esc(text)}</textarea>
-    <div class="acts"><button type="button" class="btn small" data-remcopy="${i}">複製</button><button type="button" class="btn ghost small" data-remline="${i}">用 LINE 傳送</button></div></div>`;
-  $("#remBody").innerHTML = box("群組（全體老師）", R.group, 0) + R.msgs.map((m, i) => box(`給 ${m.who} 老師`, m.text, i + 1)).join("");
+  const text = remindText(d);
+  if(!text){ toast(`${md(d)} 沒有要提醒的調代課`); return; }
+  $("#remSub").textContent = `${md(d)}：可以先改文字，再按「複製」或「用 LINE 傳送」。`;
+  $("#remBody").innerHTML = `<div class="rem-item"><textarea id="remT0" aria-label="調代課提醒訊息">${esc(text)}</textarea>
+    <div class="acts"><button type="button" class="btn small" data-remcopy="0">複製</button><button type="button" class="btn ghost small" data-remline="0">用 LINE 傳送</button></div></div>`;
   $("#remModal").hidden = false; $("#remClose").focus();
 }
 $("#remClose").onclick = () => { $("#remModal").hidden = true; };
