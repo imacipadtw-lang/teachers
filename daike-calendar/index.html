@@ -498,6 +498,9 @@ main{container-type:inline-size}
 .d.canadd:hover{outline:2px dashed var(--sky);outline-offset:-2px}
 @media (hover:none){.d .addp{opacity:.9}}
 @media print{.d .addp{display:none}}
+.view-note{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 10px;padding:10px 14px;border-radius:12px;background:var(--amber-soft);color:var(--ink);font-size:14.5px;border:1px solid rgba(154,98,0,.25)}
+.view-note .btn{margin-left:auto}
+@media print{.view-note{display:none!important}}
 .rem-card{width:min(620px,100%);max-height:88vh;overflow:auto}
 .rem-item{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:10px 0;background:var(--surface-2)}
 .rem-item h3{margin:0 0 6px;font-size:15px}
@@ -1011,6 +1014,7 @@ select{background-color:#fff}
       </div>
       <p class="fee-note"><span id="rangeNote"></span><span id="feeRates">金額依每節 405 元（合班 608 元，代協同老師的課仍是 405 元）、代導師每日 133 元計算，正式金額以教務組核算為準。</span><span id="termNote"></span></p>
       <div class="print-note" id="printNote"></div>
+      <div class="view-note" id="viewNote" hidden></div>
       <div class="year" id="year"></div>
       <div class="list" id="list"></div>
     </main>
@@ -2771,7 +2775,16 @@ function monthSummary(evs){
 }
 
 /* ---------- 年曆 ---------- */
+/* 管理者切到某一位老師時，年曆上方提醒「只顯示這位老師」，一鍵回全校（10/30：避免以為某天沒有紀錄） */
+function renderViewNote(){
+  const el = $("#viewNote"); if(!el) return;
+  if(state.role !== "admin" || isAll()){ el.hidden = true; el.innerHTML = ""; return; }
+  el.hidden = false;
+  el.innerHTML = `<span>年曆和清單目前只顯示 <b>${esc(state.viewing)}</b> 老師的紀錄，其他老師的調代課不會出現。</span><button type="button" class="btn small" id="viewAll">看全校</button>`;
+  $("#viewAll").onclick = () => { const s = document.querySelector(".viewAs"); if(s){ s.value = ""; s.dispatchEvent(new Event("change")); } };
+}
 function renderYear(){
+  renderViewNote();
   const byDate = {};
   for(const e of state.events) (byDate[e.date] ||= []).push(e);
   const today = ymd(new Date());
