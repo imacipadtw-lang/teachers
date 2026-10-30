@@ -5,6 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>土城國小 代課・調課（教務組專用）</title>
 <meta name="theme-color" content="#FDEBF2">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="代調課">
 <script>try{if(localStorage.getItem("theme")==="dark"){document.documentElement.setAttribute("data-theme","dark");document.querySelector('meta[name=theme-color]').setAttribute("content","#070D1A")}}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&display=swap&text=0123456789%2F%3A.-%E2%80%93" rel="stylesheet">
@@ -1022,6 +1027,23 @@ select{background-color:#fff}
 @media (max-width:560px){.dkpi{grid-template-columns:repeat(2,minmax(0,1fr))}.dmini{grid-template-columns:1fr}}
 @media print{.dash,.dash-tip{display:none!important}}
 
+/* ---------- 頁尾、使用說明 ---------- */
+.appfoot{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;margin:24px 0 8px;padding:14px 4px 0;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink-3)}
+.appfoot .ver{font-family:var(--digits);font-weight:700;color:var(--ink-2)}
+.linkbtn{background:none;border:0;padding:0;font:inherit;color:var(--sky-deep);font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.linkbtn:hover{text-decoration:underline}
+.appfoot .linkbtn{margin-left:auto}
+.help-card{width:min(860px,100%);max-height:calc(100vh - 32px);overflow:auto}
+.help-grid{display:grid;grid-template-columns:1fr 1.25fr;gap:18px;margin-top:10px}
+.help-grid h3{margin:0 0 8px;font-size:15px}
+.keys{border-collapse:collapse;width:100%;font-size:14px}
+.keys td{padding:6px 4px;border-bottom:1px solid var(--line-2);vertical-align:top}
+.keys td:first-child{white-space:nowrap;padding-right:12px}
+.flow{margin:0;padding-left:20px;font-size:14px;line-height:1.65}
+.flow li{margin-bottom:6px}
+@media (max-width:760px){.help-grid{grid-template-columns:1fr}}
+@media print{.appfoot{display:none}}
+
 /* ---------- 快速指令（Ctrl+K） ---------- */
 .cmdk{align-items:flex-start;padding-top:12vh}
 .cmd-card{width:min(640px,calc(100vw - 32px));background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:0 24px 60px rgba(40,10,25,.35);overflow:hidden;margin:0 auto}
@@ -1129,6 +1151,7 @@ html[data-theme=dark] .hr-tbl tr.risk-note td,html[data-theme=dark] .chk-list li
 html[data-theme=dark] .scanres a,html[data-theme=dark] a{color:#8FD8FF}
 html[data-theme=dark] .theme-btn .tb-ic{background:linear-gradient(90deg,#FFD3E3 50%,#0F1830 50%)}
 html[data-theme=dark] .sys{background:var(--surface-2)}
+html[data-theme=dark] .linkbtn{color:var(--sky)}
 html[data-theme=dark] .cmd-card{box-shadow:0 24px 60px rgba(0,0,0,.6),0 0 0 1px rgba(255,111,174,.15)}
 html[data-theme=dark] #cmdList li[role=option] .ic{color:var(--sky)}
 html[data-theme=dark] .dash{box-shadow:0 2px 16px rgba(0,0,0,.35)}
@@ -1257,6 +1280,7 @@ html[data-theme=dark] .calmode button[aria-pressed=true]{background:var(--sky-de
       <div class="view-note" id="viewNote" hidden></div>
       <div class="year" id="year"></div>
       <div class="list" id="list"></div>
+      <footer class="appfoot" id="appFoot"><span class="ver"></span><span>資料只存在學校自己的 Google 雲端試算表；金鑰只放在 Apps Script，不在網頁上。</span><button type="button" class="linkbtn" id="helpBtn">使用說明與快捷鍵 <kbd>?</kbd></button></footer>
     </main>
 
     <aside class="side" id="side">
@@ -1330,6 +1354,36 @@ html[data-theme=dark] .calmode button[aria-pressed=true]{background:var(--sky-de
     <p class="sub" id="remSub"></p>
     <div id="remBody"></div>
     <div class="modal-actions"><button class="btn ghost" type="button" id="remClose">關閉</button></div>
+  </div>
+</div>
+<div class="modal" id="helpModal" hidden>
+  <div class="modal-card help-card" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+    <h2 id="helpTitle">使用說明與快捷鍵</h2>
+    <p class="sub" id="helpVer"></p>
+    <div class="help-grid">
+      <section><h3>快捷鍵</h3>
+        <table class="keys"><tbody>
+          <tr><td><kbd>Ctrl</kbd>＋<kbd>K</kbd> 或 <kbd>/</kbd></td><td>快速指令：找老師、日期、序號、功能</td></tr>
+          <tr><td><kbd>N</kbd></td><td>排調代課（登記紙本）</td></tr>
+          <tr><td><kbd>T</kbd></td><td>年曆回到今天</td></tr>
+          <tr><td><kbd>G</kbd></td><td>數據儀表板</td></tr>
+          <tr><td><kbd>D</kbd></td><td>切換深色／粉色模式</td></tr>
+          <tr><td><kbd>?</kbd></td><td>這個說明</td></tr>
+          <tr><td><kbd>Esc</kbd></td><td>關閉視窗</td></tr>
+        </tbody></table>
+        <p class="hint">在輸入框裡打字時，單鍵快捷鍵不會作用。</p>
+      </section>
+      <section><h3>常用流程</h3>
+        <ol class="flow">
+          <li><b>收到紙本</b>：按「＋ 排調代課」→「拍紙本」上傳照片自動填好，核對黃框後儲存；或在年曆點日期直接補登。</li>
+          <li><b>核章完成</b>：紙本三個章蓋滿後，在那筆紀錄按「核章完成」，把跳出的序號寫在紙本上。</li>
+          <li><b>人事差勤核對</b>：把差勤系統的文字貼上，或按「上傳人事截圖」；對不起來的會依日期、節次列在紅框。</li>
+          <li><b>月底報帳</b>：照工作台「報帳進度」七個步驟走：印簽到表 → 登記 → 填節數 → 檢查 → 會計總帳 → 送會計 → 月結。</li>
+          <li><b>通知老師</b>：當天明細按「LINE 調代課提醒」，複製公版文字或直接用 LINE 傳送。</li>
+        </ol>
+      </section>
+    </div>
+    <div class="modal-actions"><button class="btn" type="button" id="helpClose">知道了</button></div>
   </div>
 </div>
 <div class="modal cmdk" id="cmdModal" hidden>
@@ -2123,7 +2177,7 @@ function tickClock(){
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
 const APP_VERSION = "專業版 2026.10.31";
-{ const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; }
+{ const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
   if(dark) document.documentElement.setAttribute("data-theme","dark"); else document.documentElement.removeAttribute("data-theme");
@@ -3409,9 +3463,25 @@ const CMD_ACTIONS = () => [
   {ic:"回", t:"老師回報", d:"回覆老師的問題", kw:"回報 回覆", run:() => wbGo("#myReports")},
   {ic:"年", t:"年曆", d:"整個月一個畫面", kw:"年曆 月曆 行事曆", run:() => wbGo("#year")},
   {ic:"⟳", t:"重新整理資料", d:"重新讀取雲端資料表", kw:"重新整理 更新 同步", run:() => $("#reload").click()},
-  {ic:"印", t:"列印年曆", d:"", kw:"列印 印", run:() => $("#printCal").click()}
+  {ic:"印", t:"列印年曆", d:"", kw:"列印 印", run:() => $("#printCal").click()},
+  {ic:"?", t:"使用說明與快捷鍵", d:"常用流程、所有快捷鍵", k:"?", kw:"說明 幫助 help 快捷鍵 教學", run:() => helpOpen()},
+  {ic:"⇩", t:"安裝成 App", d:installEvt ? "放到桌面／主畫面，像一般軟體一樣開" : "用瀏覽器選單的「安裝」或手機的「加入主畫面」", kw:"安裝 app 桌面 主畫面 捷徑", run:() => installApp()}
 ];
+/* 安裝成 App（10/31）：Chrome／Edge 會給安裝提示；iPhone 用「分享 → 加入主畫面」。沒有離線快取，永遠讀最新版。 */
+let installEvt = null;
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); installEvt = e; });
+window.addEventListener("appinstalled", () => { installEvt = null; toast("已安裝成 App，可以從桌面或主畫面打開"); });
+async function installApp(){
+  if(installEvt){ installEvt.prompt(); try{ await installEvt.userChoice; }catch(e){} installEvt = null; return; }
+  if(matchMedia("(display-mode: standalone)").matches){ toast("目前已經是 App 模式"); return; }
+  toast(/iPhone|iPad/.test(navigator.userAgent) ? "iPhone／iPad：按 Safari 下方的「分享」→「加入主畫面」" : "請按瀏覽器網址列右邊的「安裝」圖示，或選單裡的「安裝網頁」／「加到主畫面」");
+}
 let cmdSel = 0, cmdItems = [];
+function helpOpen(){ $("#helpVer").textContent = APP_VERSION + "・只有教務組帳號能登入"; $("#helpModal").hidden = false; setTimeout(() => $("#helpClose").focus(), 0); }
+function helpClose(){ $("#helpModal").hidden = true; }
+$("#helpClose").onclick = helpClose; $("#helpBtn").onclick = helpOpen;
+$("#helpModal").addEventListener("click", e => { if(e.target.id === "helpModal") helpClose(); });
+$("#helpModal").addEventListener("keydown", e => { if(e.key === "Escape") helpClose(); });
 function cmdBuild(q){
   q = String(q || "").trim(); const ql = q.toLowerCase(), out = [];
   const acts = CMD_ACTIONS().filter(a => !q || (a.t + a.kw + a.d).toLowerCase().includes(ql));
@@ -3456,6 +3526,7 @@ document.addEventListener("keydown", e => {
   if(typing || e.ctrlKey || e.metaKey || e.altKey) return;
   if(document.querySelector(".modal:not([hidden])")) return;                 // 有視窗開著就不搶按鍵
   const k = e.key.toLowerCase();
+  if(k === "?"){ e.preventDefault(); helpOpen(); return; }
   if(k === "/"){ e.preventDefault(); cmdOpen(); return; }
   const a = CMD_ACTIONS().find(x => x.k && x.k.toLowerCase() === k);
   if(a){ e.preventDefault(); a.run(); }
