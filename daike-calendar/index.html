@@ -492,6 +492,18 @@ main{container-type:inline-size}
 .ev + .ev{margin-top:8px}
 .ev .p{font-size:13px;color:var(--ink-2)}
 .sid-card{width:min(460px,100%)}
+.d .addp{position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:15px;font-weight:800;line-height:1;color:var(--sky-deep);background:#fff;border:1px solid var(--line);cursor:pointer;opacity:.55;z-index:2}
+.d:hover .addp,.d .addp:focus-visible{opacity:1;background:var(--sky);color:#fff;border-color:var(--sky)}
+.d.canadd{cursor:pointer}
+.d.canadd:hover{outline:2px dashed var(--sky);outline-offset:-2px}
+@media (hover:none){.d .addp{opacity:.9}}
+@media print{.d .addp{display:none}}
+.rem-card{width:min(620px,100%);max-height:88vh;overflow:auto}
+.rem-item{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:10px 0;background:var(--surface-2)}
+.rem-item h3{margin:0 0 6px;font-size:15px}
+.rem-item textarea{width:100%;min-height:150px;font:inherit;font-size:14.5px;line-height:1.6;border:1px solid var(--line);border-radius:8px;padding:8px;resize:vertical;background:#fff;color:var(--ink)}
+.rem-item .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.rem-btn{margin-left:8px}
 .sid-list{margin:10px 0 4px;padding-left:22px}
 .sid-list li{margin:6px 0;font-size:14px;color:var(--ink-2)}
 .sid-list li b{display:inline-block;min-width:150px;font-size:20px;letter-spacing:.02em;color:var(--ink);font-variant-numeric:tabular-nums}
@@ -1068,6 +1080,14 @@ select{background-color:#fff}
 </div>
 
 <!-- 回報問題（老師） -->
+<div class="modal" id="remModal" hidden>
+  <div class="modal-card rem-card" role="dialog" aria-modal="true" aria-labelledby="remTitle">
+    <h2 id="remTitle">給老師的溫馨小提醒</h2>
+    <p class="sub" id="remSub"></p>
+    <div id="remBody"></div>
+    <div class="modal-actions"><button class="btn ghost" type="button" id="remClose">關閉</button></div>
+  </div>
+</div>
 <div class="modal" id="sidModal" hidden>
   <div class="modal-card sid-card" role="dialog" aria-modal="true" aria-labelledby="sidTitle">
     <h2 id="sidTitle">紙本序號</h2>
@@ -2768,8 +2788,9 @@ function renderYear(){
       const ents = cellEntries(byDate[key]||[]);
       const has = ents.length>0, off = (state.off||{})[key], flagged = ents.some(x=>x.fl);
       const offTxt = off ? off.name + (off.scope && off.scope!=="全天" ? "（" + off.scope + "）" : "") : "";
+      const canAdd = state.role==="admin" && dow!==0 && dow!==6;                 // 管理者：平日格子右上角「＋」直接補登（10/30）
       const evHtml = ents.map(x=>`<div class="cell-ev"><div class="p">${esc(x.p)}</div><div class="w">${esc(x.w)}</div>${x.f?`<div class="f">${esc(x.f)}</div>`:""}${x.fl?`<div class="fl">${esc(x.fl)}</div>`:""}</div>`).join("");
-      cells += `<${has?"button type=\"button\"":"div"} class="d${has?" has":""}${off?" off":""}${flagged?" flag":""}${key===today?" today":""}${dow===0||dow===6?" we":""}${key===state.selected?" sel":""}" data-date="${key}"${has?` aria-label="${m+1}月${d}日，${ents.length} 則紀錄${flagged?"，有需要確認的紀錄":""}"`:""}${off?` title="${esc(offTxt)}"`:""}><span class="n">${d}</span>${off?`<span class="offl">${esc(offTxt)}</span>`:""}${flagged?`<span class="mk">⚠</span>`:""}${evHtml}</${has?"button":"div"}>`;
+      cells += `<${has?"button type=\"button\"":"div"} class="d${has?" has":""}${canAdd&&!has?" canadd":""}${off?" off":""}${flagged?" flag":""}${key===today?" today":""}${dow===0||dow===6?" we":""}${key===state.selected?" sel":""}" data-date="${key}"${has?` aria-label="${m+1}月${d}日，${ents.length} 則紀錄${flagged?"，有需要確認的紀錄":""}"`:""}${off?` title="${esc(offTxt)}"`:""}><span class="n">${d}</span>${canAdd?`<span class="addp" role="button" tabindex="0" data-plan="${key}" title="補登這天的調代課" aria-label="補登 ${m+1}月${d}日的調代課">＋</span>`:""}${off?`<span class="offl">${esc(offTxt)}</span>`:""}${flagged?`<span class="mk">⚠</span>`:""}${evHtml}</${has?"button":"div"}>`;
       if(has || (off && dow!==0 && dow!==6)){
         agenda += `<div class="ag-day" id="ag-${key}"><div class="ag-date">${m+1}/${d}<small>星期${DOW[dow]}</small></div><div>${off?`<div class="ag-off">${esc(offTxt)}${off.kind==="颱風假"?"：停止上課":"：放假"}</div>`:""}${(byDate[key]||[]).map(e=>evRow(e)).join("")}</div></div>`;
       }
@@ -2778,6 +2799,9 @@ function renderYear(){
       <div class="dow">${DOW.map(x=>`<span>${x}</span>`).join("")}</div><div class="days">${cells}</div>
       <div class="agenda">${agenda || `<div class="none">這個月沒有紀錄</div>`}</div></section>`;
   }).join("");
+  $("#year").querySelectorAll(".d.canadd").forEach(b=>b.onclick=e=>{ if(!e.target.closest(".addp")) planFromCal(b.dataset.date); });   // 沒有紀錄的平日：點格子就補登
+  $("#year").querySelectorAll(".addp").forEach(a=>{ a.onclick=e=>{ e.stopPropagation(); planFromCal(a.dataset.plan); };
+    a.onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); e.stopPropagation(); planFromCal(a.dataset.plan); } }; });
   $("#year").querySelectorAll(".d.has").forEach(b=>b.onclick=()=>{
     const date=b.dataset.date, ag=document.getElementById("ag-"+date);
     if(ag && ag.offsetParent){ ag.scrollIntoView({behavior:"smooth",block:"start"}); return; }   // 手機：捲到下方文字
@@ -2808,7 +2832,7 @@ function renderPanel(date){
     const d=new Date(date+"T00:00:00"), evs=state.events.filter(e=>e.date===date);
     $("#panelTitle").textContent=`${d.getMonth()+1} 月 ${d.getDate()} 日（${DOW[d.getDay()]}）`;
     $("#panelBody").innerHTML = (evs.map(e=>evRow(e)).join("") || `<div class="empty">這天沒有紀錄</div>`)
-      + (state.role==="admin" ? `<div style="padding:12px 16px"><button type="button" class="btn small" onclick="openPlan('${date}')">＋ 這天排調代課</button></div>` : "");
+      + (state.role==="admin" ? `<div style="padding:12px 16px;display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn small" onclick="openPlan('${date}')">＋ 這天排調代課</button>${remindItems(date).length ? `<button type="button" class="btn ghost small" onclick="openRemind('${date}')">💌 給老師的溫馨提醒（LINE）</button>` : ""}</div>` : "");
     side.classList.add("open");
   }
   const today=ymd(new Date()), next=state.events.find(e=>e.date>=today && describe(e));
@@ -3732,7 +3756,8 @@ function renderBoard(){
   $("#greet").textContent = !me ? `${hi}，${state.user}（教務組）` : (me === state.user ? `${hi}，${me}老師` : `正在看：${me}老師的紀錄`);
   const todays = state.events.filter(e => e.date === today && describe(e));
   $("#todayLine").innerHTML = `今天 ${esc(md(today))}` + (off ? `・<b>${esc(off.name)}${off.kind==="颱風假"?"，停止上課":"，放假"}</b>` : "")
-    + (todays.length ? `・今天有 ${todays.length} 筆紀錄` : (me ? "・今天沒有代課紀錄" : "・今天沒有代課紀錄"));
+    + (todays.length ? `・今天有 ${todays.length} 筆紀錄` : (me ? "・今天沒有代課紀錄" : "・今天沒有代課紀錄"))
+    + (state.role==="admin" && !me && remindItems(today).length ? `<button type="button" class="btn small rem-btn" onclick="openRemind('${today}')">💌 傳 LINE 溫馨提醒</button>` : "");
   let up = state.events.filter(e => e.date >= today && describe(e)), cap = "接下來的紀錄";
   if(!up.length){ up = state.events.filter(e => describe(e)).slice(-4).reverse(); cap = "最近的紀錄"; }
   up = up.slice(0, me ? 4 : 5);
@@ -3840,6 +3865,68 @@ function wbTodos(ym, P){
     L.push({lv:"info", text:`${md(d)} 有 ${n.length} 筆課務${fl ? `，${fl} 筆標 ⚠` : ""}`, verb:"看明細", act: () => wbOpenDay(d)}); }
   return L;
 }
+/* 年曆上直接補登：打開「排調代課」並帶入那一天（沿用上次用的分頁：調課／代課／請假／代導師） */
+async function planFromCal(date){
+  const k = plan && plan.kind; await openPlan(date);
+  if(k && k !== plan.kind){ plan.kind = k; renderPlan(); }
+}
+/* 給老師的溫馨小提醒（10/30）：某一天的調代課，替每位相關老師各寫一則有禮貌的 LINE 訊息，另附一則給全體老師的群組版。
+ * 只產生文字，不會自動傳；按「複製」或「用 LINE 傳送」由教務組自己傳。 */
+function remindItems(d){
+  const out = [], seen = new Set(), nm = n => n || "（未填）";
+  state.events.filter(e => e.date === d && describe(e)).forEach(e => {
+    const p = e.period ? `第${e.period}節` : "", course = [e.cls, e.subject].filter(Boolean).join(" ");
+    if(e.type === "sub" || e.type === "leave"){
+      const sub = e.type === "sub" ? e.who : e.other, leaver = e.type === "sub" ? e.other : e.who;
+      const k = ["sl", e.id || "", leaver, e.period, e.cls].join("|"); if(seen.has(k)) return; seen.add(k);
+      if(!sub) return;                                            // 還沒安排代課的不寫
+      out.push({p:+e.period||0, group:`${p} ${course}：${leaver}老師請假，由${sub}老師代課`,
+        to:[[sub, `${p}　請到${e.cls}代${leaver}老師的${e.subject || "課"}`], [leaver, `${p}　${course}已請${sub}老師代課，請您放心`]]});
+    } else if(e.type === "tutor" || e.type === "tutorLeave"){
+      const sub = e.type === "tutor" ? e.who : e.other, leaver = e.type === "tutor" ? e.other : e.who;
+      const k = ["tu", leaver, e.date].join("|"); if(seen.has(k) || !sub) return; seen.add(k);
+      out.push({p:0, group:`${e.cls}導師：${leaver}老師請假，由${sub}老師代導師`,
+        to:[[sub, `請幫忙代${leaver}老師${e.cls}的導師工作（早自習、午餐、打掃、放學）`], [leaver, `${e.cls}的導師工作已請${sub}老師幫忙`]]});
+    } else if(e.type === "swap" && e.dir){
+      const k = ["sw", e.id || "", e.date, e.period, e.cls].join("|"); if(seen.has(k)) return; seen.add(k);
+      const atFrom = e.dir === "調出", X = atFrom ? e.partner : e.teacher, xs = (atFrom ? e.toSubject : e.fromSubject) || "課";
+      const Y = atFrom ? e.teacher : e.partner, ys = (atFrom ? e.fromSubject : e.toSubject) || "課", dD = atFrom ? e.toDate : e.fromDate, dP = atFrom ? e.toPeriod : e.fromPeriod;
+      if(X === Y){ out.push({p:+e.period||0, group:`${p} ${e.cls}：${nm(X)}老師改上${xs}（原本的${ys}移到 ${md(dD)} 第${dP}節）`, to:[[X, `${p}　${e.cls}改上${xs}（原本的${ys}移到 ${md(dD)} 第${dP}節）`]]}); return; }
+      out.push({p:+e.period||0, group:`${p} ${e.cls}：改由${nm(X)}老師上${xs}（和${nm(Y)}老師調課）`,
+        to:[[X, `${p}　請到${e.cls}上${xs}（和${nm(Y)}老師調課）`], [Y, `${p}　${e.cls}的${ys}改由${nm(X)}老師上，您的課移到 ${md(dD)} 第${dP}節`]]});
+    }
+  });
+  return out.sort((a,b) => a.p - b.p);
+}
+function remindTexts(d){
+  const items = remindItems(d), today = ymd(new Date()), tmr = ymd(new Date(Date.now() + 864e5));
+  const when = d === today ? `今天 ${md(d)}` : d === tmr ? `明天 ${md(d)}` : md(d);
+  const h = new Date().getHours(), hi = d !== today ? "您好" : h < 11 ? "早安" : h < 18 ? "午安" : "晚安";
+  const me = String(state.user || state.cred.name || ""), sign = `教務組 ${me.length === 3 ? me.slice(1) : me} 敬上`;
+  const per = {};
+  items.forEach(it => it.to.forEach(([t, line]) => { if(t) (per[t] = per[t] || []).push(line); }));
+  const msgs = Object.keys(per).map(t => ({who: t, text:
+    `${t}老師${hi} 🌷\n${when}有${per[t].length > 1 ? " " + per[t].length + " 則" : "一則"}調代課的溫馨小提醒：\n${per[t].map(x => "・" + x).join("\n")}\n麻煩老師了，謝謝您的幫忙與體諒 🙏\n祝您${d === today ? "今天" : ""}教學順利、一切平安！\n${sign}`}));
+  const group = items.length ? `各位老師${hi} ☀️\n教務組溫馨小提醒：${when}的調代課如下，再麻煩相關老師留意時間 🙏\n${items.map(it => "・" + it.group).join("\n")}\n謝謝大家互相幫忙、彼此支援，辛苦了！\n${sign}` : "";
+  return {when, msgs, group};
+}
+function openRemind(d){
+  const R = remindTexts(d);
+  if(!R.group){ toast(`${md(d)} 沒有要提醒的調代課`); return; }
+  $("#remSub").textContent = `${R.when}：每位相關老師各一則，另附一則群組用的。可以先改文字，再按「複製」或「用 LINE 傳送」。`;
+  const box = (title, text, i) => `<div class="rem-item"><h3>${esc(title)}</h3><textarea id="remT${i}" aria-label="${esc(title)}的訊息">${esc(text)}</textarea>
+    <div class="acts"><button type="button" class="btn small" data-remcopy="${i}">複製</button><button type="button" class="btn ghost small" data-remline="${i}">用 LINE 傳送</button></div></div>`;
+  $("#remBody").innerHTML = box("群組（全體老師）", R.group, 0) + R.msgs.map((m, i) => box(`給 ${m.who} 老師`, m.text, i + 1)).join("");
+  $("#remModal").hidden = false; $("#remClose").focus();
+}
+$("#remClose").onclick = () => { $("#remModal").hidden = true; };
+$("#remModal").addEventListener("keydown", e => { if(e.key === "Escape") $("#remModal").hidden = true; });
+$("#remBody").addEventListener("click", async e => {
+  const c = e.target.dataset.remcopy, l = e.target.dataset.remline; if(c === undefined && l === undefined) return;
+  const t = $("#remT" + (c ?? l)).value;
+  if(c !== undefined){ try{ await navigator.clipboard.writeText(t); toast("已複製，貼到 LINE 就可以傳"); }catch(err){ $("#remT" + c).select(); toast("請按 Ctrl＋C 複製"); } }
+  else window.open("https://line.me/R/share?text=" + encodeURIComponent(t), "_blank", "noopener");
+});
 /* 紙本核章（10/29）：按「核章完成」→ 列出同一張紙本（同一位老師、同一天、同一種單）的序號 → 確認後記在「核章紀錄」，把序號寫在紙本上 */
 const stampFam = e => e.type==="sub"||e.type==="leave" ? "代課" : e.type==="tutor"||e.type==="tutorLeave" ? "代導師" : e.type==="swap" ? "調課" : e.type==="absent" ? "請假" : "";
 const stampOwner = e => e.type==="sub"||e.type==="tutor" ? e.other : e.type==="swap" ? (e.teacher || (e.dir==="調入" ? e.other : e.who)) : e.who;
