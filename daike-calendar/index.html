@@ -498,6 +498,20 @@ main{container-type:inline-size}
 .d.canadd:hover{outline:2px dashed var(--sky);outline-offset:-2px}
 @media (hover:none){.d .addp{opacity:.9}}
 @media print{.d .addp{display:none}}
+.hrbox{margin:0 0 14px;padding:14px 16px;border-radius:14px;background:var(--surface);border:1px solid var(--line)}
+.hrbox h3{margin:0 0 6px;font-size:16px}
+.hrbox textarea{width:100%;min-height:110px;font:inherit;font-size:13.5px;line-height:1.5;border:1px solid var(--line);border-radius:10px;padding:8px 10px;resize:vertical;background:#fff;color:var(--ink)}
+.hrbox .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
+.hrbox .row input{width:460px;max-width:100%;font:inherit;font-size:13px;border:1px solid var(--line);border-radius:8px;padding:5px 8px}
+.hrbox .hint{font-size:12.5px;color:var(--ink-3);margin:6px 0 0}
+.hrres{margin-top:12px}
+.hrres h4{margin:12px 0 4px;font-size:14.5px}
+.hrres h4 .n{display:inline-block;min-width:22px;padding:0 7px;border-radius:999px;font-size:12.5px;margin-left:6px;background:var(--rose-soft);color:var(--rose)}
+.hrres h4.warn .n{background:var(--amber-soft);color:var(--amber)}
+.hrres ul{margin:0;padding-left:18px;font-size:13.5px;line-height:1.55}
+.hrres li .soft{color:var(--ink-3)}
+.hrres .none{font-size:13.5px;color:var(--ink-3);margin:2px 0}
+.fl.hrfl{color:var(--rose)}
 .view-note{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 10px;padding:10px 14px;border-radius:12px;background:var(--amber-soft);color:var(--ink);font-size:14.5px;border:1px solid rgba(154,98,0,.25)}
 .view-note .btn{margin-left:auto}
 .cell-ev.other{opacity:.5}
@@ -997,6 +1011,7 @@ select{background-color:#fff}
         <div class="meters" id="summary"></div>
       </section>
       <div id="alerts"></div>
+      <div id="hrBox"></div>
       <div id="monthly"></div>
       <div id="heliMine"></div>
       <div id="settings"></div>
@@ -1516,6 +1531,148 @@ var CF = (function () {
  *  ・勞保普通事故 11.5%（就保者）＋就保 1%，勞工 20%、單位 70%，兩項各自四捨五入；職災全由單位負擔，投保薪資不低於最低工資；勞退 6%；
  *    健保 5.17%（學校是投保單位才算）；補充保費 2.11%（學校不是健保投保單位且單次給付 ≥ 最低工資）；兼職所得 5%（單次 ≥ 起扣點）。
  */
+/* ================================================================
+ * HR：人事差勤系統核對（10/30）。教務組把差勤系統「已批核案件」的文字貼進來，
+ * 這裡把它讀成一筆筆請假（誰、哪一天、幾點到幾點），換算成節次，再和本系統的代課／調課／請假登記比對：
+ *   missing ＝ 人事有請假、那節課表上有課、本系統卻沒有代課或調課 → 可能沒交紙本
+ *   noHr    ＝ 本系統有登記（代課、調課、代導師），人事系統裡卻沒有這個人這天的請假
+ *   typeDiff＝ 兩邊都有，但假別不一樣
+ * 和 CF 一樣是純函式，網站、測試共用。 */
+var HR = (function () {
+  var DEF_TIMES = "0840-0920,0930-1010,1030-1110,1120-1200,1330-1410,1420-1500,1510-1550";   // 預設節次時間（「系統設定」PERIOD_TIMES 可改）
+  var DOWS = ["日", "一", "二", "三", "四", "五", "六"];
+  function clean(s) { return String(s == null ? "" : s).replace(/ /g, " ").trim(); }
+  function dow(ymd) { var p = ymd.split("-").map(Number); return DOWS[new Date(p[0], p[1] - 1, p[2]).getDay()]; }
+  function addDay(ymd, n) { var p = ymd.split("-").map(Number); var d = new Date(p[0], p[1] - 1, p[2] + n); return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); }
+  function md(ymd) { var p = ymd.split("-"); return (+p[1]) + "/" + (+p[2]) + "（" + dow(ymd) + "）"; }
+  function rocToYmd(y, m, d) { return (+y + 1911) + "-" + ("0" + (+m)).slice(-2) + "-" + ("0" + (+d)).slice(-2); }
+  function periodTimes(str) {
+    var out = [];
+    clean(str || DEF_TIMES).split(/[,，、\s]+/).forEach(function (x, i) {
+      var m = x.match(/^(\d{1,2}):?(\d{2})-(\d{1,2}):?(\d{2})$/); if (!m) return;
+      out.push({ p: String(i + 1), from: (+m[1]) * 60 + (+m[2]), to: (+m[3]) * 60 + (+m[4]) });
+    });
+    return out.length ? out : periodTimes(DEF_TIMES);
+  }
+  /* 把貼上的文字讀成 [{who, form, kind, applied, from:{date,min}, to:{date,min}, hours, reason, ok, raw}] */
+  function parse(text, teachers) {
+    var lines = String(text || "").replace(/\r/g, "").split("\n").map(clean), recs = [], cur = null, warn = [];
+    var nameSet = {}; (teachers || []).forEach(function (t) { nameSet[t] = 1; });
+    var isName = function (s) { return nameSet[s] || (/^[一-鿿]{2,4}$/.test(s) && !/假|補休|出差|撤銷|同意|申請/.test(s)); };
+    function flush() { if (cur) { recs.push(cur); } cur = null; }
+    lines.forEach(function (ln) {
+      if (!ln || /^申請人\t?/.test(ln) || /^※/.test(ln)) return;
+      var m;
+      if (/^(同意|不同意|退回|核准|已核准|已批核)$/.test(ln)) { if (cur) { cur.ok = /同意|核准|批核/.test(ln) && !/^不/.test(ln); flush(); } return; }
+      if (!cur || (cur.from && isName(ln) && !/^[（(]/.test(ln))) { flush(); cur = { who: ln, form: "", kind: "", applied: "", from: null, to: null, hours: 0, reason: "", ok: true, raw: [] }; return; }
+      cur.raw.push(ln);
+      if (/^\(.*\)$/.test(ln)) return;                                                  // (教師)(教導處)
+      if (/^（.*）$/.test(ln)) { cur.status = ln.replace(/[（）]/g, ""); return; }         // （課務編輯完成）
+      if ((m = ln.match(/^(\d{3})-(\d{2})-(\d{2})\(.\)\s+\d{1,2}:\d{2}$/)) && !cur.applied) { cur.applied = rocToYmd(m[1], m[2], m[3]); return; }
+      if ((m = ln.match(/^期間：\s*(\d{3})-(\d{2})-(\d{2})\(.\)\s+(\d{1,2}):(\d{2})\s*~\s*(?:(\d{3})-(\d{2})-(\d{2})\(.\)\s+)?(\d{1,2}):(\d{2})/))) {
+        cur.from = { date: rocToYmd(m[1], m[2], m[3]), min: (+m[4]) * 60 + (+m[5]) };
+        cur.to = { date: m[6] ? rocToYmd(m[6], m[7], m[8]) : cur.from.date, min: (+m[9]) * 60 + (+m[10]) };
+        return;
+      }
+      if ((m = ln.match(/^時數：\s*(\d+)日(\d+)小時/))) { cur.hours = (+m[1] ? m[1] + "日" : "") + (+m[2] ? m[2] + "小時" : ""); if (cur.from && cur.to && cur.from.date === cur.to.date && +m[1] >= 1 && cur.to.min <= cur.from.min) cur.to.date = addDay(cur.from.date, +m[1]); return; }
+      if ((m = ln.match(/^事由：\s*(.*)$/))) { cur.reason = m[1]; return; }
+      if (/^(職務補休|地點)：/.test(ln)) return;
+      if (!cur.form) { cur.form = ln; return; }
+    });
+    flush();
+    recs.forEach(function (r) {
+      var f = r.form.replace(/【.*?】/g, "").replace(/\(.*?\)|（.*?）/g, "").trim();
+      r.kind = /撤銷/.test(f) ? "cancel" : /代理轉移/.test(f) ? "ignore" : "leave";
+      r.leaveType = f.replace(/補請/g, "") || r.form;
+      if (!r.from) { warn.push(r.who + "：看不出期間（" + r.form + "）"); r.kind = "ignore"; }
+    });
+    // 同一筆貼了兩次（差勤系統常重複列）→ 只留一筆
+    var seen = {}, out = [];
+    recs.forEach(function (r) { var k = [r.who, r.form, r.applied, r.from && r.from.date, r.from && r.from.min, r.to && r.to.min].join("|"); if (seen[k]) return; seen[k] = 1; out.push(r); });
+    // 撤銷差假：把同一人、同一天、同一時段的請假拿掉
+    var cancels = out.filter(function (r) { return r.kind === "cancel" && r.ok; });
+    var leaves = out.filter(function (r) { return r.kind === "leave" && r.ok; }).filter(function (r) {
+      return !cancels.some(function (c) { return c.who === r.who && c.from.date === r.from.date && c.from.min === r.from.min && c.to.min === r.to.min; });
+    });
+    return { leaves: leaves, cancels: cancels, all: out, warn: warn };
+  }
+  /* 一筆請假 → 每一天影響的節次 [{date, periods:[...], full}] */
+  function slots(r, times) {
+    var out = [];
+    for (var d = r.from.date; d <= r.to.date; d = addDay(d, 1)) {
+      var w = dow(d); if (w === "六" || w === "日") continue;
+      var a = d === r.from.date ? r.from.min : 0, b = d === r.to.date ? r.to.min : 24 * 60;
+      var ps = times.filter(function (t) { return t.from < b && t.to > a; }).map(function (t) { return t.p; });
+      if (ps.length) out.push({ date: d, periods: ps, full: ps.length === times.length || (a <= times[0].from && b >= times[times.length - 1].to) });
+    }
+    return out;
+  }
+  /* 核對。ctx：{tSlot, ev（全校紀錄）, off, homeroom, times（節次時間字串）}
+   * 回傳 {missing:[…], noHr:[…], typeDiff:[…], ok:[…], range:[from,to], leaves:n} */
+  var LIVE_RE = /直播|^本土語\s*[\/／]/;                                                 // 本土語直播共學：另案經費，規定不登錄，不算漏登
+  function compare(text, ctx, teachers) {
+    var P = parse(text, teachers), times = periodTimes(ctx.times), ev = ctx.ev || [];
+    var missing = [], noHr = [], typeDiff = [], okList = [], covered = {}, minD = "", maxD = "", dayPer = {};
+    var subjectAt = function (date, p, c) { var x = ctx.tt && ctx.tt[dow(date) + "|" + p + "|" + c]; return x ? (x.subject || "") : ""; };
+    var same = function (a, b) { return String(a) === String(b); };
+    var classAt = function (T, date, p) {                                              // 這位老師這節課表上的班（已調走的不算）
+      var map = {}; (ctx.tSlot[dow(date) + "|" + p + "|" + T] || []).forEach(function (c) { map[c] = 1; });
+      ev.forEach(function (e) { if (e.type === "swap" && e.date === date && same(e.period, p)) { var mover = e.dir === "調出" ? e.teacher : e.partner, taker = e.dir === "調出" ? e.partner : e.teacher; if (mover === T && mover !== taker) delete map[e.cls]; } });
+      return Object.keys(map);
+    };
+    P.leaves.forEach(function (r) {
+      slots(r, times).forEach(function (s) {
+        if (!minD || s.date < minD) minD = s.date; if (!maxD || s.date > maxD) maxD = s.date;
+        var offAll = ctx.off && ctx.off[s.date] && (!ctx.off[s.date].scope || ctx.off[s.date].scope === "全天");
+        if (offAll) return;
+        var dk = r.who + "|" + s.date; dayPer[dk] = dayPer[dk] || { r: r, ps: {} }; s.periods.forEach(function (p) { dayPer[dk].ps[p] = 1; });
+        s.periods.forEach(function (p) {
+          covered[r.who + "|" + s.date + "|" + p] = r;
+          var off = ctx.off && ctx.off[s.date]; if (off && ((off.scope === "上午" && +p <= 4) || (off.scope === "下午" && +p >= 5))) return;
+          var swapped = ev.some(function (e) { return e.type === "swap" && e.date === s.date && same(e.period, p) && (e.dir === "調出" ? e.teacher : e.partner) === r.who && (e.dir === "調出" ? e.partner : e.teacher) !== r.who; });
+          var cls = classAt(r.who, s.date, p).filter(function (c) { return !LIVE_RE.test(subjectAt(s.date, p, c)); });
+          if (!cls.length && !swapped) return;                                         // 這節本來就沒課
+          var miss = [];
+          cls.forEach(function (c) {
+            var lv = ev.filter(function (e) { return e.type === "leave" && e.who === r.who && e.date === s.date && same(e.period, p); });
+            var hit = lv.filter(function (e) { return !e.cls || e.cls === c; })[0] || lv[0];
+            if (hit) {
+              okList.push({ who: r.who, date: s.date, p: p, cls: c, how: hit.other ? "由 " + hit.other + " 代課（" + (hit.id || "") + "）" : "已登記請假、還沒安排代課", id: hit.id });
+              if (hit.leaveType && hit.leaveType !== r.leaveType && !(hit.leaveType === "其他")) typeDiff.push({ who: r.who, date: s.date, p: p, cls: c, hr: r.leaveType, sys: hit.leaveType, id: hit.id });
+            } else miss.push(c);
+          });
+          if (miss.length) missing.push({ who: r.who, date: s.date, p: p, cls: miss.join("、"), subject: subjectAt(s.date, p, miss[0]), leaveType: r.leaveType, reason: r.reason, hours: r.hours });
+        });
+      });
+    });
+    Object.keys(dayPer).forEach(function (dk) {                                          // 整天請假（同一天幾筆加起來涵蓋全部節次）的導師：代導師有沒有登
+      var x = dayPer[dk], who = dk.split("|")[0], date = dk.split("|")[1];
+      var full = times.every(function (t) { return x.ps[t.p]; });
+      if (!full || !ctx.homeroom || !ctx.homeroom[who]) return;
+      covered[who + "|" + date + "|導"] = x.r;
+      var tl = ev.some(function (e) { return e.type === "tutorLeave" && e.who === who && e.date === date; });
+      if (!tl) missing.push({ who: who, date: date, p: "導", cls: ctx.homeroom[who], subject: "導師", leaveType: x.r.leaveType, reason: x.r.reason, hours: "整天", tutor: true });
+    });
+    // 反向：本系統有登、人事卻沒有（只看人事資料涵蓋的日期範圍）
+    if (minD) ev.forEach(function (e) {
+      if (e.date < minD || e.date > maxD) return;
+      var T, p, label;
+      if (e.type === "leave") { T = e.who; p = e.period; label = "第" + p + "節 " + (e.cls || "") + "：" + (e.other ? "由 " + e.other + " 代課" : "請假未安排"); }
+      else if (e.type === "swap" && e.dir === "調出") { T = e.teacher; p = e.period; label = "第" + p + "節 " + (e.cls || "") + "：調課（" + (e.id || "") + "），改由 " + (e.partner || "") + " 上"; }
+      else if (e.type === "tutorLeave") { T = e.who; p = "導"; label = (e.cls || "") + "導師：由 " + (e.other || "") + " 代導師"; }
+      else if (e.type === "absent") { T = e.who; p = null; label = "請假登記（" + (e.id || "") + "）"; }
+      else return;
+      var hasAny = Object.keys(covered).some(function (k) { return k.indexOf(T + "|" + e.date + "|") === 0; });
+      var hit = p == null ? hasAny : !!covered[T + "|" + e.date + "|" + p];
+      if (!hit) noHr.push({ who: T, date: e.date, p: p, id: e.id, label: label, type: e.type, sameDay: hasAny, soft: e.type === "swap" });
+    });
+    var key = function (x) { return x.who + "|" + x.date + "|" + (x.p === "導" ? 0 : +x.p || 0); };
+    [missing, noHr, typeDiff, okList].forEach(function (L) { L.sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : key(a) < key(b) ? -1 : 1; }); });
+    return { missing: missing, noHr: noHr, typeDiff: typeDiff, ok: okList, range: [minD, maxD], leaves: P.leaves.length, cancels: P.cancels.length, warn: P.warn, md: md };
+  }
+  return { parse: parse, slots: slots, periodTimes: periodTimes, compare: compare, md: md, DEF_TIMES: DEF_TIMES };
+})();
+
 var PAY = (function () {
   var W = ["日", "一", "二", "三", "四", "五", "六"];
   function dow(ymd) { var p = String(ymd).split("-").map(Number); return W[new Date(Date.UTC(p[0], p[1] - 1, p[2])).getUTCDay()]; }
@@ -1760,7 +1917,7 @@ function busy(on){
   clearTimeout(busy._t); $("#loadingHint").textContent = "";
   if(on) busy._t = setTimeout(()=>{ $("#loadingHint").textContent = "資料表讀取中，第一次會比較久，請稍候"; }, 3500);
 }
-function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("on"); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove("on"),2600); }
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("on"); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove("on"), Math.min(9000, 2600 + Math.max(0, String(msg).length - 20) * 90)); }   // 字多就多留一會
 /* 剛做完一個可以復原的動作：下方出現「復原」鍵 15 秒（之後到「系統設定 → 8. 變更紀錄與復原」也找得到） */
 function offerUndo(msg, no){
   if(!no) return; const bar = $("#undoBar");
@@ -2047,7 +2204,7 @@ function applyData(d){
   if(d.hrIns){ state.hrInsSaved = d.hrIns; state.hrIns = null; }                      // 已存的人事保費核對（以資料表為準，重讀時蓋掉暫存）
   state.fixes = d.fixes || []; state.leaveTypes = d.leaveTypes || null;
   renderReports();
-  renderAdmin(); renderRange(); renderBoard(); renderAlerts(); renderMonthly(); renderHeliMine(); renderSettings(); renderYear(); renderList(); renderPanel(null); renderWorkbench();
+  renderAdmin(); renderRange(); renderBoard(); renderAlerts(); renderHrBox(); hrAuto(); renderMonthly(); renderHeliMine(); renderSettings(); renderYear(); renderList(); renderPanel(null); renderWorkbench();
   if (state.role==="admin" || state.role==="acct") setTimeout(prefetchMeta, 300);   // 先把課表讀好（排課、合理員額清冊都要）
   state.shown = true;                       // 一進來先看看板；要看這個月按「回到今天」
 }
@@ -2713,7 +2870,8 @@ function evRow(e){
   const sid = sidOf(e);
   const about = `${md(e.date)} ${d.p}｜${d.w}｜${d.f}`;
   const repBtn = state.role==="teacher" ? `<button type="button" class="rep" data-date="${esc(e.date)}" data-about="${esc(about)}">這筆有錯？回報</button>` : "";
-  const fl = (e.flags||[]).map(f=>`<div class="fl">⚠ ${esc(f)}</div>`).join("");
+  const hrf = hrFlagOf(e);
+  const fl = (e.flags||[]).map(f=>`<div class="fl">⚠ ${esc(f)}</div>`).join("") + (hrf ? `<div class="fl hrfl">⚠ ${esc(hrf)}</div>` : "");
   const fr = state.role==="admin" ? fixRef(e) : null;
   const fixBtn = fr ? `<button type="button" class="fixbtn" data-fix="${esc(fr.key)}" aria-label="修改這筆：${esc(md(e.date)+" "+d.p)}">修改</button>`
     : state.role==="admin" && e.type==="absent" && /^假-/.test(e.id||"") ? `<button type="button" class="fixbtn" data-absdel="${esc(e.id)}" aria-label="刪除這筆請假：${esc(md(e.date))}">刪除這筆請假</button>` : "";
@@ -2924,7 +3082,8 @@ function closePlan(){ $("#planModal").hidden = true; document.body.style.overflo
 function prefetchMeta(){                      // 管理者登入後在背景先讀好課表，按「排調代課」就不用等
   if((state.role!=="admin" && state.role!=="acct") || state.meta || prefetchMeta.p || !state.cred) return;
   prefetchMeta.p = api({action:"meta", name:state.cred.name, h:state.cred.h})
-    .then(m=>{ if(m.ok && m.tt){ state.meta = m; try{ renderWorkbench(); }catch(e){ console.error(e); } } }).catch(()=>{}).finally(()=>{ prefetchMeta.p = null; });
+    .then(m=>{ if(m.ok && m.tt){ state.meta = m; try{ renderWorkbench(); }catch(e){ console.error(e); }
+      hrAuto(); } }).catch(()=>{}).finally(()=>{ prefetchMeta.p = null; });
 }
 $("#openPlan").onclick = ()=>openPlan();
 $("#planClose").onclick = closePlan; $("#planCancel").onclick = closePlan;
@@ -2967,15 +3126,24 @@ function autoSub(r){
   if(!r.cls && L && d && r.period){ const c = state.meta.tSlot[CF.dow(d)+"|"+r.period+"|"+L]||[]; if(c.length===1){ r.cls=c[0]; r.auto.cls=1; } }
   const a = ttAt(d,r.period,r.cls); if(a && (!r.subject || r.auto.subject)){ r.subject=a.subject; r.auto.subject=1; }
 }
-function fillDay(){                          // 把請假老師那天所有的課帶進來
+function fillDay(){                          // 把請假老師那天課表上的課帶進來（已經登記代課的、已調走的不帶，另外告訴您）
   const L = plan.sub.leaver, d = plan.sub.date; if(!L||!d) return;
-  const ctx = ctxOf(), rows = [];
+  const ctx = ctxOf(), dw = CF.dow(d), rows = [], done = [], moved = [];
   for(let p=1;p<=7;p++){
-    CF.busyAt(ctx, L, d, p, "").forEach(txt=>{ const cls = txt.split("（")[0]; const a = ttAt(d,p,cls);
-      rows.push(Object.assign(newSubRow(), {period:String(p), cls, subject:a?a.subject:"", auto:{subject:1}})); });
+    (state.meta.tSlot[dw+"|"+p+"|"+L] || []).forEach(cls => {
+      const sw = ctx.ev.find(e => e.type==="swap" && e.date===d && String(e.period)===String(p) && e.cls===cls && (e.dir==="調出" ? e.teacher : e.partner)===L && (e.dir==="調出" ? e.partner : e.teacher)!==L);
+      if(sw){ moved.push(`第${p}節 ${cls}（${sw.id||"調課"}）`); return; }
+      const lv = ctx.ev.find(e => e.type==="leave" && e.who===L && e.date===d && String(e.period)===String(p) && (!e.cls || e.cls===cls));
+      if(lv){ done.push(`第${p}節 ${cls}${lv.other ? "由 " + lv.other + " 代" : ""}${lv.id ? "（" + lv.id + "）" : ""}`); return; }
+      const a = ttAt(d,p,cls);
+      rows.push(Object.assign(newSubRow(), {period:String(p), cls, subject:a?a.subject:"", auto:{subject:1}}));
+    });
   }
-  plan.sub.rows = rows.length ? rows : plan.sub.rows;
-  if(!rows.length) toast(`${L} ${CF.md(d)} 課表上沒有課`);
+  if(rows.length) plan.sub.rows = rows;
+  const note = [].concat(done.length ? [`已經登記過：${done.join("、")}`] : [], moved.length ? [`已調走：${moved.join("、")}`] : []);
+  if(!rows.length && !done.length && !moved.length) toast(`${L} ${CF.md(d)} 課表上沒有課`);
+  else if(!rows.length) toast(`${L} ${CF.md(d)} 的課都已經安排好了。${note.join("；")}`);
+  else if(note.length) toast(`帶入 ${rows.length} 節還沒安排的課。${note.join("；")}`);
 }
 
 /* 請假那一天：請假時段裡的課，哪些已經有人代或調走、哪些還沒安排 */
@@ -3884,6 +4052,8 @@ function wbTodos(ym, P){
   if(P.un) L.push({lv:"err", text:`${+ym.slice(5)} 月有 ${P.un} 筆請假還沒安排代課老師`, verb:"看哪幾筆", act: () => wbUnassigned(ym)});
   const a = state.audit || []; if(a.length) L.push({lv:"warn", text:`資料檢查有 ${a.length} 個問題（衝堂、重複登錄…）`, verb:"去看", act: () => wbGo("#alerts")});
   const todo = (state.reports || []).filter(r => r.status === "待處理"); if(todo.length) L.push({lv:"warn", text:`${todo.length} 件老師回報還沒回覆（${[...new Set(todo.map(r => r.teacher))].slice(0,3).join("、")}）`, verb:"去回覆", act: () => wbGo("#myReports")});
+  if(state.hr){ if(state.hr.missing.length) L.push({lv:"err", text:`人事差勤核對：${state.hr.missing.length} 節人事有請假、系統沒有代課或調課（可能沒交紙本）`, verb:"去看", act: () => wbGo("#hrBox")});
+    if(state.hr.noHr.length) L.push({lv:"warn", text:`人事差勤核對：${state.hr.noHr.length} 筆系統有登記、人事系統沒有請假`, verb:"去看", act: () => wbGo("#hrBox")}); }
   const fx = (state.fixes || []).filter(x => x.warn); if(fx.length) L.push({lv:"warn", text:`${fx.length} 筆修正要留意（原始資料又變了或找不到）`, verb:"去看", act: () => wbGo("#alerts")});
   P.err.slice(0, 4).forEach(x => L.push({lv:"err", text: x.text, verb:"去處理", act: () => wbGo("#checkBox")}));
   if(P.err.length > 4) L.push({lv:"err", text:`還有 ${P.err.length - 4} 個檢查紅字`, verb:"看檢查", act: () => wbGo("#checkBox")});
@@ -4068,6 +4238,54 @@ function wbFind(q){
   toast(`找不到「${q}」：可以輸入老師名字、日期（10/27）、月份（10 月）或功能名稱`);
 }
 
+/* ---------- 管理者：人事差勤系統核對（10/30） ----------
+ * 把差勤系統「已批核案件」的文字貼進來 → 和本系統比對；貼過的文字留在這台裝置（localStorage），重新整理會再比一次。 */
+function hrTimes(){ return store.get(K+"hrTimes", localStorage) || HR.DEF_TIMES; }
+function hrKey(e){ return e.type==="swap" ? ["swap", e.date, e.period, e.dir==="調出" ? e.teacher : e.partner].join("|") : e.type==="tutor"||e.type==="tutorLeave" ? ["tutor", e.date, e.type==="tutor" ? e.other : e.who].join("|") : e.type==="sub"||e.type==="leave" ? ["leave", e.date, e.period, e.type==="sub" ? e.other : e.who].join("|") : ""; }
+function hrFlagOf(e){
+  const h = state.hr; if(!h || state.role!=="admin") return "";
+  const x = (e.id && h.byId[e.id]) || h.byKey[hrKey(e)]; if(!x) return "";
+  return x.soft ? "人事差勤系統沒有這位老師這天的請假（調課不一定要請假，請確認）" : "人事差勤系統沒有這位老師這天的請假，請確認";
+}
+async function hrRun(text){
+  if(!text || !text.trim()){ state.hr = null; store.set(K+"hrText", "", localStorage); renderHrBox(); renderList(); if(state.selected) renderPanel(state.selected); renderWorkbench(); return; }
+  try{ await ensureMeta(); }catch(err){ toast("課表還沒讀到：" + err.message); return; }
+  const ev = await allEvents();
+  const R = HR.compare(text, {tSlot: state.meta.tSlot, tt: state.meta.tt, ev, off: state.off || {}, homeroom: state.meta.homeroom || {}, times: hrTimes()}, state.meta.teachers);
+  R.byId = {}; R.byKey = {};
+  R.noHr.forEach(x => { if(x.id) R.byId[x.id] = x; const e = ev.find(y => y.id === x.id && y.date === x.date) || {}; const k = hrKey(e); if(k) R.byKey[k] = x; });
+  R.at = new Date().toLocaleString("zh-TW", {month:"numeric", day:"numeric", hour:"2-digit", minute:"2-digit", hour12:false});
+  state.hr = R; store.set(K+"hrText", text, localStorage);
+  renderHrBox(); renderList(); if(state.selected) renderPanel(state.selected); renderWorkbench();
+}
+function hrAuto(){                                 // 重新整理後：有貼過的文字就自動再核對一次（課表讀到才做）
+  if(state.role!=="admin" || !isAll() || state.hr || hrAuto.t) return;
+  const t = store.get(K+"hrText", localStorage); if(!t) return;
+  hrAuto.t = setTimeout(() => { hrAuto.t = null; hrRun(t).catch(()=>{}); }, 600);
+}
+function renderHrBox(){
+  const box = $("#hrBox"); if(!box) return;
+  if(state.role!=="admin" || !isAll()){ box.innerHTML = ""; return; }
+  const text = store.get(K+"hrText", localStorage) || "", R = state.hr, md = HR.md;
+  const per = x => x.p==="導" ? "導師" : `第${x.p}節`;
+  const li = (x, extra) => `<li><b>${esc(x.who)}</b>　${esc(md(x.date))}　${extra}</li>`;
+  const res = !R ? "" : `<div class="hrres">
+      <p class="hint">${esc(R.at)} 核對：人事資料 ${R.leaves} 筆請假${R.cancels ? `（另有 ${R.cancels} 筆撤銷已扣掉）` : ""}，涵蓋 ${R.range[0] ? esc(md(R.range[0])) + "～" + esc(md(R.range[1])) : "—"}；下面的「人事沒有請假」只看這段期間。${R.warn.length ? "　⚠ " + esc(R.warn.join("；")) : ""}</p>
+      <h4>人事有請假、本系統沒有代課或調課<span class="n">${R.missing.length}</span></h4>
+      ${R.missing.length ? `<ul>${R.missing.map(x => li(x, esc(`${per(x)} ${x.cls}${x.subject && x.p!=="導" ? " " + x.subject : ""}　人事：${x.leaveType}${x.hours ? "（" + x.hours + "）" : ""}${x.tutor ? "　→ 整天請假的導師，代導師還沒登" : "　→ 可能還沒交代課單或調課單"}`))).join("")}</ul>` : `<p class="none">沒有。</p>`}
+      <h4 class="warn">本系統有登記、人事系統沒有這位老師這天的請假<span class="n">${R.noHr.length}</span></h4>
+      ${R.noHr.length ? `<ul>${R.noHr.map(x => li(x, esc(`${x.label}${x.sameDay ? "（人事同一天有請假，但時段不含這節）" : ""}`) + (x.soft ? `<span class="soft">　調課不一定要請假，請確認</span>` : ""))).join("")}</ul>` : `<p class="none">沒有。</p>`}
+      ${R.typeDiff.length ? `<h4 class="warn">假別不一樣<span class="n">${R.typeDiff.length}</span></h4><ul>${R.typeDiff.map(x => li(x, esc(`第${x.p}節 ${x.cls}：人事「${x.hr}」、系統「${x.sys}」（${x.id || ""}）`))).join("")}</ul>` : ""}
+      <details><summary class="hint" style="cursor:pointer">兩邊都有的 ${R.ok.length} 節</summary><ul>${R.ok.map(x => li(x, esc(`第${x.p}節 ${x.cls}：${x.how}`))).join("")}</ul></details></div>`;
+  box.innerHTML = `<div class="hrbox"><h3>人事差勤系統核對</h3>
+    <p class="hint">到差勤系統「已批核案件」把整頁文字選取、複製，貼在下面（可以一次貼好幾頁），按「核對」。系統會找出：人事有請假但這裡沒登代課／調課的（可能沒交紙本），以及這裡有登記、人事卻沒有請假的。本土語直播共學的課不算。</p>
+    <textarea id="hrText" placeholder="申請人　表單　申請時間　摘要　批核結果…">${esc(text)}</textarea>
+    <div class="row"><button type="button" class="btn small" id="hrGo">核對</button><button type="button" class="btn ghost small" id="hrClear">清除</button>
+      <label class="hint" for="hrTimes" style="margin:0">節次時間</label><input id="hrTimes" value="${esc(hrTimes())}" aria-label="節次時間，例：0840-0920,0930-1010,…"></div>
+    <p class="hint">節次時間用來把請假的「幾點到幾點」換算成第幾節（預設 08:40–09:20、09:30–10:10、10:30–11:10、11:20–12:00、13:30–14:10、14:20–15:00、15:10–15:50）；和本校作息不同就改上面那格，再按「核對」。</p>${res}</div>`;
+  $("#hrGo").onclick = () => { store.set(K+"hrTimes", $("#hrTimes").value.trim(), localStorage); busy(true); hrRun($("#hrText").value).finally(() => busy(false)); };
+  $("#hrClear").onclick = () => { $("#hrText").value = ""; hrRun(""); };
+}
 /* ---------- 管理者：資料檢查、颱風假狀態 ---------- */
 function renderAlerts(){
   const box = $("#alerts");
