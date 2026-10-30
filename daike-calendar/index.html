@@ -470,11 +470,15 @@ main{container-type:inline-size}
   .d .n{text-align:left}
   .d .offl,.d .mk{text-align:left}
   .d.today .n::after{display:inline;margin-left:6px}
-  .d .cell-ev{display:block;font-size:12.5px;line-height:1.35;padding-top:4px;border-top:1px solid var(--line-2)}
-  .d .cell-ev .p{color:var(--ink-2)}
-  .d .cell-ev .w{font-weight:800}
-  .d .cell-ev .f{font-weight:500}
-  .d .cell-ev .fl{color:var(--rose);font-weight:700}
+  .d .cell-ev{display:flex;gap:4px;align-items:baseline;font-size:12px;line-height:1.25;padding:1px 0;white-space:nowrap;overflow:hidden;min-width:0}
+  .d .cell-ev .cp{flex:0 0 auto;min-width:18px;font-family:var(--digits);font-weight:800;color:var(--sky-deep);font-size:11.5px}
+  .d .cell-ev .cw{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font-weight:600}
+  .d .cell-ev.flag .cw{color:var(--rose)}
+  .d .cell-ev.more{color:var(--ink-3);font-weight:600}
+  .days{gap:3px}
+  .d{min-height:0;height:calc((100vh - 250px) / var(--rows, 5));max-height:150px;min-height:78px;overflow:hidden;gap:2px;padding:4px 6px}
+  .d .n{font-size:14px;line-height:1.1}
+  .d .offl{font-size:11px;line-height:1.2}
   .d .mk{display:none}
   .agenda{display:none}
 }
@@ -2989,15 +2993,19 @@ function renderYear(){
       const has = ents.length>0 || oth.length>0, off = (state.off||{})[key], flagged = ents.some(x=>x.fl);
       const offTxt = off ? off.name + (off.scope && off.scope!=="全天" ? "（" + off.scope + "）" : "") : "";
       const canAdd = state.role==="admin" && dow!==0 && dow!==6;                 // 管理者：平日格子右上角「＋」直接補登（10/30）
-      const evHtml = ents.map(x=>`<div class="cell-ev"><div class="p">${esc(x.p)}</div><div class="w">${esc(x.w)}</div>${x.f?`<div class="f">${esc(x.f)}</div>`:""}${x.fl?`<div class="fl">${esc(x.fl)}</div>`:""}</div>`).join("")
-        + oth.map(x=>`<div class="cell-ev other"><div class="p">${esc(x.p)}</div><div class="w">${esc(x.w)}</div></div>`).join("");
+      // 一格一行一筆（整個月放得進一個畫面；完整內容點格子看右邊明細）：「2 林家玉代黃詠裕」「調5 陳佳君上國語」「導 林繼于代黃羽瑄」
+      const short = x => { const per = (x.p.match(/第(\d)節/)||[])[1] || "", kind = /^調課/.test(x.p) ? "調" : /^請假/.test(x.p) ? "假" : /導師/.test(x.p) ? "導" : ""; return `<span class="cp">${esc(kind + per || "·")}</span><span class="cw">${esc(x.w.replace(/\s+/g, ""))}</span>`; };
+      const MAXL = 5, all = ents.map(x => ({h: short(x), fl: x.fl, o: false})).concat(oth.map(x => ({h: short(x), o: true})));
+      const evHtml = all.slice(0, MAXL).map(x => `<div class="cell-ev${x.o ? " other" : ""}${x.fl ? " flag" : ""}" title="${esc(x.fl || "")}">${x.h}</div>`).join("")
+        + (all.length > MAXL ? `<div class="cell-ev more">＋還有 ${all.length - MAXL} 筆</div>` : "");
       cells += `<${has?"button type=\"button\"":"div"} class="d${has?" has":""}${canAdd&&!has?" canadd":""}${off?" off":""}${flagged?" flag":""}${key===today?" today":""}${dow===0||dow===6?" we":""}${key===state.selected?" sel":""}" data-date="${key}"${has?` aria-label="${m+1}月${d}日，${ents.length} 則紀錄${flagged?"，有需要確認的紀錄":""}"`:""}${off?` title="${esc(offTxt)}"`:""}><span class="n">${d}</span>${canAdd?`<span class="addp" role="button" tabindex="0" data-plan="${key}" title="補登這天的調代課" aria-label="補登 ${m+1}月${d}日的調代課">＋</span>`:""}${off?`<span class="offl">${esc(offTxt)}</span>`:""}${flagged?`<span class="mk">⚠</span>`:""}${evHtml}</${has?"button":"div"}>`;
       if(has || (off && dow!==0 && dow!==6)){
         agenda += `<div class="ag-day" id="ag-${key}"><div class="ag-date">${m+1}/${d}<small>星期${DOW[dow]}</small></div><div>${off?`<div class="ag-off">${esc(offTxt)}${off.kind==="颱風假"?"：停止上課":"：放假"}</div>`:""}${(byDate[key]||[]).map(e=>evRow(e)).join("")}${otherBy[key] ? `<div class="ev-other">${asSchool(() => otherBy[key].map(e=>evRow(e)).join(""))}</div>` : ""}</div></div>`;
       }
     }
+    const nRows = Math.ceil((first.getDay() + days) / 7);
     return `<section class="month" id="m-${y}-${m+1}"><h3><span class="ym">${m+1}月</span><span style="font-size:14px;color:var(--ink-3);font-weight:600">${y}</span></h3><p class="msum">${esc(monthSummary(monthEvs))}</p>
-      <div class="dow">${DOW.map(x=>`<span>${x}</span>`).join("")}</div><div class="days">${cells}</div>
+      <div class="dow">${DOW.map(x=>`<span>${x}</span>`).join("")}</div><div class="days" style="--rows:${nRows}">${cells}</div>
       <div class="agenda">${agenda || `<div class="none">這個月沒有紀錄</div>`}</div></section>`;
   }).join("");
   $("#year").querySelectorAll(".d.canadd").forEach(b=>b.onclick=e=>{ if(!e.target.closest(".addp")) planFromCal(b.dataset.date); });   // 沒有紀錄的平日：點格子就補登
