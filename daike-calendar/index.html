@@ -564,6 +564,15 @@ main{container-type:inline-size}
 .hrsync{font-size:13px;color:var(--sage);margin:6px 0 4px;font-weight:700}
 .hrsync.warn{color:var(--rose)}
 .hredge{margin-top:10px;font-size:13px}
+.hrwarn{margin:6px 0 8px;padding:10px 12px;border:2px solid var(--rose);border-radius:10px;background:var(--rose-soft);color:var(--ink);font-size:13.5px}
+.hrwarn b{color:var(--rose)} .hrwarn ul{margin:4px 0;padding-left:20px}
+.hrcloud{margin:4px 0 8px;font-size:13px}
+.hrcloud summary{cursor:pointer;color:var(--ink-2);font-weight:700}
+.hrcloud table{width:100%;border-collapse:collapse;margin-top:6px}
+.hrcloud th,.hrcloud td{border:1px solid var(--line-2);padding:3px 6px;text-align:left;white-space:nowrap}
+.hrcloud th{background:var(--surface-2)}
+.hrcloud tr.bad td{background:var(--rose-soft);color:var(--rose);font-weight:700}
+.hrcloud .btn.small{padding:2px 8px;font-size:12px}
 .hredge summary{cursor:pointer;color:var(--ink-3)}
 .view-note{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 10px;padding:10px 14px;border-radius:12px;background:var(--amber-soft);color:var(--ink);font-size:14.5px;border:1px solid rgba(154,98,0,.25)}
 .view-note .btn{margin-left:auto}
@@ -1929,11 +1938,18 @@ var HR = (function () {
     var nameSet = {}; (teachers || []).forEach(function (t) { nameSet[t] = 1; });
     var isName = function (s) { return nameSet[s] || (/^[一-鿿]{2,4}$/.test(s) && !/假|補休|出差|撤銷|同意|申請/.test(s)); };
     function flush() { if (cur) { recs.push(cur); } cur = null; }
-    lines.forEach(function (ln) {
+    var orphan = [];                                                                     // 對不上申請人的行（例如貼到一半）
+    var nextOf = function (i) { for (var k = i + 1; k < lines.length; k++) if (lines[k]) return lines[k]; return ""; };
+    lines.forEach(function (ln, i) {
       if (!ln || /^申請人\t?/.test(ln) || /^※/.test(ln)) return;
       var m;
       if (/^(同意|不同意|退回|核准|已核准|已批核)$/.test(ln)) { if (cur) { cur.ok = /同意|核准|批核/.test(ln) && !/^不/.test(ln); flush(); } return; }
-      if (!cur || (cur.from && isName(ln) && !/^[（(]/.test(ln))) { flush(); cur = { who: ln, form: "", kind: "", applied: "", from: null, to: null, hours: 0, reason: "", ok: true, raw: [] }; return; }
+      // 10/31：一筆一定是「姓名」開頭；姓名下一行是 (職稱) 就一定是新的一筆（前一筆不完整也不會被黏過來）
+      var startsRec = isName(ln) && /^\(.*\)$/.test(nextOf(i));
+      if (startsRec || !cur || (cur.from && isName(ln) && !/^[（(]/.test(ln))) {
+        if (!isName(ln)) { if (!/^[（(].*[）)]$/.test(ln)) orphan.push(ln); return; }   // 不是人名，絕不當申請人
+        flush(); cur = { who: ln, form: "", kind: "", applied: "", from: null, to: null, hours: 0, reason: "", ok: true, raw: [] }; return;
+      }
       cur.raw.push(ln);
       if (/^\(.*\)$/.test(ln)) return;                                                  // (教師)(教導處)
       if (/^（.*）$/.test(ln)) { cur.status = ln.replace(/[（）]/g, ""); return; }         // （課務編輯完成）
@@ -1953,8 +1969,10 @@ var HR = (function () {
       var f = r.form.replace(/【.*?】/g, "").replace(/\(.*?\)|（.*?）/g, "").trim();
       r.kind = /撤銷/.test(f) ? "cancel" : /代理轉移/.test(f) ? "ignore" : "leave";
       r.leaveType = f.replace(/補請/g, "") || r.form;
-      if (!r.from) { warn.push(r.who + "：看不出期間（" + r.form + "）"); r.kind = "ignore"; }
+      if (!r.from) { warn.push(r.who + "：資料不完整、看不出期間（" + (r.form || "沒有表單") + "），這筆沒有比對"); r.kind = "ignore"; }
     });
+    var orphanP = orphan.filter(function (x) { return /^期間：/.test(x); });
+    if (orphanP.length) warn.push("有 " + orphanP.length + " 段資料對不上申請人（例如「" + orphanP[0].replace(/\s+/g, " ") + "」），可能是貼到一半，請重新貼完整的一頁");
     // 同一筆貼了兩次（差勤系統常重複列）→ 只留一筆
     var seen = {}, out = [];
     recs.forEach(function (r) { var k = [r.who, r.form, r.applied, r.from && r.from.date, r.from && r.from.min, r.to && r.to.min].join("|"); if (seen[k]) return; seen[k] = 1; out.push(r); });
@@ -2278,7 +2296,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.10.31h";
+const APP_VERSION = "專業版 2026.10.31i";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -5143,10 +5161,12 @@ async function hrRun(text, opt){
   try{ await ensureMeta(); }catch(err){ toast("課表還沒讀到：" + err.message); return; }
   if(!opt.noSave && state.role === "admin"){                    // 10/31：貼上、上傳後存到雲端（一筆請假一列；不存事由、地點；同一筆只存一次）
     try{
-      const recs = hrRecsFromText(text);
+      const recs = hrRecsFromText(text), P0 = HR.parse(text, (state.meta && state.meta.teachers) || []);
+      if(P0.warn.length) toast("⚠ 有資料不完整，沒有存：" + P0.warn.join("；"));
+      if(!recs.length && P0.warn.length) state.hrSync = Object.assign({}, state.hrSync, {warn: P0.warn, added: 0, at: new Date()});
       if(recs.length){
         const d = await apiPost({action:"hrSave", name:state.cred.name, h:state.cred.h, recs});
-        if(d && d.ok){ state.hrRecs = d.recs || []; text = hrRecsToText(state.hrRecs); state.hrSync = {added: d.added || 0, at: new Date()}; }
+        if(d && d.ok){ state.hrRecs = d.recs || []; text = hrRecsToText(state.hrRecs); state.hrSync = {added: d.added || 0, at: new Date(), warn: P0.warn, skipped: d.skipped || 0}; }
         else if(d && d.error === "不支援的動作"){ state.hrSync = {local: true}; toast("雲端程式還沒更新：這次只存在這台電腦"); }
         else toast("存到雲端失敗：" + ((d && d.error) || "請再試一次"));
       }
@@ -5172,7 +5192,7 @@ function hrRocOf(ymd, min){ const p = String(ymd).split("-"), d = `${+p[0]-1911}
 function hrHoursStd(h){ const m = String(h || "").match(/(?:(\d+)日)?(?:(\d+)小時)?/); return m && (m[1] || m[2]) ? `${+(m[1]||0)}日${+(m[2]||0)}小時` : ""; }
 function hrRecsFromText(text){
   const P = HR.parse(text, (state.meta && state.meta.teachers) || state.teachers || []);
-  return P.all.filter(r => r.from && r.to).map(r => ({ who: r.who, form: r.form, applied: r.applied ? hrRocOf(r.applied) + (r.appliedAt ? " " + r.appliedAt : "") : "",
+  return P.all.filter(r => r.from && r.to && /^[\u4e00-\u9fff]{2,4}$/.test(r.who)).map(r => ({ who: r.who, form: r.form, applied: r.applied ? hrRocOf(r.applied) + (r.appliedAt ? " " + r.appliedAt : "") : "",
     from: hrRocOf(r.from.date, r.from.min), to: hrRocOf(r.to.date, r.to.min), hours: hrHoursStd(r.hours), result: r.ok ? "同意" : "不同意", status: r.status || "" }));
 }
 function hrRecsToText(recs){
@@ -5293,7 +5313,12 @@ function renderHrBox(){
     return;
   }
   const cloudN = Array.isArray(state.hrRecs) ? state.hrRecs.length : null;
-  const text = store.get(K+"hrText", localStorage) || (cloudN ? hrRecsToText(state.hrRecs) : ""), R = state.hr, md = HR.md;
+  // 10/31：雲端模式時文字框只放「這次要加的新資料」（舊的已存在雲端），避免把新資料貼進舊文字中間、把一筆切成兩半
+  const text = cloudN != null ? "" : (store.get(K+"hrText", localStorage) || ""), R = state.hr, md = HR.md;
+  const recSort = (state.hrRecs || []).map((r, i) => ({r, i})).sort((a, b) => String(a.r.from).localeCompare(String(b.r.from)) || a.r.who.localeCompare(b.r.who, "zh-Hant"));
+  const cloudList = cloudN ? `<details class="hrcloud"><summary>雲端存的人事資料（${cloudN} 筆）：可以逐筆檢查、刪掉錯的</summary>
+      <table><thead><tr><th>申請人</th><th>表單</th><th>期間</th><th>時數</th><th>結果</th><th>申請時間</th><th></th></tr></thead><tbody>
+      ${recSort.map(({r, i}) => `<tr${/^[\u4e00-\u9fff]{2,4}$/.test(r.who) ? "" : ' class="bad"'}><td>${esc(r.who)}</td><td>${esc(r.form)}</td><td>${esc(r.from)} ～ ${esc(String(r.to).slice(String(r.to).indexOf(" ") + 1))}</td><td>${esc(r.hours)}</td><td>${esc(r.result)}</td><td>${esc(r.applied)}</td><td><button type="button" class="btn ghost small" data-hrdel="${i}">刪除</button></td></tr>`).join("")}</tbody></table></details>` : "";
   const per = x => x.p==="導" ? "代導師" : `第${x.p}節`;
   const li = (x, extra) => `<li><b>${esc(x.who)}</b>　${esc(md(x.date))}　${extra}</li>`;
   const F = state.hrFilter || "all";
@@ -5310,7 +5335,8 @@ function renderHrBox(){
   const edge = R && R.edge && R.edge.length ? `<details class="hredge"><summary>只重疊幾分鐘、不算遺漏的 ${R.edge.length} 節（老師多半已回來上課，供參考）</summary><ul>${R.edge.map(x => li(x, esc(`第${x.p}節 ${x.cls} ${x.subject || ""}：請假 ${x.span}，只重疊 ${x.ov} 分鐘`))).join("")}</ul></details>` : "";
   const nA = R ? R.missing.length : 0, nB = R ? R.noHr.length : 0;
   const sync = cloudN == null ? "" : state.hrSync && state.hrSync.local ? `<p class="hrsync warn">⚠ 這次只存在這台電腦（雲端沒存成功）</p>`
-    : `<p class="hrsync">☁ 已存在雲端：共 ${cloudN} 筆人事差勤資料${state.hrSync && state.hrSync.at ? `（剛才新增 ${state.hrSync.added} 筆）` : ""}；換電腦、重新整理都會自動再比對。不存事由、地點。</p>`;
+    : `<p class="hrsync">☁ 已存在雲端：共 ${cloudN} 筆人事差勤資料${state.hrSync && state.hrSync.at ? `（剛才新增 ${state.hrSync.added} 筆）` : ""}；換電腦、重新整理都會自動再比對。不存事由、地點。</p>`
+      + (state.hrSync && state.hrSync.warn && state.hrSync.warn.length ? `<div class="hrwarn" role="alert"><b>⚠ 剛才貼上／上傳的資料有問題，這幾筆沒有存、也沒有比對：</b><ul>${state.hrSync.warn.map(w => `<li>${esc(w)}</li>`).join("")}</ul>請到請假系統重新複製「完整的一頁」再貼上（不要貼在別的文字中間）。</div>` : "");
   const res = !R ? "" : `<div class="hrres">
       <p class="hint">${esc(R.at)} 比對：人事資料 ${R.leaves} 筆請假${R.cancels ? `（另有 ${R.cancels} 筆撤銷已扣掉）` : ""}，涵蓋 ${R.range[0] ? esc(md(R.range[0])) + "～" + esc(md(R.range[1])) : "—"}。只比「請假時段裡真的有課」的節次；調課不用請假，不列；合理員額老師不在人事差勤系統，不比。${R.warn.length ? "　⚠ " + esc(R.warn.join("；")) : ""}</p>
       <div class="hrfilter" role="group" aria-label="只看哪一種">${[["all","全部",nA + nB],["miss","① 請假沒代課",nA],["nohr","② 代課沒請假",nB]].map(([k,t,n]) => `<button type="button" data-f="${k}" aria-pressed="${F===k}">${t}<span class="c">${n}</span></button>`).join("")}</div>
@@ -5326,12 +5352,21 @@ function renderHrBox(){
       <details><summary class="hint" style="cursor:pointer">兩邊都有、對得起來的 ${R.ok.length} 節</summary><ul>${R.ok.map(x => li(x, esc(`第${x.p}節 ${x.cls}：${x.how}`))).join("")}</ul></details></div>`;
   box.innerHTML = `<div class="hrbox"><h3>請假系統比對（人事差勤）</h3>
     <p class="hint">按「上傳請假系統資料」選檔案（文字檔 .txt、截圖、PDF 都可以，一次可選好幾個；也可以直接把檔案拖進下面的框），或把差勤系統「已批核案件」的文字貼在下面按「比對」。系統會列出 <b>① 有請假、這節有課，卻沒有代課也沒有調課</b>（可能沒收到代課單，代課費會漏發）和 <b>② 有代課、請假系統卻沒有請假</b>。本土語直播共學的課不算；撤銷的假會扣掉；重複的只算一次。</p>
-    ${sync}
-    <div class="hrdrop" id="hrDrop"><textarea id="hrText" placeholder="申請人　表單　申請時間　摘要　批核結果…（可以把檔案拖進來）">${esc(text)}</textarea><div class="dz">放開就上傳比對</div></div>
+    ${sync}${cloudList}
+    <div class="hrdrop" id="hrDrop"><textarea id="hrText" placeholder="${cloudN != null ? "把請假系統「已批核案件」新的文字貼在這裡（只要貼新的；之前的已存在雲端）。也可以把檔案拖進來" : "申請人　表單　申請時間　摘要　批核結果…（可以把檔案拖進來）"}">${esc(text)}</textarea><div class="dz">放開就上傳比對</div></div>
     <div class="row"><button type="button" class="btn small" id="hrUp">上傳請假系統資料</button><input type="file" id="hrFile" accept=".txt,.csv,.tsv,text/plain,text/csv,image/*,application/pdf" multiple hidden><button type="button" class="btn ghost small" id="hrGo">比對</button><button type="button" class="btn ghost small" id="hrClear">清除</button>
       <label class="hint" for="hrTimes" style="margin:0">節次時間</label><input id="hrTimes" value="${esc(hrTimes())}" aria-label="節次時間，例：0840-0920,0930-1010,…"></div>
     <p class="hint">節次時間用來把請假的「幾點到幾點」換算成第幾節（預設 08:40–09:20、09:30–10:10、10:30–11:10、11:20–12:00、13:30–14:10、14:20–15:00、15:10–15:50）；請假和某一節重疊不到半節（20 分鐘）不算。和本校作息不同就改上面那格，再按「比對」。</p>${res}</div>`;
-  $("#hrGo").onclick = () => { store.set(K+"hrTimes", $("#hrTimes").value.trim(), localStorage); busy(true); hrRun($("#hrText").value).finally(() => busy(false)); };
+  $("#hrGo").onclick = () => { store.set(K+"hrTimes", $("#hrTimes").value.trim(), localStorage); const v = $("#hrText").value;
+    busy(true); (v.trim() ? hrRun(v) : (state.hrRecs && state.hrRecs.length ? hrRun(hrRecsToText(state.hrRecs), {noSave:true}) : Promise.resolve(toast("請先貼上或上傳請假系統資料")))).finally(() => busy(false)); };
+  box.querySelectorAll("[data-hrdel]").forEach(b => b.onclick = async () => {
+    const r = (state.hrRecs || [])[+b.dataset.hrdel]; if(!r) return;
+    if(!confirm(`刪除這筆雲端人事資料？\n${r.who}　${r.form}　${r.from} ～ ${r.to}`)) return;
+    try{ busy(true); const d = await apiPost({action:"hrDel", name:state.cred.name, h:state.cred.h, recs:[r]});
+      if(!d.ok) throw new Error(d.error === "不支援的動作" ? "雲端程式還沒更新" : (d.error || "刪除失敗"));
+      state.hrRecs = d.recs || []; toast(`已刪除 1 筆（雲端剩 ${state.hrRecs.length} 筆）`);
+      await hrRun(state.hrRecs.length ? hrRecsToText(state.hrRecs) : "", {noSave:true});
+    }catch(err){ toast("刪除失敗：" + err.message); } finally{ busy(false); } });
   $("#hrClear").onclick = async () => {
     const n = (state.hrRecs || []).length;
     if(n && !confirm(`要清除存在雲端的人事差勤資料（${n} 筆）嗎？\n清除後要重新上傳才能比對。`)) return;
@@ -5364,7 +5399,7 @@ async function hrFiles(list){
   if(texts.length){
     try{
       const parts = []; for(const f of texts){ if(f.size > 5 * 1024 * 1024){ toast(`「${f.name}」超過 5MB，略過`); continue; } parts.push((await hrReadText(f)).replace(/\r/g, "").trim()); }
-      const add = parts.filter(Boolean).join("\n"), ta = $("#hrText"), old = (ta ? ta.value : "").trim();
+      const add = parts.filter(Boolean).join("\n"), ta = $("#hrText"), old = (ta ? ta.value : "").trim();   // 雲端模式時 old 只是這次還沒按比對的新資料
       if(add){
         const dup = old && old.includes(add);                          // 同一份重複上傳就不再接
         const text = dup ? old : (old ? old + "\n" + add : add);
