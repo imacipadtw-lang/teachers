@@ -476,7 +476,7 @@ main{container-type:inline-size}
   .d .n{text-align:left}
   .d .offl,.d .mk{text-align:left}
   .d.today .n::after{display:inline;margin-left:6px}
-  .d .cell-ev{display:flex;gap:4px;align-items:baseline;font-size:12px;line-height:1.25;padding:1px 0;white-space:nowrap;overflow:hidden;min-width:0}
+  .d .cell-ev{display:flex;gap:4px;align-items:baseline;font-size:12px;line-height:1.3;padding:1px 0;white-space:nowrap;overflow:hidden;min-width:0;flex-shrink:0}   /* 10/31：不可被擠扁（矮螢幕時字會被切半、重疊） */
   .d .cell-ev .cp{flex:0 0 auto;min-width:18px;font-family:var(--digits);font-weight:800;color:var(--sky-deep);font-size:11.5px}
   .d .cell-ev .cw{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font-weight:600}
   .d .cell-ev.flag .cw{color:var(--rose)}
@@ -2201,7 +2201,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.10.31";
+const APP_VERSION = "專業版 2026.10.31c";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -3344,7 +3344,7 @@ function renderYear(){
       const short = x => { const per = (x.p.match(/第(\d)節/)||[])[1] || "", kind = /^調課/.test(x.p) ? "調" : /^請假/.test(x.p) ? "假" : /導師/.test(x.p) ? "導" : ""; return `<span class="cp">${esc(kind + per || "·")}</span><span class="cw">${esc(x.w.replace(/\s+/g, ""))}</span>`; };
       const MAXL = 5, all = ents.map(x => ({h: short(x), fl: x.fl, o: false})).concat(oth.map(x => ({h: short(x), o: true})));
       const evHtml = all.slice(0, MAXL).map(x => `<div class="cell-ev${x.o ? " other" : ""}${x.fl ? " flag" : ""}" title="${esc(x.fl || "")}">${x.h}</div>`).join("")
-        + (all.length > MAXL ? `<div class="cell-ev more">＋還有 ${all.length - MAXL} 筆</div>` : "");
+        + `<div class="cell-ev more" data-total="${all.length}"${all.length > MAXL ? "" : " hidden"}>＋還有 ${all.length - MAXL} 筆</div>`;
       cells += `<${has?"button type=\"button\"":"div"} class="d${has?" has":""}${canAdd&&!has?" canadd":""}${off?" off":""}${flagged?" flag":""}${key===today?" today":""}${dow===0||dow===6?" we":""}${key===state.selected?" sel":""}" data-date="${key}"${has?` aria-label="${m+1}月${d}日，${ents.length} 則紀錄${flagged?"，有需要確認的紀錄":""}"`:""}${off?` title="${esc(offTxt)}"`:""}><span class="n">${d}</span>${canAdd?`<span class="addp" role="button" tabindex="0" data-plan="${key}" title="補登這天的調代課" aria-label="補登 ${m+1}月${d}日的調代課">＋</span>`:""}${off?`<span class="offl">${esc(offTxt)}</span>`:""}${flagged?`<span class="mk">⚠</span>`:""}${evHtml}</${has?"button":"div"}>`;
       if(has || (off && dow!==0 && dow!==6)){
         agenda += `<div class="ag-day" id="ag-${key}"><div class="ag-date">${m+1}/${d}<small>星期${DOW[dow]}</small></div><div>${off?`<div class="ag-off">${esc(offTxt)}${off.kind==="颱風假"?"：停止上課":"：放假"}</div>`:""}${(byDate[key]||[]).map(e=>evRow(e)).join("")}${otherBy[key] ? `<div class="ev-other">${asSchool(() => otherBy[key].map(e=>evRow(e)).join(""))}</div>` : ""}</div></div>`;
@@ -3355,6 +3355,7 @@ function renderYear(){
       <div class="dow">${DOW.map(x=>`<span>${x}</span>`).join("")}</div><div class="days" style="--rows:${nRows}">${cells}</div>
       <div class="agenda">${agenda || `<div class="none">這個月沒有紀錄</div>`}</div></section>`;
   }).join("");
+  requestAnimationFrame(fitCalCells);
   $("#year").querySelectorAll(".d.canadd").forEach(b=>b.onclick=e=>{ if(!e.target.closest(".addp")) planFromCal(b.dataset.date); });   // 沒有紀錄的平日：點格子就補登
   $("#year").querySelectorAll(".addp").forEach(a=>{ a.onclick=e=>{ e.stopPropagation(); planFromCal(a.dataset.plan); };
     a.onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); e.stopPropagation(); planFromCal(a.dataset.plan); } }; });
@@ -3639,6 +3640,30 @@ document.addEventListener("keydown", e => {
   const a = CMD_ACTIONS().find(x => x.k && x.k.toLowerCase() === k);
   if(a){ e.preventDefault(); a.run(); }
 });
+
+/* 年曆格子放得下幾行就顯示幾行，其餘寫「＋還有 n 筆」（10/31：矮螢幕不再擠扁、切字） */
+function fitCalCells(){
+  document.querySelectorAll("#year .d.has").forEach(cell => {
+    const evs = [...cell.querySelectorAll(".cell-ev:not(.more)")], more = cell.querySelector(".cell-ev.more"); if(!more) return;
+    const total = +more.dataset.total || evs.length;
+    evs.forEach(e => e.hidden = false); more.hidden = true;
+    if(!cell.offsetParent || getComputedStyle(evs[0] || more).display === "none") return;      // 手機版格子不列文字
+    const cs = getComputedStyle(cell), limit = cell.getBoundingClientRect().bottom - parseFloat(cs.paddingBottom || 0) - parseFloat(cs.borderBottomWidth || 0) + .5;
+    const fits = el => el.getBoundingClientRect().bottom <= limit;
+    if(total === evs.length && (!evs.length || fits(evs[evs.length - 1]))) return;          // 全部放得下
+    for(let k = evs.length; k >= 0; k--){
+      evs.forEach((e, i) => e.hidden = i >= k);
+      more.hidden = false; more.textContent = `＋還有 ${total - k} 筆`;
+      if(fits(more)) return;
+    }
+  });
+}
+let fitT = null;
+window.addEventListener("resize", () => { clearTimeout(fitT); fitT = setTimeout(fitCalCells, 120); });
+window.addEventListener("beforeprint", () => document.querySelectorAll("#year .d.has").forEach(cell => {      // 列印：照原本最多 5 行
+  const evs = [...cell.querySelectorAll(".cell-ev:not(.more)")], more = cell.querySelector(".cell-ev.more"); if(!more) return;
+  evs.forEach(e => e.hidden = false); const t = +more.dataset.total; more.hidden = t <= evs.length; more.textContent = `＋還有 ${t - evs.length} 筆`; }));
+window.addEventListener("afterprint", () => setTimeout(fitCalCells, 50));
 
 /* ---------- 清單 ---------- */
 function renderList(){
@@ -5214,7 +5239,7 @@ async function printSign(r){
     ${totals.map(([n,s],i) => `<tr style="height:34px"><td>${i+1}</td><td>${esc(n)}</td><td>${s.n} 節</td><td class="r">${s.fee.toLocaleString("zh-TW")}</td><td>${s.d ? s.d + " 日" : "—"}</td><td class="r">${s.tfee ? s.tfee.toLocaleString("zh-TW") : "—"}</td><td class="r"><b>${(s.fee+s.tfee).toLocaleString("zh-TW")}</b></td><td></td><td></td></tr>`).join("")}
     <tr class="tot"><td colspan="2">合計</td><td>${G.n} 節</td><td class="r">${G.fee.toLocaleString("zh-TW")}</td><td>${G.d} 日</td><td class="r">${G.tfee.toLocaleString("zh-TW")}</td><td class="r">${(G.fee+G.tfee).toLocaleString("zh-TW")}</td><td colspan="2" class="l">新臺幣${bigNum(G.fee+G.tfee)}</td></tr></tbody></table>
     <p class="note">說明：1. 每節 ${RATE_SUB} 元；合班每節 ${RATE_COMB} 元（${RATE_SUB}×1.5＝${RATE_SUB*1.5} 進位），但代的是協同老師的課仍是 ${RATE_SUB} 元；代導師每日 ${RATE_TUTOR} 元。2. 重複登錄只算一次；颱風假、國定假日當天的紀錄，以及由其他經費支應（例如本土語直播共學）的紀錄，不列入本表${voids ? `（本月有 ${voids} 筆不計費，明細見各人頁面）` : ""}。${flags ? `3. 本月有 ${flags} 筆標「⚠」需確認（例如衝堂），請教務組確認後再送出。` : ""} 4. 各人代課明細附於後頁，請老師核對後簽名。${heliN ? `5. 代合理員額教師（${esc((state.heli||[]).join("、"))}）的課 ${heliN} 節屬合理員額經費，不列入本表，請代課老師在「合理員額簽到表」簽名。` : ""}</p>
-    <div class="stamp"><div>製表（教務組）</div><div>教務主任</div><div>出納</div><div>會計主任</div><div>校長</div></div></div>`;
+    </div>`;   /* 10/31 主計提醒：自製表格不放核章欄（查核時空白核章欄會有問題） */
   names.forEach(n => {
     const list = by[n].sort((a,b) => a.date.localeCompare(b.date) || (+a.period||0) - (+b.period||0)), s = sum(list);
     const rows = list.map((e,i) => { const d = new Date(e.date+"T00:00:00"), fee = feeOf(e);
@@ -5443,7 +5468,7 @@ async function printHeli(r){
   const G = heliGroups(H), mine = G.filter(g => g.kind === "本人"), subG = G.filter(g => g.kind === "代課");
   const head = (title, extra) => `<h1>南投縣草屯鎮土城國民小學</h1><p class="sub" style="font-size:16px;font-weight:700;margin-bottom:4px">${title}</p>
     <div class="meta"><span>資料年月：＿＿＿＿　梯次：＿＿　計薪期間：${roc}/${mm}/01－${roc}/${mm}/${last}</span><span>列印日期：${printedAt()}　${extra||""}</span></div>`;
-  const stamp = `<div class="stamp" style="grid-template-columns:repeat(7,1fr)"><div>製表員</div><div>出納員</div><div>勞保承辦人</div><div>總務主任</div><div>人事管理員</div><div>會計主任</div><div>校長</div></div>`;
+  const stamp = "";   // 10/31 主計提醒：自製表格不放核章欄（查核時空白核章欄會有問題）
   const cnt = (g, w) => g.rows.filter(x => x.counted && x.w === w).length;
   // 合理員額教師自己也代了其他合理員額教師的課：併在本人清冊同一列（「代課他人」欄，和會計室紙本清冊一樣），代課清冊就不再列他
   const SUBOF = {}; mine.forEach(g => { const x = subG.find(s => s.name === g.name); if(x) SUBOF[g.name] = x; });
@@ -5597,7 +5622,7 @@ async function printHeliSign(r, only){
           : ps.map(p => cell(d, p)).join("")}</tr>`; }).join("")}</tbody></table>
       <p class="sumline">${mon}月合計：共 ＿＿＿＿ 節　　（系統計算：應計 ${t.n1 + t.n15} 節${t.hol ? `（含國定假日、颱風假照常計薪 ${t.hol} 節）` : ""}，其中合班 ${t.n15} 節算 1.5 節，合計 ${unitsText(t.units)} 節，進位請領 <b>${t.pay}</b> 節${t.subN ? `；請假由別人代 ${t.subN} 節` : ""}）</p>
       <p class="note">框起來的「1.5」是合班、只有這位老師上的課，一節算 1.5 節；合班但有協同老師一起上，一節算 1 節（依「國民小學與國民中學混齡教學及混齡編班實施辦法」第 7 條）。<b>月合計有 .5 節的，直接進位算 1 節（例：27.5 節 → 28 節）。</b>國定假日、颱風假照常計薪、不用簽；調走的課不用簽；別人代的課請代課老師簽名。</p>
-      <div class="sign big"><div>教師簽名：</div><div>承辦人：</div></div></div>`;
+      <div class="sign big"><div>教師簽名：</div><div>日期：　　　年　　　月　　　日</div></div></div>`;   /* 10/31：不放「承辦人」核章欄 */
   }).join("");
   printSheets(html);
   toast("每位老師一頁；列印視窗選「另存為 PDF」就能存成 PDF");
@@ -5672,7 +5697,7 @@ function bigPrint(wb){
     });
     // 5) 版面：直式太寬的改橫式；左右邊界縮小一點
     const total = W.slice(1).reduce((a, b) => a + b, 0);
-    let sig = false; ws.eachRow({includeEmpty:false}, row => row.eachCell({includeEmpty:false}, cell => { if(cell.value === "製表員") sig = true; }));
+    let sig = !!ws._fitOne; ws.eachRow({includeEmpty:false}, row => row.eachCell({includeEmpty:false}, cell => { if(cell.value === "製表員") sig = true; }));   // 原本有簽章欄的表（印領清冊等）照樣縮成一頁
     if(ws.pageSetup){ if(ws.pageSetup.orientation === "portrait" && total > 110) ws.pageSetup.orientation = "landscape";
       if(sig && ws.rowCount <= 40) ws.pageSetup = Object.assign({}, ws.pageSetup, {fitToPage:true, fitToWidth:1, fitToHeight:1});   // 印領清冊連簽章欄印在同一頁
       ws.pageSetup.margins = Object.assign({}, ws.pageSetup.margins || {}, {left:.5, right:.5}); }   // 左右留 0.5 吋，印表機才不會切到邊框
@@ -5705,7 +5730,8 @@ function xlKit(wb){
       ws.getRow(1).height = 24; ws.getRow(2).height = 22;
     },
     head(ws, row, vals){ ws.getRow(row).values = vals; ws.getRow(row).eachCell(c => { c.font = K.font({bold:true, size:10}); c.alignment = K.center; c.fill = K.HEAD; }); ws.getRow(row).height = 22; },
-    sig(ws, row, ncol, list){ list.forEach(([t,c1,c2]) => { if(c2 > c1){ ws.mergeCells(row,c1,row,c2); ws.mergeCells(row+1,c1,row+1,c2); } const h = ws.getCell(row,c1); h.value = t; h.font = K.font({bold:true}); h.alignment = K.center; h.fill = K.HEAD; });
+    sig(ws, row, ncol, list){ ws._fitOne = true; return;   // 10/31 主計提醒：自製表格（含 Excel、雲端試算表）不放核章欄；保留呼叫處，要恢復時刪掉這行
+      list.forEach(([t,c1,c2]) => { if(c2 > c1){ ws.mergeCells(row,c1,row,c2); ws.mergeCells(row+1,c1,row+1,c2); } const h = ws.getCell(row,c1); h.value = t; h.font = K.font({bold:true}); h.alignment = K.center; h.fill = K.HEAD; });
       ws.getRow(row+1).height = 46; K.boxAll(ws, row, 1, row+1, ncol); },
     cloud(name, kind, ym, win){ return toCloud(wb, kind, ym, name, win); }
   };
@@ -6534,7 +6560,7 @@ async function printAcct(r){
   const A = T.B + T.C + T.D;
   const head = (title, extra) => `<h1>南投縣草屯鎮土城國民小學</h1><p class="sub" style="font-size:16px;font-weight:700;margin-bottom:4px">${title}</p>
     <div class="meta"><span>資料年月：＿＿＿＿　梯次：＿＿　計薪期間：${roc}/${String(mon).padStart(2,"0")}/01－${roc}/${String(mon).padStart(2,"0")}/${last}</span><span>列印日期：${printedAt()}　${extra||""}</span></div>`;
-  const stamp = `<div class="stamp" style="grid-template-columns:repeat(7,1fr)"><div>製表員</div><div>出納員</div><div>勞保承辦人</div><div>總務主任</div><div>人事管理員</div><div>會計主任</div><div>校長</div></div>`;
+  const stamp = "";   // 10/31 主計提醒：自製表格不放核章欄（查核時空白核章欄會有問題）
   let html = `<div class="sheet land">${head(`${mon}月校內代課鐘點費`, "共 1 頁，第 1 頁")}
     <table><thead>
       <tr class="grp"><th rowspan="2" style="width:8%">員工姓名</th><th colspan="3">實　支　現　金　給　與</th><th rowspan="2">小計(A)</th><th colspan="3">機　關　補　助(B)</th><th rowspan="2">請領金額<br>(A+B)</th><th colspan="6">應　　扣　　項　　目</th><th rowspan="2">實領金額</th><th rowspan="2" style="width:9%">備註</th></tr>
