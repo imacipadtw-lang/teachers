@@ -539,6 +539,21 @@ main{container-type:inline-size}
 .hrmis li.soft{opacity:.75}
 .hrmis .tag{display:inline-block;font-size:12px;padding:0 6px;border-radius:999px;background:var(--rose-soft);color:var(--rose);margin:0 2px}
 .hrmis li.nohr .tag{background:var(--amber-soft);color:var(--amber)}
+/* 10/31 請假系統比對：上傳區、遺漏／增加切換 */
+.hrdrop{position:relative}
+.hrdrop.over textarea{outline:3px dashed var(--sky);outline-offset:2px;background:var(--sky-mist)}
+.hrdrop .dz{position:absolute;inset:0;display:none;place-items:center;border-radius:10px;font-weight:800;color:var(--sky-deep);pointer-events:none}
+.hrdrop.over .dz{display:grid}
+.hrfilter{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 2px}
+.hrfilter button{border:1px solid var(--line);background:var(--surface);color:var(--ink-2);border-radius:999px;padding:4px 12px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.hrfilter button[aria-pressed=true]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.hrfilter button .c{display:inline-block;min-width:18px;margin-left:5px;padding:0 6px;border-radius:999px;font-size:12px;background:var(--rose-soft);color:var(--rose)}
+.hrfilter button[data-f=nohr] .c{background:var(--amber-soft);color:var(--amber)}
+.hrfilter button[aria-pressed=true] .c{background:var(--surface);color:var(--ink)}
+.hrmis .kd{display:inline-block;font-size:12px;font-weight:800;padding:0 7px;border-radius:6px;margin-right:6px;color:#fff;background:var(--rose)}
+.hrmis li.nohr .kd{background:var(--amber)}
+.hrlegend{font-size:12.5px;color:var(--ink-2);margin:2px 0 4px}
+.hrlegend b.m{color:var(--rose)} .hrlegend b.a{color:var(--amber)}
 .view-note{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 10px;padding:10px 14px;border-radius:12px;background:var(--amber-soft);color:var(--ink);font-size:14.5px;border:1px solid rgba(154,98,0,.25)}
 .view-note .btn{margin-left:auto}
 .cell-ev.other{opacity:.5}
@@ -2201,7 +2216,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.10.31c";
+const APP_VERSION = "專業版 2026.10.31d";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -3486,7 +3501,7 @@ const CMD_ACTIONS = () => [
   {ic:"今", t:"回到今天", d:"年曆跳到這個月", k:"T", kw:"今天 年曆", run:() => { setRange(""); jumpToday(true); }},
   {ic:"▦", t:"數據儀表板", d:"統計、趨勢、熱點", k:"G", kw:"統計 圖表 分析 儀表板", run:() => WB_FUNCS.find(x => x[0] === "數據儀表板")[1]()},
   {ic:"◐", t:"切換深色／粉色模式", d:"深色科技模式或粉色模式", k:"D", kw:"深色 粉色 主題 夜間 外觀", run:() => setTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "pink" : "dark")},
-  {ic:"人", t:"人事差勤核對", d:"貼上文字或上傳截圖", kw:"人事 差勤 請假系統 截圖 核對", run:() => wbGo("#hrBox")},
+  {ic:"人", t:"請假系統比對", d:"上傳請假系統資料（文字檔、截圖），找遺漏和增加", kw:"人事 差勤 請假系統 截圖 核對 比對 遺漏 增加 上傳", run:() => wbGo("#hrBox")},
   {ic:"✓", t:"資料檢查", d:"衝堂、重複、未安排", kw:"檢查 衝堂 重複", run:() => wbGo("#alerts")},
   {ic:"$", t:"每月報表", d:"簽收單、會計月報表", kw:"報表 會計 簽收 月報", run:() => wbGo("#monthly")},
   {ic:"¥", t:"會計總覽", d:"本月金額核對", kw:"會計 金額 總覽", run:() => wbGo("#acctBox")},
@@ -4726,8 +4741,8 @@ function wbTodos(ym, P){
   if(P.un) L.push({lv:"err", text:`${+ym.slice(5)} 月有 ${P.un} 筆請假還沒安排代課老師`, verb:"看哪幾筆", act: () => wbUnassigned(ym)});
   const a = state.audit || []; if(a.length) L.push({lv:"warn", text:`資料檢查有 ${a.length} 個問題（衝堂、重複登錄…）`, verb:"去看", act: () => wbGo("#alerts")});
   const todo = (state.reports || []).filter(r => r.status === "待處理"); if(todo.length) L.push({lv:"warn", text:`${todo.length} 件老師回報還沒回覆（${[...new Set(todo.map(r => r.teacher))].slice(0,3).join("、")}）`, verb:"去回覆", act: () => wbGo("#myReports")});
-  if(state.hr){ if(state.hr.missing.length) L.push({lv:"err", text:`人事差勤核對：${state.hr.missing.length} 節人事有請假、系統沒有代課或調課（可能沒交紙本）`, verb:"去看", act: () => wbGo("#hrBox")});
-    if(state.hr.noHr.length) L.push({lv:"warn", text:`人事差勤核對：${state.hr.noHr.length} 筆系統有登記、人事系統沒有請假`, verb:"去看", act: () => wbGo("#hrBox")}); }
+  if(state.hr){ if(state.hr.missing.length) L.push({lv:"err", text:`請假系統比對：遺漏 ${state.hr.missing.length} 節（請假系統有請假、這裡沒有代課或調課，可能沒交紙本）`, verb:"去看", act: () => wbGo("#hrBox")});
+    if(state.hr.noHr.length) L.push({lv:"warn", text:`請假系統比對：增加 ${state.hr.noHr.length} 筆（這裡有登記、請假系統沒有請假）`, verb:"去看", act: () => wbGo("#hrBox")}); }
   const fx = (state.fixes || []).filter(x => x.warn); if(fx.length) L.push({lv:"warn", text:`${fx.length} 筆修正要留意（原始資料又變了或找不到）`, verb:"去看", act: () => wbGo("#alerts")});
   P.err.slice(0, 4).forEach(x => L.push({lv:"err", text: x.text, verb:"去處理", act: () => wbGo("#checkBox")}));
   if(P.err.length > 4) L.push({lv:"err", text:`還有 ${P.err.length - 4} 個檢查紅字`, verb:"看檢查", act: () => wbGo("#checkBox")});
@@ -4882,13 +4897,14 @@ function renderWorkbench(){
         <button type="button" class="btn ghost" data-q="live">會計報表（即時）</button>
         <button type="button" class="btn ghost" data-q="set">系統設定</button>
         <button type="button" class="btn ghost" data-q="scan">拍紙本登錄（假單／調代課單）</button>
+        <button type="button" class="btn ghost" data-q="hr">請假系統比對（上傳）</button>
         <button type="button" class="btn ghost" data-q="reload">重新整理</button></div>
         <p class="hint">「印簽到表」「下載會計總帳」「送會計」是在這台裝置記錄的，換裝置看不到；其餘步驟依資料自動判斷。</p></div>
     </div></section>`;
   if(P){ box.querySelectorAll("[data-step]").forEach(b => b.onclick = () => { const s = P.steps[+b.dataset.step]; if(s.k === "sent" && s.done && !P.closed){ if(confirm("取消「已送會計」的記錄？")) { wbFlag(ym, "sent", false); renderWorkbench(); } return; } s.act(); });
     if($("#wbNext")) $("#wbNext").onclick = () => P.cur.act(); }
   box.querySelectorAll("[data-todo]").forEach(b => b.onclick = () => todos[+b.dataset.todo].act());
-  const Q = {plan: () => openPlan(), sign: () => printHeliSign(ym), check: () => wbGo("#checkBox"), ledger: () => ledgerExcel(ym), live: () => state.liveUrl ? window.open(state.liveUrl, "_blank", "noopener") : wbGo(".live-box"), set: () => wbOpenSettings(), pw: () => WB_FUNCS.find(x => x[0] === "老師密碼")[1](), scan: async () => { await openPlan(); const f = $("#scanFile"); if(f) f.click(); }, reload: () => reload()};
+  const Q = {plan: () => openPlan(), sign: () => printHeliSign(ym), check: () => wbGo("#checkBox"), ledger: () => ledgerExcel(ym), live: () => state.liveUrl ? window.open(state.liveUrl, "_blank", "noopener") : wbGo(".live-box"), set: () => wbOpenSettings(), pw: () => WB_FUNCS.find(x => x[0] === "老師密碼")[1](), scan: async () => { await openPlan(); const f = $("#scanFile"); if(f) f.click(); }, hr: () => { wbGo("#hrBox"); setTimeout(() => { const f = $("#hrFile"); if(f) f.click(); }, 350); }, reload: () => reload()};
   box.querySelectorAll("[data-q]").forEach(b => b.onclick = () => Q[b.dataset.q]());
   $("#wbFind").onsubmit = e => { e.preventDefault(); wbFind($("#wbQ").value); };
   $("#wbQ").onchange = () => { const v = $("#wbQ").value.trim(); if(v && (teachers.includes(v) || months.includes(v) || WB_FUNCS.some(x => x[0] === v))) wbFind(v); };
@@ -5020,33 +5036,74 @@ function hrScanHtml(){
 }
 function renderHrBox(){
   const box = $("#hrBox"); if(!box) return;
-  if(state.role!=="admin" || !isAll()){ box.innerHTML = ""; return; }
+  if(state.role!=="admin"){ box.innerHTML = ""; return; }
+  if(!isAll()){                                        // 看某位老師時：留一個入口，避免找不到（10/31）
+    box.innerHTML = `<div class="hrbox"><h3>請假系統比對（人事差勤）</h3><p class="hint">請假系統比對要看全校的紀錄，請先切回「全校總覽」。</p><div class="row"><button type="button" class="btn small" id="hrToAll">切回全校總覽並打開比對</button></div></div>`;
+    $("#hrToAll").onclick = () => { const s = document.querySelector(".viewAs"); if(s){ s.value = ""; s.dispatchEvent(new Event("change")); } setTimeout(() => wbGo("#hrBox"), 1500); };
+    return;
+  }
   const text = store.get(K+"hrText", localStorage) || "", R = state.hr, md = HR.md;
   const per = x => x.p==="導" ? "導師" : `第${x.p}節`;
   const li = (x, extra) => `<li><b>${esc(x.who)}</b>　${esc(md(x.date))}　${extra}</li>`;
-  const byDay = {};                                   // 當天當節對不起來的，兩個方向合在一區，依日期排
-  (R ? R.missing : []).forEach(x => (byDay[x.date] = byDay[x.date] || []).push({x, kind:"miss"}));
-  (R ? R.noHr : []).forEach(x => (byDay[x.date] = byDay[x.date] || []).push({x, kind:"nohr"}));
+  const byDay = {}, F = state.hrFilter || "all";      // 當天當節對不起來的，兩個方向合在一區，依日期排；可只看「遺漏」或「增加」
+  if(F !== "nohr") (R ? R.missing : []).forEach(x => (byDay[x.date] = byDay[x.date] || []).push({x, kind:"miss"}));
+  if(F !== "miss") (R ? R.noHr : []).forEach(x => (byDay[x.date] = byDay[x.date] || []).push({x, kind:"nohr"}));
   const mis = Object.keys(byDay).sort().map(d => `<div class="hrday"><div class="hrdate">${esc(md(d))}</div><ul>${byDay[d].sort((a,b) => (a.x.p==="導"?0:+a.x.p||0) - (b.x.p==="導"?0:+b.x.p||0)).map(({x, kind}) => kind==="miss"
-      ? `<li class="miss"><b>${esc(x.who)}</b>　${esc(per(x))} ${esc(x.cls)}${x.subject && x.p!=="導" ? " " + esc(x.subject) : ""}　<span class="tag">人事有請假（${esc(x.leaveType)}${x.hours ? "，" + esc(x.hours) : ""}）、系統沒有${x.tutor ? "代導師" : "代課／調課"}</span>　→ ${x.tutor ? "請登記代導師" : "可能還沒交紙本，請登記"}</li>`
-      : `<li class="nohr${x.soft ? " soft" : ""}"><b>${esc(x.who)}</b>　${esc(x.label)}　<span class="tag">系統有登記、人事沒有這位老師這${x.p==null ? "天" : "節"}的請假</span>${x.sameDay ? "（人事同一天有請假，但時段不含這節）" : ""}${x.soft ? "　調課不一定要請假" : "　→ 請確認是否漏請假或登錯"}</li>`).join("")}</ul></div>`).join("");
+      ? `<li class="miss"><span class="kd">遺漏</span><b>${esc(x.who)}</b>　${esc(per(x))} ${esc(x.cls)}${x.subject && x.p!=="導" ? " " + esc(x.subject) : ""}　<span class="tag">人事有請假（${esc(x.leaveType)}${x.hours ? "，" + esc(x.hours) : ""}）、系統沒有${x.tutor ? "代導師" : "代課／調課"}</span>　→ ${x.tutor ? "請登記代導師" : "可能還沒交紙本，請登記"}</li>`
+      : `<li class="nohr${x.soft ? " soft" : ""}"><span class="kd">增加</span><b>${esc(x.who)}</b>　${esc(x.label)}　<span class="tag">系統有登記、人事沒有這位老師這${x.p==null ? "天" : "節"}的請假</span>${x.sameDay ? "（人事同一天有請假，但時段不含這節）" : ""}${x.soft ? "　調課不一定要請假" : "　→ 請確認是否漏請假或登錯"}</li>`).join("")}</ul></div>`).join("");
   const res = !R ? "" : `<div class="hrres">
       <p class="hint">${esc(R.at)} 核對：人事資料 ${R.leaves} 筆請假${R.cancels ? `（另有 ${R.cancels} 筆撤銷已扣掉）` : ""}，涵蓋 ${R.range[0] ? esc(md(R.range[0])) + "～" + esc(md(R.range[1])) : "—"}。人事資料裡有的老師：${esc(R.hrNames.join("、") || "—")}${R.warn.length ? "　⚠ " + esc(R.warn.join("；")) : ""}</p>
       <div class="hrmis"><h4>⚠ 當天當節對不起來，請特別留意<span class="n">${R.missing.length + R.noHr.length}</span></h4>
-        ${mis || `<p class="none">全部對得起來。</p>`}</div>
+        <p class="hrlegend"><b class="m">遺漏</b>＝請假系統有請假、這裡沒有登代課／調課（可能還沒交紙本）；<b class="a">增加</b>＝這裡有登記、請假系統沒有這位老師這節的請假。</p>
+        <div class="hrfilter" role="group" aria-label="只看哪一種">${[["all","全部",R.missing.length + R.noHr.length],["miss","只看遺漏",R.missing.length],["nohr","只看增加",R.noHr.length]].map(([k,t,n]) => `<button type="button" data-f="${k}" aria-pressed="${F===k}">${t}<span class="c">${n}</span></button>`).join("")}</div>
+        ${mis || `<p class="none">${R.missing.length + R.noHr.length ? "這一類沒有。" : "全部對得起來。"}</p>`}</div>
       ${R.typeDiff.length ? `<h4 class="warn">假別不一樣<span class="n">${R.typeDiff.length}</span></h4><ul>${R.typeDiff.map(x => li(x, esc(`第${x.p}節 ${x.cls}：人事「${x.hr}」、系統「${x.sys}」（${x.id || ""}）`))).join("")}</ul>` : ""}
       ${hrScanHtml()}
       <details><summary class="hint" style="cursor:pointer">兩邊都有、對得起來的 ${R.ok.length} 節</summary><ul>${R.ok.map(x => li(x, esc(`第${x.p}節 ${x.cls}：${x.how}`))).join("")}</ul></details></div>`;
-  box.innerHTML = `<div class="hrbox"><h3>人事差勤系統核對</h3>
-    <p class="hint">兩種方式都可以：① 到差勤系統「已批核案件」把整頁文字選取、複製，貼在下面（可以一次貼好幾頁），按「核對」（最準）；② 按「上傳人事截圖」，一次可選好幾張，系統讀完會把文字接在下面並自動核對。系統會找出：人事有請假但這裡沒登代課／調課的（可能沒交紙本），以及這裡有登記、人事卻沒有請假的。本土語直播共學的課不算。</p>
-    <textarea id="hrText" placeholder="申請人　表單　申請時間　摘要　批核結果…">${esc(text)}</textarea>
-    <div class="row"><button type="button" class="btn small" id="hrGo">核對</button><button type="button" class="btn small" id="hrUp">上傳人事截圖</button><input type="file" id="hrFile" accept="image/*,application/pdf" multiple hidden><button type="button" class="btn ghost small" id="hrClear">清除</button>
+  box.innerHTML = `<div class="hrbox"><h3>請假系統比對（人事差勤）</h3>
+    <p class="hint">按「上傳請假系統資料」選檔案（文字檔 .txt、截圖、PDF 都可以，一次可選好幾個；也可以直接把檔案拖進下面的框），或把差勤系統「已批核案件」的文字貼在下面按「比對」。系統會自動列出<b>遺漏</b>（請假系統有、這裡沒登代課／調課）和<b>增加</b>（這裡有登記、請假系統沒有請假）。本土語直播共學的課不算；撤銷的假會扣掉、重複的只算一次。資料會留在這台電腦，重新整理後自動再比對一次。</p>
+    <div class="hrdrop" id="hrDrop"><textarea id="hrText" placeholder="申請人　表單　申請時間　摘要　批核結果…（可以把檔案拖進來）">${esc(text)}</textarea><div class="dz">放開就上傳比對</div></div>
+    <div class="row"><button type="button" class="btn small" id="hrUp">上傳請假系統資料</button><input type="file" id="hrFile" accept=".txt,.csv,.tsv,text/plain,text/csv,image/*,application/pdf" multiple hidden><button type="button" class="btn ghost small" id="hrGo">比對</button><button type="button" class="btn ghost small" id="hrClear">清除</button>
       <label class="hint" for="hrTimes" style="margin:0">節次時間</label><input id="hrTimes" value="${esc(hrTimes())}" aria-label="節次時間，例：0840-0920,0930-1010,…"></div>
     <p class="hint">節次時間用來把請假的「幾點到幾點」換算成第幾節（預設 08:40–09:20、09:30–10:10、10:30–11:10、11:20–12:00、13:30–14:10、14:20–15:00、15:10–15:50）；和本校作息不同就改上面那格，再按「核對」。</p>${res}</div>`;
   $("#hrGo").onclick = () => { store.set(K+"hrTimes", $("#hrTimes").value.trim(), localStorage); busy(true); hrRun($("#hrText").value).finally(() => busy(false)); };
   $("#hrClear").onclick = () => { $("#hrText").value = ""; state.hrScan = null; hrRun(""); };
   $("#hrUp").onclick = () => $("#hrFile").click();
-  $("#hrFile").onchange = e => { store.set(K+"hrTimes", $("#hrTimes").value.trim(), localStorage); hrScanFiles(e.target.files); };
+  $("#hrFile").onchange = e => { store.set(K+"hrTimes", $("#hrTimes").value.trim(), localStorage); hrFiles(e.target.files); };
+  box.querySelectorAll(".hrfilter [data-f]").forEach(b => b.onclick = () => { state.hrFilter = b.dataset.f; renderHrBox(); });
+  const dz = $("#hrDrop");
+  ["dragenter","dragover"].forEach(t => dz.addEventListener(t, e => { if(e.dataTransfer && [...e.dataTransfer.types].includes("Files")){ e.preventDefault(); dz.classList.add("over"); } }));
+  ["dragleave","dragend"].forEach(t => dz.addEventListener(t, () => dz.classList.remove("over")));
+  dz.addEventListener("drop", e => { if(!e.dataTransfer || !e.dataTransfer.files.length) return; e.preventDefault(); dz.classList.remove("over"); store.set(K+"hrTimes", $("#hrTimes").value.trim(), localStorage); hrFiles(e.dataTransfer.files); });
+}
+/* 上傳請假系統資料（10/31）：文字檔直接讀（UTF-8／UTF-16／Big5 都可以），截圖、PDF 交給辨識；讀完接在文字框後面再比對 */
+async function hrReadText(file){
+  const u8 = new Uint8Array(await file.arrayBuffer());
+  if(u8[0] === 0xFF && u8[1] === 0xFE) return new TextDecoder("utf-16le").decode(u8.subarray(2));
+  if(u8[0] === 0xFE && u8[1] === 0xFF) return new TextDecoder("utf-16be").decode(u8.subarray(2));
+  try{ return new TextDecoder("utf-8", {fatal:true}).decode(u8).replace(/^\uFEFF/, ""); }
+  catch(e){ try{ return new TextDecoder("big5").decode(u8); }catch(_){ return new TextDecoder("utf-8").decode(u8); } }
+}
+async function hrFiles(list){
+  const files = [...(list || [])]; if(!files.length) return;
+  const isText = f => /\.(txt|csv|tsv)$/i.test(f.name) || /^text\//.test(f.type);
+  const texts = files.filter(isText), imgs = files.filter(f => !isText(f) && (/^image\//.test(f.type) || f.type === "application/pdf" || /\.(png|jpe?g|webp|heic|pdf)$/i.test(f.name)));
+  const skip = files.filter(f => !texts.includes(f) && !imgs.includes(f));
+  if(skip.length) toast(`「${skip.map(f => f.name).join("、")}」不是文字檔、截圖或 PDF，略過`);
+  if(texts.length){
+    try{
+      const parts = []; for(const f of texts){ if(f.size > 5 * 1024 * 1024){ toast(`「${f.name}」超過 5MB，略過`); continue; } parts.push((await hrReadText(f)).replace(/\r/g, "").trim()); }
+      const add = parts.filter(Boolean).join("\n"), ta = $("#hrText"), old = (ta ? ta.value : "").trim();
+      if(add){
+        const dup = old && old.includes(add);                          // 同一份重複上傳就不再接
+        const text = dup ? old : (old ? old + "\n" + add : add);
+        if(ta) ta.value = text;
+        if(!imgs.length){ busy(true); try{ await hrRun(text); } finally{ busy(false); }
+          const R = state.hr; toast(R ? `已比對：遺漏 ${R.missing.length} 節、增加 ${R.noHr.length} 筆${dup ? "（這份資料先前已上傳過）" : ""}` : "已讀入"); }
+      }
+    }catch(err){ toast("讀檔失敗：" + err.message); }
+  }
+  if(imgs.length) await hrScanFiles(imgs);
 }
 /* ---------- 管理者：資料檢查、颱風假狀態 ---------- */
 function renderAlerts(){
