@@ -41,7 +41,7 @@ select,button{font:inherit;font-weight:800;border:0;border-radius:16px;cursor:po
 .tb{font-size:clamp(12px,1.1vw,16px);padding:6px 12px;background:#fff;box-shadow:0 3px 0 #d9e3ea;color:#334}
 .tb:active,.chip:active{transform:translateY(2px);box-shadow:none}
 #grid{position:relative;z-index:3;flex:1;min-height:0;display:grid;gap:10px;padding:10px 12px 10px}
-@media (max-height:500px){#grid{gap:6px;padding:6px 8px 6px}.card{border-radius:16px}.nm{font-size:clamp(13px,3.2vh,22px);padding-bottom:4px;gap:5px}.lv{padding:1px 7px}.pick{width:26px;height:26px;font-size:13px;top:6px;left:8px}.badge{font-size:clamp(10px,3vh,16px);padding:2px 8px;bottom:18%}.evo b{font-size:clamp(13px,4.5vh,22px)}.evo span{font-size:clamp(10px,2.6vh,14px)}.zz{font-size:clamp(14px,4vh,28px)}#gear,#undoF{width:28px;height:28px;font-size:14px}}
+@media (max-height:500px){#grid{gap:5px;padding:4px 6px 4px}.card{border-radius:16px}.nm{font-size:clamp(13px,3.2vh,22px);padding-bottom:4px;gap:5px}.lv{padding:1px 7px}.pick{width:26px;height:26px;font-size:13px;top:6px;left:8px}.badge{font-size:clamp(10px,3vh,16px);padding:2px 8px;bottom:18%}.evo b{font-size:clamp(13px,4.5vh,22px)}.evo span{font-size:clamp(10px,2.6vh,14px)}.zz{font-size:clamp(14px,4vh,28px)}#gear,#undoF{width:28px;height:28px;font-size:14px}}
 .card{position:relative;display:flex;flex-direction:column;background:rgba(255,255,255,.92);border-radius:26px;box-shadow:0 8px 0 rgba(0,0,0,.06),0 10px 30px rgba(30,80,60,.12);overflow:hidden;cursor:pointer;min-height:0;transition:transform .15s}
 .card:active{transform:scale(.97)}
 .card.flash:after{content:"";position:absolute;inset:0;background:#fff;animation:fl .9s ease-out forwards;z-index:5;pointer-events:none}
@@ -183,6 +183,7 @@ select,button{font:inherit;font-weight:800;border:0;border-radius:16px;cursor:po
 /* ================= data ================= */
 const ROSTER=[["褚品寬",1,"男"],["羅尹璐",1,"女"],["張敏歆",2,"女"],["藍宥鈞",2,"男"],["范鈞惟",3,"男"],["江睿宸",3,"男"],["賴其廷",3,"男"],["韋奕誠",3,"男"],["全芮妡",3,"女"],["黃韵喬",3,"女"],["葉宥妡",3,"女"],["褚振諺",3,"男"],["廖憫愛",4,"女"],["陳楷欣",4,"女"],["吳則熹",4,"男"],["吳俊緯",4,"男"],["吳俊享",4,"男"],["范鈞凱",5,"男"],["陳楷叡",5,"男"],["林瑄",5,"女"],["熊苡均",5,"女"],["黃香媛",5,"女"],["黃婕恩",5,"女"],["江庭宇",6,"男"],["李奇優",6,"女"],["呂馨緹",6,"女"],["葉家云",6,"女"],["葉家睿",6,"男"]];
 const GRADES=["一","二","三","四","五","六"];
+const GROUPS=[{id:7,label:"混齡班（12人）",names:["褚品寬", "羅尹璐", "張敏歆", "藍宥鈞", "江睿宸", "賴其廷", "葉宥妡", "褚振諺", "陳楷叡", "林瑄", "呂馨緹", "葉家睿"]}];
 const STAGES=[{min:0,zh:"睡覺寶寶",en:"Sleepy Baby",ico:"😴"},{min:1,zh:"寶寶",en:"Baby",ico:"👶"},{min:5,zh:"爬行",en:"Crawler",ico:"🐾"},{min:10,zh:"小朋友",en:"Kid",ico:"🧒"},{min:17,zh:"少年",en:"Teen",ico:"🧑"},{min:25,zh:"超級英雄",en:"Super Hero",ico:"🦸"}];
 const EVO_SAY={1:"hatch",2:"crawl",3:"stand",4:"teen",5:"hero"};
 const ACTS=[["sleep","睡覺"],["yawn","醒來伸懶腰"],["roll","翻身"],["clap","拍拍手"],["bounce","坐著彈跳"],["crawl","會爬了"],["crawlfast","爬得好快"],["peek","躲貓貓"],["standtry","想站起來"],["standup","站起來了"],["walk","會走路了"],["wave","揮手打招呼"],["jump","會跳了"],["spin","轉圈圈"],["run","會跑步了"],["dance","跳舞"],["kick","踢球"],["flip","後空翻"],["cartwheel","側翻"],["highjump","跳超高"],["runfast","飛毛腿"],["muscle","秀肌肉"],["punch","出拳"],["pose","英雄姿勢"],["powerup","能量爆發"],["fly","會飛了"],["flyloop","空中翻圈"],["laser","雷射眼"],["groundpound","落地重擊"],["victory","勝利歡呼"],["ultimate","終極英雄"]];
@@ -561,7 +562,7 @@ requestAnimationFrame(loop);
 
 /* ================= UI ================= */
 const gradeSel=$("#grade"),grid=$("#grid"),itemsEl=$("#items");
-GRADES.forEach((g,i)=>{const o=document.createElement("option");o.value=i+1;o.textContent=g+"年級（"+ROSTER.filter(r=>r[1]===i+1).length+"人）";gradeSel.appendChild(o);});
+GRADES.forEach((g,i)=>{const o=document.createElement("option");o.value=i+1;o.textContent=g+"年級（"+ROSTER.filter(r=>r[1]===i+1).length+"人）";gradeSel.appendChild(o);});GROUPS.forEach(gr=>{const o=document.createElement("option");o.value=gr.id;o.textContent=gr.label;gradeSel.appendChild(o);});
 gradeSel.value=S.grade;
 gradeSel.addEventListener("change",()=>{S.grade=+gradeSel.value;save();renderGrade();});
 function renderItems(){itemsEl.innerHTML="";S.items.forEach((it,i)=>{const b=document.createElement("button");b.className="chip"+(it.p<0?" neg":"")+(i===S.item?" on":"");b.innerHTML=`${it.e} ${it.l} <b>${it.p>0?"+":""}${it.p}</b>`;b.addEventListener("click",()=>{S.item=i;save();renderItems();SFX.tap();});itemsEl.appendChild(b);});}
@@ -570,11 +571,12 @@ const cards={};
 function stageText(d){const p=d.pts,s=stageOf(p),st=STAGES[s];let t=`${st.ico} ${st.zh} ${st.en}`;if(s===0)t+=" · 點一下就醒來";else if(STAGES[s+1])t+=` · 再 ${STAGES[s+1].min-p} 分進化`;else t+=p>=MAX_PTS?" · 今日滿分！":" · 最強英雄！";if(d.total)t+=` · 累計 ${d.total+p}`;return t;}
 function todayLabel(){const d=new Date();const w="日一二三四五六"[d.getDay()];$("#today").textContent=`📅 ${d.getMonth()+1}/${d.getDate()} 星期${w} · 今天`;}
 todayLabel();
-function layoutGrid(n){const portrait=innerHeight>innerWidth;const cols=portrait?(n<=2?1:2):(n<=4?2:n<=6?3:4);grid.style.gridTemplateColumns=`repeat(${cols},1fr)`;grid.style.gridAutoRows="1fr";}
+function layoutGrid(n){const portrait=innerHeight>innerWidth;const cols=portrait?(n<=2?1:n<=8?2:3):(n<=4?2:n<=6?3:n<=8?4:n<=12?4:5);grid.style.gridTemplateColumns=`repeat(${cols},1fr)`;grid.style.gridAutoRows="1fr";}
 window.addEventListener("resize",()=>layoutGrid(Object.keys(cards).length));
+function listFor(g){const grp=GROUPS.find(x=>x.id===g);if(grp)return grp.names.map(n=>ROSTER.find(r=>r[0]===n)).filter(Boolean);return ROSTER.filter(r=>r[1]===g);}
 function renderGrade(){
  for(const k in cards){removeView(cards[k].v);}for(const k in cards)delete cards[k];grid.innerHTML="";
- const list=ROSTER.filter(r=>r[1]===S.grade);const n=list.length;
+ const list=listFor(S.grade);const n=list.length;
  layoutGrid(n);
  list.forEach(r=>{const k=key(r),d=stu(k);
   const c=document.createElement("div");c.className="card";c.dataset.k=k;
@@ -706,7 +708,7 @@ function readItems(){return [...$("#cfgItems").querySelectorAll(".row")].map(r=>
 $("#addItem").addEventListener("click",()=>{const row=cfgRow({e:"⭐",l:"",p:1});$("#cfgItems").appendChild(row);row.querySelector(".l").focus();});
 $("#saveItems").addEventListener("click",()=>{const its=readItems();if(!its.length){toast("至少要有一個項目");return;}S.items=its;if(S.item>=its.length)S.item=0;save();renderItems();toast("已儲存加分項目");});
 $("#randAll").addEventListener("click",()=>{const ks=Object.keys(cards);const pool=ART.map(s=>s.id).sort(()=>Math.random()-.5);ks.forEach((k,i)=>{const d=stu(k);d.sp=pool[i%pool.length];setImg(k,null);preloadArt(d.sp);applySprite(k);spriteDoAct(k,Math.max(9,d.pts));});save();SFX.cheer();toast("已隨機換夥伴");});
-$("#resetGrade").addEventListener("click",()=>{if(!confirm(GRADES[S.grade-1]+"年級今天的分數全部歸零？"))return;Object.keys(cards).forEach(k=>{const d=stu(k);d.pts=0;if(!isArt(d.sp))setPet(cards[k].v,d.sp,0,0);updateCard(k);applySprite(k);});UNDO.length=0;save();toast("今天分數已歸零");});
+$("#resetGrade").addEventListener("click",()=>{if(!confirm((GRADES[S.grade-1]?GRADES[S.grade-1]+"年級":"這一班")+"今天的分數全部歸零？"))return;Object.keys(cards).forEach(k=>{const d=stu(k);d.pts=0;if(!isArt(d.sp))setPet(cards[k].v,d.sp,0,0);updateCard(k);applySprite(k);});UNDO.length=0;save();toast("今天分數已歸零");});
 $("#exportBtn").addEventListener("click",()=>{const blob=new Blob([JSON.stringify(S,null,1)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="class-pets-"+todayStr()+".json";a.click();});
 $("#importBtn").addEventListener("click",()=>$("#importFile").click());
 $("#importFile").addEventListener("change",e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const d=JSON.parse(rd.result);if(!d.students)throw 0;S={...S,...d};save();renderItems();renderGrade();toast("已匯入");}catch(x){toast("檔案格式不對");}};rd.readAsText(f);e.target.value="";});
@@ -714,7 +716,7 @@ const LANGS=[["both","🗣️ 英文＋中文"],["en","🗣️ 只有英文"],["
 $("#cfgBtn").addEventListener("click",openCfg);$("#gear").addEventListener("click",openCfg);$("#undoF").addEventListener("click",undo);$("#gradeWrap").appendChild(gradeSel);$("#muteBtn2").addEventListener("click",()=>$("#muteBtn").click());$("#fsBtn2").addEventListener("click",()=>$("#fsBtn").click());$("#allBtn2").addEventListener("click",()=>{$("#allBtn").click();$("#cfgModal").classList.remove("on");});$("#cfgX").addEventListener("click",()=>$("#cfgModal").classList.remove("on"));$("#cfgModal").addEventListener("click",e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove("on");});
 document.addEventListener("keydown",e=>{if(e.target.tagName==="INPUT")return;const k=e.key.toLowerCase();
  if(k==="z")undo();else if(k==="m")$("#muteBtn").click();else if(k==="f")$("#fsBtn").click();else if(k==="t"){$("#cfgModal").classList.contains("on")?$("#cfgModal").classList.remove("on"):openCfg();}
- else if(k==="escape"){closePick();$("#cfgModal").classList.remove("on");}else if(/^[1-6]$/.test(k)){gradeSel.value=k;gradeSel.dispatchEvent(new Event("change"));}});
+ else if(k==="escape"){closePick();$("#cfgModal").classList.remove("on");}else if(/^[1-7]$/.test(k)){gradeSel.value=k;gradeSel.dispatchEvent(new Event("change"));}});
 renderGrade();
 // midnight rollover while the page stays open
 setInterval(()=>{const k=Object.keys(cards)[0];if(k&&S.students[k]&&S.students[k].day!==todayStr()){todayLabel();renderGrade();}},60000);
