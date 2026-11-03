@@ -581,7 +581,7 @@ main{container-type:inline-size}
 .ev-other button{display:none}
 .ev-other-h{margin:10px 16px 2px;font-size:13px;font-weight:700;color:var(--ink-3)}
 @media print{.view-note{display:none!important}}
-/* 年曆三種顯示：代課＋調課／只看代課（含請假、代導師）／只看調課（10/30） */
+/* 年曆／清單四種顯示：全部／只看代課（含請假）／只看調課／只看代導師（10/30；11/3 加代導師） */
 .calmode{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 10px}
 .calmode-l{font-size:14px;color:var(--ink-3);font-weight:700;margin-right:2px}
 .calmode button{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);padding:6px 14px;border-radius:999px;font:inherit;font-size:14px;font-weight:700;cursor:pointer}
@@ -589,7 +589,7 @@ main{container-type:inline-size}
 .calmode button[aria-pressed=true]{background:var(--sky-deep);border-color:var(--sky-deep);color:#fff}
 .calmode button:focus-visible{outline:2px solid var(--sky-deep);outline-offset:2px}
 .calmode .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
-.calmode .dot.sub{background:var(--c-sub)} .calmode .dot.swap{background:var(--c-swap)}
+.calmode .dot.sub{background:var(--c-sub)} .calmode .dot.swap{background:var(--c-swap)} .calmode .dot.tutor{background:var(--c-tutor)}
 .calmode button[aria-pressed=true] .dot{box-shadow:0 0 0 2px #fff}
 .calmode-n{font-size:13.5px;color:var(--ink-3);margin-left:4px}
 @media print{.calmode button,.calmode-l{display:none!important}.calmode-n{font-size:12px;color:#000}}
@@ -1349,9 +1349,10 @@ html[data-theme=dark] .calmode button[aria-pressed=true]{background:var(--sky-de
       <div class="print-note" id="printNote" data-page="cal"></div>
       <div class="calmode" id="calMode" role="group" aria-label="年曆要顯示哪些紀錄" data-page="cal">
         <span class="calmode-l">顯示</span>
-        <button type="button" data-cm="all">代課＋調課</button>
+        <button type="button" data-cm="all">全部</button>
         <button type="button" data-cm="sub"><i class="dot sub"></i>只看代課</button>
         <button type="button" data-cm="swap"><i class="dot swap"></i>只看調課</button>
+        <button type="button" data-cm="tutor"><i class="dot tutor"></i>只看代導師</button>
         <span class="calmode-n" id="calModeNote"></span>
       </div>
       <div class="view-note" id="viewNote" hidden data-page="cal"></div>
@@ -2296,7 +2297,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.10.31i";
+const APP_VERSION = "專業版 2026.11.03";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -3399,17 +3400,19 @@ function othersOf(){
   const T = state.viewing;
   return state.school.filter(e => ![e.who, e.other, e.teacher, e.partner].includes(T));
 }
-/* 年曆顯示模式：all＝代課＋調課、sub＝只看代課（含請假、代導師）、swap＝只看調課；記在這台電腦 */
-const CAL_MODES = { all:"代課＋調課", sub:"只看代課", swap:"只看調課" };
+/* 年曆／清單顯示模式：all＝全部、sub＝只看代課（含請假）、swap＝只看調課、tutor＝只看代導師（含原導師的請假）；記在這台電腦 */
+const CAL_MODES = { all:"全部", sub:"只看代課", swap:"只看調課", tutor:"只看代導師" };
+const CAL_WORD = { sub:"代課、請假", swap:"調課", tutor:"代導師" };
 function calMode(){ const m = store.get(K+"calMode", localStorage); return CAL_MODES[m] ? m : "all"; }
-const calShow = e => { const m = calMode(); return m === "all" || (m === "swap") === (e.type === "swap"); };
+const calKind = e => e.type === "swap" ? "swap" : (e.type === "tutor" || e.type === "tutorLeave") ? "tutor" : "sub";
+const calShow = e => { const m = calMode(); return m === "all" || calKind(e) === m; };
 function renderCalMode(){
   const m = calMode();
   document.querySelectorAll("#calMode [data-cm]").forEach(b => b.setAttribute("aria-pressed", b.dataset.cm === m));
   const n = $("#calModeNote"); if(!n) return;
   if(m === "all"){ n.textContent = ""; return; }
   const hid = state.events.concat(othersOf()).filter(e => !calShow(e) && describe(e) && inRange(e, state.range)).length;
-  n.textContent = (m === "sub" ? "代課、請假、代導師" : "調課") + (hid ? `；另有 ${hid} 筆${m === "sub" ? "調課" : "代課／請假"}暫時不顯示` : "");
+  n.textContent = CAL_WORD[m] + (hid ? `；另有 ${hid} 筆其他紀錄暫時不顯示（按「全部」可看）` : "");
 }
 document.querySelectorAll("#calMode [data-cm]").forEach(b => b.onclick = () => {
   store.set(K+"calMode", b.dataset.cm, localStorage);
@@ -3889,7 +3892,8 @@ window.addEventListener("popstate", () => { const k = location.hash.slice(1); if
 function renderList(){
   const list=$("#list");
   const rows = state.events.filter(e=>calShow(e) && describe(e) && inRange(e, state.range));
-  if(!rows.length){ list.innerHTML=`<div class="grp"><div class="empty">${state.range ? rangeLabel(state.range) + "沒有紀錄。" : "目前沒有任何紀錄。表單登錄後重新整理即可看到。"}</div></div>`; return; }
+  if(!rows.length){ const m = calMode(), w = m === "all" ? "" : CAL_WORD[m];
+    list.innerHTML=`<div class="grp"><div class="empty">${state.range ? rangeLabel(state.range) + `沒有${w}紀錄。` : `目前沒有任何${w}紀錄。`}${w ? "要看其他紀錄請按上面的「全部」。" : state.range ? "" : "表單登錄後重新整理即可看到。"}</div></div>`; return; }
   const groups={}; for(const e of rows) (groups[e.date.slice(0,7)] ||= []).push(e);
   list.innerHTML = Object.entries(groups).map(([ym,evs])=>{
     const [y,m]=ym.split("-");
