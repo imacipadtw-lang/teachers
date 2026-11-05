@@ -299,7 +299,7 @@
   }
   function renderFoot() {
     const f = h('footer', { class: 'foot' }, h('span', { text: CFG.appName + '　版本 ' + APP_VERSION + '　資料存於 Google 試算表，開啟網頁即為最新。' }));
-    if (S.role === 'teacher') f.append(armed(h('button', { class: 'link' }), '解除本裝置的導師綁定', '再按一次確認解除（之後需向教務組索取新連結）', () => { lsSet(LS.teacher, null); S.token = null; S.screen = 'login'; S.gateMsg = '已解除綁定。'; render(); }, 4000));
+    if (S.role === 'teacher') f.append(armed(h('button', { class: 'link' }), '在此裝置登出', '再按一次確認登出（之後需請教務組解除才能重新登入）', () => { lsSet(LS.teacher, null); S.token = null; S.screen = 'login'; S.gateMsg = '已在此裝置登出。'; render(); }, 4000));
     else f.append(h('button', { class: 'link', onclick: () => { lsSet(LS.admin, null); S.key = null; S.screen = 'login'; S.gateMsg = ''; render(); } }, '登出'));
     return f;
   }
@@ -571,10 +571,10 @@
       h('button', { class: 'btn ghost', onclick: () => { S.draft = null; renderMain(); } }, '放棄修改'),
       h('span', { class: 'note', text: '上方各區塊修改後，按這裡一次儲存。' })));
 
-    /* 導師連結 */
-    const lp = h('div', { class: 'panel' }, h('h3', null, '導師專屬連結', h('small', { text: '導師第一次開啟連結的裝置會被綁定；之後直接開網頁即可，不需密碼，且只看得到自己的班級' })));
-    lp.append(h('div', { class: 'note', text: '一條連結只能綁定一台裝置。導師換手機、或想在電腦也使用時，按「新增裝置連結」再給一條；若裝置遺失，按「解除全部裝置」。連結請用 LINE 私訊個別傳給導師，不要貼在群組。' }));
-    classes().forEach(cls => lp.append(linkEditor(cls)));
+    /* 導師登入狀態 */
+    const lp = h('div', { class: 'panel' }, h('h3', null, '導師登入裝置', h('small', { text: '導師在登入頁選自己的班級，第一台登入的裝置即綁定；之後該班不能再從別的裝置登入' })));
+    lp.append(h('div', { class: 'note', text: '導師換手機、或誤用別人的手機登入時，在這裡「解除」後，導師再用新裝置選班級登入即可。' }));
+    classes().forEach(cls => lp.append(deviceEditor(cls)));
     box.append(lp);
 
     /* 系統 */
@@ -650,34 +650,15 @@
     });
     return out;
   }
-  function inviteUrl(invite) { const base = location.href.split('#')[0]; const api = CFG.apiUrl ? '' : '&api=' + encodeURIComponent(S.apiUrl); return base + '#invite=' + invite + api; }
-  function linkEditor(cls) {
-    const info = S.links[cls.id] || { invite: null, devices: [] };
-    const card = h('div', { class: 'classcard' });
-    const devs = h('div', { class: 'devices' });
-    if (info.devices && info.devices.length) info.devices.forEach(d => devs.append(h('span', { text: '已綁定：' + (d.label || '裝置') + '　' + fmtStamp(d.claimedAt) })));
-    else devs.append(h('span', { text: '尚未有裝置綁定' }));
-    card.append(h('div', { class: 'row between' }, h('div', null, h('b', { text: cls.name }), cls.teacher ? h('span', { class: 'note', text: '　導師 ' + cls.teacher }) : null, devs),
-      h('div', { class: 'row' },
-        h('button', { class: 'btn small ghost', onclick: async () => { await adminPost({ action: 'newInvite', classId: cls.id }, '已產生新的連結'); S.version = null; await load({ force: true }); renderMain(); } }, info.invite ? '重新產生連結' : '新增裝置連結'),
-        armed(h('button', { class: 'btn small danger' }), '解除全部裝置', '再按一次確認解除', async () => { await adminPost({ action: 'revokeDevices', classId: cls.id }, '已解除，並產生新連結'); S.version = null; await load({ force: true }); renderMain(); }))));
-    if (info.invite) {
-      const url = inviteUrl(info.invite);
-      const qrBox = h('div', { class: 'qr', hidden: true });
-      card.append(h('div', { class: 'note', text: '待綁定的連結（尚未被任何裝置開啟）：' }),
-        h('div', { class: 'urlbox', text: url }),
-        h('div', { class: 'row' },
-          h('button', { class: 'btn small', onclick: async () => toast((await copyText(url)) ? '已複製連結，請私訊給導師' : '無法自動複製，請選取上方文字') }, svg('copy'), '複製連結'),
-          h('button', { class: 'btn small ghost', onclick: () => { qrBox.hidden = !qrBox.hidden; if (!qrBox.hidden && !qrBox.firstChild) drawQR(qrBox, url); } }, 'QR Code（導師掃描）')),
-        qrBox);
-    }
-    return card;
-  }
-  function drawQR(el, text) {
-    const go = () => { try { el.replaceChildren(); new window.QRCode(el, { text, width: 180, height: 180, correctLevel: window.QRCode.CorrectLevel.M }); } catch (e) { el.textContent = '無法產生 QR Code，請改用複製連結。'; } };
-    if (window.QRCode) return go();
-    const s = h('script', { src: 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js', onload: go, onerror: () => { el.textContent = '無法載入 QR Code 元件，請改用複製連結。'; } });
-    document.head.append(s);
+  function deviceEditor(cls) {
+    const info = S.links[cls.id] || { devices: [] };
+    const dev = (info.devices || [])[0];
+    const status = dev
+      ? h('span', { class: 'tag ok', text: '已登入　' + (dev.label || '裝置') + '　' + fmtStamp(dev.claimedAt) })
+      : h('span', { class: 'tag', text: '尚未登入' });
+    return h('div', { class: 'classcard' }, h('div', { class: 'row between' },
+      h('div', { class: 'row' }, h('b', { text: cls.name }), cls.teacher ? h('span', { class: 'note', text: '導師 ' + cls.teacher }) : h('span', { class: 'note warn', text: '未填導師姓名' }), status),
+      dev ? armed(h('button', { class: 'btn small danger' }), '解除', '再按一次確認解除', async () => { await adminPost({ action: 'revokeDevices', classId: cls.id }, cls.name + ' 已解除，導師可重新登入'); S.version = null; await load({ force: true }); renderMain(); }) : null));
   }
   async function adminPost(body, okMsg) {
     setSync('busy');
@@ -706,7 +687,7 @@
     g.append(h('div', null, h('div', { class: 'org', style: 'font-size:12px;letter-spacing:.14em;color:var(--muted)', text: [CFG.schoolName, CFG.unitName].filter(Boolean).join('　') }), h('h1', { style: 'font-family:var(--f-display);font-size:26px;letter-spacing:.08em;margin:2px 0 0', text: CFG.appName })));
     const p = h('div', { class: 'panel' });
     g.append(p);
-    if (S.screen === 'boot' || S.screen === 'claiming') { p.append(h('h2', { text: S.screen === 'claiming' ? '正在綁定此裝置…' : '載入中…' }), h('p', { text: '正在連線到資料表，請稍候。' })); return g; }
+    if (S.screen === 'boot') { p.append(h('h2', { text: '載入中…' }), h('p', { text: '正在連線到資料表，請稍候。' })); return g; }
     if (S.screen === 'setup') {
       const inp = h('input', { type: 'url', placeholder: 'https://script.google.com/macros/s/…/exec', value: S.apiUrl || '' });
       p.append(h('h2', { text: '尚未連接資料表' }), h('p', { text: '請教務組依 README 完成 Apps Script 部署後，把「網頁應用程式網址」填入 config.js；也可以先在這裡貼上網址試用（只會記在這台裝置）。' }), inp,
@@ -714,30 +695,56 @@
       return g;
     }
     if (S.screen === 'login') {
-      const inp = h('input', { type: 'password', placeholder: '教務組密碼', autocomplete: 'current-password', onkeydown: e => { if (e.key === 'Enter') go(); } });
       const msg = h('p', { class: S.gateMsg ? 'note err' : 'note', text: S.gateMsg || '' });
+      const sel = h('select', { id: 'whoSel', 'aria-label': '我是', style: 'width:100%' }, h('option', { value: '', text: '載入班級中…' }));
+      sel.disabled = true;
       const go = async () => {
-        const k = inp.value.trim(); if (!k) return;
+        const cid = sel.value; if (!cid) return toast('請先選擇班級');
         btn.disabled = true; msg.textContent = '登入中…'; msg.className = 'note';
+        try {
+          const r = await apiGet({ action: 'claim', classId: cid, label: deviceLabel() });
+          if (!r.ok) {
+            msg.className = 'note err';
+            msg.textContent = r.error === 'claimed' ? '這個班級已經有其他裝置登入過了。若您換了手機，請教務組在「設定」中解除後再登入。' : '登入失敗：' + errText(r.error);
+            btn.disabled = false; return;
+          }
+          S.token = r.token; S.classId = r.classId; S.role = 'teacher'; lsSet(LS.teacher, { token: r.token, classId: r.classId });
+          S.welcomeClass = r.className || ''; S.screen = 'welcome'; render();
+        } catch (e) { msg.textContent = e.message; msg.className = 'note err'; btn.disabled = false; }
+      };
+      const btn = h('button', { class: 'btn primary block', onclick: go }, '登入');
+      p.append(h('h2', { text: '導師登入' }), h('p', { text: '請選擇自己的班級。第一次登入的手機或電腦會記住您，之後開啟網頁直接進入，不需要密碼。' }), sel, btn, msg);
+      apiGet({ action: 'classes' }).then(r => {
+        sel.replaceChildren(h('option', { value: '', text: '請選擇班級／導師' }));
+        if (!r.ok || !r.classes || !r.classes.length) { sel.append(h('option', { value: '', text: '尚未建立班級，請洽教務組' })); return; }
+        r.classes.forEach(c => sel.append(h('option', { value: c.id, text: c.name + (c.teacher ? '　' + c.teacher : '') + (c.claimed ? '（已登入）' : ''), disabled: !!c.claimed })));
+        sel.disabled = false;
+      }).catch(e => { sel.replaceChildren(h('option', { value: '', text: '無法載入班級' })); msg.textContent = e.message; msg.className = 'note err'; });
+      // 教務組
+      const ap = h('div', { class: 'panel' });
+      const inp = h('input', { type: 'password', placeholder: '教務組密碼', autocomplete: 'current-password', hidden: true, onkeydown: e => { if (e.key === 'Enter') goAdmin(); } });
+      const amsg = h('p', { class: 'note', text: '' });
+      const abtn = h('button', { class: 'btn ghost block', hidden: true, onclick: () => goAdmin() }, '以教務組身分登入');
+      const goAdmin = async () => {
+        const k = inp.value.trim(); if (!k) return;
+        abtn.disabled = true; amsg.textContent = '登入中…'; amsg.className = 'note';
         try {
           const r = await apiGet({ key: k });
           if (r.ok && r.role === 'admin') { S.key = k; S.role = 'admin'; lsSet(LS.admin, { key: k }); S.screen = 'app'; S.view = 'class'; S.gateMsg = ''; render(); startPolling(); await load({ force: true, full: true }); return; }
-          msg.textContent = r.error === 'auth' ? '密碼不正確。' : '登入失敗：' + errText(r.error); msg.className = 'note err';
-        } catch (e) { msg.textContent = e.message; msg.className = 'note err'; }
-        btn.disabled = false;
+          amsg.textContent = r.error === 'auth' ? '密碼不正確。' : '登入失敗：' + errText(r.error); amsg.className = 'note err';
+        } catch (e) { amsg.textContent = e.message; amsg.className = 'note err'; }
+        abtn.disabled = false;
       };
-      const btn = h('button', { class: 'btn primary block', onclick: go }, '登入');
-      p.append(h('h2', { text: '教務組登入' }), inp, btn, msg);
-      g.append(h('div', { class: 'panel' }, h('h2', { style: 'font-size:16px', text: '導師如何使用' }), h('p', { text: '請用教務組提供的「班級專屬連結」或 QR Code 開啟，第一次開啟的裝置會自動綁定，之後直接開啟網頁即可，不需要密碼。' })));
+      ap.append(h('button', { class: 'link', style: 'font-size:13px;align-self:flex-start', onclick: () => { inp.hidden = false; abtn.hidden = false; inp.focus(); } }, '教務組登入'), inp, abtn, amsg);
+      g.append(ap);
       return g;
     }
     if (S.screen === 'welcome') {
-      p.append(h('div', { class: 'welcome' }, h('p', { text: '此裝置已綁定為' }), h('div', { class: 'big', text: S.welcomeClass + ' 導師' }), h('p', { text: '之後直接開啟這個網頁即可，不需要再輸入任何密碼；建議在手機瀏覽器選擇「加入主畫面」，像 App 一樣使用。' })),
+      p.append(h('div', { class: 'welcome' }, h('p', { text: '此裝置已登入為' }), h('div', { class: 'big', text: S.welcomeClass + ' 導師' }), h('p', { text: '之後直接開啟這個網頁即可，不需要再選擇或輸入任何東西；建議在手機瀏覽器選擇「加入主畫面」，像 App 一樣使用。' })),
         h('button', { class: 'btn primary block', onclick: async () => { S.screen = 'app'; render(); startPolling(); await load({ force: true, full: true }); } }, '開始使用'));
       return g;
     }
-    if (S.screen === 'claim-failed') { p.append(h('h2', { text: '無法綁定' }), h('p', { text: S.gateMsg }), h('p', { text: '請聯絡教務組重新產生連結。' })); return g; }
-    if (S.screen === 'auth-lost') { p.append(h('h2', { text: '此裝置的授權已被取消' }), h('p', { text: '可能是教務組重新產生了連結，或解除了裝置綁定。請向教務組索取新的班級專屬連結。' })); return g; }
+    if (S.screen === 'auth-lost') { p.append(h('h2', { text: '此裝置的登入已被解除' }), h('p', { text: '教務組已解除此裝置的登入。請重新在登入頁選擇班級登入；若無法登入，請洽教務組。' }), h('button', { class: 'btn primary block', onclick: () => { S.screen = 'login'; S.gateMsg = ''; render(); } }, '回到登入頁')); return g; }
     if (S.screen === 'error') { p.append(h('h2', { text: '無法讀取資料表' }), h('p', { class: 'note err', text: S.gateMsg }), h('button', { class: 'btn primary block', onclick: boot }, '重試')); return g; }
     return g;
   }
@@ -747,19 +754,9 @@
     const hash = new URLSearchParams(location.hash.replace(/^#/, ''));
     S.apiUrl = (CFG.apiUrl || '').trim() || hash.get('api') || lsGet(LS.api) || '';
     if (hash.get('api') && !CFG.apiUrl) lsSet(LS.api, hash.get('api'));
-    const teacher = lsGet(LS.teacher), admin = lsGet(LS.admin), invite = hash.get('invite');
-    if (invite) history.replaceState(null, '', location.pathname + location.search);
+    const teacher = lsGet(LS.teacher), admin = lsGet(LS.admin);
     if (!S.apiUrl) { S.screen = 'setup'; render(); return; }
     S.screen = 'boot'; render();
-    if (invite && !(teacher && teacher.token)) {
-      S.screen = 'claiming'; render();
-      try {
-        const r = await apiGet({ action: 'claim', invite, label: deviceLabel() });
-        if (!r.ok) { S.screen = 'claim-failed'; S.gateMsg = r.error === 'claimed' ? '這條連結已經被另一台裝置使用。若您換了手機或想在第二台裝置使用，請請教務組「新增裝置連結」。' : '連結無效或已被重新產生。'; render(); return; }
-        S.token = r.token; S.classId = r.classId; S.role = 'teacher'; lsSet(LS.teacher, { token: r.token, classId: r.classId });
-        S.welcomeClass = r.className || ''; S.screen = 'welcome'; render(); return;
-      } catch (e) { S.screen = 'error'; S.gateMsg = e.message; render(); return; }
-    }
     if (teacher && teacher.token) { S.token = teacher.token; S.classId = teacher.classId; S.role = 'teacher'; S.screen = 'app'; render(); startPolling(); await load({ force: true, full: true }); return; }
     if (admin && admin.key) { S.key = admin.key; S.role = 'admin'; S.screen = 'app'; S.view = 'class'; render(); startPolling(); await load({ force: true, full: true }); return; }
     S.screen = 'login'; render();

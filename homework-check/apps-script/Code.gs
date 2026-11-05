@@ -4,7 +4,8 @@
  *
  * 角色
  * - 教務組：以「登記密碼」登入（存在「指令碼屬性」EDIT_KEY），看全校、登記、管理設定、產生導師連結。
- * - 導師：以教務組給的班級專屬連結開啟；第一台開啟的裝置被綁定（取得 token），之後免密碼，只看得到自己的班。
+ * - 導師：在登入頁的下拉選單選自己的班級；第一台登入的裝置被綁定（取得 token），之後免密碼，只看得到自己的班；
+ *   同一班其他裝置無法再登入，除非教務組在「設定」解除。
  *
  * 第一次使用：選擇函式「setup」按「執行」→ 授權 → 到「執行紀錄」看教務組密碼。
  */
@@ -58,6 +59,7 @@ function defaultConfig_() {
 /* ================= 讀取 ================= */
 function doGet(e) {
   var p = (e && e.parameter) || {};
+  if (p.action === 'classes') return classList_();
   if (p.action === 'claim') return claim_(p);
   var all = readAll_();
   var who = whoIs_(p, all);
@@ -85,7 +87,7 @@ function doGet(e) {
     var auth = all.auth || { classes: {} }; var links = {};
     Object.keys(auth.classes).forEach(function (cid) {
       var a = auth.classes[cid];
-      links[cid] = { invite: a.invite || null, devices: (a.devices || []).map(function (d) { return { label: d.label || '', claimedAt: d.claimedAt || '' }; }) };
+      links[cid] = { devices: (a.devices || []).map(function (d) { return { label: d.label || '', claimedAt: d.claimedAt || '' }; }) };
     });
     out.links = links;
   } else {
@@ -97,23 +99,33 @@ function doGet(e) {
   return json_(out);
 }
 
+// 登入頁下拉選單用：班級、導師姓名、是否已有裝置登入（不含名單）
+function classList_() {
+  var all = readAll_();
+  var auth = all.auth || { classes: {} };
+  var list = ((all.config || {}).classes || []).map(function (c) {
+    var a = auth.classes[c.id] || {};
+    return { id: c.id, name: c.name, teacher: c.teacher || '', claimed: !!(a.devices && a.devices.length) };
+  });
+  return json_({ ok: true, classes: list });
+}
+
+// 導師第一次登入：綁定此裝置；該班已有裝置登入則拒絕
 function claim_(p) {
-  var invite = String(p.invite || '').trim();
-  if (!invite) return json_({ ok: false, error: 'invalid' });
+  var cid = String(p.classId || '').trim();
+  if (!cid) return json_({ ok: false, error: 'invalid' });
   var lock = LockService.getScriptLock();
   if (!lock.tryLock(20000)) return json_({ ok: false, error: 'busy' });
   try {
     var all = readAll_();
-    var auth = all.auth || { classes: {} };
-    var cid = Object.keys(auth.classes).filter(function (k) { return auth.classes[k].invite === invite; })[0];
-    if (!cid) return json_({ ok: false, error: 'invalid' });
     var cls = ((all.config || {}).classes || []).filter(function (c) { return c.id === cid; })[0];
     if (!cls) return json_({ ok: false, error: 'invalid' });
-    var a = auth.classes[cid];
+    var auth = all.auth || { classes: {} };
+    var a = auth.classes[cid] || (auth.classes[cid] = { devices: [] });
+    if (a.devices && a.devices.length) return json_({ ok: false, error: 'claimed' });
     var token = Utilities.getUuid() + rand_(6);
-    a.devices = a.devices || [];
-    a.devices.push({ token: token, label: String(p.label || '').slice(0, 40), claimedAt: new Date().toISOString() });
-    a.invite = null; // 連結用過即失效
+    a.devices = [{ token: token, label: String(p.label || '').slice(0, 40), claimedAt: new Date().toISOString() }];
+    delete a.invite;
     put_('auth', auth);
     bump_();
     return json_({ ok: true, token: token, classId: cid, className: cls.name });
@@ -185,18 +197,10 @@ function doPost(e) {
         put_('rounds', rounds.filter(function (x) { return x.id !== body.rid; }));
         delPrefix_('checks:' + body.rid + ':');
         break;
-      case 'newInvite': {
-        if (!admin) return json_({ ok: false, error: 'auth' });
-        var auth = all.auth || { classes: {} };
-        var a = auth.classes[body.classId] || (auth.classes[body.classId] = { invite: null, devices: [] });
-        a.invite = rand_(12);
-        put_('auth', auth);
-        break;
-      }
       case 'revokeDevices': {
         if (!admin) return json_({ ok: false, error: 'auth' });
         var auth2 = all.auth || { classes: {} };
-        auth2.classes[body.classId] = { invite: rand_(12), devices: [] };
+        auth2.classes[body.classId] = { devices: [] };
         put_('auth', auth2);
         break;
       }
@@ -241,7 +245,7 @@ function ensureAuth_(config, auth) {
   auth = auth || { classes: {} };
   var next = { classes: {} };
   (config.classes || []).forEach(function (c) {
-    next.classes[c.id] = auth.classes[c.id] || { invite: rand_(12), devices: [] };
+    next.classes[c.id] = auth.classes[c.id] || { devices: [] };
   });
   put_('auth', next);
 }
