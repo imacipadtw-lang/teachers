@@ -2297,7 +2297,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.03";
+const APP_VERSION = "專業版 2026.11.05";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -3272,7 +3272,7 @@ function swapView(e){
 /* 一筆紀錄 → 三行字：p 時間/課程、w 誰代誰、f 錢 */
 function describe(e){
   const r = describe0(e);
-  if(r && e.nofee && e.type!=="swap") r.f = "這筆不計費（原因寫在下面）";
+  if(r && e.nofee && e.type!=="swap") r.f = e.live && e.exempt === "本土語直播共學" && !(e.flags||[]).length ? "本土語直播共學：另案經費，不算校內代課費" : "這筆不計費（原因寫在下面）";
   return r;
 }
 function describe0(e){
@@ -4157,6 +4157,12 @@ function termOf(kind, r){                    // 不在本學期的日期
   return bad;
 }
 /* 每節金額（和後端 rateOf_ 相同）：合班 RATE_COMB 元；代的是協同老師（課表上排第二位以後）的課 RATE_SUB 元 */
+/* 本土語直播共學（科目「本土語/客家語海陸腔」這種有斜線的，或含「直播」）：11/5 起代課可以登記，但屬另案經費，不算校內代課費（雲端會自動標不計費） */
+const LIVE_SUBJ_RE = /直播|^本土語\s*[\/／]/;
+function liveAt(date, period, cls, subject){
+  const x = state.meta && state.meta.tt && date && period && cls ? state.meta.tt[CF.dow(date)+"|"+String(period)+"|"+cls] : null;
+  return LIVE_SUBJ_RE.test(String(subject || (x && x.subject) || "").trim());
+}
 function rateFor(leaver, date, period, cls, subject, note){
   if(state.meta && (state.heli||[]).includes(leaver) && date && period){   // 代合理員額教師的課：領這位老師原本那一節（合班且只有他上 1.5 節，其餘 1 節）
     const sl = heliSlots(leaver).find(s => s.dow === CF.dow(date) && s.p === String(period));
@@ -4333,8 +4339,12 @@ function refreshPlan(){
     });
     const fee = $("#planFee"), home = U.leaver && state.meta.homeroom[U.leaver];
     if(fee){
-      const n = U.rows.length, rates = U.rows.map(r => rateFor(U.leaver, U.date, r.period, r.cls, r.subject, U.note)), comb = rates.filter(x => x !== RATE_SUB).length;
-      fee.innerHTML = `代課 <b>${n}</b> 節${comb ? `（其中合班 ${comb} 節，每節 ${RATE_COMB} 元）` : ` × ${RATE_SUB} 元`} ＝ <b>${rates.reduce((a,b)=>a+b,0).toLocaleString()} 元</b>（由各代課老師領）${U.tutor&&home?`；代導師 1 日 <b>${RATE_TUTOR} 元</b>（由代導師領）`:""}`;
+      const live = U.rows.map(r => liveAt(U.date, r.period, r.cls, r.subject)), nLive = live.filter(Boolean).length;
+      const n = U.rows.length, rates = U.rows.map((r, i) => live[i] ? 0 : rateFor(U.leaver, U.date, r.period, r.cls, r.subject, U.note)), comb = rates.filter(x => x && x !== RATE_SUB).length;
+      const tut = U.tutor&&home?`；代導師 1 日 <b>${RATE_TUTOR} 元</b>（由代導師領）`:"";
+      fee.innerHTML = nLive === n && n
+        ? `代課 <b>${n}</b> 節，都是本土語直播共學（另案經費），<b>不算校內代課費</b>${tut}`
+        : `代課 <b>${n}</b> 節${nLive ? `（其中 ${nLive} 節是本土語直播共學，另案經費不算；算代課費的 ${n - nLive} 節）` : ""}${comb ? `（其中合班 ${comb} 節，每節 ${RATE_COMB} 元）` : ` × ${RATE_SUB} 元`} ＝ <b>${rates.reduce((a,b)=>a+b,0).toLocaleString()} 元</b>（由各代課老師領）${tut}`;
     }
   }
   if(plan.kind==="absent") renderAbsInfo();
