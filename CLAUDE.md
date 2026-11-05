@@ -76,3 +76,6 @@
 - 每次推前端要更新 `APP_VERSION`（登入頁、頁尾顯示的版本日期）。
 - 數據儀表板只顯示，不可自行算金額；金額一律用 `tally()`／`feeOf()`。
 - 快速指令（Ctrl＋K）的功能清單在 `CMD_ACTIONS`；單鍵快捷鍵在輸入框內不作用。
+
+## 其他子專案
+- `homework-check/`：作業抽查紀錄（習作開關、考卷家長簽名印章、導師專屬連結綁定裝置）。同樣是 GitHub Pages 前端＋Google 試算表＋Apps Script，說明與安裝步驟見 `homework-check/README.md`。密碼、導師姓名、學生名單只存在試算表與指令碼屬性，不進倉庫。
