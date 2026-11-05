@@ -81,6 +81,11 @@
   }
 
   /* ---------- API ---------- */
+  // 連不上時分辨原因：手機有網路卻連不到，幾乎都是 Apps Script 部署的「誰可以存取」沒有選「所有人」，Google 會轉到登入頁而被瀏覽器擋下
+  function netErr() {
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) return '網路連不上，請確認網路後再試';
+    return '連不到資料表。請教務組確認 Apps Script 的部署：「誰可以存取」要選「所有人」，而且網址是「網頁應用程式網址」（結尾 /exec）；改完要「管理部署作業 → 編輯 → 新版本 → 部署」。';
+  }
   function authParams() { return S.role === 'admin' && S.key ? { key: S.key } : (S.token ? { token: S.token } : {}); }
   async function apiGet(params) {
     if (!S.apiUrl) throw new Error('尚未設定資料表網址');
@@ -89,7 +94,7 @@
     for (let i = 0; ; i++) {
       u.searchParams.set('_', Date.now());
       let r = null;
-      try { r = await fetch(u, { redirect: 'follow' }); } catch (e) { if (i >= 2) throw new Error('網路連不上，請確認網路後再試'); }
+      try { r = await fetch(u, { redirect: 'follow' }); } catch (e) { if (i >= 2) throw new Error(netErr()); }
       if (r && r.ok) return parseJson(r);
       if (r && !(r.status === 404 || r.status === 429 || r.status >= 500)) throw new Error('連不到資料表（' + r.status + '）');
       if (i >= 2) throw new Error('Google 暫時沒有回應，已自動重試 3 次，請稍後再試');
@@ -102,7 +107,7 @@
     for (let i = 0; ; i++) {
       let r = null;
       // 以純文字送 JSON：瀏覽器不做跨網域預檢，Apps Script 由 e.postData.contents 接收
-      try { r = await fetch(S.apiUrl, { method: 'POST', body: payload, headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }); } catch (e) { if (i >= 2) throw new Error('網路連不上'); }
+      try { r = await fetch(S.apiUrl, { method: 'POST', body: payload, headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }); } catch (e) { if (i >= 2) throw new Error(netErr()); }
       if (r && r.ok) return parseJson(r);
       if (r && !(r.status === 404 || r.status === 429 || r.status >= 500)) throw new Error('連不到資料表（' + r.status + '）');
       if (i >= 2) throw new Error('Google 暫時沒有回應');
