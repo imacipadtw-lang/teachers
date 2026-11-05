@@ -2297,7 +2297,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.05";
+const APP_VERSION = "專業版 2026.11.05b";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -3806,7 +3806,7 @@ const PAGES = [
 /* 每一頁裡的小書籤：按了直接捲到那一段（找不到或沒顯示的段落不列） */
 function subMarks(k){
   const L = {
-    hr:     [["上傳／貼上", "#hrBox .hrbox"], ["① 請假沒代課", "#hrBox .hrmis:not(.hrb)"], ["② 代課沒請假", "#hrBox .hrmis.hrb"], ["邊緣（不算）", "#hrBox .hredge"], ["對得起來的", "#hrBox .hrres > details:last-of-type"]],
+    hr:     [["上傳／貼上", "#hrBox .hrbox"], ["① 請假沒代課", "#hrBox .hrmis:not(.hrb)"], ["② 請假對照檢視遺漏", "#hrBox .hrmis.hrb"], ["邊緣（不算）", "#hrBox .hredge"], ["對得起來的", "#hrBox .hrres > details:last-of-type"]],
     check:  [["資料檢查", "#alerts .alerts"], ["已修正的資料", "#alerts .fixes"], ["老師回報", "#myReports > *"]],
     report: [["每月報表", "#monthly .monthly"], ["會計總覽", "#acctBox"], ["合理員額", "#monthly .heli-panel"], ["會計報表（即時）", "#monthly .live-box"], ["報帳前檢查・月結", "#checkBox"]],
     set:    [...document.querySelectorAll("#settings h4")].map((h, i) => { if(!h.id) h.id = "set-h-" + (i + 1); const t0 = [...h.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join("").trim() || h.textContent;
@@ -3884,7 +3884,7 @@ function tabBadges(){
   const chk = (state.audit || []).length, hr = state.hr ? state.hr.missing.length + state.hr.noHr.length : 0;
   const put = (k, html) => { const x = document.querySelector(`#pageTabs [data-pg="${k}"] .bd`); if(x) x.innerHTML = html; };
   put("check", chk ? `<span class="b warn" title="資料檢查 ${chk} 個問題">${chk}</span>` : "");
-  put("hr", hr ? `<span class="b" title="① 請假沒代課 ${state.hr.missing.length}、② 代課沒請假 ${state.hr.noHr.length}">${hr}</span>` : "");
+  put("hr", hr ? `<span class="b" title="① 請假沒代課 ${state.hr.missing.length}、② 請假對照檢視遺漏 ${state.hr.noHr.length}">${hr}</span>` : "");
 }
 window.addEventListener("popstate", () => { const k = location.hash.slice(1); if(PAGES.some(p => p.k === k) && k !== state.page) showPage(k, {noHash:true}); });
 
@@ -5353,7 +5353,7 @@ function renderHrBox(){
       + (state.hrSync && state.hrSync.warn && state.hrSync.warn.length ? `<div class="hrwarn" role="alert"><b>⚠ 剛才貼上／上傳的資料有問題，這幾筆沒有存、也沒有比對：</b><ul>${state.hrSync.warn.map(w => `<li>${esc(w)}</li>`).join("")}</ul>請到請假系統重新複製「完整的一頁」再貼上（不要貼在別的文字中間）。</div>` : "");
   const res = !R ? "" : `<div class="hrres">
       <p class="hint">${esc(R.at)} 比對：人事資料 ${R.leaves} 筆請假${R.cancels ? `（另有 ${R.cancels} 筆撤銷已扣掉）` : ""}，涵蓋 ${R.range[0] ? esc(md(R.range[0])) + "～" + esc(md(R.range[1])) : "—"}。只比「請假時段裡真的有課」的節次；調課不用請假，不列；合理員額老師不在人事差勤系統，不比。${R.warn.length ? "　⚠ " + esc(R.warn.join("；")) : ""}</p>
-      <div class="hrfilter" role="group" aria-label="只看哪一種">${[["all","全部",nA + nB],["miss","① 請假沒代課",nA],["nohr","② 代課沒請假",nB]].map(([k,t,n]) => `<button type="button" data-f="${k}" aria-pressed="${F===k}">${t}<span class="c">${n}</span></button>`).join("")}</div>
+      <div class="hrfilter" role="group" aria-label="只看哪一種">${[["all","全部",nA + nB],["miss","① 請假沒代課",nA],["nohr","② 請假對照檢視遺漏",nB]].map(([k,t,n]) => `<button type="button" data-f="${k}" aria-pressed="${F===k}">${t}<span class="c">${n}</span></button>`).join("")}</div>
       ${F !== "nohr" ? `<div class="hrmis"><h4>① 有請假、這節有課，但沒有代課也沒有調課<span class="n">${nA}</span></h4>
         <p class="hrlegend">可能還沒收到代課單（或代導師單）→ <b class="m">代課費可能漏發</b>。按「登記代課」會帶好老師、日期、假別、節次，選代課老師就能存。</p>
         ${missHtml || `<p class="none">✓ 沒有：請假的課都有代課或調課。</p>`}</div>` : ""}
