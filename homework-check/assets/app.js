@@ -718,13 +718,17 @@
         } catch (e) { msg.textContent = e.message; msg.className = 'note err'; btn.disabled = false; }
       };
       const btn = h('button', { class: 'btn primary block', onclick: go }, '登入');
-      p.append(h('h2', { text: '導師登入' }), h('p', { text: '請選擇自己的班級。第一次登入的手機或電腦會記住您，之後開啟網頁直接進入，不需要密碼。' }), sel, btn, msg);
+      p.append(h('h2', { text: '導師登入' }), h('p', { text: '請選擇自己的班級。只有第一次登入的那一台手機或電腦會被綁定，之後開啟網頁直接進入，不需要密碼。如果換了手機、或需要重新登入，請跟教務組聯繫。' }), sel, btn, msg);
       apiGet({ action: 'classes' }).then(r => {
         sel.replaceChildren(h('option', { value: '', text: '請選擇班級／導師' }));
         if (!r.ok || !r.classes || !r.classes.length) { sel.append(h('option', { value: '', text: '尚未建立班級，請洽教務組' })); return; }
         r.classes.forEach(c => sel.append(h('option', { value: c.id, text: c.name + (c.teacher ? '　' + c.teacher : '') + (c.claimed ? '（已登入）' : ''), disabled: !!c.claimed })));
         sel.disabled = false;
-      }).catch(e => { sel.replaceChildren(h('option', { value: '', text: '無法載入班級' })); msg.textContent = e.message; msg.className = 'note err'; });
+      }).catch(e => {                                   // 導師頁不顯示技術錯誤；原因（例如部署權限）只給教務組看
+        sel.replaceChildren(h('option', { value: '', text: '目前無法載入班級，請稍後再試' }));
+        msg.textContent = '目前連不到資料表。只有第一次登入的那一台手機或電腦會被綁定；如果需要重新登入，請跟教務組聯繫。'; msg.className = 'note';
+        S.gateErr = e.message;
+      });
       // 教務組
       const ap = h('div', { class: 'panel' });
       const inp = h('input', { type: 'password', placeholder: '教務組密碼', autocomplete: 'current-password', hidden: true, onkeydown: e => { if (e.key === 'Enter') goAdmin(); } });
@@ -740,7 +744,7 @@
         } catch (e) { amsg.textContent = e.message; amsg.className = 'note err'; }
         abtn.disabled = false;
       };
-      ap.append(h('button', { class: 'link', style: 'font-size:13px;align-self:flex-start', onclick: () => { inp.hidden = false; abtn.hidden = false; inp.focus(); } }, '教務組登入'), inp, abtn, amsg);
+      ap.append(h('button', { class: 'link', style: 'font-size:13px;align-self:flex-start', onclick: () => { inp.hidden = false; abtn.hidden = false; inp.focus(); if (S.gateErr) { amsg.textContent = '教務組請看：' + S.gateErr; amsg.className = 'note err'; } } }, '教務組登入'), inp, abtn, amsg);
       g.append(ap);
       return g;
     }
