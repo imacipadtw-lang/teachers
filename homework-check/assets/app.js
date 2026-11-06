@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.05';
+  const APP_VERSION = '2026.11.06';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
   const LS = { admin: 'hc.admin', teacher: 'hc.teacher', api: 'hc.api', cls: 'hc.class' };
   const GRADE = ['', '一', '二', '三', '四', '五', '六'];
@@ -12,7 +12,7 @@
 
   /* ---------- 狀態 ---------- */
   const S = {
-    apiUrl: '', role: null, key: null, token: null, classId: null,
+    apiUrl: '', sheetUrl: '', role: null, key: null, token: null, classId: null,
     config: null, rounds: [], rid: null, loadedRid: null, checks: {}, links: {}, version: null,
     lastSync: null, sync: 'busy', syncMsg: '',
     screen: 'boot', gateMsg: '', welcomeClass: '',
@@ -131,8 +131,8 @@
       const params = Object.assign({ rid: S.rid || '' }, authParams());
       if (!opts.force && S.version && S.loadedRid === S.rid) params.v = S.version;
       const r = await apiGet(params);
-      if (!r.ok) { if (r.error === 'auth') return authLost(); throw new Error('讀取失敗：' + (r.error || '')); }
-      S.version = r.version;
+      if (!r.ok) { if (r.error === 'auth') return authLost(); if (r.error === 'not_initialized') { S.screen = 'init'; render(); return; } throw new Error('讀取失敗：' + (r.error || '')); }
+      S.version = r.version; S.sheetUrl = r.sheetUrl || S.sheetUrl || '';
       if (r.unchanged) { S.lastSync = new Date(); setSync('ok'); return; }
       S.role = r.role; S.config = r.config || { items: [], classes: [] }; S.rounds = r.rounds || []; S.links = r.links || {};
       if (r.role === 'teacher') S.classId = r.classId;
@@ -588,7 +588,8 @@
       h('button', { class: 'btn ghost', onclick: openChangeKey }, '修改教務組密碼'),
       h('button', { class: 'btn ghost', onclick: async () => { if (!round()) return toast('尚未建立抽查次別'); await adminPost({ action: 'snapshot', rid: S.rid }, '已在試算表建立本次抽查的「總表」分頁'); } }, '將本次抽查寫入試算表總表'),
       h('button', { class: 'btn ghost', onclick: () => exportCSV(classes()) }, svg('down'), '匯出全校 CSV')));
-    sp.append(h('div', { class: 'note', text: '資料表網址：' + S.apiUrl }));
+    if (S.sheetUrl) sp.append(h('div', { class: 'note' }, '資料存放在 Google 試算表：', h('a', { href: S.sheetUrl, target: '_blank', rel: 'noopener', text: '開啟試算表' }), '（請勿改動 data 分頁）'));
+    sp.append(h('div', { class: 'note', text: '後端網址：' + S.apiUrl }));
     box.append(sp);
     return box;
   }
@@ -721,6 +722,7 @@
       p.append(h('h2', { text: '導師登入' }), h('p', { text: '請選擇自己的班級。只有第一次登入的那一台手機或電腦會被綁定，之後開啟網頁直接進入，不需要密碼。如果換了手機、或需要重新登入，請跟教務組聯繫。' }), sel, btn, msg);
       apiGet({ action: 'classes' }).then(r => {
         sel.replaceChildren(h('option', { value: '', text: '請選擇班級／導師' }));
+        if (!r.ok && r.error === 'not_initialized') { S.screen = 'init'; render(); return; }
         if (!r.ok || !r.classes || !r.classes.length) { sel.append(h('option', { value: '', text: '尚未建立班級，請洽教務組' })); return; }
         r.classes.forEach(c => sel.append(h('option', { value: c.id, text: c.name + (c.teacher ? '　' + c.teacher : '') + (c.claimed ? '（已登入）' : ''), disabled: !!c.claimed })));
         sel.disabled = false;
@@ -746,6 +748,24 @@
       };
       ap.append(h('button', { class: 'link', style: 'font-size:13px;align-self:flex-start', onclick: () => { inp.hidden = false; abtn.hidden = false; inp.focus(); if (S.gateErr) { amsg.textContent = '教務組請看：' + S.gateErr; amsg.className = 'note err'; } } }, '教務組登入'), inp, abtn, amsg);
       g.append(ap);
+      return g;
+    }
+    if (S.screen === 'init') {
+      const a = h('input', { type: 'password', placeholder: '設定教務組密碼（至少 6 個字）', autocomplete: 'new-password' });
+      const b = h('input', { type: 'password', placeholder: '再輸入一次', autocomplete: 'new-password', onkeydown: e => { if (e.key === 'Enter') go(); } });
+      const msg = h('p', { class: 'note', text: '' });
+      const go = async () => {
+        if (a.value.length < 6) return toast('密碼至少 6 個字'); if (a.value !== b.value) return toast('兩次輸入不一致');
+        btn.disabled = true; msg.textContent = '正在建立資料表，約需 10 秒…'; msg.className = 'note';
+        try {
+          const r = await apiPost({ action: 'init', newKey: a.value });
+          if (!r.ok) { msg.className = 'note err'; msg.textContent = r.error === 'already_initialized' ? '已經設定過了，請直接以教務組密碼登入。' : '設定失敗：' + errText(r.error); btn.disabled = false; if (r.error === 'already_initialized') setTimeout(() => { S.screen = 'login'; render(); }, 1500); return; }
+          S.key = a.value; S.role = 'admin'; lsSet(LS.admin, { key: a.value }); S.screen = 'app'; S.view = 'settings'; S.gateMsg = ''; render(); startPolling(); await load({ force: true, full: true });
+          toast('設定完成。請先填導師姓名與學生名單。', 4000);
+        } catch (e) { msg.textContent = e.message; msg.className = 'note err'; btn.disabled = false; }
+      };
+      const btn = h('button', { class: 'btn primary block', onclick: go }, '完成設定');
+      p.append(h('h2', { text: '第一次使用' }), h('p', { text: '資料表已連接。請為教務組設定一組登入密碼，之後用它登入管理全校資料；導師不需要密碼。' }), a, b, btn, msg);
       return g;
     }
     if (S.screen === 'welcome') {

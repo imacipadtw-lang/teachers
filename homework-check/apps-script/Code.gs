@@ -1,13 +1,14 @@
 /**
  * 作業抽查紀錄 — Google 試算表後端（Apps Script）
- * 綁定在一張 Google 試算表上，資料全部存在「data」分頁；安裝步驟見同資料夾 README.md。
+ * 第一次執行時會自動在雲端硬碟建立試算表「作業抽查_資料表」，資料全部存在它的「data」分頁；安裝步驟見同資料夾 README.md。
  *
  * 角色
  * - 教務組：以「登記密碼」登入（存在「指令碼屬性」EDIT_KEY），看全校、登記、管理設定、產生導師連結。
  * - 導師：在登入頁的下拉選單選自己的班級；第一台登入的裝置被綁定（取得 token），之後免密碼，只看得到自己的班；
  *   同一班其他裝置無法再登入，除非教務組在「設定」解除。
  *
- * 第一次使用：選擇函式「setup」按「執行」→ 授權 → 到「執行紀錄」看教務組密碼。
+ * 第一次使用：部署成網頁應用程式（執行身分：我；誰可以存取：所有人），把網址填進網站 config.js，
+ * 打開網站依畫面設定教務組密碼即完成。（也可以在編輯器執行 setup，密碼會印在執行紀錄。）
  */
 
 var SHEET_NAME = 'data';
@@ -17,6 +18,10 @@ var MAX_CELL = 49000; // 試算表單格上限 50,000 字
 function setup() {
   var props = PropertiesService.getScriptProperties();
   if (!props.getProperty('EDIT_KEY')) props.setProperty('EDIT_KEY', rand_(8));
+  setupData_();
+  Logger.log('教務組密碼：' + props.getProperty('EDIT_KEY') + '\n（可在網站「設定 → 系統 → 修改教務組密碼」更改，或執行 resetKey 重設）\n資料表：' + ss_().getUrl());
+}
+function setupData_() {
   sheet_();
   var all = readAll_();
   if (!all.config) put_('config', defaultConfig_());
@@ -26,8 +31,8 @@ function setup() {
   }
   ensureAuth_(all.config || defaultConfig_(), all.auth);
   bump_();
-  Logger.log('教務組密碼：' + props.getProperty('EDIT_KEY') + '\n（可在網站「設定 → 系統 → 修改教務組密碼」更改，或執行 resetKey 重設）');
 }
+function initialized_() { return !!PropertiesService.getScriptProperties().getProperty('EDIT_KEY'); }
 function showKey() { Logger.log('教務組密碼：' + PropertiesService.getScriptProperties().getProperty('EDIT_KEY')); }
 function resetKey() { var k = rand_(8); PropertiesService.getScriptProperties().setProperty('EDIT_KEY', k); Logger.log('新的教務組密碼：' + k); }
 
@@ -59,6 +64,7 @@ function defaultConfig_() {
 /* ================= 讀取 ================= */
 function doGet(e) {
   var p = (e && e.parameter) || {};
+  if (!initialized_()) return json_({ ok: false, error: 'not_initialized' });
   if (p.action === 'classes') return classList_();
   if (p.action === 'claim') return claim_(p);
   var all = readAll_();
@@ -90,6 +96,7 @@ function doGet(e) {
       links[cid] = { devices: (a.devices || []).map(function (d) { return { label: d.label || '', claimedAt: d.claimedAt || '' }; }) };
     });
     out.links = links;
+    try { out.sheetUrl = ss_().getUrl(); } catch (err) { out.sheetUrl = ''; }
   } else {
     var mine = config.classes.filter(function (c) { return c.id === who.classId; });
     if (!mine.length) return json_({ ok: false, error: 'auth' });
@@ -139,6 +146,16 @@ function doPost(e) {
   var lock = LockService.getScriptLock();
   if (!lock.tryLock(20000)) return json_({ ok: false, error: 'busy' });
   try {
+    if (body.action === 'init') {
+      // 第一次使用：設定教務組密碼並建立資料表；只能做一次
+      if (initialized_()) return json_({ ok: false, error: 'already_initialized' });
+      var k0 = String(body.newKey || '');
+      if (k0.length < 6) return json_({ ok: false, error: 'weak_key' });
+      PropertiesService.getScriptProperties().setProperty('EDIT_KEY', k0);
+      setupData_();
+      return json_({ ok: true, version: version_() });
+    }
+    if (!initialized_()) return json_({ ok: false, error: 'not_initialized' });
     var all = readAll_();
     var who = whoIs_(body, all);
     if (!who) return json_({ ok: false, error: 'auth' });
@@ -276,7 +293,7 @@ function sanitizeRound_(r) {
 
 /* ================= 可閱讀的總表分頁 ================= */
 function writeSummary_(round, config, all) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = ss_();
   var name = ('總表 ' + round.name).replace(/[\[\]\*\?\/\\:]/g, ' ').slice(0, 95);
   var sh = ss.getSheetByName(name) || ss.insertSheet(name);
   sh.clear();
@@ -317,8 +334,19 @@ function writeSummary_(round, config, all) {
 }
 
 /* ================= 試算表存取 ================= */
+// 取得資料表：優先用指令碼屬性記住的試算表；沒有就用綁定的試算表；都沒有就自動建立一張
+function ss_() {
+  var props = PropertiesService.getScriptProperties();
+  var id = props.getProperty('SHEET_ID');
+  if (id) { try { return SpreadsheetApp.openById(id); } catch (err) { } }
+  var ss = null;
+  try { ss = SpreadsheetApp.getActiveSpreadsheet(); } catch (err) { }
+  if (!ss) ss = SpreadsheetApp.create('作業抽查_資料表');
+  props.setProperty('SHEET_ID', ss.getId());
+  return ss;
+}
 function sheet_() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var ss = ss_();
   var sh = ss.getSheetByName(SHEET_NAME);
   if (!sh) {
     sh = ss.insertSheet(SHEET_NAME, 0);
