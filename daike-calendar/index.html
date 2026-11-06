@@ -703,7 +703,9 @@ main{container-type:inline-size}
 .line-ok ul{margin:8px 0 0;padding-left:18px;color:var(--ink-2);font-size:14px}
 .line-err{color:var(--rose);font-size:14px;margin-top:8px}
 .line-list{margin-top:16px;padding-top:12px;border-top:1px solid var(--line-2);font-size:14px}
-.line-list .no{color:var(--amber)}
+.line-list .no{color:var(--amber)} .line-list .ok{color:var(--c-tutor,#1a9c6b);font-weight:700}
+.line-tbl{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px} .line-tbl td{padding:6px 4px;border-bottom:1px solid var(--line-2);vertical-align:middle} .line-tbl td.act{text-align:right;white-space:nowrap}
+.line-teach{margin:10px 0;padding:12px 14px;border-radius:12px;background:var(--navy,#0e1d31);color:#fff} .line-teach .hint,.line-teach .line-wait{color:#cdd8e6}
 .line-qr{display:block;background:#fff;padding:8px;border-radius:12px;margin:4px 0 2px;box-shadow:0 0 0 1px var(--line),0 8px 24px rgba(0,0,0,.25)}
 .only-desk{display:none!important}
 @media (hover:hover) and (pointer:fine){ img.only-desk{display:block!important} span.only-desk{display:inline!important} .only-touch{display:none!important} }
@@ -1379,7 +1381,7 @@ html[data-theme=dark] .calmode button[aria-pressed=true]{background:var(--sky-de
 <div class="modal" id="lineModal" hidden>
   <div class="modal-card line-card" role="dialog" aria-modal="true" aria-labelledby="lineTitle">
     <h2 id="lineTitle">LINE 通知</h2>
-    <p class="sub">LINE 會簡單提醒您今天有哪些調代課，每週一提醒這一週的行程；當天有新增或取消，也會再通知一次。</p>
+    <p class="sub">每天早上 7:30：教務組收到全校當天的調代課、每週一收到本週預告；老師收到「今天＋本週接下來」自己的調代課（只傳有課務的老師）。當天有新增或取消也會再通知。老師隨時可以在 LINE 打「今天」「明天」「一週」查詢。</p>
     <div id="lineBody" aria-live="polite"></div>
     <div class="modal-actions"><button class="btn ghost" type="button" id="lineClose">關閉</button></div>
   </div>
@@ -2297,7 +2299,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.06";
+const APP_VERSION = "專業版 2026.11.06b";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -2504,7 +2506,7 @@ async function resume(){ const c = store.get("cred"); if(!c) return;
   busy(false); }
 
 /* ---------- LINE 通知：取得綁定碼 → 傳給官方帳號 → 自動顯示綁定成功 ---------- */
-const lineUI = { timer:null, until:0, code:"", err:"", list:null };
+const lineUI = { timer:null, until:0, code:"", err:"", list:null, teach:null };
 function lineStop(){ clearInterval(lineUI.timer); lineUI.timer=null; }
 async function openLine(){
   $("#lineModal").hidden = false; lineUI.err = ""; lineUI.code = "";
@@ -2525,7 +2527,7 @@ function renderLine(loading){
   if(!L.on){ h = `<p>教務組還在設定 LINE 通知，請過幾天再來看看。</p>`; }
   else if(L.bound){
     h = `<div class="line-ok"><strong>✅ 已綁定</strong>LINE：${esc(L.dn||"（未顯示名稱）")}${L.at?`，${esc(L.at)} 綁定`:""}
-      <ul><li>當天有調代課會簡單提醒您；每週一提醒這一週的行程</li><li>在 LINE 點「今天」「一週」「一個月」，或打日期（例如 11/2）隨時查詢</li></ul></div>
+      <ul><li>每天早上 7:30 提醒您當天全校的調代課；每週一提醒這一週的行程</li><li>在 LINE 點「今天」「一週」「一個月」，或打日期（例如 11/2）隨時查詢</li></ul></div>
       <p style="margin-top:12px"><button class="btn ghost small" type="button" id="lineUnbind">解除綁定（不再收到通知）</button></p>`;
   } else {
     const left = Math.max(0, Math.round((lineUI.until - Date.now())/1000));
@@ -2544,12 +2546,23 @@ function renderLine(loading){
     </ol>`;
   }
   if(lineUI.err) h += `<p class="line-err">${esc(lineUI.err)}</p>`;
-  if(lineUI.list && state.role==="admin"){
-    const yes = lineUI.list.filter(x=>x.bound), no = lineUI.list.filter(x=>!x.bound);
+  if(lineUI.list && state.role==="admin"){                      // 11/6：教務組替每位老師產生綁定碼（老師不用登入網站）、替老師解除
+    const yes = lineUI.list.filter(x=>x.bound), no = lineUI.list.filter(x=>!x.bound), T = lineUI.teach || {};
+    const left = T.until ? Math.max(0, Math.round((T.until - Date.now())/1000)) : 0;
     h += `<div class="line-list"><b>老師綁定情形：${yes.length} / ${lineUI.list.length} 位</b>
-      ${no.length?`<p class="no">還沒綁定：${no.map(x=>esc(x.name)).join("、")}</p>`:`<p>全部都綁定了 🎉</p>`}</div>`;
+      <p class="hint">老師不用登入網站：按老師名字旁的「產生綁定碼」，把 6 個數字和加好友的方法轉給老師（LINE、口頭都可以）；老師加官方帳號 <b style="display:inline">${esc(L.id||"")}</b> 好友後把號碼傳過去，就綁定完成。號碼 10 分鐘內有效、只能用一次。</p>
+      ${T.name && T.code && left > 0 ? `<div class="line-teach"><b>${esc(T.name)} 老師的綁定碼</b><div class="line-code">${esc(fmtCode(T.code))}</div>
+        <p class="line-wait">還有 ${Math.floor(left/60)}:${String(left%60).padStart(2,"0")} 有效・老師傳出去後，下面的名單會自動變成「已綁定」</p>
+        <button class="btn line small" type="button" id="lineTeachCopy">複製要給老師的說明（含號碼）</button></div>` : ""}
+      <table class="line-tbl"><tbody>${lineUI.list.filter(x=>x.name!==state.cred.name).map(x=>`<tr><td>${esc(x.name)}</td><td>${x.bound?`<span class="ok">已綁定</span>${x.at?`<span class="hint">　${esc(x.at)}</span>`:""}`:`<span class="no">還沒綁定</span>`}</td>
+        <td class="act">${x.bound?`<button class="btn ghost small" type="button" data-unbind="${esc(x.name)}">解除（換手機用）</button>`:`<button class="btn ghost small" type="button" data-code="${esc(x.name)}">產生綁定碼</button>`}</td></tr>`).join("")}</tbody></table></div>`;
   }
   box.innerHTML = h;
+  box.querySelectorAll("[data-code]").forEach(b => b.onclick = () => lineTeachCode(b.dataset.code));
+  box.querySelectorAll("[data-unbind]").forEach(b => b.onclick = () => { if(confirm(`要解除 ${b.dataset.unbind} 老師的 LINE 綁定嗎？解除後要重新產生綁定碼才會再收到通知。`)) lineUnbind(b.dataset.unbind); });
+  const tc = $("#lineTeachCopy"); if(tc) tc.onclick = async ()=>{ const T = lineUI.teach, L2 = state.line || {};
+    const msg = `${T.name} 老師好，這是「代課・調課 LINE 提醒」的綁定方法（只要做一次）：\n1. 加官方帳號好友：${L2.addUrl||""}（或在 LINE 搜尋 ID ${L2.id||""}）\n2. 在聊天室打這 6 個數字送出：${T.code}（10 分鐘內有效）\n3. 看到「綁定成功」就完成了。之後每天早上 7:30 會提醒您當天和本週的調代課，打「今天」「明天」也可以隨時查。`;
+    try{ await navigator.clipboard.writeText(msg); toast("已複製，貼給老師就可以"); }catch(e){ toast("請手動抄下號碼 " + T.code); } };
   const g = $("#lineGetCode"); if(g) g.onclick = lineGetCode;
   const u = $("#lineUnbind"); if(u) u.onclick = lineUnbind;
   const c = $("#lineCopy"); if(c) c.onclick = async ()=>{ try{ await navigator.clipboard.writeText(lineUI.code); toast("已複製，到 LINE 貼上送出"); }catch(e){ toast("請手動輸入這 6 個數字"); } };
@@ -2573,11 +2586,30 @@ async function lineGetCode(){
   }catch(ex){ lineUI.err = ex.message; }
   finally{ busy(false); renderLine(); }
 }
-async function lineUnbind(){
+async function lineUnbind(forName){
   busy(true);
-  try{ const d = await apiPost({action:"lineUnbind", name:state.cred.name, h:state.cred.h});
-    if(!d.ok) throw new Error(d.error || "解除失敗"); state.line = d.line; toast("已解除綁定"); }
+  try{ const d = await apiPost({action:"lineUnbind", name:state.cred.name, h:state.cred.h, forName: forName || ""});
+    if(!d.ok) throw new Error(d.error || "解除失敗"); state.line = d.line; if(d.list) lineUI.list = d.list; toast(forName ? `已解除 ${forName} 老師的綁定` : "已解除綁定"); }
   catch(ex){ lineUI.err = ex.message; }
+  finally{ busy(false); renderLine(); }
+}
+/* 教務組替老師產生綁定碼（11/6）：拿到號碼後每幾秒問一次名單，老師傳出去就會看到「已綁定」 */
+async function lineTeachCode(forName){
+  lineUI.err = ""; busy(true);
+  try{
+    const d = await apiPost({action:"lineCode", name:state.cred.name, h:state.cred.h, forName});
+    if(!d.ok) throw new Error(d.error || "取不到綁定碼");
+    lineUI.teach = { name: forName, code: d.code, until: Date.now() + (d.minutes||10)*60000 };
+    lineStop();
+    let n = 0;
+    lineUI.timer = setInterval(async ()=>{
+      if($("#lineModal").hidden || !lineUI.teach || Date.now() > lineUI.teach.until){ lineStop(); lineUI.teach = null; renderLine(); return; }
+      renderLine();
+      if(++n % (n <= 120 ? 4 : 10)) return;
+      try{ const s = await apiPost({action:"lineStatus", name:state.cred.name, h:state.cred.h});
+        if(s.ok && s.list){ lineUI.list = s.list; const me = s.list.find(x=>x.name===lineUI.teach.name); if(me && me.bound){ toast(`${lineUI.teach.name} 老師綁定成功！`); lineStop(); lineUI.teach = null; renderLine(); } } }catch(e){}
+    }, 1000);
+  }catch(ex){ lineUI.err = ex.message; }
   finally{ busy(false); renderLine(); }
 }
 $("#openLine").onclick = openLine; $("#openLine2").onclick = openLine;
