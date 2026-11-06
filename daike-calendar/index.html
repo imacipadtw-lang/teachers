@@ -476,9 +476,9 @@ main{container-type:inline-size}
   .d .n{text-align:left}
   .d .offl,.d .mk{text-align:left}
   .d.today .n::after{display:inline;margin-left:6px}
-  .d .cell-ev{display:flex;gap:3px;align-items:baseline;font-size:11px;line-height:1.28;padding:0;white-space:nowrap;overflow:hidden;min-width:0;flex-shrink:0}   /* 10/31：字小一點、全部列出（不可被擠扁） */   /* 10/31：不可被擠扁（矮螢幕時字會被切半、重疊） */
+  .d .cell-ev{display:flex;gap:3px;align-items:baseline;font-size:11px;line-height:1.28;padding:0;white-space:normal;overflow:hidden;min-width:0;flex-shrink:0}   /* 10/31：字小一點、全部列出（不可被擠扁）；11/6：名字不截斷，放不下就換行 */
   .d .cell-ev .cp{flex:0 0 auto;min-width:15px;font-family:var(--digits);font-weight:800;color:var(--sky-deep);font-size:10.5px}
-  .d .cell-ev .cw{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;font-weight:600}
+  .d .cell-ev .cw{flex:1 1 auto;min-width:0;overflow:visible;white-space:normal;word-break:break-all;font-weight:600}
   .d .cell-ev.flag .cw{color:var(--rose)}
   .d .cell-ev.more{color:var(--ink-3);font-weight:600}
   .days{gap:3px}
@@ -2297,7 +2297,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.05b";
+const APP_VERSION = "專業版 2026.11.06";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
