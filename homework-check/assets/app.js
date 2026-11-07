@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.06';
+  const APP_VERSION = '2026.11.07';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
   const LS = { admin: 'hc.admin', teacher: 'hc.teacher', api: 'hc.api', cls: 'hc.class' };
   const GRADE = ['', '一', '二', '三', '四', '五', '六'];
@@ -324,44 +324,30 @@
       cls = cl.find(c => c.id === S.classId) || cl[0];
     }
     const r = round(); const items = itemsFor(cls, r); const studs = (cls.students || []).slice().sort((a, b) => a.no - b.no); const n = studs.length;
-    const prog = classProgress(cls, r); const pct = prog.total ? Math.round(prog.got / prog.total * 100) : 0;
     const ed = canEditClass(cls.id);
+    const admin = S.role === 'admin';
     const d = S.checks[cls.id];
 
     const sub = h('div', { class: 'sub' }, h('span', { text: '全班 ' + n + ' 人' }));
     if (cls.teacher) sub.prepend(h('span', { text: '導師 ' + cls.teacher }));
-    if (d && d.updatedAt) sub.append(h('span', { text: '最後登記 ' + fmtStamp(d.updatedAt) + (d.updatedBy ? '（' + d.updatedBy + '）' : '') }));
-    const actions = h('div', { class: 'row' },
-      h('button', { class: 'btn ghost small', onclick: () => openMissing([cls]) }, svg('list'), '未交名單'),
-      h('button', { class: 'btn ghost small', onclick: () => exportCSV(S.role === 'admin' ? classes() : [cls]) }, svg('down'), 'CSV'),
+    if (admin && d && d.updatedAt) sub.append(h('span', { text: '最後登記 ' + fmtStamp(d.updatedAt) + (d.updatedBy ? '（' + d.updatedBy + '）' : '') }));
+    const actions = h('div', { class: 'row' }, h('button', { class: 'btn ghost small', onclick: () => openMissing([cls]) }, svg('list'), '未交名單'));
+    if (admin) actions.append(
+      h('button', { class: 'btn ghost small', onclick: () => exportCSV(classes()) }, svg('down'), 'CSV'),
       h('button', { class: 'btn ghost small', onclick: () => window.print() }, svg('print'), '列印'));
-    box.append(h('div', { class: 'classhead' },
-      h('div', { class: 'row' }, ring(pct), h('div', null, h('h2', { text: cls.name }), sub)),
-      actions));
+    const headLeft = h('div', { class: 'row' });
+    if (admin) { const prog = classProgress(cls, r); headLeft.append(ring(prog.total ? Math.round(prog.got / prog.total * 100) : 0)); }
+    headLeft.append(h('div', null, h('h2', { text: cls.name }), sub));
+    box.append(h('div', { class: 'classhead' }, headLeft, actions));
     box.append(h('div', { class: 'print-meta', text: (CFG.schoolName || '') + '　' + (r ? r.name : '') + '　' + cls.name + '　列印時間 ' + new Date().toLocaleString('zh-TW') }));
 
-    if (!items.length) { box.append(h('div', { class: 'empty', text: '這次抽查沒有適用於本班的項目。' + (S.role === 'admin' ? '請到「設定」檢查本次抽查項目與本班的習作項目。' : '') })); return box; }
-    if (!n) { box.append(h('div', { class: 'empty', text: S.role === 'admin' ? '這個班級還沒有學生名單，請到「設定」貼上名單。' : '這個班級還沒有學生名單，請洽教務組。' })); return box; }
+    if (!items.length) { box.append(h('div', { class: 'empty', text: '這次抽查沒有適用於本班的項目。' + (admin ? '請到「設定」檢查本次抽查項目與本班的習作項目。' : '') })); return box; }
+    if (!n) { box.append(h('div', { class: 'empty', text: admin ? '這個班級還沒有學生名單，請到「設定」貼上名單。' : '這個班級還沒有學生名單，請洽教務組。' })); return box; }
 
-    // 項目卡：名稱、科任、進度；可點開快速收件
-    box.append(h('div', { class: 'items' }, items.map(it => {
-      const c = countItem(cls, it); const p = n ? Math.round(c / n * 100) : 0;
-      const who = (cls.subjectTeachers || {})[it.id];
-      const card = h(ed ? 'button' : 'div', { class: 'item' + (it.kind === 'exam' ? ' exam' : '') + (c === n ? ' done' : ''), type: ed ? 'button' : null, onclick: ed ? () => openQuick(cls, it) : null },
-        h('div', { class: 'nm' }, h('span', { text: it.name }), h('b', { text: c + '/' + n })),
-        h('div', { class: 'who', text: who ? (it.kind === 'exam' ? who : '科任 ' + who) : (it.kind === 'exam' ? '家長簽名後繳回' : '') }),
-        h('div', { class: 'bar' + (it.kind === 'exam' ? ' exam' : '') }, h('i', { style: 'width:' + p + '%' })));
-      if (ed) card.append(h('div', { class: 'act', text: it.kind === 'exam' ? '逐號登記繳回 ›' : '快速收件 ›' }));
-      return card;
-    })));
     if (!ed) box.append(h('div', { class: 'banner info', text: r && r.locked && S.role === 'teacher' ? '本次抽查已結案，紀錄僅供查看；如需更正請洽教務組。' : '目前為查看模式。' }));
+    else box.append(h('div', { class: 'note', text: '收到該生的習作或家長簽名考卷，就點一下對應的格子；再點一次可取消。畫面會自動儲存。' }));
 
-    box.append(h('div', { class: 'legend' },
-      h('span', null, h('i', { style: 'background:var(--accent)' }), '習作已交'),
-      h('span', null, h('i', { style: 'background:var(--seal)' }), '考卷（家長已簽名）已繳回'),
-      h('span', null, h('i', { style: 'background:var(--off)' }), '尚未繳交')));
-
-    box.append(S.narrow ? renderCards(cls, items, studs, ed) : renderTable(cls, items, studs, ed));
+    box.append(renderTable(cls, items, studs, ed, admin));
     return box;
   }
   function ring(pct) {
@@ -373,35 +359,35 @@
   }
   function toggleBtn(cls, s, it, ed) {
     const on = isOn(cls.id, s.no, it.id);
-    const key = markKey(S.rid, cls.id, s.no, it.id);
-    const b = h('button', { type: 'button', class: it.kind === 'exam' ? 'seal' + (S.justStamped === key ? ' pop' : '') : 'sw', role: 'switch', 'aria-checked': String(on), 'aria-label': s.no + '號 ' + (s.name || '') + ' ' + it.name + (on ? '（已交）' : '（未交）'), title: it.name, disabled: !ed,
-      onclick: () => { const nv = !isOn(cls.id, s.no, it.id); S.justStamped = (it.kind === 'exam' && nv) ? key : null; setMark(cls.id, s.no, it.id, nv); } });
-    if (it.kind === 'exam') b.textContent = '簽';
-    return b;
+    return h('button', { type: 'button', class: 'chk' + (it.kind === 'exam' ? ' exam' : ''), role: 'switch', 'aria-checked': String(on), 'aria-label': s.no + '號 ' + (s.name || '') + ' ' + it.name + (on ? (it.kind === 'exam' ? '（已繳回）' : '（已交）') : '（未交）'), title: it.name, disabled: !ed,
+      onclick: () => setMark(cls.id, s.no, it.id, !isOn(cls.id, s.no, it.id)) });
   }
-  function renderTable(cls, items, studs, ed) {
+  // 一張表：列＝學生，欄＝各科習作＋考卷簽回；教務組多看到每欄人數與「收件」快捷
+  function renderTable(cls, items, studs, ed, admin) {
     const n = studs.length;
-    const thead = h('tr', null, h('th', { text: '座號' }), h('th', { style: 'text-align:left', text: '姓名' }),
-      items.map(it => { const c = countItem(cls, it); const th = h('th', { class: it.kind === 'exam' ? 'exam' : null }, h('div', { text: it.short || it.name }), h('span', { class: 'cnt', text: c + '/' + n })); if (ed) th.append(h('button', { class: 'link', onclick: () => openQuick(cls, it) }, '收件')); return th; }),
-      h('th', { text: '狀態' }));
+    const thead = h('tr', null, h('th', { class: 'no', text: '座號' }), h('th', { class: 'name', text: '姓名' }),
+      items.map(it => {
+        const th = h('th', { class: it.kind === 'exam' ? 'exam' : null }, h('div', { text: it.short || it.name }));
+        const who = (cls.subjectTeachers || {})[it.id];
+        if (who) th.append(h('span', { class: 'who', text: who }));
+        if (admin) { th.append(h('span', { class: 'cnt', text: countItem(cls, it) + '/' + n })); if (ed) th.append(h('button', { class: 'link', onclick: () => openQuick(cls, it) }, '收件')); }
+        return th;
+      }),
+      admin ? h('th', { text: '狀態' }) : null);
     const rows = studs.map(s => {
       const miss = items.filter(it => !isOn(cls.id, s.no, it.id)).length;
       return h('tr', { class: miss === 0 ? 'allin' : null },
         h('td', { class: 'no', text: String(s.no) }), h('td', { class: 'name', text: s.name || '—' }),
-        items.map(it => h('td', null, toggleBtn(cls, s, it, ed))),
-        h('td', { class: 'st', text: miss === 0 ? '全部繳齊' : '缺 ' + miss + ' 項' }));
+        items.map(it => h('td', { class: 'cell' }, toggleBtn(cls, s, it, ed))),
+        admin ? h('td', { class: 'st', text: miss === 0 ? '全部繳齊' : '缺 ' + miss + ' 項' }) : null);
     });
-    const foot = h('tr', { class: 'tfoot' }, h('td', { colspan: 2, style: 'text-align:left', text: '已交人數' }), items.map(it => h('td', { text: countItem(cls, it) + ' / ' + n })), h('td', { text: studs.filter(s => items.every(it => isOn(cls.id, s.no, it.id))).length + ' 人繳齊' }));
-    return h('div', { class: 'tablebox' }, h('table', null, h('thead', null, thead), h('tbody', null, rows), h('tfoot', null, foot)));
-  }
-  function renderCards(cls, items, studs, ed) {
-    const hw = items.filter(it => it.kind !== 'exam'); const ex = items.filter(it => it.kind === 'exam');
-    return h('div', { class: 'cards' }, studs.map(s => {
-      const miss = items.filter(it => !isOn(cls.id, s.no, it.id)).length;
-      const top = h('div', { class: 'top' }, h('span', { class: 'no', text: String(s.no) }), h('span', { class: 'nm', text: s.name || '—' }), ex.map(it => toggleBtn(cls, s, it, ed)));
-      const subs = h('div', { class: 'subs' }, hw.map(it => h('button', { type: 'button', class: 'subj', role: 'switch', 'aria-checked': String(isOn(cls.id, s.no, it.id)), disabled: !ed, onclick: () => setMark(cls.id, s.no, it.id, !isOn(cls.id, s.no, it.id)) }, it.short || it.name)));
-      return h('div', { class: 'card' + (miss === 0 ? ' allin' : '') }, top, subs);
-    }));
+    const table = h('table', { class: 'grid' }, h('thead', null, thead), h('tbody', null, rows));
+    if (admin) table.append(h('tfoot', null, h('tr', { class: 'tfoot' }, h('td', { colspan: 2, class: 'flabel', text: '已交人數' }), items.map(it => h('td', { text: countItem(cls, it) + ' / ' + n })), h('td', { text: studs.filter(s => items.every(it => isOn(cls.id, s.no, it.id))).length + ' 人繳齊' }))));
+    const legend = h('div', { class: 'legend' },
+      h('span', null, h('i', { style: 'background:var(--accent)' }), '習作已交'),
+      h('span', null, h('i', { style: 'background:var(--seal)' }), '考卷（家長已簽名）已繳回'),
+      h('span', null, h('i', { style: 'background:var(--sheet);border:1.5px solid var(--line-strong)' }), '尚未繳交'));
+    return h('div', { class: 'stack' }, h('div', { class: 'tablebox' }, table), legend);
   }
 
   /* ---------- 快速收件（依項目逐號登記） ---------- */

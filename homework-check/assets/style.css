@@ -166,20 +166,13 @@ button.item:hover { border-color: var(--accent); }
 .legend span { display: inline-flex; gap: 6px; align-items: center; }
 .legend i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
 
-/* 開關 */
-.sw { position: relative; width: 48px; height: 28px; border-radius: 14px; border: 0; background: var(--off); transition: background .15s; vertical-align: middle; flex: none; padding: 0; }
-.sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: var(--sheet); transition: transform .15s; box-shadow: 0 1px 2px rgba(0,0,0,.3); }
-.sw[aria-checked="true"] { background: var(--accent); }
-.sw[aria-checked="true"]::after { transform: translateX(20px); }
-.sw[aria-checked="true"]::before { content: ""; position: absolute; left: 10px; top: 9px; width: 5px; height: 9px; border: solid var(--accent-ink); border-width: 0 2px 2px 0; transform: rotate(45deg); }
-.sw:disabled { opacity: .7; }
-
-/* 印章（考卷家長簽名已繳回） */
-.seal { width: 40px; height: 40px; border-radius: 50%; border: 2px dashed var(--line-strong); background: transparent; color: var(--line-strong); font-family: var(--f-display); font-weight: 700; font-size: 16px; line-height: 1; display: inline-grid; place-items: center; padding: 0; flex: none; transition: transform .12s, background .12s, color .12s; }
-.seal[aria-checked="true"] { border: 2px solid var(--seal); background: var(--seal); color: var(--seal-ink); transform: rotate(-8deg); box-shadow: inset 0 0 0 2px var(--seal-ink), inset 0 0 0 3px var(--seal); }
-.seal.pop[aria-checked="true"] { animation: stamp .22s ease-out; }
-@keyframes stamp { 0% { transform: rotate(-8deg) scale(1.35); opacity: .6; } 100% { transform: rotate(-8deg) scale(1); opacity: 1; } }
-.seal:disabled { opacity: .75; }
+/* 勾選格：習作＝藍、考卷簽回＝紅 */
+.chk { width: 36px; height: 36px; border-radius: 8px; border: 1.5px solid var(--line-strong); background: var(--sheet); padding: 0; display: inline-grid; place-items: center; color: transparent; font-size: 18px; font-weight: 700; line-height: 1; transition: background .12s, border-color .12s, transform .08s; -webkit-tap-highlight-color: transparent; }
+.chk::before { content: "✓"; }
+.chk:active { transform: scale(.92); }
+.chk[aria-checked="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.chk.exam[aria-checked="true"] { background: var(--seal); border-color: var(--seal); color: var(--seal-ink); }
+.chk:disabled { opacity: .75; }
 
 /* 學生表（桌機） */
 .tablebox { overflow-x: auto; background: var(--sheet); border: 1px solid var(--line); border-radius: var(--radius); }
@@ -189,26 +182,18 @@ th { font-size: 13px; color: var(--muted); font-weight: 500; background: var(--s
 th .cnt { display: block; font-size: 12px; color: var(--ink); font-weight: 600; }
 th.exam { color: var(--seal); }
 th .link { font-size: 12px; }
-td.no { color: var(--muted); width: 48px; }
-td.name { text-align: left; font-weight: 500; min-width: 90px; }
+th.no, td.no { color: var(--muted); width: 44px; position: sticky; left: 0; background: var(--sheet); z-index: 2; }
+th.name, td.name { text-align: left; font-weight: 500; min-width: 84px; position: sticky; left: 44px; background: var(--sheet); z-index: 2; box-shadow: 1px 0 0 var(--line); }
+th.no, th.name { background: var(--sheet-2); z-index: 3; }
+th .who { display: block; font-size: 11px; color: var(--muted); font-weight: 400; }
+table.grid td.cell { padding: 4px 6px; }
+td.flabel { text-align: left; position: sticky; left: 0; background: var(--sheet-2); z-index: 2; }
+table.grid th { padding-top: 8px; padding-bottom: 8px; }
 td.st { font-size: 12px; color: var(--muted); }
 tbody tr:last-child td { border-bottom: 0; }
 tbody tr:hover td { background: var(--sheet-2); }
 tr.allin td.name::after { content: "齊"; margin-left: 8px; font-size: 11px; color: var(--ok); border: 1px solid var(--ok); border-radius: 4px; padding: 0 4px; vertical-align: 1px; }
 .tfoot td { background: var(--sheet-2); font-weight: 600; font-size: 13px; border-top: 1px solid var(--line-strong); }
-
-/* 學生卡片（手機） */
-.cards { display: flex; flex-direction: column; gap: 8px; }
-.card { background: var(--sheet); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
-.card .top { display: flex; align-items: center; gap: 10px; }
-.card .top .no { color: var(--muted); font-variant-numeric: tabular-nums; width: 2.2em; }
-.card .top .nm { font-weight: 600; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.card.allin .top .nm::after { content: "齊"; margin-left: 8px; font-size: 11px; color: var(--ok); border: 1px solid var(--ok); border-radius: 4px; padding: 0 4px; vertical-align: 1px; }
-.subs { display: flex; flex-wrap: wrap; gap: 6px; }
-.subj { border: 1px solid var(--line-strong); background: var(--sheet); border-radius: 7px; padding: 6px 10px; font-size: 14px; min-height: 36px; display: inline-flex; align-items: center; gap: 5px; color: var(--muted); }
-.subj[aria-checked="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 500; }
-.subj[aria-checked="true"]::before { content: "✓"; font-size: 12px; }
-.subj:disabled { opacity: .7; }
 
 .empty { background: var(--sheet); border: 1px dashed var(--line-strong); border-radius: var(--radius); padding: 28px 20px; text-align: center; color: var(--muted); }
 
@@ -274,11 +259,16 @@ footer.foot .link { font-size: 12px; color: var(--muted); }
 
 @media (max-width: 719px) {
   .wrap { gap: 14px; padding-block: 14px 48px; }
+  th, td { padding: 6px 6px; font-size: 14px; }
+  .chk { width: 32px; height: 32px; font-size: 16px; }
+  th.name, td.name { min-width: 72px; left: 40px; }
+  th.no, td.no { width: 40px; }
+  table.grid td.cell { padding: 4px 4px; }
   .masthead h1 { font-size: 22px; }
   .items { grid-template-columns: repeat(2, 1fr); }
   .panel { padding: 14px; }
 }
-@media (prefers-reduced-motion: reduce) { .sw, .sw::after, .seal, .bar i { transition: none; } .seal.pop[aria-checked="true"] { animation: none; } .sync.busy .dot { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .chk, .bar i { transition: none; } .sync.busy .dot { animation: none; } }
 
 /* ---------- 列印 ---------- */
 @media print {
@@ -288,11 +278,9 @@ footer.foot .link { font-size: 12px; color: var(--muted); }
   .masthead { border-bottom-color: #000; }
   .tablebox, .panel, .item, .card { border-color: #999; box-shadow: none; break-inside: avoid; }
   th { position: static; background: #f0f0f0; color: #000; }
-  .sw { width: 14px; height: 14px; border-radius: 3px; border: 1px solid #000; background: #fff; }
-  .sw::after, .sw::before { display: none; }
-  .sw[aria-checked="true"] { background: #000; }
-  .seal { width: 20px; height: 20px; font-size: 11px; }
-  .seal[aria-checked="true"] { background: #fff; color: #000; border: 2px solid #000; box-shadow: none; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .chk { width: 16px; height: 16px; border-radius: 3px; border: 1px solid #000; background: #fff; color: transparent; font-size: 11px; }
+  .chk[aria-checked="true"] { background: #fff; color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  th.no, td.no, th.name, td.name, td.flabel { position: static; box-shadow: none; }
   .print-meta { display: block !important; font-size: 11px; color: #333; }
 }
 .print-meta { display: none; }
