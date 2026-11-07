@@ -3,16 +3,16 @@
    班級頁：桌機為「學生 × 項目」開關表；手機為學生卡片＋科目籤。考卷簽回以印章呈現。 */
 
 :root {
-  --paper: #f2f4f8;
-  --sheet: #ffffff;
-  --sheet-2: #f7f9fc;
-  --ink: #1b2a44;
-  --muted: #5f6b80;
-  --line: #d8dee8;
-  --line-strong: #aeb9ca;
+  --paper: #fbf6e3;      /* 淡黃底 */
+  --sheet: #fffdf6;
+  --sheet-2: #f6f0d9;
+  --ink: #1f2a40;
+  --muted: #68705f;
+  --line: #e4dcbf;
+  --line-strong: #c9bf9b;
   --accent: #2653a3;
   --accent-ink: #ffffff;
-  --accent-soft: #e3eaf7;
+  --accent-soft: #e6e9ef;
   --seal: #b3362c;
   --seal-ink: #ffffff;
   --seal-soft: #f7e6e3;
@@ -21,20 +21,11 @@
   --warn: #a35f00;
   --warn-soft: #fbefd9;
   --off: #c9d1dd;
-  --shadow: 0 1px 2px rgba(27, 42, 68, .08), 0 6px 20px rgba(27, 42, 68, .06);
+  --shadow: 0 1px 2px rgba(60, 50, 20, .08), 0 6px 20px rgba(60, 50, 20, .07);
   --radius: 10px;
   --f-display: "Noto Serif TC", "Songti TC", "PMingLiU", "Noto Serif CJK TC", serif;
   --f-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", "Noto Sans CJK TC", system-ui, sans-serif;
   color-scheme: light;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --paper: #111722; --sheet: #192131; --sheet-2: #1e2838; --ink: #e6eaf2; --muted: #98a3b8;
-    --line: #2b3548; --line-strong: #41506a; --accent: #8db0f2; --accent-ink: #0f1a2e; --accent-soft: #223253;
-    --seal: #ee7f72; --seal-ink: #2a1210; --seal-soft: #3a2320; --ok: #6ec796; --ok-soft: #1e3a2b;
-    --warn: #e2b05a; --warn-soft: #3a2f1a; --off: #3a4760; --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
-    color-scheme: dark;
-  }
 }
 :root[data-theme="dark"] {
   --paper: #111722; --sheet: #192131; --sheet-2: #1e2838; --ink: #e6eaf2; --muted: #98a3b8;
