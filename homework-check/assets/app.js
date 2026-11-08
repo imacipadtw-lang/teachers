@@ -758,7 +758,7 @@
         const txt = h('div', { class: 'txt' },
           h('div', { class: 'l1', text: studentCode(c, s) + (it ? it.name : '') }),
           h('div', { class: 'l3', text: s.name || (s.no + ' 號') }),
-          h('div', { class: 'l2', text: c.name + '　' + pad2(s.no) + ' 號' + (it ? '　條碼 ' + payload : '') }));
+          h('div', { class: 'l2', text: c.name + ' ' + pad2(s.no) + ' 號' }));
         lab.append(txt);
         if (LB.code !== 'qr') { const svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svgEl.setAttribute('class', 'bar'); lab.append(svgEl); if (okBar) { try { window.JsBarcode(svgEl, payload, { format: 'CODE128', displayValue: false, margin: 0, height: 40, width: 1.6 }); const bw = svgEl.getAttribute('width'), bh = svgEl.getAttribute('height'); if (bw && bh) { svgEl.setAttribute('viewBox', '0 0 ' + parseFloat(bw) + ' ' + parseFloat(bh)); svgEl.setAttribute('preserveAspectRatio', 'none'); svgEl.removeAttribute('width'); svgEl.removeAttribute('height'); } } catch (e) { } } }
         sheet.append(lab);

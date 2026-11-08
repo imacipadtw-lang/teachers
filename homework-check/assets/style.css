@@ -296,19 +296,19 @@ footer.foot .link { font-size: 12px; color: var(--muted); }
 /* ---------- 標籤 ---------- */
 .labelsheet { --lw: 44mm; --lh: 25mm; display: flex; flex-wrap: wrap; gap: 3mm; padding: 4mm; background: var(--sheet); border: 1px solid var(--line); border-radius: var(--radius); }
 .label { width: var(--lw); height: var(--lh); box-sizing: border-box; border: 1px dashed #bbb; background: #fff; color: #000; display: flex; align-items: center; gap: 1.5mm; padding: 1.5mm; overflow: hidden; break-inside: avoid; font-family: var(--f-body); }
-.label .qr { height: calc(var(--lh) - 5mm); width: calc(var(--lh) - 5mm); flex: none; }
+.label .qr { height: max(14mm, calc(var(--lh) - 9mm)); width: max(14mm, calc(var(--lh) - 9mm)); flex: none; }
 .label .qr img, .label .qr canvas { width: 100% !important; height: 100% !important; display: block; }
 .label .txt { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; line-height: 1.2; }
-.label .l1 { font-weight: 700; font-size: clamp(8.5pt, calc(var(--lh) * 0.19), 12pt); white-space: nowrap; overflow: hidden; letter-spacing: .01em; }
+.label .l1 { font-weight: 700; font-size: clamp(8pt, calc(var(--lh) * 0.135), 11pt); white-space: nowrap; overflow: hidden; letter-spacing: 0; font-variant-numeric: tabular-nums; }
 .label .l2 { font-size: clamp(6pt, calc(var(--lh) * 0.12), 7.5pt); white-space: nowrap; overflow: hidden; color: #333; margin-top: 0.3mm; }
-.label .l3 { font-size: clamp(8pt, calc(var(--lh) * 0.18), 11pt); font-weight: 600; white-space: nowrap; overflow: hidden; margin-top: 0.3mm; }
+.label .l3 { font-size: clamp(8pt, calc(var(--lh) * 0.15), 11pt); font-weight: 600; white-space: nowrap; overflow: hidden; margin-top: 0.4mm; }
 
 .label.bar { flex-direction: column; align-items: stretch; justify-content: center; gap: 0.8mm; }
 .label.bar .txt { flex: none; text-align: center; }
 
 .label .bar { width: 100%; height: calc(var(--lh) * 0.42); display: block; }
 .label.both { display: grid; grid-template-columns: auto 1fr; grid-template-rows: minmax(0, 1fr) auto; column-gap: 1.5mm; row-gap: 0.5mm; align-items: center; }
-.label.both .qr { grid-row: 1; grid-column: 1; height: calc(var(--lh) - 11mm); width: calc(var(--lh) - 11mm); }
+.label.both .qr { grid-row: 1; grid-column: 1; height: max(12mm, calc(var(--lh) - 12mm)); width: max(12mm, calc(var(--lh) - 12mm)); }
 .label.both .txt { grid-row: 1; grid-column: 2; min-height: 0; overflow: hidden; }
 .label.both .l1 { font-size: clamp(8pt, calc(var(--lh) * 0.16), 10.5pt); }
 .label.both .l3 { font-size: clamp(7pt, calc(var(--lh) * 0.14), 9pt); margin: 0; }
