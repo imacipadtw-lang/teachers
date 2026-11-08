@@ -1158,7 +1158,7 @@ body{background-image:radial-gradient(rgba(184,51,106,.09) 1px,transparent 1.4px
 @keyframes sysPulse{0%{box-shadow:0 0 0 0 rgba(22,163,74,.5)}70%{box-shadow:0 0 0 7px rgba(22,163,74,0)}100%{box-shadow:0 0 0 0 rgba(22,163,74,0)}}
 .theme-btn{display:inline-flex;align-items:center;gap:6px}
 .theme-btn .tb-ic{width:14px;height:14px;border-radius:50%;background:linear-gradient(90deg,#0F1830 50%,#FFD3E3 50%);box-shadow:0 0 0 1.5px currentColor}
-@media (max-width:760px){.sys .clock,.sys #sysTxt{display:none}.sys{padding:6px}.theme-btn .tb-t{display:none}}
+@media (max-width:760px){.sys .clock,.sys #sysTxt{display:none}.sys{padding:6px}}
 @media print{.sys,.theme-btn,.topbar::after{display:none!important}body{background-image:none!important}}
 
 /* ---------- 深色科技模式（只在螢幕上） ---------- */
@@ -1236,6 +1236,58 @@ html[data-theme=dark] .heat-lg i{background:linear-gradient(90deg,rgba(255,111,1
 html[data-theme=dark] .sys.ok > i{background:#3BE38A}
 html[data-theme=dark] .calmode button[aria-pressed=true]{background:var(--sky-deep);border-color:var(--sky-deep)}
 }
+/* ===== 115.11.8 版面整理：頂端列一列排完、次要功能收進「更多」、側欄只在年曆頁出現 ===== */
+.topbar{gap:10px}
+.topbar .btn.small{white-space:nowrap}
+.view-top{position:relative;display:inline-flex;align-items:center;min-width:0}
+.view-top .vt-ic{position:absolute;left:11px;width:16px;height:16px;fill:none;stroke:var(--ink-2);stroke-width:2;pointer-events:none}
+.view-top select{appearance:none;-webkit-appearance:none;min-width:150px;max-width:240px;padding:7px 32px 7px 33px;border:1px solid var(--line);border-radius:999px;background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center;color:var(--ink);font:inherit;font-size:14px;font-weight:800;cursor:pointer;margin:0;height:auto;box-shadow:none}
+.view-top select:hover{border-color:var(--sky)}
+.view-top select:focus-visible{outline:2px solid var(--sky);outline-offset:2px}
+body.has-view .topbar .who{display:none}
+.more{position:relative}
+.more-btn{display:inline-flex;align-items:center;gap:6px}
+.mi{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.more-btn .mi circle{fill:currentColor;stroke:none}
+.more-menu{position:absolute;right:0;top:calc(100% + 8px);min-width:236px;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 48px rgba(60,20,40,.18),0 2px 6px rgba(60,20,40,.08);padding:6px;z-index:60;animation:menuIn .14s ease-out}
+@keyframes menuIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.more-who{padding:8px 12px 10px;margin-bottom:4px;border-bottom:1px solid var(--line-2);font-weight:800;font-size:14px;color:var(--ink);line-height:1.4}
+.more-who small{display:block;font-weight:500;font-size:12px;color:var(--ink-3)}
+.more-who:empty{display:none}
+.mitem{display:flex;align-items:center;gap:11px;width:100%;padding:10px 12px;border:0;background:none;border-radius:10px;color:var(--ink);font:inherit;font-size:14px;font-weight:600;text-align:left;cursor:pointer;line-height:1.3}
+.mitem .mi{color:var(--ink-2)}
+.mitem:hover,.mitem:focus-visible{background:var(--sky-soft);outline:none}
+.mitem:focus-visible{box-shadow:inset 0 0 0 2px var(--sky)}
+.mitem.theme-btn .tb-ic{width:14px;height:14px;margin:0 2px}
+.mitem#logout,.mitem#logout .mi{color:var(--c-leave)}
+.msep{border:0;border-top:1px solid var(--line-2);margin:4px 6px}
+/* 提示列：細一點、只在工作台出現，不要每一頁都佔掉一大塊 */
+.notice{padding:7px 20px;font-size:13px;gap:10px}
+.notice .btn.small{padding:4px 12px;font-size:13px;min-height:0}
+body[data-pg]:not([data-pg=home]):not([data-pg=all]) .notice{display:none!important}
+/* 桌機：側欄（看哪天的明細）只在年曆頁；其他頁內容用滿整個寬度。老師切換改在頂端列。 */
+@media (min-width:1051px){
+  body[data-pg=home] .wrap,body[data-pg=hr] .wrap,body[data-pg=check] .wrap,body[data-pg=report] .wrap,body[data-pg=dash] .wrap,body[data-pg=set] .wrap{grid-template-columns:minmax(0,1fr)}
+  body[data-pg=home] .side,body[data-pg=hr] .side,body[data-pg=check] .side,body[data-pg=report] .side,body[data-pg=dash] .side,body[data-pg=set] .side{display:none}
+  body.has-view .side .admin-box{display:none!important}
+  body.has-view .admin-mobile{display:block;margin-bottom:14px}
+  .side{top:calc(var(--topH,112px) + 14px)}
+}
+@media (max-width:760px){
+  .topbar #cmdBtn{display:none}
+  .more-btn .mb-t{display:none}
+  .more-btn{padding:6px 9px}
+}
+@media (max-width:600px){
+  .topbar{flex-wrap:wrap;row-gap:6px}
+  body.has-view .topbar .ver-tag{display:none}
+  body.has-view .view-top{flex:1 1 120px}
+  body.has-view .view-top select{width:100%;min-width:0;max-width:none;font-size:16px;padding:6px 28px 6px 31px}
+  .more-menu{right:-2px;width:min(300px,calc(100vw - 20px));min-width:0;padding:8px;border-radius:16px;max-height:calc(100vh - 90px);overflow:auto}
+  .mitem{padding:13px 14px;font-size:15px}
+  .notice{padding:7px 12px}
+}
+@media print{.view-top,.more{display:none!important}}
 </style>
 </head>
 <body>
@@ -1289,17 +1341,25 @@ html[data-theme=dark] .calmode button[aria-pressed=true]{background:var(--sky-de
   <header class="topbar">
     <div class="brand"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="txt">代課・調課查詢</span><span class="ver-tag">教務組專用</span></div>
     <div class="who" id="who"></div>
+    <div class="view-top" id="viewTop" hidden></div>
     <div class="spacer"></div>
     <span class="updated" id="updated"></span>
     <span class="sys" id="sys" role="status" aria-live="polite" title="和雲端資料表的連線狀態"><i aria-hidden="true"></i><span id="sysTxt">連線中…</span><span class="clock" id="clock"></span></span>
     <button class="btn ghost small" id="cmdBtn" type="button" hidden title="快速指令（Ctrl＋K）">快速指令 <kbd class="kbd-hint">Ctrl K</kbd></button>
-    <button class="btn ghost small theme-btn" id="themeBtn" type="button" aria-pressed="false" title="切換粉色／深色科技模式"><span aria-hidden="true" class="tb-ic"></span><span class="tb-t">深色</span></button>
-    <button class="btn ghost small" id="reload" type="button">重新整理</button>
     <button class="btn small" id="openPlan" type="button" hidden>＋ 排調代課</button>
-    <button class="btn ghost small" id="openReport" type="button" hidden>回報問題</button>
-    <button class="btn ghost small" id="openLine" type="button" hidden>LINE 通知</button>
-    <button class="btn ghost small" id="openPw" type="button">更改密碼</button>
-    <button class="btn ghost small" id="logout" type="button">登出</button>
+    <div class="more" id="moreWrap">
+      <button class="btn ghost small more-btn" id="moreBtn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="moreMenu" title="更多：深色模式、重新整理、LINE 通知、更改密碼、登出"><svg class="mi" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg><span class="mb-t">更多</span></button>
+      <div class="more-menu" id="moreMenu" role="menu" aria-label="更多功能" hidden>
+        <div class="more-who" id="moreWho"></div>
+        <button class="mitem theme-btn" id="themeBtn" type="button" role="menuitem" aria-pressed="false" title="切換粉色／深色科技模式"><span aria-hidden="true" class="tb-ic"></span><span class="tb-t">深色科技模式</span></button>
+        <button class="mitem" id="reload" type="button" role="menuitem"><svg class="mi" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>重新整理</button>
+        <button class="mitem" id="openReport" type="button" role="menuitem" hidden><svg class="mi" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>回報問題</button>
+        <button class="mitem" id="openLine" type="button" role="menuitem" hidden><svg class="mi" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9 9 0 0 1-3.4-.7L3 21l1.6-4.6A8 8 0 0 1 3 11.5 8.6 8.6 0 0 1 12 3a8.6 8.6 0 0 1 9 8.5z"/></svg>LINE 通知</button>
+        <button class="mitem" id="openPw" type="button" role="menuitem"><svg class="mi" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>更改密碼</button>
+        <hr class="msep" aria-hidden="true">
+        <button class="mitem" id="logout" type="button" role="menuitem"><svg class="mi" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>登出</button>
+      </div>
+    </div>
     <nav class="pagetabs" id="pageTabs" role="tablist" aria-label="分頁" hidden></nav>
   </header>
   <div class="notice line" id="lineNotice" hidden>
@@ -2365,7 +2425,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.08";
+const APP_VERSION = "專業版 2026.11.08b";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -2373,7 +2433,7 @@ function setTheme(t){
   try{ localStorage.setItem("theme", dark ? "dark" : "pink"); }catch(e){}
   const m = document.querySelector('meta[name=theme-color]'); if(m) m.setAttribute("content", dark ? "#070D1A" : "#FDEBF2");
   const b = document.getElementById("themeBtn");
-  if(b){ b.setAttribute("aria-pressed", dark); b.querySelector(".tb-t").textContent = dark ? "粉色" : "深色"; b.title = dark ? "切回粉色模式" : "切換深色科技模式"; }
+  if(b){ b.setAttribute("aria-pressed", dark); b.querySelector(".tb-t").textContent = dark ? "切回粉色模式" : "深色科技模式"; b.title = dark ? "切回粉色模式" : "切換深色科技模式"; }
   if(typeof renderDash === "function" && state && state.cred) try{ renderDash(); }catch(e){}
 }
 setTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "pink");
@@ -2550,6 +2610,23 @@ $("#loginForm").addEventListener("submit", async e=>{
   }catch(err){ $("#loginErr").textContent = err.message; }
   finally{ busy(false); }
 });
+/* 頂端「更多」選單：次要功能收在這裡，頂端列只留最常用的 */
+(function(){
+  const btn = $("#moreBtn"), menu = $("#moreMenu"); if(!btn || !menu) return;
+  const items = () => [...menu.querySelectorAll(".mitem:not([hidden])")];
+  const close = (focus) => { if(menu.hidden) return; menu.hidden = true; btn.setAttribute("aria-expanded", "false"); if(focus) btn.focus(); };
+  const open = () => { const w = $("#who"); $("#moreWho").innerHTML = w ? w.innerHTML : ""; menu.hidden = false; btn.setAttribute("aria-expanded", "true"); const f = items()[0]; if(f) f.focus(); };
+  btn.onclick = e => { e.stopPropagation(); menu.hidden ? open() : close(); };
+  menu.addEventListener("click", e => { if(e.target.closest(".mitem")) close(); });
+  document.addEventListener("click", e => { if(!e.target.closest("#moreWrap")) close(); });
+  menu.addEventListener("keydown", e => {
+    const L = items(), i = L.indexOf(document.activeElement);
+    if(e.key === "Escape"){ e.preventDefault(); e.stopPropagation(); close(true); }
+    else if(e.key === "ArrowDown"){ e.preventDefault(); (L[(i + 1) % L.length] || L[0]).focus(); }
+    else if(e.key === "ArrowUp"){ e.preventDefault(); (L[(i - 1 + L.length) % L.length] || L[0]).focus(); }
+    else if(e.key === "Tab") close();
+  });
+})();
 $("#logout").onclick = ()=>{ store.del("cred"); store.del(K+"data"); location.reload(); };
 $("#reload").onclick = ()=>reload(false, true);                       // 按「重新整理」：一定從試算表重讀
 async function reload(silent, fresh){
@@ -2757,7 +2834,7 @@ function applyData(d){
 /* ---------- 管理者：切換老師、密碼狀態 ---------- */
 function renderAdmin(){
   const box = $("#adminBox"), mob = $("#adminMobile");
-  if(state.role!=="admin"){ box.style.display="none"; mob.innerHTML=""; return; }
+  if(state.role!=="admin"){ box.style.display="none"; mob.innerHTML=""; const vt=$("#viewTop"); if(vt){ vt.hidden=true; vt.innerHTML=""; } document.body.classList.remove("has-view"); return; }
   box.style.display="block";
   const opts = ["<option value=''>全校總覽</option>", ...state.teachers.map(t=>`<option ${t===state.viewing?"selected":""}>${esc(t)}</option>`)].join("");
   const pwRows = state.pwStatus.map(p=>`<div class="row"><span>${esc(p.name)}</span>
@@ -2768,6 +2845,9 @@ function renderAdmin(){
     <details class="pw-list"><summary>老師密碼狀態</summary>${pwRows}
     <div class="pw-tip">老師忘記密碼時按「恢復初始」，就能用密碼表上的初始密碼登入。</div></details>`;
   box.innerHTML = html; mob.innerHTML = `<div class="admin-box">${html}</div>`;
+  const vt = $("#viewTop");          // 頂端列也放一個「查看哪位老師」：每一頁都能切換，不必回年曆
+  if(vt){ vt.innerHTML = `<label class="sr" for="viewAsTop">查看哪位老師</label><svg class="vt-ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><select class="viewAs" id="viewAsTop" title="查看哪位老師（全校總覽或單一老師）">${opts}</select>`;
+    vt.hidden = false; document.body.classList.add("has-view"); }
   document.querySelectorAll(".viewAs").forEach(sel=>sel.onchange = async e=>{
     state.viewing = e.target.value || "__all__";
     busy(true);
@@ -3945,7 +4025,7 @@ function showPage(k, opt){
   opt = opt || {};
   const list = pagesFor(); if(!list.length){ document.querySelectorAll("main [data-page]").forEach(e => e.classList.remove("pg-off")); return; }
   if(!list.some(p => p.k === k)) k = list[0].k;
-  state.page = k; store.set(K+"page", k, localStorage);
+  state.page = k; store.set(K+"page", k, localStorage); document.body.dataset.pg = k;
   document.querySelectorAll("main [data-page]").forEach(e => e.classList.toggle("pg-off", k !== "all" && e.dataset.page !== k));
   document.querySelectorAll("#pageTabs [data-pg]").forEach(b => { const on = b.dataset.pg === k; b.setAttribute("aria-selected", on); b.tabIndex = on ? 0 : -1; });
   const nb = {home:"#workbench", cal:"#year", report:"#monthly", set:"set"}[k];
