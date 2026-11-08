@@ -48,7 +48,7 @@ function defaultConfig_() {
     items: [
       { id: 'chinese', name: '國語習作', short: '國語', kind: 'hw', grades: all, code: '01' },
       { id: 'math', name: '數學習作', short: '數學', kind: 'hw', grades: all, code: '02' },
-      { id: 'english', name: '英語習作', short: '英語', kind: 'hw', grades: [3, 4, 5, 6], code: '03' },
+      { id: 'english', name: '英語習作', short: '英語', kind: 'hw', grades: all, code: '03' },
       { id: 'life', name: '生活習作', short: '生活', kind: 'hw', grades: [1, 2], code: '04' },
       { id: 'social', name: '社會習作', short: '社會', kind: 'hw', grades: [3, 4, 5, 6], code: '05' },
       { id: 'science', name: '自然習作', short: '自然', kind: 'hw', grades: [3, 4, 5, 6], code: '06' },

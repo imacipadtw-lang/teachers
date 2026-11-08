@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.08c';
+  const APP_VERSION = '2026.11.08d';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
   const LS = { admin: 'hc.admin', teacher: 'hc.teacher', api: 'hc.api', cls: 'hc.class' };
   const GRADE = ['', '一', '二', '三', '四', '五', '六'];
@@ -18,7 +18,7 @@
     screen: 'boot', gateMsg: '', welcomeClass: '',
     view: 'class', selClass: null, draft: null,
     pending: new Map(), outbox: new Map(), flushTimer: null, flushing: false, pendingNotes: new Map(), noteTimers: {},
-    modal: null, justStamped: null, narrow: false
+    modal: null, justStamped: null, narrow: false, openClass: null
   };
   const nar = window.matchMedia('(max-width: 719px)');
   S.narrow = nar.matches;
@@ -688,12 +688,12 @@
   // 標籤資料列（與列印用同一套內容）
   function labelRows() {
     const cl = classes(); const r = round(); const base = location.href.split('#')[0].split('?')[0];
-    const rows = [['班級', '座號', '姓名', '科目', '班級座號', '條碼內容', '學生編號']];
+    const rows = [['班級', '座號', '姓名', '科目', '班級座號', '條碼內容', '學生編號', '編號科目', '標籤文字']];
     cl.filter(c => (LB.classIds || []).includes(c.id)).forEach(c => {
       const its = LB.mode === 'book' ? itemsFor(c, r).filter(it => LB.exams || it.kind !== 'exam') : [null];
       (c.students || []).slice().sort((a, b) => a.no - b.no).forEach(s => its.forEach(it => {
         const payload = scanPayload(c, s, it);
-        rows.push([c.name, pad2(s.no), s.name || '', it ? it.name : '作業抽查', c.name + ' ' + pad2(s.no) + '號', LB.url ? base + '#s=' + payload : payload, studentCode(c, s)]);
+        rows.push([c.name, pad2(s.no), s.name || '', it ? it.name : '作業抽查', c.name + ' ' + pad2(s.no) + '號', LB.url ? base + '#s=' + payload : payload, studentCode(c, s), studentCode(c, s) + (it ? it.name : ''), studentCode(c, s) + (it ? it.name : '') + '\n' + (s.name || '') + ' ' + c.name + pad2(s.no) + '號']);
       }));
     });
     return rows;
@@ -756,10 +756,9 @@
         const lab = h('div', { class: 'label ' + (LB.code === 'both' ? 'both' : LB.code) });
         if (LB.code !== 'bar') { const q = h('div', { class: 'qr' }); lab.append(q); if (okQR) { try { new window.QRCode(q, { text: qrText, width: 256, height: 256, correctLevel: window.QRCode.CorrectLevel.M }); } catch (e) { } } else q.textContent = 'QR 元件載入失敗'; }
         const txt = h('div', { class: 'txt' },
-          h('div', { class: 'l1', text: s.name || (s.no + ' 號') }),
-          h('div', { class: 'l2', text: c.name + '　' + pad2(s.no) + ' 號' }),
-          h('div', { class: 'l3', text: it ? it.name : '作業抽查' }),
-          h('div', { class: 'l4', text: payload }));
+          h('div', { class: 'l1', text: studentCode(c, s) + (it ? it.name : '') }),
+          h('div', { class: 'l3', text: s.name || (s.no + ' 號') }),
+          h('div', { class: 'l2', text: c.name + '　' + pad2(s.no) + ' 號' + (it ? '　條碼 ' + payload : '') }));
         lab.append(txt);
         if (LB.code !== 'qr') { const svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svgEl.setAttribute('class', 'bar'); lab.append(svgEl); if (okBar) { try { window.JsBarcode(svgEl, payload, { format: 'CODE128', displayValue: false, margin: 0, height: 40, width: 1.6 }); const bw = svgEl.getAttribute('width'), bh = svgEl.getAttribute('height'); if (bw && bh) { svgEl.setAttribute('viewBox', '0 0 ' + parseFloat(bw) + ' ' + parseFloat(bh)); svgEl.setAttribute('preserveAspectRatio', 'none'); svgEl.removeAttribute('width'); svgEl.removeAttribute('height'); } } catch (e) { } } }
         sheet.append(lab);
@@ -880,6 +879,24 @@
     return box;
   }
 
+  /* ---------- 設定頁用：依科目分列、習作／考卷分欄 ---------- */
+  const subjectKey = it => (it.short || it.name || '').replace(/習作|考卷|（.*?）/g, '').trim() || it.name;
+  function subjectRows(items) {
+    const map = new Map();
+    items.forEach(it => { const k = subjectKey(it); if (!map.has(k)) map.set(k, { key: k, hw: null, exam: null }); const r = map.get(k); if (it.kind === 'exam') { if (!r.exam) r.exam = it; else map.set(k + '#' + it.id, { key: k, hw: null, exam: it }); } else { if (!r.hw) r.hw = it; else map.set(k + '#' + it.id, { key: k, hw: it, exam: null }); } });
+    return Array.from(map.values());
+  }
+  // 勾選表：列＝科目，欄＝習作／考卷；回傳 { el, selected() }
+  function itemPicker(items, isChecked, onChange) {
+    const rows = subjectRows(items); const boxes = new Map();
+    const cell = it => { if (!it) return h('td', { class: 'na', text: '—' }); const cb = h('input', { type: 'checkbox', checked: !!isChecked(it), 'aria-label': it.name, onchange: () => onChange && onChange(it, cb.checked) }); boxes.set(it.id, cb); return h('td', null, h('label', { class: 'pick' }, cb)); };
+    const colToggle = kind => h('button', { class: 'link', style: 'font-size:12px', onclick: () => { const list = items.filter(it => (it.kind === 'exam') === (kind === 'exam')); const all = list.every(it => boxes.get(it.id).checked); list.forEach(it => { const cb = boxes.get(it.id); if (cb.checked === all) { cb.checked = !all; onChange && onChange(it, cb.checked); } }); } }, '全選／取消');
+    const table = h('table', { class: 'picktable' },
+      h('thead', null, h('tr', null, h('th', { class: 'left', text: '科目' }), h('th', { class: 'hwcol' }, '習作 ', colToggle('hw')), h('th', { class: 'examcol' }, '考卷（家長簽名） ', colToggle('exam')))),
+      h('tbody', null, rows.map(r => h('tr', null, h('td', { class: 'left', text: r.key }), cell(r.hw), cell(r.exam)))));
+    return { el: h('div', { class: 'tablebox pickbox' }, table), selected: () => items.filter(it => boxes.get(it.id) && boxes.get(it.id).checked).map(it => it.id) };
+  }
+
   /* ---------- 設定（教務組） ---------- */
   function renderSettings() {
     if (!S.draft) S.draft = JSON.parse(JSON.stringify(S.config || { items: [], classes: [] }));
@@ -892,32 +909,37 @@
     const term = rocTerm();
     const nName = h('input', { type: 'text', class: 'grow', 'aria-label': '次別名稱', value: term.year + '學年度第' + term.sem + '學期 第' + (S.rounds.length + 1) + '次作業抽查' });
     const nDue = h('input', { type: 'date', 'aria-label': '繳交截止日' });
-    const picks = allItems().map(it => { const cb = h('input', { type: 'checkbox', checked: true }); return { it, cb, el: h('label', { class: 'ck' }, cb, it.name) }; });
+    const newPick = itemPicker(allItems(), () => true);
     rp.append(h('div', { class: 'divider' }), h('div', { class: 'note', text: '建立新的抽查次別' }),
       h('div', { class: 'row' }, nName, h('span', { class: 'note', text: '截止' }), nDue),
-      h('div', { class: 'row' }, picks.map(p => p.el)),
+      h('div', { class: 'note', text: '本次要檢查的項目' }), newPick.el,
       h('div', null, h('button', { class: 'btn primary', onclick: async () => {
         const name = nName.value.trim(); if (!name) return toast('請填寫次別名稱');
-        const rd = { id: 'r' + Date.now().toString(36), name, due: nDue.value || '', itemIds: picks.filter(p => p.cb.checked).map(p => p.it.id), locked: false, createdAt: new Date().toISOString() };
+        const rd = { id: 'r' + Date.now().toString(36), name, due: nDue.value || '', itemIds: newPick.selected(), locked: false, createdAt: new Date().toISOString() };
         await adminPost({ action: 'addRound', round: rd }, '已建立「' + name + '」'); S.rid = rd.id; S.version = null; await load({ force: true, full: true });
       } }, '建立抽查次別')));
     box.append(rp);
 
-    /* 檢查項目 */
-    const ip = h('div', { class: 'panel' }, h('h3', null, '檢查項目', h('small', { text: '習作以開關呈現；「考卷」類以印章呈現，代表家長簽名後已繳回' })));
-    D.items.forEach((it, i) => {
-      const gs = [1, 2, 3, 4, 5, 6].map(g => h('label', { class: 'ck' }, h('input', { type: 'checkbox', checked: (it.grades || []).map(Number).includes(g), onchange: e => { it.grades = (it.grades || []).map(Number).filter(x => x !== g); if (e.target.checked) it.grades.push(g); it.grades.sort(); } }), GRADE[g]));
-      ip.append(h('div', { class: 'classcard' },
-        h('div', { class: 'row' },
-          h('input', { type: 'text', class: 'grow', value: it.name, 'aria-label': '項目名稱', oninput: e => { it.name = e.target.value; } }),
-          h('input', { type: 'text', value: it.short || '', placeholder: '簡稱', style: 'width:90px', 'aria-label': '簡稱', oninput: e => { it.short = e.target.value; } }),
-          h('input', { type: 'text', value: itemCode(it), placeholder: '代碼', style: 'width:64px', maxlength: '2', 'aria-label': '條碼科目代碼（2 碼）', title: '條碼科目代碼（2 碼）', oninput: e => { it.code = e.target.value.replace(/\D/g, '').slice(0, 2); } }),
-          h('select', { 'aria-label': '類型', onchange: e => { it.kind = e.target.value; } }, h('option', { value: 'hw', text: '習作', selected: it.kind !== 'exam' }), h('option', { value: 'exam', text: '考卷（家長簽名）', selected: it.kind === 'exam' })),
-          h('button', { class: 'btn small ghost', disabled: i === 0, onclick: () => { D.items.splice(i - 1, 0, D.items.splice(i, 1)[0]); renderMain(); } }, '↑'),
-          h('button', { class: 'btn small danger', onclick: () => { D.items.splice(i, 1); renderMain(); } }, '移除')),
-        h('div', { class: 'row' }, h('span', { class: 'note', text: '預設適用年級' }), gs)));
-    });
-    ip.append(h('div', null, h('button', { class: 'btn ghost', onclick: () => { D.items.push({ id: uid('i'), name: '新項目', short: '', kind: 'hw', grades: [1, 2, 3, 4, 5, 6] }); renderMain(); } }, '＋ 新增項目')));
+    /* 檢查項目：表格，習作一組、考卷一組 */
+    const ip = h('div', { class: 'panel' }, h('h3', null, '檢查項目', h('small', { text: '每列一個項目；勾選預設適用的年級，個別班級可在下方「班級」再調整' })));
+    const itemRow = (it) => {
+      const i = D.items.indexOf(it);
+      return h('tr', null,
+        h('td', { class: 'left' }, h('input', { type: 'text', value: it.name, 'aria-label': '項目名稱', style: 'width:120px', oninput: e => { it.name = e.target.value; } })),
+        h('td', null, h('input', { type: 'text', value: it.short || '', placeholder: '簡稱', style: 'width:64px', 'aria-label': '簡稱', oninput: e => { it.short = e.target.value; } })),
+        h('td', null, h('input', { type: 'text', value: itemCode(it), style: 'width:48px;text-align:center', maxlength: '2', 'aria-label': '條碼代碼', oninput: e => { it.code = e.target.value.replace(/\D/g, '').slice(0, 2); } })),
+        [1, 2, 3, 4, 5, 6].map(g => h('td', null, h('input', { type: 'checkbox', 'aria-label': GRADE[g] + '年級', checked: (it.grades || []).map(Number).includes(g), onchange: e => { it.grades = (it.grades || []).map(Number).filter(x => x !== g); if (e.target.checked) it.grades.push(g); it.grades.sort(); } }))),
+        h('td', { class: 'ops' }, h('button', { class: 'btn small ghost', title: '上移', disabled: i === 0, onclick: () => { D.items.splice(i - 1, 0, D.items.splice(i, 1)[0]); renderMain(); } }, '↑'), h('button', { class: 'btn small ghost', title: it.kind === 'exam' ? '改為習作' : '改為考卷', onclick: () => { it.kind = it.kind === 'exam' ? 'hw' : 'exam'; renderMain(); } }, it.kind === 'exam' ? '→習作' : '→考卷'), h('button', { class: 'btn small danger', onclick: () => { D.items.splice(i, 1); renderMain(); } }, '移除')));
+    };
+    const head = h('thead', null, h('tr', null, h('th', { class: 'left', text: '名稱' }), h('th', { text: '簡稱' }), h('th', { text: '代碼' }), [1, 2, 3, 4, 5, 6].map(g => h('th', { text: GRADE[g] })), h('th', { text: '' })));
+    const hwItems = D.items.filter(it => it.kind !== 'exam'), exItems = D.items.filter(it => it.kind === 'exam');
+    const tbody = h('tbody', null,
+      h('tr', { class: 'secrow hw' }, h('td', { colspan: 10, text: '習作' })), hwItems.map(itemRow),
+      h('tr', { class: 'addrow' }, h('td', { colspan: 10 }, h('button', { class: 'link', onclick: () => { D.items.push({ id: uid('i'), name: '新習作', short: '', kind: 'hw', grades: [1, 2, 3, 4, 5, 6] }); renderMain(); } }, '＋ 新增習作項目'))),
+      h('tr', { class: 'secrow exam' }, h('td', { colspan: 10, text: '考卷（家長簽名繳回）' })), exItems.map(itemRow),
+      h('tr', { class: 'addrow' }, h('td', { colspan: 10 }, h('button', { class: 'link', onclick: () => { D.items.push({ id: uid('i'), name: '新考卷', short: '', kind: 'exam', grades: [1, 2, 3, 4, 5, 6] }); renderMain(); } }, '＋ 新增考卷項目'))));
+    ip.append(h('div', { class: 'tablebox' }, h('table', { class: 'cfgtable' }, head, tbody)));
+    ip.append(h('div', { class: 'note', text: '「代碼」是條碼的 2 碼科目代碼（習作 01–07、考卷 11–16），改了之後要重印標籤。' }));
     box.append(ip);
 
     /* 班級 */
@@ -967,10 +989,11 @@
     const name = h('input', { type: 'text', class: 'grow', value: e.name, 'aria-label': '次別名稱', oninput: ev => { e.name = ev.target.value; } });
     const due = h('input', { type: 'date', value: e.due || '', 'aria-label': '截止日', onchange: ev => { e.due = ev.target.value; } });
     const lock = h('label', { class: 'ck' }, h('input', { type: 'checkbox', checked: !!e.locked, onchange: ev => { e.locked = ev.target.checked; } }), '結案（導師不可再更動）');
-    const picks = allItems().map(it => { const cb = h('input', { type: 'checkbox', checked: (e.itemIds || []).includes(it.id) }); return { it, cb, el: h('label', { class: 'ck' }, cb, it.name) }; });
-    const save = h('button', { class: 'btn small primary', onclick: async () => { e.itemIds = picks.filter(p => p.cb.checked).map(p => p.it.id); await adminPost({ action: 'updateRound', round: e }, '已更新'); S.version = null; await load({ force: true, full: true }); } }, '儲存');
+    const pick = itemPicker(allItems(), it => (e.itemIds || []).includes(it.id));
+    const save = h('button', { class: 'btn small primary', onclick: async () => { e.itemIds = pick.selected(); await adminPost({ action: 'updateRound', round: e }, '已更新'); S.version = null; await load({ force: true, full: true }); } }, '儲存');
     const del = armed(h('button', { class: 'btn small danger' }), '刪除', '再按一次確認刪除（紀錄一併刪除）', async () => { await adminPost({ action: 'delRound', rid: e.id }, '已刪除'); S.version = null; if (S.rid === e.id) S.rid = null; await load({ force: true, full: true }); }, 3500);
-    return h('div', { class: 'classcard' }, h('div', { class: 'row' }, name, h('span', { class: 'note', text: '截止' }), due, lock, save, del), h('div', { class: 'row' }, h('span', { class: 'note', text: '本次項目' }), picks.map(p => p.el)));
+    const open = h('details', { class: 'fold' }, h('summary', { text: '本次項目（' + (e.itemIds || []).length + ' 項）' }), pick.el);
+    return h('div', { class: 'classcard' }, h('div', { class: 'row' }, name, h('span', { class: 'note', text: '截止' }), due, lock, save, del), open);
   }
   function classEditor(c, i) {
     const D = S.draft;
@@ -980,31 +1003,40 @@
     const num = h('input', { type: 'number', min: '1', max: '60', placeholder: '人數', style: 'width:84px', 'aria-label': '人數' });
     const gen = h('button', { class: 'btn small ghost', onclick: () => { const k = +num.value; if (!(k > 0)) return toast('請先填人數'); const old = c.students || []; c.students = Array.from({ length: k }, (_, j) => ({ no: j + 1, name: (old.find(s => s.no === j + 1) || {}).name || '' })); renderMain(); } }, '只用座號，產生 1～N 號');
     const rm = armed(h('button', { class: 'btn small danger' }), '移除班級', '再按一次確認移除', () => { D.classes.splice(i, 1); renderMain(); });
-    // 本班習作項目（預設依年級），與各科任老師
+    // 本班項目：表格，列＝科目，欄＝習作（＋科任老師）／考卷
     const useDefault = !Array.isArray(c.itemIds);
-    const itemBox = h('div', { class: 'subgrid' });
+    const itemBox = h('div', { class: 'tablebox pickbox' });
     const rebuildItems = () => {
       itemBox.replaceChildren();
-      D.items.forEach(it => {
-        const on = useDefaultNow() ? (it.grades || []).map(Number).includes(Number(c.grade)) : c.itemIds.includes(it.id);
-        const cb = h('input', { type: 'checkbox', checked: on, onchange: e => { if (useDefaultNow()) c.itemIds = D.items.filter(x => (x.grades || []).map(Number).includes(Number(c.grade))).map(x => x.id); c.itemIds = c.itemIds.filter(x => x !== it.id); if (e.target.checked) c.itemIds.push(it.id); } });
-        const who = h('input', { type: 'text', placeholder: it.kind === 'exam' ? '備註（可留白）' : '科任老師（可留白）', value: (c.subjectTeachers || {})[it.id] || '', oninput: e => { c.subjectTeachers = c.subjectTeachers || {}; c.subjectTeachers[it.id] = e.target.value.trim(); } });
-        itemBox.append(h('label', null, cb, h('span', { text: it.short || it.name }), who));
-      });
+      const on = it => useDefaultNow() ? (it.grades || []).map(Number).includes(Number(c.grade)) : c.itemIds.includes(it.id);
+      const toggle = (it, v) => { if (useDefaultNow()) c.itemIds = D.items.filter(x => (x.grades || []).map(Number).includes(Number(c.grade))).map(x => x.id); c.itemIds = c.itemIds.filter(x => x !== it.id); if (v) c.itemIds.push(it.id); };
+      const cell = (it, withTeacher) => {
+        if (!it) return h('td', { class: 'na', text: '—' });
+        const cb = h('input', { type: 'checkbox', checked: on(it), 'aria-label': it.name, onchange: e => toggle(it, e.target.checked) });
+        const td = h('td', null, h('label', { class: 'pick' }, cb));
+        if (withTeacher) td.append(h('input', { type: 'text', class: 'tinput', placeholder: '科任老師', value: (c.subjectTeachers || {})[it.id] || '', 'aria-label': it.name + ' 科任老師', oninput: e => { c.subjectTeachers = c.subjectTeachers || {}; c.subjectTeachers[it.id] = e.target.value.trim(); } }));
+        return td;
+      };
+      itemBox.append(h('table', { class: 'picktable' },
+        h('thead', null, h('tr', null, h('th', { class: 'left', text: '科目' }), h('th', { class: 'hwcol', text: '習作（科任老師）' }), h('th', { class: 'examcol', text: '考卷' }))),
+        h('tbody', null, subjectRows(D.items).map(r => h('tr', null, h('td', { class: 'left', text: r.key }), cell(r.hw, true), cell(r.exam, false))))));
     };
     const useDefaultNow = () => !Array.isArray(c.itemIds);
     rebuildItems();
-    return h('div', { class: 'classcard' },
+    const summary = h('summary', null, h('b', { text: c.name || '（未命名）' }), h('span', { class: 'note', text: GRADE[Number(c.grade)] + '年級　' + (c.teacher ? '導師 ' + c.teacher : '未填導師') + '　' + (c.students || []).length + ' 人' }));
+    return h('details', { class: 'fold classfold', open: S.openClass === c.id ? true : null, ontoggle: e => { if (e.target.open) S.openClass = c.id; else if (S.openClass === c.id) S.openClass = null; } }, summary, h('div', { class: 'classcard' },
       h('div', { class: 'row' },
         h('input', { type: 'text', value: c.name, style: 'width:120px', 'aria-label': '班級名稱', oninput: e => { c.name = e.target.value; } }),
         h('select', { 'aria-label': '年級', onchange: e => { c.grade = +e.target.value; if (useDefaultNow()) rebuildItems(); } }, [1, 2, 3, 4, 5, 6].map(g => h('option', { value: g, text: GRADE[g] + '年級', selected: Number(c.grade) === g }))),
         h('input', { type: 'text', value: c.teacher || '', placeholder: '導師姓名', style: 'width:130px', 'aria-label': '導師姓名', oninput: e => { c.teacher = e.target.value.trim(); } }),
         h('label', { class: 'ck', title: '條碼編號裡的班序：甲＝1、乙＝2' }, '班序', h('input', { type: 'number', min: '1', max: '20', value: classNo(c), style: 'width:56px;padding:3px 6px', 'aria-label': '班序', onchange: e => { c.classNo = parseInt(e.target.value, 10) || 1; } })),
         rm),
-      h('div', { class: 'row' }, h('span', { class: 'note', text: '本班習作項目與科任老師' }), useDefault ? h('span', { class: 'tag', text: '依年級預設' }) : h('button', { class: 'link', style: 'font-size:12px', onclick: () => { delete c.itemIds; renderMain(); } }, '恢復依年級預設')),
-      itemBox,
+      h('details', { class: 'fold' }, h('summary', null, '本班項目與科任老師　', useDefault ? h('span', { class: 'tag', text: '依年級預設' }) : h('span', { class: 'tag warn', text: '已個別調整' })),
+        useDefault ? null : h('div', { class: 'row' }, h('button', { class: 'link', style: 'font-size:12px', onclick: () => { delete c.itemIds; renderMain(); } }, '恢復依年級預設')),
+        itemBox),
+      h('div', { class: 'note', text: '學生名單（每行一位：座號 姓名）' }),
       ta,
-      h('div', { class: 'row' }, cnt, num, gen));
+      h('div', { class: 'row' }, cnt, num, gen)));
   }
   function parseRoster(text) {
     const out = []; let auto = 1;
