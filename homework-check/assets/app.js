@@ -574,6 +574,55 @@
     S.modal.refresh = () => { }; // 掃描中不重繪，避免相機與輸入框被重置
   }
 
+  /* ---------- 最小 .xlsx 產生器（給 NIIMBOT 等標籤機 App 匯入；全部存成文字，座號不會掉 0） ---------- */
+  const CRC_T = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+  function crc32(u8) { let c = 0xFFFFFFFF; for (let i = 0; i < u8.length; i++) c = CRC_T[(c ^ u8[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+  function zipStore(files) {
+    const enc = new TextEncoder(); const parts = []; const cd = []; let off = 0;
+    const d = new Date(); const dosTime = (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1); const dosDate = ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate();
+    const u32 = v => [v & 255, (v >>> 8) & 255, (v >>> 16) & 255, (v >>> 24) & 255]; const u16 = v => [v & 255, (v >>> 8) & 255];
+    Object.keys(files).forEach(name => {
+      const nm = enc.encode(name), data = enc.encode(files[name]), crc = crc32(data);
+      const lh = new Uint8Array([...u32(0x04034b50), ...u16(20), ...u16(0x0800), ...u16(0), ...u16(dosTime), ...u16(dosDate), ...u32(crc), ...u32(data.length), ...u32(data.length), ...u16(nm.length), ...u16(0)]);
+      parts.push(lh, nm, data);
+      cd.push(new Uint8Array([...u32(0x02014b50), ...u16(20), ...u16(20), ...u16(0x0800), ...u16(0), ...u16(dosTime), ...u16(dosDate), ...u32(crc), ...u32(data.length), ...u32(data.length), ...u16(nm.length), ...u16(0), ...u16(0), ...u16(0), ...u16(0), ...u32(0), ...u32(off)]), nm);
+      off += lh.length + nm.length + data.length;
+    });
+    const cdLen = cd.reduce((a, b) => a + b.length, 0);
+    const end = new Uint8Array([...u32(0x06054b50), ...u16(0), ...u16(0), ...u16(Object.keys(files).length), ...u16(Object.keys(files).length), ...u32(cdLen), ...u32(off), ...u16(0)]);
+    return new Blob([...parts, ...cd, end], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  }
+  function xlsxBlob(rows, sheetName) {
+    const esc = v => String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    const colName = i => { let s = ''; i++; while (i > 0) { const m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = Math.floor((i - 1) / 26); } return s; };
+    const ncol = Math.max(...rows.map(r => r.length));
+    let sh = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cols><col min="1" max="' + ncol + '" width="16" customWidth="1"/></cols><sheetData>';
+    rows.forEach((r, ri) => { sh += '<row r="' + (ri + 1) + '">'; r.forEach((v, ci) => { sh += '<c r="' + colName(ci) + (ri + 1) + '" t="inlineStr"><is><t xml:space="preserve">' + esc(v) + '</t></is></c>'; }); sh += '</row>'; });
+    sh += '</sheetData></worksheet>';
+    const X = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+    return zipStore({
+      '[Content_Types].xml': X + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>',
+      '_rels/.rels': X + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>',
+      'xl/workbook.xml': X + '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="' + esc(sheetName) + '" sheetId="1" r:id="rId1"/></sheets></workbook>',
+      'xl/_rels/workbook.xml.rels': X + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>',
+      'xl/worksheets/sheet1.xml': sh
+    });
+  }
+  function downloadBlob(blob, filename) { const a = h('a', { href: URL.createObjectURL(blob), download: filename }); document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500); }
+  // 標籤資料列（與列印用同一套內容）
+  function labelRows() {
+    const cl = classes(); const r = round(); const base = location.href.split('#')[0].split('?')[0];
+    const rows = [['班級', '座號', '姓名', '科目', '班級座號', 'QR條碼內容']];
+    cl.filter(c => (LB.classIds || []).includes(c.id)).forEach(c => {
+      const its = LB.mode === 'book' ? itemsFor(c, r).filter(it => it.kind !== 'exam') : [null];
+      (c.students || []).slice().sort((a, b) => a.no - b.no).forEach(s => its.forEach(it => {
+        const payload = scanPayload(c, s, it);
+        rows.push([c.name, String(s.no).padStart(2, '0'), s.name || '', it ? it.name : '作業抽查', c.name + ' ' + String(s.no).padStart(2, '0') + '號', LB.url ? base + '#s=' + payload.replace(/^HW\./, '') : payload]);
+      }));
+    });
+    return rows;
+  }
+
   /* ---------- 標籤列印（教務組） ---------- */
   const LABEL_SIZES = [
     { id: 'a4-44x25', name: 'A4 貼紙（每格 44×25 mm，4 欄）', w: 44, h: 25, sheet: 'A4' },
@@ -601,8 +650,11 @@
       h('label', { class: 'ck' }, h('input', { type: 'radio', name: 'lbcode', checked: LB.code === 'both', onchange: () => { LB.code = 'both'; redraw(); } }), '兩種都印')));
     opt.append(h('div', { class: 'row' }, h('span', { class: 'note', text: '標籤尺寸' }), h('select', { onchange: e => { LB.size = e.target.value; redraw(); } }, LABEL_SIZES.map(z => h('option', { value: z.id, text: z.name, selected: z.id === LB.size }))),
       h('label', { class: 'ck' }, h('input', { type: 'checkbox', checked: LB.url, onchange: e => { LB.url = e.target.checked; redraw(); } }), 'QR 內含網址（用手機內建相機掃也能登記，但圖會較密）')));
-    opt.append(h('div', { class: 'row' }, h('button', { class: 'btn primary', onclick: () => window.print() }, svg('print'), '列印'), h('span', { class: 'note', id: 'lbcount' })),
-      h('div', { class: 'note', text: '列印時請選「實際大小」、不要縮放；標籤機請在印表機設定選對應的標籤規格。標籤貼在習作封面右上角。' }));
+    opt.append(h('div', { class: 'row' }, h('button', { class: 'btn primary', onclick: () => window.print() }, svg('print'), '列印'),
+      h('button', { class: 'btn', onclick: () => { const rows = labelRows(); if (rows.length < 2) return toast('沒有可匯出的標籤'); downloadBlob(xlsxBlob(rows, '標籤'), '習作標籤_NIIMBOT_' + (LB.mode === 'book' ? '含科目' : '每位學生') + '.xlsx'); toast('已下載 Excel，共 ' + (rows.length - 1) + ' 列'); } }, svg('down'), '下載 NIIMBOT 用 Excel'),
+      h('span', { class: 'note', id: 'lbcount' })),
+      h('div', { class: 'note', text: '列印時請選「實際大小」、不要縮放；標籤機請在印表機設定選對應的標籤規格。標籤貼在習作封面右上角。' }),
+      h('div', { class: 'note', text: 'NIIMBOT（精臣）等標籤機 App：下載 Excel 後，在 App 新增標籤 → 匯入 Excel／資料來源 → 把文字框綁定「姓名」「班級座號」「科目」欄，QR Code 或條碼綁定「QR條碼內容」欄，即可整批列印。每列一張標籤。' }));
     box.append(opt);
     const sheet = h('div', { class: 'labelsheet' }); box.append(sheet);
     const styleEl = h('style', { id: 'labelPrintStyle' }); box.append(styleEl);
