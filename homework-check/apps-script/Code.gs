@@ -46,17 +46,17 @@ function defaultConfig_() {
   var all = [1, 2, 3, 4, 5, 6];
   return {
     items: [
-      { id: 'chinese', name: '國語習作', short: '國語', kind: 'hw', grades: all },
-      { id: 'math', name: '數學習作', short: '數學', kind: 'hw', grades: all },
-      { id: 'english', name: '英語習作', short: '英語', kind: 'hw', grades: [3, 4, 5, 6] },
-      { id: 'life', name: '生活習作', short: '生活', kind: 'hw', grades: [1, 2] },
-      { id: 'social', name: '社會習作', short: '社會', kind: 'hw', grades: [3, 4, 5, 6] },
-      { id: 'science', name: '自然習作', short: '自然', kind: 'hw', grades: [3, 4, 5, 6] },
-      { id: 'health', name: '健康習作', short: '健康', kind: 'hw', grades: all },
-      { id: 'exam', name: '考卷（家長已簽名）', short: '考卷簽回', kind: 'exam', grades: all }
+      { id: 'chinese', name: '國語習作', short: '國語', kind: 'hw', grades: all, code: '01' },
+      { id: 'math', name: '數學習作', short: '數學', kind: 'hw', grades: all, code: '02' },
+      { id: 'english', name: '英語習作', short: '英語', kind: 'hw', grades: [3, 4, 5, 6], code: '03' },
+      { id: 'life', name: '生活習作', short: '生活', kind: 'hw', grades: [1, 2], code: '04' },
+      { id: 'social', name: '社會習作', short: '社會', kind: 'hw', grades: [3, 4, 5, 6], code: '05' },
+      { id: 'science', name: '自然習作', short: '自然', kind: 'hw', grades: [3, 4, 5, 6], code: '06' },
+      { id: 'health', name: '健康習作', short: '健康', kind: 'hw', grades: all, code: '07' },
+      { id: 'exam', name: '考卷（家長已簽名）', short: '考卷簽回', kind: 'exam', grades: all, code: '09' }
     ],
     classes: all.map(function (g) {
-      return { id: 'g' + g, name: '一二三四五六'.charAt(g - 1) + '甲', grade: g, teacher: '', subjectTeachers: {}, students: [] };
+      return { id: 'g' + g, name: '一二三四五六'.charAt(g - 1) + '甲', grade: g, classNo: 1, teacher: '', subjectTeachers: {}, students: [] };
     })
   };
 }
@@ -84,7 +84,10 @@ function doGet(e) {
     Object.keys(all).forEach(function (k) {
       if (k.indexOf(prefix) !== 0) return;
       var cid = k.slice(prefix.length);
-      if (who.role === 'admin' || cid === who.classId) checks[cid] = { marks: all[k].marks || {}, updatedAt: all[k].updatedAt || '', updatedBy: all[k].updatedBy || '' };
+      if (who.role === 'admin' || cid === who.classId) {
+        checks[cid] = { marks: all[k].marks || {}, updatedAt: all[k].updatedAt || '', updatedBy: all[k].updatedBy || '' };
+        if (who.role === 'admin') { checks[cid].notes = all[k].notes || {}; checks[cid].classNote = all[k].classNote || ''; } // 備註只給教務組
+      }
     });
   }
   var out = { ok: true, role: who.role, version: version, rounds: rounds, rid: rid, checks: checks };
@@ -214,6 +217,20 @@ function doPost(e) {
         put_('rounds', rounds.filter(function (x) { return x.id !== body.rid; }));
         delPrefix_('checks:' + body.rid + ':');
         break;
+      case 'note': {
+        // 教務組備註：每位學生一則（給主任、校長看的說明），或整班一則
+        if (!admin) return json_({ ok: false, error: 'auth' });
+        var nrid = String(body.rid || ''), ncid = String(body.classId || '');
+        if (!rounds.some(function (x) { return x.id === nrid; })) return json_({ ok: false, error: 'no_round' });
+        if (!config.classes.some(function (c) { return c.id === ncid; })) return json_({ ok: false, error: 'bad_request' });
+        var nkey = 'checks:' + nrid + ':' + ncid;
+        var ndoc = all[nkey] || { marks: {} };
+        var text = String(body.text || '').trim().slice(0, 200);
+        if (body.no === undefined || body.no === null || body.no === '') { ndoc.classNote = text; }
+        else { ndoc.notes = ndoc.notes || {}; var nno = String(parseInt(body.no, 10)); if (nno === 'NaN') return json_({ ok: false, error: 'bad_request' }); if (text) ndoc.notes[nno] = text; else delete ndoc.notes[nno]; }
+        put_(nkey, ndoc);
+        break;
+      }
       case 'revokeDevices': {
         if (!admin) return json_({ ok: false, error: 'auth' });
         var auth2 = all.auth || { classes: {} };
@@ -271,7 +288,9 @@ function ensureAuth_(config, auth) {
 function sanitizeConfig_(c) {
   if (!c || !Array.isArray(c.items) || !Array.isArray(c.classes)) return null;
   var items = c.items.map(function (it) {
-    return { id: String(it.id || rand_(6)), name: String(it.name || '').trim().slice(0, 40), short: String(it.short || '').trim().slice(0, 12), kind: it.kind === 'exam' ? 'exam' : 'hw', grades: (it.grades || []).map(Number).filter(function (g) { return g >= 1 && g <= 6; }) };
+    var o = { id: String(it.id || rand_(6)), name: String(it.name || '').trim().slice(0, 40), short: String(it.short || '').trim().slice(0, 12), kind: it.kind === 'exam' ? 'exam' : 'hw', grades: (it.grades || []).map(Number).filter(function (g) { return g >= 1 && g <= 6; }) };
+    var code = String(it.code || '').replace(/\D/g, '').slice(0, 2); if (code) o.code = code; // 條碼科目代碼
+    return o;
   }).filter(function (it) { return it.name; });
   var ids = {}; items.forEach(function (it) { ids[it.id] = true; });
   var classes = c.classes.map(function (cl) {
@@ -282,6 +301,7 @@ function sanitizeConfig_(c) {
     var st = {}; Object.keys(cl.subjectTeachers || {}).forEach(function (k) { if (ids[k] && cl.subjectTeachers[k]) st[k] = String(cl.subjectTeachers[k]).trim().slice(0, 20); });
     var out = { id: String(cl.id || rand_(6)), name: String(cl.name || '').trim().slice(0, 20), grade: Math.min(6, Math.max(1, parseInt(cl.grade, 10) || 1)), teacher: String(cl.teacher || '').trim().slice(0, 20), subjectTeachers: st, students: students };
     if (Array.isArray(cl.itemIds)) out.itemIds = cl.itemIds.filter(function (k) { return ids[k]; });
+    var cn = parseInt(cl.classNo, 10); if (cn > 0) out.classNo = cn; // 條碼班序（甲=1）
     return out;
   }).filter(function (cl) { return cl.name; });
   return { items: items, classes: classes };
@@ -298,9 +318,9 @@ function writeSummary_(round, config, all) {
   var sh = ss.getSheetByName(name) || ss.insertSheet(name);
   sh.clear();
   var items = config.items.filter(function (it) { return (round.itemIds || []).indexOf(it.id) >= 0; });
-  var head = ['班級', '導師', '座號', '姓名'].concat(items.map(function (i) { return i.name; })).concat(['已交項目', '應交項目', '狀態']);
+  var head = ['班級', '導師', '座號', '姓名'].concat(items.map(function (i) { return i.name; })).concat(['已交項目', '應交項目', '狀態', '備註']);
   var rows = [head];
-  var stat = [['班級', '導師', '人數'].concat(items.map(function (i) { return i.name; })).concat(['完成率'])];
+  var stat = [['班級', '導師', '人數'].concat(items.map(function (i) { return i.name; })).concat(['完成率', '班級備註'])];
   config.classes.forEach(function (cls) {
     var doc = all['checks:' + round.id + ':' + cls.id] || { marks: {} };
     var mine = items.filter(function (it) { return Array.isArray(cls.itemIds) ? cls.itemIds.indexOf(it.id) >= 0 : (it.grades || []).indexOf(Number(cls.grade)) >= 0; });
@@ -315,10 +335,10 @@ function writeSummary_(round, config, all) {
         return '';
       });
       got += g;
-      rows.push([cls.name, cls.teacher || '', s.no, s.name || ''].concat(cells).concat([g, mine.length, g === mine.length ? '繳齊' : '缺 ' + (mine.length - g) + ' 項']));
+      rows.push([cls.name, cls.teacher || '', s.no, s.name || ''].concat(cells).concat([g, mine.length, g === mine.length ? '繳齊' : '缺 ' + (mine.length - g) + ' 項', (doc.notes || {})[String(s.no)] || '']));
     });
     var n = (cls.students || []).length; var total = n * mine.length;
-    stat.push([cls.name, cls.teacher || '', n].concat(items.map(function (it) { return mineSet[it.id] ? (counts[it.id] || 0) + '/' + n : '—'; })).concat([total ? Math.round(got / total * 100) + '%' : '—']));
+    stat.push([cls.name, cls.teacher || '', n].concat(items.map(function (it) { return mineSet[it.id] ? (counts[it.id] || 0) + '/' + n : '—'; })).concat([total ? Math.round(got / total * 100) + '%' : '—', doc.classNote || '']));
   });
   var w = head.length;
   sh.getRange(1, 1, 1, w).setValues([['作業抽查紀錄　' + round.name + (round.due ? '　繳交截止 ' + round.due : '') + '　製表 ' + Utilities.formatDate(new Date(), 'Asia/Taipei', 'yyyy/MM/dd HH:mm')].concat(new Array(w - 1).fill(''))]);

@@ -312,10 +312,39 @@ footer.foot .link { font-size: 12px; color: var(--muted); }
 .label.both .txt { grid-row: 1; grid-column: 2; min-height: 0; overflow: hidden; }
 .label.both .l1 { font-size: clamp(8.5pt, calc(var(--lh) * 0.18), 11pt); }
 .label.both .l2, .label.both .l3 { font-size: clamp(6pt, calc(var(--lh) * 0.12), 7.5pt); margin: 0; }
-.label.both .l4 { display: none; }
+.label.both .l4 { display: block; font-size: 5.5pt; }
 .label.both .bar { grid-row: 2; grid-column: 1 / 3; height: 6mm; width: 100%; }
 @media print {
   body.labels-view > .wrap > *:not(main), body.labels-view main > .stack > *:not(.labelsheet) { display: none !important; }
-  body.labels-view .labelsheet { border: 0; padding: 0; gap: 2mm 2mm; background: #fff; border-radius: 0; }
+  body.labels-view .labelsheet { border: 0; padding: 0; gap: 1.5mm 1.5mm; background: #fff; border-radius: 0; }
   body.labels-view .label { border: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .toast { display: none !important; }
+}
+
+/* ---------- 備註與報表 ---------- */
+.noteinput { width: 100%; min-width: 160px; padding: 5px 8px; font-size: 13px; border: 1px solid var(--line); border-radius: 6px; background: var(--sheet); }
+.noteinput:focus { border-color: var(--accent); }
+th.notecol, td.notecol { text-align: left; min-width: 200px; white-space: normal; }
+.report .rhead { text-align: center; border-bottom: 2px solid var(--ink); padding-bottom: 10px; }
+.report .rorg { font-size: 13px; letter-spacing: .12em; color: var(--muted); }
+.report h2 { font-family: var(--f-display); font-size: 22px; margin: 4px 0; letter-spacing: .06em; }
+.report .rmeta { display: flex; justify-content: center; gap: 18px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+.report .rsec h3 { font-family: var(--f-display); font-size: 16px; margin: 6px 0 8px; letter-spacing: .04em; }
+.report .rclass { margin-top: 12px; break-inside: avoid; }
+.report .rclass h4 { margin: 0 0 6px; font-size: 14px; font-weight: 600; }
+.report table.rtable th, .report table.rtable td { padding: 5px 8px; font-size: 13px; }
+.report table.rtable td.left { text-align: left; white-space: normal; min-width: 120px; }
+.report table.rtable td.rname { text-align: left; font-weight: 500; }
+.report table.rtable td.okcell { color: var(--ok); font-weight: 700; }
+.report table.rtable td.nocell { color: var(--seal); font-weight: 700; }
+@media print {
+  body.report-view nav.tabs, body.report-view .roundbar, body.report-view .masthead .who, body.report-view footer.foot, body.report-view .no-print { display: none !important; }
+  body.report-view .masthead { display: none !important; }
+  .report .rhead { border-bottom-color: #000; }
+  .report table.rtable td.okcell { color: #000; }
+  .report table.rtable td.nocell { color: #000; }
+  .report .rsec, .report .tablebox { break-inside: auto; }
+  .report table.rtable thead { display: table-header-group; }
+  .report table.rtable tr { break-inside: avoid; }
+  .noteinput { border: 0; padding: 0; background: transparent; }
 }
