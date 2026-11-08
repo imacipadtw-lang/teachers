@@ -1678,10 +1678,25 @@ var CF = (function () {
     if (!r.fromDate || !r.fromPeriod) return out;
     closed(ctx, r.fromDate, r.fromPeriod, "原日期", out);
     if (r.toDate) closed(ctx, r.toDate, r.toPeriod, "調整後日期", out);
+    if (ctx.has) {                                                     // 11/8：名字要在課表的老師名單裡（打錯名字會被當成另一個人）
+      var kn = {}, kk; for (kk in ctx.tSlot) kn[kk.split("|")[2]] = 1;
+      if (r.teacher && !kn[r.teacher]) out.push("「" + r.teacher + "」不在課表的老師名單裡，請確認名字");
+      if (r.partner && !kn[r.partner]) out.push("對調老師「" + r.partner + "」不在課表的老師名單裡，請確認名字");
+    }
     if (ctx.has && r.cls) {
       var a = slot(ctx, r.fromDate, r.fromPeriod, r.cls);
       if (!a) out.push("課表上" + md(r.fromDate) + "第" + r.fromPeriod + "節，" + r.cls + "沒有課");
       else if (r.teacher && a.teachers.indexOf(r.teacher) < 0) out.push("課表上" + md(r.fromDate) + "第" + r.fromPeriod + "節的" + r.cls + a.subject + "是" + a.teachers.join("、") + "的課，不是" + r.teacher);
+      else if (r.teacher) {                                              // 11/8：合班（同一節同時上兩班以上）只調一班，另一班那節會沒有老師
+        var oth = (ctx.tSlot[dow(r.fromDate) + "|" + r.fromPeriod + "|" + r.teacher] || []).filter(function (c) { return c !== r.cls && !/年級$/.test(c); });
+        var opn = oth.filter(function (c) {
+          if (ctx.ev.some(function (x) { return x.date === r.fromDate && same(x.period, r.fromPeriod) && x.cls === c && ((x.type === "swap" && x.dir === "調出") || x.type === "sub" || x.type === "leave"); })) return false;
+          if ((ctx.formSwaps || []).some(function (x) { return x !== r && x.cls === c && x.fromDate === r.fromDate && same(x.fromPeriod, r.fromPeriod); })) return false;   // 同一張單的另一列
+          if ((ctx.formSubs || []).some(function (x) { return x.cls === c && x.date === r.fromDate && same(x.period, r.fromPeriod); })) return false;
+          return true;
+        });
+        if (opn.length) out.push("合班：" + md(r.fromDate) + "第" + r.fromPeriod + "節 " + r.teacher + " 同時上 " + [r.cls].concat(oth).join("、") + "（" + a.subject + "），" + opn.join("、") + " 那節還沒有人上，請一併登記" + opn.join("、") + "的調課或代課");
+      }
       if (r.toDate && r.toPeriod) {
         var b = slot(ctx, r.toDate, r.toPeriod, r.cls);
         if (!b) out.push("課表上" + md(r.toDate) + "第" + r.toPeriod + "節，" + r.cls + "沒有課");
@@ -1689,7 +1704,9 @@ var CF = (function () {
       }
     }
     if (r.toDate && r.toPeriod && r.teacher) {
-      var x = busyAt(ctx, r.teacher, r.toDate, r.toPeriod, r.cls);
+      var tg = {};                                                       // 11/8：合班一起調走的另一班（同一張單或已登記），到新的那節還是合班，不算衝堂
+      ctx.ev.forEach(function (x) { if (x.type === "swap" && x.dir === "調出" && x.teacher === r.teacher && x.date === r.fromDate && same(x.period, r.fromPeriod) && x.toDate === r.toDate && same(x.toPeriod, r.toPeriod)) tg[x.cls] = 1; });
+      var x = busyAt(ctx, r.teacher, r.toDate, r.toPeriod, r.cls).filter(function (b) { return !tg[b.split("（")[0]]; });
       if (x.length) out.push("衝堂：" + r.teacher + "在" + md(r.toDate) + "第" + r.toPeriod + "節已經有 " + x.join("、"));
       var lt = leaveAt(ctx, r.teacher, r.toDate, r.toPeriod);
       if (lt.length) out.push(r.teacher + "在" + md(r.toDate) + "有請假紀錄" + leaveMsg(lt));
@@ -1770,7 +1787,7 @@ var CF = (function () {
   /* 把還沒儲存的資料轉成紀錄，讓同一張單裡前後列也能互相檢查 */
   function asEvents(kind, r) {
     if (kind === "swap") {
-      var base = { type: "swap", id: "這張單", teacher: r.teacher, partner: r.partner, cls: r.cls };
+      var base = { type: "swap", id: "這張單", teacher: r.teacher, partner: r.partner, cls: r.cls, toDate: r.toDate || "", toPeriod: r.toPeriod || "" };
       var a = [Object.assign({}, base, { dir: "調出", date: r.fromDate, period: r.fromPeriod })];
       if (r.toDate && !(r.toDate === r.fromDate && same(r.toPeriod, r.fromPeriod))) a.push(Object.assign({}, base, { dir: "調入", date: r.toDate, period: r.toPeriod }));
       return a;
@@ -1785,7 +1802,7 @@ var CF = (function () {
 
   /* 一次檢查整張單：回傳 [{kind, index, msgs}] */
   function checkAll(ctx, form) {
-    var c = { tt: ctx.tt, tSlot: ctx.tSlot, has: ctx.has, ev: ctx.ev.slice(), off: ctx.off }, res = [];
+    var c = { tt: ctx.tt, tSlot: ctx.tSlot, has: ctx.has, ev: ctx.ev.slice(), off: ctx.off, formSwaps: form.swaps || [], formSubs: form.subs || [] }, res = [];
     [["absent", form.absents || [], absent], ["swap", form.swaps || [], swap], ["sub", form.subs || [], sub], ["tutor", form.tutors || [], tutor]].forEach(function (k) {
       k[1].forEach(function (r, i) {
         res.push({ kind: k[0], index: i, msgs: k[2](r, c) });
@@ -1891,6 +1908,55 @@ var CF = (function () {
       add("absswap|" + (e.id || "") + "|" + e.date + "|" + e.period, "leave", e.date, m5, [e]);
       flag(e, m5);
     });
+    // 6. 調課和課表核對（11/8 管理者要求：每筆調課都要對課表，不能有一節沒老師上）
+    //    (a) 老師、對調老師要是課表上有的人；(b) 原日期那節課表要是這位老師的課；(c) 調整後那節課表要是對調老師的課；
+    //    (d) 合班：原本那節這位老師同時上兩班以上（例如低年級音樂＝一甲＋二甲），只調其中一班時，另一班那節沒有人上；
+    //    (e) 對調老師在原日期那節、這位老師在調整後那節，同時還有別的課（衝堂）；(f) 調整後日期已過原日期一個月以上或沒填。
+    if (ctx.has) {
+      var known = {}; for (k in ctx.tSlot) known[k.split("|")[2]] = 1;
+      var realCls = function (c) { return c && !/年級$/.test(c); };
+      var coveredAt = function (cls, date, p) {           // 這班這節有沒有人處理（調課、代課、請假登記）
+        return ctx.ev.some(function (x) {
+          if (x.date !== date || !same(x.period, p)) return false;
+          if (x.type === "swap" && x.dir === "調出" && x.cls === cls) return true;
+          if ((x.type === "sub" || x.type === "leave") && x.cls === cls) return true;
+          return false;
+        });
+      };
+      ev.forEach(function (e) {
+        if (e.type !== "swap" || e.dir !== "調出" || !e.date || !e.period) return;
+        var id = e.id || "", head = "調課（" + id + "）", probs = [];
+        var fs = ctx.tt[dow(e.date) + "|" + e.period + "|" + e.cls], ts = e.toDate && e.toPeriod ? ctx.tt[dow(e.toDate) + "|" + e.toPeriod + "|" + e.cls] : null;
+        if (e.teacher && !known[e.teacher]) probs.push("「" + e.teacher + "」不在課表的老師名單裡，可能打錯名字");
+        if (e.partner && !known[e.partner]) probs.push("對調的「" + e.partner + "」不在課表的老師名單裡，可能打錯名字");
+        if (e.cls && !fs) probs.push("課表上 " + md(e.date) + "第" + e.period + "節 " + e.cls + " 沒有課");
+        else if (fs && e.teacher && fs.teachers.indexOf(e.teacher) < 0) probs.push("課表上 " + md(e.date) + "第" + e.period + "節 " + e.cls + " 是 " + fs.teachers.join("、") + " 的" + fs.subject + "，不是 " + e.teacher + " 的課");
+        if (!e.toDate || !e.toPeriod) probs.push("沒有填調整後的日期或節次，" + (e.teacher || "") + " 這節課不知道補在哪一天");
+        else if (e.cls && !ts) probs.push("課表上 " + md(e.toDate) + "第" + e.toPeriod + "節 " + e.cls + " 沒有課");
+        else if (ts && e.partner && ts.teachers.indexOf(e.partner) < 0) probs.push("課表上 " + md(e.toDate) + "第" + e.toPeriod + "節 " + e.cls + " 是 " + ts.teachers.join("、") + " 的" + ts.subject + "，不是 " + e.partner + " 的課；對調老師應該是 " + ts.teachers.join("、"));
+        if (fs && e.teacher && fs.teachers.indexOf(e.teacher) >= 0) {
+          var others = (ctx.tSlot[dow(e.date) + "|" + e.period + "|" + e.teacher] || []).filter(function (c) { return realCls(c) && c !== e.cls; });
+          var open = others.filter(function (c) { return !coveredAt(c, e.date, e.period); });
+          if (open.length) probs.push("合班：" + md(e.date) + "第" + e.period + "節 " + e.teacher + " 同時上 " + [e.cls].concat(others).join("、") + "（" + fs.subject + "），只調了 " + e.cls + "，" + open.join("、") + " 那節還沒有老師上");
+        }
+        if (e.partner && e.partner !== e.teacher) {
+          var by = busyAt(ctx, e.partner, e.date, e.period, e.cls);
+          if (by.length) probs.push("衝堂：" + e.partner + " " + md(e.date) + "第" + e.period + "節要上 " + e.cls + "，但同時還有 " + by.join("、"));
+        }
+        if (e.toDate && e.toPeriod && e.teacher) {
+          var together = {};                                        // 合班一起調走的另一班（同一位老師、同一原節、同一調整後節）→ 到了新的那節還是合班，不算衝堂
+          ev.forEach(function (x) { if (x.type === "swap" && x.dir === "調出" && x.teacher === e.teacher && x.date === e.date && same(x.period, e.period) && x.toDate === e.toDate && same(x.toPeriod, e.toPeriod)) together[x.cls] = 1; });
+          var bt = busyAt(ctx, e.teacher, e.toDate, e.toPeriod, e.cls).filter(function (b) { return !together[b.split("（")[0]]; });
+          if (bt.length) probs.push("衝堂：" + e.teacher + " " + md(e.toDate) + "第" + e.toPeriod + "節要上 " + e.cls + "，但同時還有 " + bt.join("、"));
+        }
+        if (!probs.length) return;
+        probs.forEach(function (m, j) {
+          var kind = /衝堂/.test(m) ? "clash" : /合班|沒有老師|不知道補/.test(m) ? "todo" : "swapchk";
+          add("swapchk|" + id + "|" + j, kind, e.date, head + "：" + m, [e]);
+        });
+        ev.forEach(function (x) { if (x.type === "swap" && x.id === id) probs.forEach(function (m) { flag(x, m); }); });
+      });
+    }
     return issues.sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
   }
 
@@ -2299,7 +2365,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.06b";
+const APP_VERSION = "專業版 2026.11.08";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -5463,15 +5529,15 @@ function renderAlerts(){
   if(state.role !== "admin"){ box.innerHTML = ""; return; }
   const a = state.audit || [], t = state.typhoon;
   const typh = `<p class="typh">颱風假自動檢查：${t ? esc(t.at) + "　" + (t.ok ? "正常，" : "沒有成功，") + esc(t.msg) : "還沒開始（請在資料表按「代課工具 → 開始自動處理」）"}。颱風假也可以自己寫在資料表「假日與停班停課」分頁。</p>`;
-  if(!a.length){ box.innerHTML = `<div class="alerts ok"><h3>資料檢查 <span class="tag">✓ 沒有發現衝堂或重複登錄</span></h3>${typh}</div>` + fixesCard(); return; }
-  const kd = {dup:"重複", clash:"衝堂", leave:"請假", off:"假日", weekend:"日期", dow:"日期", todo:"未安排"};
+  if(!a.length){ box.innerHTML = `<div class="alerts ok"><h3>資料檢查 <span class="tag">✓ 沒有發現衝堂、重複登錄或和課表不符的調課</span></h3>${typh}</div>` + fixesCard(); return; }
+  const kd = {dup:"重複", clash:"衝堂", leave:"請假", off:"假日", weekend:"日期", dow:"日期", todo:"未安排", swapchk:"課表不符"};
   const li = i => `<li class="${i.kind}"><span class="kd">${kd[i.kind]||"提醒"}</span><span>${esc(i.msg)}</span></li>`;
   const n = a.filter(i=>i.kind==="clash"||i.kind==="leave").length, d = a.filter(i=>i.kind==="dup").length;
   box.innerHTML = `<div class="alerts" role="alert"><h3>⚠ 資料檢查發現 ${a.length} 個問題
       ${n?`<span class="tag">衝堂 ${n}</span>`:""}${d?`<span class="tag">重複登錄 ${d}</span>`:""}</h3>
     <ul>${a.slice(0,6).map(li).join("")}</ul>
     ${a.length>6?`<details><summary style="font-size:13px;color:var(--ink-2);cursor:pointer;padding-top:6px">其餘 ${a.length-6} 個</summary><ul>${a.slice(6).map(li).join("")}</ul></details>`:""}
-    <p class="typh">重複登錄：網頁只算一次，請到 Excel 刪掉多的那一列（或在那筆紀錄按「修改」→「刪除這筆」）。衝堂：請確認是否改請其他老師代課。有新的問題會自動通知您。</p>${typh}</div>` + fixesCard();
+    <p class="typh">重複登錄：網頁只算一次，請到 Excel 刪掉多的那一列（或在那筆紀錄按「修改」→「刪除這筆」）。衝堂：請確認是否改請其他老師代課。課表不符、未安排：每筆調課都會對課表（老師名字、原節次、調整後節次、合班的另一班），請按那筆的「修改」更正。有新的問題會立刻用 LINE 通知您。</p>${typh}</div>` + fixesCard();
 }
 /* 管理者修正清單 */
 function fixesCard(){
