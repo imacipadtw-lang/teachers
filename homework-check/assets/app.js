@@ -690,7 +690,7 @@
     const cl = classes(); const r = round(); const base = location.href.split('#')[0].split('?')[0];
     const rows = [['班級', '座號', '姓名', '科目', '班級座號', '條碼內容', '學生編號']];
     cl.filter(c => (LB.classIds || []).includes(c.id)).forEach(c => {
-      const its = LB.mode === 'book' ? itemsFor(c, r).filter(it => it.kind !== 'exam') : [null];
+      const its = LB.mode === 'book' ? itemsFor(c, r).filter(it => LB.exams || it.kind !== 'exam') : [null];
       (c.students || []).slice().sort((a, b) => a.no - b.no).forEach(s => its.forEach(it => {
         const payload = scanPayload(c, s, it);
         rows.push([c.name, pad2(s.no), s.name || '', it ? it.name : '作業抽查', c.name + ' ' + pad2(s.no) + '號', LB.url ? base + '#s=' + payload : payload, studentCode(c, s)]);
