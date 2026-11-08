@@ -275,3 +275,47 @@ footer.foot .link { font-size: 12px; color: var(--muted); }
   .print-meta { display: block !important; font-size: 11px; color: #333; }
 }
 .print-meta { display: none; }
+
+/* ---------- 掃描登記 ---------- */
+.modal .inner.scanmode { max-width: 560px; }
+.scanstatus { border-radius: 12px; padding: 18px 16px; text-align: center; border: 2px solid var(--line); background: var(--sheet-2); transition: background .15s, border-color .15s; }
+.scanstatus .big { font-size: 22px; font-weight: 700; letter-spacing: .02em; text-wrap: balance; }
+.scanstatus .small { font-size: 14px; color: var(--muted); margin-top: 4px; }
+.scanstatus.ok { background: var(--ok-soft); border-color: var(--ok); }
+.scanstatus.ok .big { color: var(--ok); }
+.scanstatus.dup { background: var(--warn-soft); border-color: var(--warn); }
+.scanstatus.dup .big { color: var(--warn); }
+.scanstatus.err { background: var(--seal-soft); border-color: var(--seal); }
+.scanstatus.err .big { color: var(--seal); }
+.scanvideo { width: 100%; max-height: 42vh; border-radius: 10px; background: #000; object-fit: cover; }
+.scaninput { width: 100%; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 14px; }
+.scanlog { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 14px; color: var(--muted); }
+.scanlog li { padding: 4px 8px; border-left: 3px solid var(--line); }
+.scanlog li.new { color: var(--ink); border-left-color: var(--ok); }
+
+/* ---------- 標籤 ---------- */
+.labelsheet { --lw: 44mm; --lh: 25mm; display: flex; flex-wrap: wrap; gap: 3mm; padding: 4mm; background: var(--sheet); border: 1px solid var(--line); border-radius: var(--radius); }
+.label { width: var(--lw); height: var(--lh); box-sizing: border-box; border: 1px dashed #bbb; background: #fff; color: #000; display: flex; align-items: center; gap: 1.5mm; padding: 1.5mm; overflow: hidden; break-inside: avoid; font-family: var(--f-body); }
+.label .qr { height: calc(var(--lh) - 5mm); width: calc(var(--lh) - 5mm); flex: none; }
+.label .qr img, .label .qr canvas { width: 100% !important; height: 100% !important; display: block; }
+.label .txt { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; line-height: 1.2; }
+.label .l1 { font-weight: 700; font-size: clamp(9pt, calc(var(--lh) * 0.22), 13pt); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.label .l2 { font-size: clamp(6.5pt, calc(var(--lh) * 0.14), 8.5pt); white-space: nowrap; overflow: hidden; color: #222; }
+.label .l3 { font-size: clamp(7pt, calc(var(--lh) * 0.16), 9.5pt); font-weight: 600; white-space: nowrap; overflow: hidden; margin-top: 0.3mm; }
+.label .l4 { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 5.5pt; color: #555; white-space: nowrap; margin-top: 0.4mm; }
+.label.bar { flex-direction: column; align-items: stretch; justify-content: center; gap: 0.8mm; }
+.label.bar .txt { flex: none; text-align: center; }
+.label.bar .l4 { display: none; }
+.label .bar { width: 100%; height: calc(var(--lh) * 0.42); display: block; }
+.label.both { display: grid; grid-template-columns: auto 1fr; grid-template-rows: minmax(0, 1fr) auto; column-gap: 1.5mm; row-gap: 0.5mm; align-items: center; }
+.label.both .qr { grid-row: 1; grid-column: 1; height: calc(var(--lh) - 11mm); width: calc(var(--lh) - 11mm); }
+.label.both .txt { grid-row: 1; grid-column: 2; min-height: 0; overflow: hidden; }
+.label.both .l1 { font-size: clamp(8.5pt, calc(var(--lh) * 0.18), 11pt); }
+.label.both .l2, .label.both .l3 { font-size: clamp(6pt, calc(var(--lh) * 0.12), 7.5pt); margin: 0; }
+.label.both .l4 { display: none; }
+.label.both .bar { grid-row: 2; grid-column: 1 / 3; height: 6mm; width: 100%; }
+@media print {
+  body.labels-view > .wrap > *:not(main), body.labels-view main > .stack > *:not(.labelsheet) { display: none !important; }
+  body.labels-view .labelsheet { border: 0; padding: 0; gap: 2mm 2mm; background: #fff; border-radius: 0; }
+  body.labels-view .label { border: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}

@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.07';
+  const APP_VERSION = '2026.11.08';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
   const LS = { admin: 'hc.admin', teacher: 'hc.teacher', api: 'hc.api', cls: 'hc.class' };
   const GRADE = ['', '一', '二', '三', '四', '五', '六'];
@@ -51,7 +51,9 @@
     print: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V3h12v6"/><rect x="3" y="9" width="18" height="9" rx="2"/><path d="M6 15h12v6H6z"/></svg>',
     down: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 21h16"/></svg>',
     list: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg>',
-    lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>'
+    lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
+    scan: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg>',
+    tag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>'
   };
   const svg = name => { const s = document.createElement('span'); s.innerHTML = ICON[name]; s.style.display = 'inline-flex'; return s.firstChild; };
   function toast(msg, ms) {
@@ -141,6 +143,7 @@
       S.lastSync = new Date(); setSync('ok');
       if (S.role === 'teacher') S.selClass = S.classId;
       if (opts.full) render(); else renderSoft();
+      if (S.pendingScan && opts.full) { const code = S.pendingScan; S.pendingScan = null; const p = parseScan(code); const c = p && classes().find(x => x.id === p.classId); if (c && canEditClass(c.id)) { if (S.role === 'admin') { S.selClass = c.id; renderMain(); } openScan(c); setTimeout(() => S.scan && S.scan.feed(code), 300); } }
     } catch (e) {
       setSync('err', e.message);
       if (opts.full) { S.screen = 'error'; S.gateMsg = e.message; render(); }
@@ -259,9 +262,11 @@
   }
   function renderMain() {
     const m = $('#main'); if (!m) return;
+    document.body.classList.toggle('labels-view', S.role === 'admin' && S.view === 'labels');
     m.replaceChildren();
     if (S.role === 'admin' && S.view === 'overview') return m.append(renderOverview());
     if (S.role === 'admin' && S.view === 'settings') return m.append(renderSettings());
+    if (S.role === 'admin' && S.view === 'labels') return m.append(renderLabels());
     m.append(renderClassView());
     if (S.justStamped) setTimeout(() => { S.justStamped = null; }, 300);
   }
@@ -331,7 +336,9 @@
     const sub = h('div', { class: 'sub' }, h('span', { text: '全班 ' + n + ' 人' }));
     if (cls.teacher) sub.prepend(h('span', { text: '導師 ' + cls.teacher }));
     if (admin && d && d.updatedAt) sub.append(h('span', { text: '最後登記 ' + fmtStamp(d.updatedAt) + (d.updatedBy ? '（' + d.updatedBy + '）' : '') }));
-    const actions = h('div', { class: 'row' }, h('button', { class: 'btn ghost small', onclick: () => openMissing([cls]) }, svg('list'), '未交名單'));
+    const actions = h('div', { class: 'row' });
+    if (ed) actions.append(h('button', { class: 'btn primary small', onclick: () => openScan(cls) }, svg('scan'), '掃描登記'));
+    actions.append(h('button', { class: 'btn ghost small', onclick: () => openMissing([cls]) }, svg('list'), '未交名單'));
     if (admin) actions.append(
       h('button', { class: 'btn ghost small', onclick: () => exportCSV(classes()) }, svg('down'), 'CSV'),
       h('button', { class: 'btn ghost small', onclick: () => window.print() }, svg('print'), '列印'));
@@ -401,7 +408,7 @@
     build(inner); document.body.append(ov);
     return S.modal;
   }
-  function closeModal() { if (S.modal) { S.modal.el.remove(); document.removeEventListener('keydown', S.modal.onKey); S.modal = null; } }
+  function closeModal() { if (S.modal) { if (S.modal.onClose) { try { S.modal.onClose(); } catch (e) { } } S.modal.el.remove(); document.removeEventListener('keydown', S.modal.onKey); S.modal = null; } }
   function openQuick(cls, it) {
     openModal(inner => {
       const c = classes().find(x => x.id === cls.id) || cls;
@@ -450,6 +457,186 @@
           h('button', { class: 'btn primary', onclick: async () => { toast((await copyText(text)) ? '已複製，可直接貼到 LINE 群組' : '無法自動複製，請長按文字選取後複製'); } }, svg('copy'), '複製文字'),
           h('button', { class: 'btn ghost', onclick: closeModal }, '關閉')));
     });
+  }
+
+  /* ---------- 掃描登記（相機或條碼掃描器） ---------- */
+  // 標籤內容：HW.<班級id>.<座號>[.<項目id>]，例如 HW.g3.5.math；也接受網址形式 …#s=g3.5.math
+  function scanPayload(cls, s, it) { return 'HW.' + cls.id + '.' + s.no + (it ? '.' + it.id : ''); }
+  function parseScan(text) {
+    text = String(text || '').trim();
+    if (!text) return null;
+    const m1 = text.match(/[#?&]s=([A-Za-z0-9_.\-]+)/); if (m1) text = 'HW.' + m1[1].replace(/^HW\./, '');
+    const m = text.match(/^HW\.([A-Za-z0-9_\-]+)\.(\d+)(?:\.([A-Za-z0-9_\-]+))?$/i);
+    if (!m) return null;
+    return { classId: m[1], no: parseInt(m[2], 10), itemId: m[3] || null };
+  }
+  let audioCtx = null;
+  function beep(kind) {
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.connect(g); g.connect(audioCtx.destination);
+      o.frequency.value = kind === 'ok' ? 1046 : kind === 'dup' ? 660 : 220; o.type = 'sine';
+      g.gain.setValueAtTime(0.0001, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.25, audioCtx.currentTime + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + (kind === 'err' ? 0.35 : 0.12));
+      o.start(); o.stop(audioCtx.currentTime + 0.4);
+    } catch (e) { }
+    try { if (navigator.vibrate) navigator.vibrate(kind === 'err' ? [60, 40, 60] : 40); } catch (e) { }
+  }
+  function openScan(cls0) {
+    const sc = { itemId: null, log: [], count: 0, lastCode: '', lastAt: 0, stream: null, timer: null, cam: false, kb: false };
+    S.scan = sc;
+    let statusEl, logEl, counterEl, input, video, canvas, camBtn, itemSel;
+    const cls = () => classes().find(c => c.id === cls0.id) || cls0;
+    const show = (kind, title, sub) => {
+      statusEl.className = 'scanstatus ' + kind;
+      statusEl.replaceChildren(h('div', { class: 'big', text: title }), h('div', { class: 'small', text: sub || '' }));
+      beep(kind === 'ok' ? 'ok' : kind === 'dup' ? 'dup' : 'err');
+    };
+    const handle = (raw, fromCam) => {
+      const now = Date.now();
+      if (fromCam && raw === sc.lastCode && now - sc.lastAt < 2500) return; // 相機連續讀到同一張
+      sc.lastCode = raw; sc.lastAt = now;
+      const p = parseScan(raw);
+      if (!p) return show('err', '看不懂這個條碼', raw.slice(0, 40));
+      const c = cls();
+      if (p.classId !== c.id) {
+        const other = classes().find(x => x.id === p.classId);
+        if (S.role === 'admin' && other) { closeScan(); S.selClass = other.id; lsSet(LS.cls, other.id); renderMain(); openScan(other); setTimeout(() => S.scan && S.scan.feed(raw), 50); return; }
+        return show('err', S.role === 'teacher' ? '這不是本班的習作' : (other ? '這是 ' + other.name + ' 的，不是本班' : '找不到這個班級'), raw);
+      }
+      const st = (c.students || []).find(x => x.no === p.no);
+      if (!st) return show('err', '本班沒有 ' + p.no + ' 號', raw);
+      const items = itemsFor(c);
+      let it = p.itemId ? items.find(x => x.id === p.itemId) : items.find(x => x.id === sc.itemId);
+      if (p.itemId && !it) return show('err', '這個項目不在本次抽查', raw);
+      if (!it) return show('err', '請先在上方選擇要登記的項目', '這張標籤沒有科目');
+      const label = st.no + '號 ' + (st.name || '') + '　' + it.name;
+      if (isOn(c.id, st.no, it.id)) { show('dup', '已經登記過', label); return; }
+      setMark(c.id, st.no, it.id, true, { quiet: true });
+      sc.count++; counterEl.textContent = String(sc.count);
+      sc.log.unshift(label); if (sc.log.length > 8) sc.log.pop();
+      logEl.replaceChildren(...sc.log.map((t, i) => h('li', { class: i === 0 ? 'new' : null, text: t })));
+      show('ok', '已登記', label);
+    };
+    sc.feed = handle;
+    const stopCam = () => { sc.cam = false; clearInterval(sc.timer); if (sc.stream) { sc.stream.getTracks().forEach(t => t.stop()); sc.stream = null; } if (video) { video.srcObject = null; video.hidden = true; } if (camBtn) camBtn.textContent = '開啟相機掃描'; };
+    const startCam = async () => {
+      if (sc.cam) return stopCam();
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return toast('這個瀏覽器無法使用相機，請改用掃描器或手動輸入');
+      try { sc.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false }); }
+      catch (e) { return toast('無法開啟相機：' + (e.name === 'NotAllowedError' ? '請允許網站使用相機' : e.message), 3600); }
+      video.hidden = false; video.srcObject = sc.stream; await video.play().catch(() => { });
+      sc.cam = true; camBtn.textContent = '關閉相機';
+      let detector = null;
+      if ('BarcodeDetector' in window) { try { detector = new window.BarcodeDetector({ formats: ['qr_code', 'code_128', 'code_39', 'ean_13', 'ean_8'] }); } catch (e) { detector = null; } }
+      if (!detector && !window.jsQR) await new Promise(res => { const el = h('script', { src: 'assets/vendor/jsQR.js', onload: res, onerror: res }); document.head.append(el); });
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      let busy = false;
+      sc.timer = setInterval(async () => {
+        if (busy || !sc.cam || video.readyState < 2) return; busy = true;
+        try {
+          if (detector) { const codes = await detector.detect(video); if (codes.length) handle(codes[0].rawValue, true); }
+          else if (window.jsQR) {
+            const w = 480, hgt = Math.round(w * video.videoHeight / (video.videoWidth || 1)) || 360;
+            canvas.width = w; canvas.height = hgt; ctx.drawImage(video, 0, 0, w, hgt);
+            const img = ctx.getImageData(0, 0, w, hgt); const code = window.jsQR(img.data, w, hgt, { inversionAttempts: 'dontInvert' });
+            if (code && code.data) handle(code.data, true);
+          }
+        } catch (e) { } finally { busy = false; }
+      }, 180);
+    };
+    const c = cls(); const items = itemsFor(c);
+    openModal(inner => {
+      inner.classList.add('scanmode');
+      itemSel = h('select', { 'aria-label': '登記項目', onchange: e => { sc.itemId = e.target.value || null; } }, h('option', { value: '', text: '標籤上有科目就不用選' }), items.map(it => h('option', { value: it.id, text: it.name, selected: sc.itemId === it.id })));
+      statusEl = h('div', { class: 'scanstatus idle' }, h('div', { class: 'big', text: '請掃描習作上的標籤' }), h('div', { class: 'small', text: '相機對準 QR Code，或用掃描器直接掃' }));
+      counterEl = h('b', { text: String(sc.count) });
+      logEl = h('ul', { class: 'scanlog' });
+      input = h('input', { type: 'text', id: 'scanInput', class: 'scaninput', inputmode: 'none', autocomplete: 'off', autocapitalize: 'off', spellcheck: 'false', placeholder: '掃描器會自動輸入到這裡', 'aria-label': '掃描器輸入',
+        onkeydown: e => { if (e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); const v = input.value; input.value = ''; if (v.trim()) handle(v); } },
+        onblur: () => { if (S.scan === sc && !sc.cam) setTimeout(() => { if (S.scan === sc && document.activeElement !== input && !sc.kb) input.focus({ preventScroll: true }); }, 400); } });
+      video = h('video', { playsinline: true, muted: true, autoplay: true, hidden: true, class: 'scanvideo' });
+      canvas = h('canvas', { hidden: true });
+      camBtn = h('button', { class: 'btn ghost', onclick: startCam }, '開啟相機掃描');
+      const kbBtn = h('button', { class: 'btn ghost small', onclick: () => { sc.kb = !sc.kb; input.setAttribute('inputmode', sc.kb ? 'text' : 'none'); input.placeholder = sc.kb ? '輸入代碼後按 Enter，例如 HW.' + c.id + '.5.math' : '掃描器會自動輸入到這裡'; input.focus(); } }, '手動輸入');
+      inner.append(
+        h('div', { class: 'row between' }, h('h3', null, '掃描登記', h('small', { text: c.name })), h('button', { class: 'btn ghost small', onclick: closeScan }, '結束')),
+        h('div', { class: 'row' }, h('span', { class: 'note', text: '登記項目' }), itemSel),
+        statusEl, video, canvas,
+        h('div', { class: 'row between' }, h('div', { class: 'counter' }, '本次已掃 ', counterEl, ' 本'), h('div', { class: 'row' }, camBtn, kbBtn)),
+        input, logEl,
+        h('div', { class: 'note', text: '同一本重複掃不會取消，只會提示「已經登記過」。掃描器請設定為掃完自動送出 Enter。' }));
+      setTimeout(() => { if (!S.narrow) input.focus({ preventScroll: true }); }, 50);
+    });
+    sc.close = () => { stopCam(); S.scan = null; };
+    function closeScan() { closeModal(); renderMain(); }
+    S.modal.onClose = sc.close;
+    S.modal.refresh = () => { }; // 掃描中不重繪，避免相機與輸入框被重置
+  }
+
+  /* ---------- 標籤列印（教務組） ---------- */
+  const LABEL_SIZES = [
+    { id: 'a4-44x25', name: 'A4 貼紙（每格 44×25 mm，4 欄）', w: 44, h: 25, sheet: 'A4' },
+    { id: 'a4-70x37', name: 'A4 貼紙（每格 70×37 mm，3 欄）', w: 70, h: 37, sheet: 'A4' },
+    { id: 'tape-62x29', name: '標籤機 62×29 mm（Brother QL）', w: 62, h: 29 },
+    { id: 'tape-50x30', name: '標籤機 50×30 mm', w: 50, h: 30 },
+    { id: 'tape-40x30', name: '標籤機 40×30 mm', w: 40, h: 30 },
+    { id: 'tape-36x24', name: '標籤機 36×24 mm（小標籤）', w: 36, h: 24 }
+  ];
+  const LB = { classIds: null, mode: 'book', code: 'qr', size: 'a4-44x25', url: false };
+  function loadLib(src, ready) { return new Promise(res => { if (ready()) return res(true); const el = h('script', { src, onload: () => res(ready()), onerror: () => res(false) }); document.head.append(el); }); }
+  function renderLabels() {
+    const box = h('div', { class: 'stack' });
+    const cl = classes(); if (!LB.classIds) LB.classIds = cl.map(c => c.id);
+    const r = round();
+    box.append(h('div', { class: 'row between' }, h('h2', { style: 'font-family:var(--f-display);margin:0;font-size:20px', text: '習作標籤' }), h('button', { class: 'btn ghost small', onclick: () => { S.view = 'settings'; renderMain(); } }, '← 回設定')));
+    const opt = h('div', { class: 'panel no-print' });
+    opt.append(h('div', { class: 'row' }, h('span', { class: 'note', text: '班級' }), cl.map(c => h('label', { class: 'ck' }, h('input', { type: 'checkbox', checked: LB.classIds.includes(c.id), onchange: e => { LB.classIds = cl.map(x => x.id).filter(id => id === c.id ? e.target.checked : LB.classIds.includes(id)); redraw(); } }), c.name))));
+    opt.append(h('div', { class: 'row' }, h('span', { class: 'note', text: '一張標籤代表' }),
+      h('label', { class: 'ck' }, h('input', { type: 'radio', name: 'lbmode', checked: LB.mode === 'book', onchange: () => { LB.mode = 'book'; redraw(); } }), '一本習作（含科目；每生每科一張，掃了直接登記）'),
+      h('label', { class: 'ck' }, h('input', { type: 'radio', name: 'lbmode', checked: LB.mode === 'student', onchange: () => { LB.mode = 'student'; redraw(); } }), '一位學生（不含科目；掃描時先選科目）')));
+    opt.append(h('div', { class: 'row' }, h('span', { class: 'note', text: '條碼種類' }),
+      h('label', { class: 'ck' }, h('input', { type: 'radio', name: 'lbcode', checked: LB.code === 'qr', onchange: () => { LB.code = 'qr'; redraw(); } }), 'QR Code（手機相機、二維掃描器）'),
+      h('label', { class: 'ck' }, h('input', { type: 'radio', name: 'lbcode', checked: LB.code === 'bar', onchange: () => { LB.code = 'bar'; redraw(); } }), 'Code 128 條碼（一維雷射掃描器）'),
+      h('label', { class: 'ck' }, h('input', { type: 'radio', name: 'lbcode', checked: LB.code === 'both', onchange: () => { LB.code = 'both'; redraw(); } }), '兩種都印')));
+    opt.append(h('div', { class: 'row' }, h('span', { class: 'note', text: '標籤尺寸' }), h('select', { onchange: e => { LB.size = e.target.value; redraw(); } }, LABEL_SIZES.map(z => h('option', { value: z.id, text: z.name, selected: z.id === LB.size }))),
+      h('label', { class: 'ck' }, h('input', { type: 'checkbox', checked: LB.url, onchange: e => { LB.url = e.target.checked; redraw(); } }), 'QR 內含網址（用手機內建相機掃也能登記，但圖會較密）')));
+    opt.append(h('div', { class: 'row' }, h('button', { class: 'btn primary', onclick: () => window.print() }, svg('print'), '列印'), h('span', { class: 'note', id: 'lbcount' })),
+      h('div', { class: 'note', text: '列印時請選「實際大小」、不要縮放；標籤機請在印表機設定選對應的標籤規格。標籤貼在習作封面右上角。' }));
+    box.append(opt);
+    const sheet = h('div', { class: 'labelsheet' }); box.append(sheet);
+    const styleEl = h('style', { id: 'labelPrintStyle' }); box.append(styleEl);
+    const redraw = async () => {
+      const z = LABEL_SIZES.find(x => x.id === LB.size) || LABEL_SIZES[0];
+      sheet.style.setProperty('--lw', z.w + 'mm'); sheet.style.setProperty('--lh', z.h + 'mm');
+      styleEl.textContent = z.sheet ? '@media print { @page { size: A4; margin: 8mm } }' : '@media print { @page { size: ' + z.w + 'mm ' + z.h + 'mm; margin: 0 } .labelsheet { gap: 0 } .label { page-break-after: always; break-after: page; border: 0 } }';
+      sheet.replaceChildren();
+      const list = [];
+      cl.filter(c => LB.classIds.includes(c.id)).forEach(c => {
+        const its = LB.mode === 'book' ? itemsFor(c, r).filter(it => it.kind !== 'exam') : [null];
+        (c.students || []).slice().sort((a, b) => a.no - b.no).forEach(s => its.forEach(it => list.push({ c, s, it })));
+      });
+      const base = location.href.split('#')[0].split('?')[0];
+      const okQR = LB.code !== 'bar' ? await loadLib('assets/vendor/qrcode.min.js', () => !!window.QRCode) : true;
+      const okBar = LB.code !== 'qr' ? await loadLib('assets/vendor/JsBarcode.all.min.js', () => !!window.JsBarcode) : true;
+      list.forEach(({ c, s, it }) => {
+        const payload = scanPayload(c, s, it);
+        const qrText = LB.url ? base + '#s=' + payload.replace(/^HW\./, '') : payload;
+        const lab = h('div', { class: 'label ' + (LB.code === 'both' ? 'both' : LB.code) });
+        if (LB.code !== 'bar') { const q = h('div', { class: 'qr' }); lab.append(q); if (okQR) { try { new window.QRCode(q, { text: qrText, width: 256, height: 256, correctLevel: window.QRCode.CorrectLevel.M }); } catch (e) { } } else q.textContent = 'QR 元件載入失敗'; }
+        const txt = h('div', { class: 'txt' },
+          h('div', { class: 'l1', text: s.name || (s.no + ' 號') }),
+          h('div', { class: 'l2', text: c.name + '　' + String(s.no).padStart(2, '0') + ' 號' }),
+          h('div', { class: 'l3', text: it ? it.name : '作業抽查' }),
+          h('div', { class: 'l4', text: payload }));
+        lab.append(txt);
+        if (LB.code !== 'qr') { const svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svgEl.setAttribute('class', 'bar'); lab.append(svgEl); if (okBar) { try { window.JsBarcode(svgEl, payload, { format: 'CODE128', displayValue: false, margin: 0, height: 40, width: 1.6 }); const bw = svgEl.getAttribute('width'), bh = svgEl.getAttribute('height'); if (bw && bh) { svgEl.setAttribute('viewBox', '0 0 ' + parseFloat(bw) + ' ' + parseFloat(bh)); svgEl.setAttribute('preserveAspectRatio', 'none'); svgEl.removeAttribute('width'); svgEl.removeAttribute('height'); } } catch (e) { } } }
+        sheet.append(lab);
+      });
+      const cnt = $('#lbcount'); if (cnt) cnt.textContent = '共 ' + list.length + ' 張';
+    };
+    redraw();
+    return box;
   }
 
   /* ---------- 匯出 CSV ---------- */
@@ -571,6 +758,7 @@
     /* 系統 */
     const sp = h('div', { class: 'panel' }, h('h3', { text: '系統' }));
     sp.append(h('div', { class: 'row' },
+      h('button', { class: 'btn primary', onclick: () => { S.view = 'labels'; renderMain(); } }, svg('tag'), '列印習作標籤（條碼／QR Code）'),
       h('button', { class: 'btn ghost', onclick: openChangeKey }, '修改教務組密碼'),
       h('button', { class: 'btn ghost', onclick: async () => { if (!round()) return toast('尚未建立抽查次別'); await adminPost({ action: 'snapshot', rid: S.rid }, '已在試算表建立本次抽查的「總表」分頁'); } }, '將本次抽查寫入試算表總表'),
       h('button', { class: 'btn ghost', onclick: () => exportCSV(classes()) }, svg('down'), '匯出全校 CSV')));
@@ -770,6 +958,7 @@
     S.apiUrl = (CFG.apiUrl || '').trim() || hash.get('api') || lsGet(LS.api) || '';
     if (hash.get('api') && !CFG.apiUrl) lsSet(LS.api, hash.get('api'));
     const teacher = lsGet(LS.teacher), admin = lsGet(LS.admin);
+    if (hash.get('s')) { S.pendingScan = 'HW.' + hash.get('s').replace(/^HW\./, ''); history.replaceState(null, '', location.pathname + location.search); }
     if (!S.apiUrl) { S.screen = 'setup'; render(); return; }
     S.screen = 'boot'; render();
     if (teacher && teacher.token) { S.token = teacher.token; S.classId = teacher.classId; S.role = 'teacher'; S.screen = 'app'; render(); startPolling(); await load({ force: true, full: true }); return; }
