@@ -53,7 +53,12 @@ function defaultConfig_() {
       { id: 'social', name: '社會習作', short: '社會', kind: 'hw', grades: [3, 4, 5, 6], code: '05' },
       { id: 'science', name: '自然習作', short: '自然', kind: 'hw', grades: [3, 4, 5, 6], code: '06' },
       { id: 'health', name: '健康習作', short: '健康', kind: 'hw', grades: all, code: '07' },
-      { id: 'exam', name: '考卷（家長已簽名）', short: '考卷簽回', kind: 'exam', grades: all, code: '09' }
+      { id: 'exam_chinese', name: '國語考卷', short: '國語', kind: 'exam', grades: all, code: '11' },
+      { id: 'exam_math', name: '數學考卷', short: '數學', kind: 'exam', grades: all, code: '12' },
+      { id: 'exam_english', name: '英語考卷', short: '英語', kind: 'exam', grades: [3, 4, 5, 6], code: '13' },
+      { id: 'exam_life', name: '生活考卷', short: '生活', kind: 'exam', grades: [1, 2], code: '14' },
+      { id: 'exam_social', name: '社會考卷', short: '社會', kind: 'exam', grades: [3, 4, 5, 6], code: '15' },
+      { id: 'exam_science', name: '自然考卷', short: '自然', kind: 'exam', grades: [3, 4, 5, 6], code: '16' }
     ],
     classes: all.map(function (g) {
       return { id: 'g' + g, name: '一二三四五六'.charAt(g - 1) + '甲', grade: g, classNo: 1, teacher: '', subjectTeachers: {}, students: [] };

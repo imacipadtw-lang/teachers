@@ -348,3 +348,13 @@ th.notecol, td.notecol { text-align: left; min-width: 200px; white-space: normal
   .report table.rtable tr { break-inside: avoid; }
   .noteinput { border: 0; padding: 0; background: transparent; }
 }
+
+/* 兩層表頭：習作｜考卷 */
+th.grp { font-size: 12px; letter-spacing: .08em; font-weight: 600; color: var(--ink); background: var(--sheet-2); border-bottom: 1px solid var(--line-strong); }
+th.grp.hw { color: var(--accent); }
+th.grp.exam { color: var(--seal); }
+th.grpblank { background: var(--sheet-2); border-bottom: 0; }
+.grpstart { border-left: 2px solid var(--line-strong) !important; }
+tr.grprow th { position: sticky; top: 0; z-index: 1; }
+table.grid thead tr:nth-child(2) th { top: 29px; }
+@media print { th.grp.hw, th.grp.exam { color: #000; } .grpstart { border-left-color: #000 !important; } table.grid thead tr:nth-child(2) th { top: auto; } }
