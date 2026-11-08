@@ -4,9 +4,9 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.08d';
+  const APP_VERSION = '2026.11.08e';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
-  const LS = { admin: 'hc.admin', teacher: 'hc.teacher', api: 'hc.api', cls: 'hc.class' };
+  const LS = { admin: 'hc.admin', teacher: 'hc.teacher', api: 'hc.api', cls: 'hc.class', outbox: 'hc.outbox', theme: 'hc.theme' };
   const GRADE = ['', '一', '二', '三', '四', '五', '六'];
   const WD = '日一二三四五六';
 
@@ -20,6 +20,16 @@
     pending: new Map(), outbox: new Map(), flushTimer: null, flushing: false, pendingNotes: new Map(), noteTimers: {},
     modal: null, justStamped: null, narrow: false, openClass: null
   };
+  /* ---------- 外觀（自動跟隨系統／淺色／深色） ---------- */
+  const THEMES = [['auto', '自動'], ['light', '淺色'], ['dark', '深色']];
+  const darkMq = window.matchMedia('(prefers-color-scheme: dark)');
+  function applyTheme() {
+    const t = lsGet(LS.theme) || 'auto';
+    if (t === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t);
+    const dark = t === 'dark' || (t === 'auto' && darkMq.matches);
+    const meta = document.querySelector('meta[name="theme-color"]'); if (meta) meta.setAttribute('content', dark ? '#111722' : '#fbf6e3');
+  }
+  darkMq.addEventListener('change', applyTheme);
   const nar = window.matchMedia('(max-width: 719px)');
   S.narrow = nar.matches;
   nar.addEventListener('change', e => { S.narrow = e.matches; if (S.screen === 'app') renderMain(); });
@@ -116,6 +126,15 @@
       await new Promise(ok => setTimeout(ok, 1200 * (i + 1)));
     }
   }
+  // 讀取資料：用 POST 送出，密碼與 token 不會出現在網址與伺服器紀錄；後端還是舊版（不認得 read）時自動改用 GET
+  async function apiRead(params) {
+    if (!S.legacyRead) {
+      const r = await apiPost(Object.assign({ action: 'read' }, params));
+      if (!(r && r.ok === false && r.error === 'unknown_action')) return r;
+      S.legacyRead = true;
+    }
+    return apiGet(Object.assign(authParams(), params));
+  }
   async function parseJson(r) {
     const t = await r.text();
     try { return JSON.parse(t); } catch (e) { throw new Error('資料表回傳的不是資料。請確認 Apps Script 部署時「誰可以存取」選擇「所有人」，且網址以 /exec 結尾。'); }
@@ -130,10 +149,10 @@
     const startedAt = Date.now();
     setSync('busy');
     try {
-      const params = Object.assign({ rid: S.rid || '' }, authParams());
+      const params = { rid: S.rid || '' };
       if (!opts.force && S.version && S.loadedRid === S.rid) params.v = S.version;
-      const r = await apiGet(params);
-      if (!r.ok) { if (r.error === 'auth') return authLost(); if (r.error === 'not_initialized') { S.screen = 'init'; render(); return; } throw new Error('讀取失敗：' + (r.error || '')); }
+      const r = await apiRead(params);
+      if (!r.ok) { if (r.error === 'auth') return authLost(); if (r.error === 'not_initialized') { S.screen = 'init'; render(); return; } throw new Error(r.error === 'too_many' ? errText('too_many') : '讀取失敗：' + errText(r.error)); }
       S.version = r.version; S.sheetUrl = r.sheetUrl || S.sheetUrl || '';
       if (r.unchanged) { S.lastSync = new Date(); setSync('ok'); return; }
       S.role = r.role; S.config = r.config || { items: [], classes: [] }; S.rounds = r.rounds || []; S.links = r.links || {};
@@ -142,6 +161,7 @@
       applyServer(r.checks || {}, startedAt);
       S.lastSync = new Date(); setSync('ok');
       if (S.role === 'teacher') S.selClass = S.classId;
+      if (!S.restored) { S.restored = true; restoreOutbox(); applyServer(r.checks || {}, startedAt); }
       if (opts.full) render(); else renderSoft();
       if (S.pendingScan && opts.full) { const code = S.pendingScan; S.pendingScan = null; const p = parseScan(code); const c = p && classes().find(x => x.id === p.classId); if (c && canEditClass(c.id)) { if (S.role === 'admin') { S.selClass = c.id; renderMain(); } openScan(c); setTimeout(() => S.scan && S.scan.feed(code), 300); } }
     } catch (e) {
@@ -177,9 +197,9 @@
     if (document.visibilityState === 'hidden') hiddenAt = Date.now();
     else if (S.screen === 'app' && Date.now() - hiddenAt > 8000) load();
   });
-  window.addEventListener('online', () => { if (S.screen === 'app') load(); });
+  window.addEventListener('online', () => { if (S.screen !== 'app') return; if (outboxCount()) { retryDelay = 0; flush(); } else load(); });
   function authLost() {
-    S.pending.clear(); S.outbox.clear();
+    S.pending.clear(); S.outbox.clear(); lsSet(LS.outbox, null);
     if (S.role === 'teacher') { lsSet(LS.teacher, null); S.token = null; S.screen = 'auth-lost'; }
     else { lsSet(LS.admin, null); S.key = null; S.screen = 'login'; S.gateMsg = '登入已失效，請重新輸入密碼。'; }
     render();
@@ -194,14 +214,42 @@
     const d = S.checks[cid] || (S.checks[cid] = { marks: {}, updatedAt: '', updatedBy: '' });
     d.marks[no] = Object.assign({}, d.marks[no] || {}); d.marks[no][itemId] = val;
     S.pending.set(markKey(rid, cid, no, itemId), { val, ackAt: null });
-    const boxKey = rid + '|' + cid;
-    const box = S.outbox.get(boxKey) || S.outbox.set(boxKey, new Map()).get(boxKey);
-    box.set(no + '|' + itemId, { no, itemId, val });
+    queueChange(rid, cid, { no, itemId, val });
+    saveOutbox();
     clearTimeout(S.flushTimer); S.flushTimer = setTimeout(flush, 450);
     if (!(opts && opts.quiet)) renderSoft();
   }
+  // 待送出的登記存在這台裝置；網路斷線或關掉網頁也不會遺失，下次開啟（同一身分）自動補送
+  function outboxCount() { let n = 0; S.outbox.forEach(b => { n += b.size; }); return n; }
+  function outboxOwner() { return S.role === 'teacher' ? 't:' + S.classId : S.role === 'admin' ? 'a' : ''; }
+  function saveOutbox() {
+    const list = []; S.outbox.forEach((box, boxKey) => { const [rid, cid] = boxKey.split('|'); box.forEach(c => list.push({ rid, cid, no: c.no, itemId: c.itemId, val: c.val })); });
+    lsSet(LS.outbox, list.length ? { owner: outboxOwner(), list } : null);
+  }
+  function queueChange(rid, cid, c, keepNewer) {
+    const boxKey = rid + '|' + cid; const k = c.no + '|' + c.itemId;
+    const box = S.outbox.get(boxKey) || S.outbox.set(boxKey, new Map()).get(boxKey);
+    if (keepNewer && box.has(k)) return; // 送出途中又改過，以最新的為準
+    box.set(k, { no: String(c.no), itemId: c.itemId, val: !!c.val });
+  }
+  function restoreOutbox() {
+    const saved = lsGet(LS.outbox);
+    if (!saved || !Array.isArray(saved.list) || !saved.list.length) return;
+    if (saved.owner !== outboxOwner()) { lsSet(LS.outbox, null); return; }
+    saved.list.forEach(c => { queueChange(c.rid, c.cid, c, true); S.pending.set(markKey(c.rid, c.cid, c.no, c.itemId), { val: !!c.val, ackAt: null }); });
+    toast('發現上次尚未送出的 ' + saved.list.length + ' 筆登記，正在補送…', 3200);
+    clearTimeout(S.flushTimer); S.flushTimer = setTimeout(flush, 300);
+  }
+  let retryTimer = null, retryDelay = 0;
+  function scheduleRetry() {
+    clearTimeout(retryTimer);
+    retryDelay = Math.min(60000, retryDelay ? retryDelay * 2 : 5000);
+    retryTimer = setTimeout(flush, retryDelay);
+  }
   async function flush() {
     if (S.flushing) return; S.flushing = true;
+    clearTimeout(retryTimer);
+    let offline = false;
     try {
       while (S.outbox.size) {
         const [boxKey, box] = S.outbox.entries().next().value;
@@ -214,18 +262,26 @@
         if (r && r.ok) {
           const t = Date.now(); changes.forEach(c => { const p = S.pending.get(markKey(rid, cid, c.no, c.itemId)); if (p) p.ackAt = t; });
           S.version = null; // 強制下次完整讀取
+          saveOutbox(); retryDelay = 0;
           continue;
         }
+        if (err || (r && r.error === 'busy')) { // 網路斷線或資料表忙碌：保留，稍後自動重送（登記是「設成已交／未交」，重送不會重複計算）
+          changes.forEach(c => queueChange(rid, cid, c, true));
+          saveOutbox(); offline = true; break;
+        }
         changes.forEach(c => S.pending.delete(markKey(rid, cid, c.no, c.itemId)));
+        saveOutbox();
         if (r && r.error === 'auth') { authLost(); return; }
         if (r && r.error === 'locked') toast('本次抽查已結案，無法變更；如需更正請洽教務組。', 3200);
-        else toast('儲存失敗（' + (err ? err.message : (r && r.error) || '未知錯誤') + '），已還原為資料表內容。', 3600);
+        else toast('儲存失敗（' + errText(r && r.error) + '），已還原為資料表內容。', 3600);
       }
     } finally {
       S.flushing = false;
-      setTimeout(() => load({ force: true }), 250);
+      if (offline) { setSync('err', '網路不穩'); renderSoft(); scheduleRetry(); }
+      else setTimeout(() => load({ force: true }), 250);
     }
   }
+  window.addEventListener('beforeunload', e => { if (outboxCount() || S.flushing) { e.preventDefault(); e.returnValue = ''; } });
 
   /* ---------- 資料工具 ---------- */
   const round = () => S.rounds.find(r => r.id === S.rid) || null;
@@ -268,7 +324,7 @@
     const app = $('#app');
     app.replaceChildren();
     if (S.screen !== 'app') { app.append(renderGate()); return; }
-    app.append(renderMasthead(), renderRoundbar(), S.role === 'admin' ? renderTabs() : '', h('main', { id: 'main' }), renderFoot());
+    app.append(renderMasthead(), renderRoundbar(), S.role === 'admin' ? renderTabs() : '', h('main', { id: 'main', role: S.role === 'admin' ? 'tabpanel' : null, tabindex: '-1' }), renderFoot());
     renderMain();
   }
   function renderSoft() {
@@ -322,9 +378,11 @@
   }
   function renderSync() {
     const el = h('span', { id: 'sync', class: 'sync ' + (S.sync === 'ok' ? '' : S.sync) }, h('i', { class: 'dot' }));
+    const waiting = outboxCount();
     if (S.sync === 'busy') el.append('同步中…');
     else if (S.sync === 'err') el.append('無法連線' + (S.lastSync ? '，顯示 ' + fmtTime(S.lastSync) + ' 的資料' : ''));
     else el.append('已同步 ' + fmtTime(S.lastSync));
+    if (waiting) { el.classList.add('err'); el.append(h('b', { class: 'waiting', text: '　' + waiting + ' 筆待送出，連線後自動補送' })); }
     el.append(h('button', { class: 'link', 'aria-label': '重新整理', title: '重新整理', onclick: () => load({ force: true }) }, svg('refresh')));
     return el;
   }
@@ -355,10 +413,16 @@
   }
   function renderTabs() {
     const tabs = [['class', '班級檢核'], ['overview', '全校總覽'], ['report', '報表'], ['settings', '設定']];
-    return h('nav', { class: 'tabs', role: 'tablist' }, tabs.map(([id, label]) => h('button', { role: 'tab', 'aria-selected': String(S.view === id), onclick: () => { S.view = id; if (id !== 'settings') S.draft = null; renderMain(); document.querySelectorAll('nav.tabs button').forEach(b => b.setAttribute('aria-selected', String(b.textContent === label))); } }, label)));
+    const go = id => { S.view = id; if (id !== 'settings') S.draft = null; renderMain(); document.querySelectorAll('nav.tabs button').forEach(b => { const on = b.dataset.view === id; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; }); };
+    return h('nav', { class: 'tabs', role: 'tablist', 'aria-label': '功能分頁',
+      onkeydown: e => { if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft' && e.key !== 'Home' && e.key !== 'End') return; e.preventDefault(); const i = tabs.findIndex(t => t[0] === S.view); const n = e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1 : (i + (e.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length; go(tabs[n][0]); const b = document.querySelector('nav.tabs button[data-view="' + tabs[n][0] + '"]'); if (b) b.focus(); } },
+      tabs.map(([id, label]) => h('button', { role: 'tab', 'data-view': id, 'aria-controls': 'main', 'aria-selected': String(S.view === id), tabindex: S.view === id ? '0' : '-1', onclick: () => go(id) }, label)));
   }
   function renderFoot() {
     const f = h('footer', { class: 'foot' }, h('span', { text: CFG.appName + '　版本 ' + APP_VERSION + '　資料存於 Google 試算表，開啟網頁即為最新。' }));
+    const cur = lsGet(LS.theme) || 'auto';
+    const curName = (THEMES.find(t => t[0] === cur) || THEMES[0])[1];
+    f.append(h('button', { class: 'link', 'aria-label': '切換外觀，目前為' + curName, onclick: () => { const i = THEMES.findIndex(t => t[0] === (lsGet(LS.theme) || 'auto')); const next = THEMES[(i + 1) % THEMES.length]; lsSet(LS.theme, next[0] === 'auto' ? null : next[0]); applyTheme(); toast('外觀：' + next[1] + (next[0] === 'auto' ? '（跟隨系統）' : '')); const of = document.querySelector('footer.foot'); if (of) { of.replaceWith(renderFoot()); const nb = document.querySelector('footer.foot .themebtn'); if (nb) nb.focus(); } }, class: 'link themebtn' }, '外觀：' + curName));
     if (S.role === 'teacher') f.append(armed(h('button', { class: 'link' }), '在此裝置登出', '再按一次確認登出（之後需請教務組解除才能重新登入）', () => { lsSet(LS.teacher, null); S.token = null; S.screen = 'login'; S.gateMsg = '已在此裝置登出。'; render(); }, 4000));
     else f.append(h('button', { class: 'link', onclick: () => { lsSet(LS.admin, null); S.key = null; S.screen = 'login'; S.gateMsg = ''; render(); } }, '登出'));
     return f;
@@ -390,7 +454,7 @@
     if (ed) actions.append(h('button', { class: 'btn primary small', onclick: () => openScan(cls) }, svg('scan'), '掃描登記'));
     actions.append(h('button', { class: 'btn ghost small', onclick: () => openMissing([cls]) }, svg('list'), '未交名單'));
     if (admin) actions.append(
-      h('button', { class: 'btn ghost small', onclick: () => exportCSV(classes()) }, svg('down'), 'CSV'),
+      h('button', { class: 'btn ghost small', title: '匯出本班 CSV（全校請到「全校總覽」）', onclick: () => exportCSV([cls]) }, svg('down'), '本班 CSV'),
       h('button', { class: 'btn ghost small', onclick: () => window.print() }, svg('print'), '列印'));
     const headLeft = h('div', { class: 'row' });
     if (admin) { const prog = classProgress(cls, r); headLeft.append(ring(prog.total ? Math.round(prog.got / prog.total * 100) : 0)); }
@@ -451,17 +515,37 @@
   }
 
   /* ---------- 快速收件（依項目逐號登記） ---------- */
+  const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]):not([type=hidden]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
   function openModal(build) {
-    closeModal();
-    const inner = h('div', { class: 'inner', role: 'dialog', 'aria-modal': 'true' });
+    const opener = S.modal ? S.modal.opener : document.activeElement;
+    closeModal(true);
+    const inner = h('div', { class: 'inner', role: 'dialog', 'aria-modal': 'true', tabindex: '-1' });
     const ov = h('div', { class: 'modal', onclick: e => { if (e.target === ov) closeModal(); } }, inner);
-    const onKey = e => { if (e.key === 'Escape') closeModal(); };
+    const label = () => { const t = inner.querySelector('h3'); if (t) { t.id = t.id || 'dlgTitle'; inner.setAttribute('aria-labelledby', t.id); } };
+    const onKey = e => {
+      if (e.key === 'Escape') { e.preventDefault(); closeModal(); return; }
+      if (e.key !== 'Tab') return;
+      const f = Array.from(inner.querySelectorAll(FOCUSABLE)).filter(x => x.offsetParent !== null);
+      if (!f.length) { e.preventDefault(); return; }
+      const first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && (document.activeElement === first || !inner.contains(document.activeElement))) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && (document.activeElement === last || !inner.contains(document.activeElement))) { e.preventDefault(); first.focus(); }
+    };
     document.addEventListener('keydown', onKey);
-    S.modal = { el: ov, refresh: () => { inner.replaceChildren(); build(inner); }, onKey };
-    build(inner); document.body.append(ov);
+    S.modal = { el: ov, opener, refresh: () => { const keep = document.activeElement && inner.contains(document.activeElement) ? Array.from(inner.querySelectorAll(FOCUSABLE)).indexOf(document.activeElement) : -1; inner.replaceChildren(); build(inner); label(); if (keep >= 0) { const f = inner.querySelectorAll(FOCUSABLE)[keep]; if (f) f.focus({ preventScroll: true }); } }, onKey };
+    build(inner); label(); document.body.append(ov);
+    document.body.classList.add('modal-open');
+    setTimeout(() => { if (S.modal && S.modal.el === ov && !inner.contains(document.activeElement)) inner.focus({ preventScroll: true }); }, 60);
     return S.modal;
   }
-  function closeModal() { if (S.modal) { if (S.modal.onClose) { try { S.modal.onClose(); } catch (e) { } } S.modal.el.remove(); document.removeEventListener('keydown', S.modal.onKey); S.modal = null; } }
+  function closeModal(silent) {
+    if (!S.modal) return;
+    const m = S.modal; S.modal = null;
+    if (m.onClose) { try { m.onClose(); } catch (e) { } }
+    m.el.remove(); document.removeEventListener('keydown', m.onKey);
+    document.body.classList.remove('modal-open');
+    if (!silent && m.opener && m.opener.isConnected && m.opener.focus) m.opener.focus({ preventScroll: true });
+  }
   function openQuick(cls, it) {
     openModal(inner => {
       const c = classes().find(x => x.id === cls.id) || cls;
@@ -834,7 +918,7 @@
         rows.push([cls.name, cls.teacher || '', s.no, s.name || '', ...items.map(it => !set.has(it.id) ? '不適用' : (isOn(cls.id, s.no, it.id) ? (it.kind === 'exam' ? '已繳回' : '已交') : (it.kind === 'exam' ? '未繳回' : '未交'))), got, its.length, got === its.length ? '繳齊' : '缺 ' + (its.length - got) + ' 項', noteValue(cls.id, s.no)]);
       });
     });
-    const csv = '﻿' + rows.map(row => row.map(v => { v = String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(',')).join('\r\n');
+    const csv = '﻿' + rows.map(row => row.map(v => { v = String(v); if (/^[=+\-@\t\r]/.test(v)) v = "'" + v; return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(',')).join('\r\n');
     const a = h('a', { href: URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })), download: '作業抽查_' + r.name.replace(/[\\/:*?"<>|\s]+/g, '_') + (list.length === 1 ? '_' + list[0].name : '') + '.csv' });
     document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
   }
@@ -874,7 +958,10 @@
     box.append(h('div', { class: 'print-meta', text: (CFG.schoolName || '') + '　' + r.name + '　全校總覽　列印時間 ' + new Date().toLocaleString('zh-TW') }));
     box.append(h('div', { class: 'tablebox' }, h('table', { class: 'ov' },
       h('thead', null, groupHeaderRow(items, 1, 2), h('tr', null, h('th', { style: 'text-align:left', text: '班級' }), items.map((it, i) => h('th', { class: (it.kind === 'exam' ? 'exam' : '') + examStart(items, i), text: it.short || it.name })), h('th', { text: '完成率' }), h('th', { text: '最後登記' }))),
-      h('tbody', null, rows))));
+      h('tbody', null, rows),
+      h('tfoot', null, h('tr', { class: 'tfoot' }, h('td', { class: 'cname', text: '全校合計' }),
+        items.map((it, i) => { let c = 0, t = 0; cl.forEach(cls => { if (classHasItem(cls, it)) { c += countItem(cls, it); t += (cls.students || []).length; } }); const q = t ? Math.round(c / t * 100) : 0; return h('td', { class: examStart(items, i).trim() || null }, t ? [h('div', { text: q + '%' }), h('div', { class: 'mini', text: c + '/' + t })] : '—'); }),
+        h('td', { class: 'pct' + (pct === 100 && total ? ' full' : ''), text: total ? pct + '%' : '—' }), h('td'))))));
     box.append(h('div', { class: 'note', text: '點班級名稱可進入該班登記；導師在自己的裝置登記後，這裡會自動更新。' }));
     return box;
   }
@@ -976,9 +1063,22 @@
   }
   function validateDraft(D) {
     if (!D.items.length) return '至少要有一個檢查項目';
-    for (const it of D.items) if (!it.name.trim()) return '有項目沒有名稱';
+    for (const it of D.items) if (!String(it.name || '').trim()) return '有項目沒有名稱';
+    const codes = new Map();
+    for (const it of D.items) {
+      const code = it.code ? pad2(it.code) : (ITEM_CODE_DEFAULT[it.id] || '');
+      if (!code) continue;
+      if (codes.has(code)) return '「' + codes.get(code) + '」和「' + it.name + '」的條碼代碼都是 ' + code + '，掃描時會分不出來，請改成不同代碼';
+      codes.set(code, it.name);
+    }
+    const seq = new Map();
     for (const c of D.classes) {
-      if (!c.name.trim()) return '有班級沒有名稱';
+      const k = Number(c.grade) + '-' + classNo(c);
+      if (seq.has(k)) return '「' + seq.get(k) + '」和「' + c.name + '」的年級與班序相同，條碼編號會重複，請調整其中一班的「班序」';
+      seq.set(k, c.name);
+    }
+    for (const c of D.classes) {
+      if (!String(c.name || '').trim()) return '有班級沒有名稱';
       const seen = new Set();
       for (const s of c.students || []) { if (!(s.no > 0)) return c.name + ' 有座號不正確'; if (seen.has(s.no)) return c.name + ' 座號 ' + s.no + ' 重複'; seen.add(s.no); }
     }
@@ -1067,7 +1167,7 @@
       return r;
     } catch (e) { setSync('err', e.message); if (e.message !== 'auth') toast('操作失敗：' + e.message, 3600); throw e; }
   }
-  function errText(code) { return { busy: '資料表忙碌中，請稍後再試', locked: '本次抽查已結案', no_round: '找不到這次抽查', too_large: '資料量超過單格上限，請分班減少名單', bad_request: '資料格式不正確', weak_key: '密碼至少 6 個字' }[code] || (code || '未知錯誤'); }
+  function errText(code) { return { busy: '資料表忙碌中，請稍後再試', locked: '本次抽查已結案', no_round: '找不到這次抽查', too_large: '資料量超過單格上限，請分班減少名單', bad_request: '資料格式不正確', weak_key: '密碼至少 6 個字', too_many: '密碼錯誤次數過多，教務組登入暫停 15 分鐘；如需立即解除，請在 Apps Script 執行 unlockAdmin', server_error: '資料表發生錯誤，請稍後再試', unknown_action: '後端版本較舊，請教務組重新部署 Apps Script' }[code] || (code || '未知錯誤'); }
   function openChangeKey() {
     openModal(inner => {
       const a = h('input', { type: 'password', placeholder: '新密碼（至少 6 個字）', autocomplete: 'new-password' }); const b = h('input', { type: 'password', placeholder: '再輸入一次', autocomplete: 'new-password' });
@@ -1132,9 +1232,9 @@
         const k = inp.value.trim(); if (!k) return;
         abtn.disabled = true; amsg.textContent = '登入中…'; amsg.className = 'note';
         try {
-          const r = await apiGet({ key: k });
+          const r = await apiRead({ key: k });
           if (r.ok && r.role === 'admin') { S.key = k; S.role = 'admin'; lsSet(LS.admin, { key: k }); S.screen = 'app'; S.view = 'class'; S.gateMsg = ''; render(); startPolling(); await load({ force: true, full: true }); return; }
-          amsg.textContent = r.error === 'auth' ? '密碼不正確。' : '登入失敗：' + errText(r.error); amsg.className = 'note err';
+          amsg.textContent = r.error === 'auth' ? '密碼不正確。' : (r.error === 'too_many' ? errText('too_many') : '登入失敗：' + errText(r.error)); amsg.className = 'note err';
         } catch (e) { amsg.textContent = e.message; amsg.className = 'note err'; }
         abtn.disabled = false;
       };
@@ -1172,6 +1272,7 @@
 
   /* ---------- 啟動 ---------- */
   async function boot() {
+    applyTheme();
     const hash = new URLSearchParams(location.hash.replace(/^#/, ''));
     S.apiUrl = (CFG.apiUrl || '').trim() || hash.get('api') || lsGet(LS.api) || '';
     if (hash.get('api') && !CFG.apiUrl) lsSet(LS.api, hash.get('api'));

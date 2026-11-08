@@ -27,12 +27,24 @@
   --f-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", "Noto Sans CJK TC", system-ui, sans-serif;
   color-scheme: light;
 }
-:root[data-theme="dark"] {
-  --paper: #111722; --sheet: #192131; --sheet-2: #1e2838; --ink: #e6eaf2; --muted: #98a3b8;
-  --line: #2b3548; --line-strong: #41506a; --accent: #8db0f2; --accent-ink: #0f1a2e; --accent-soft: #223253;
-  --seal: #ee7f72; --seal-ink: #2a1210; --seal-soft: #3a2320; --ok: #6ec796; --ok-soft: #1e3a2b;
-  --warn: #e2b05a; --warn-soft: #3a2f1a; --off: #3a4760; --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
-  color-scheme: dark;
+/* 深色模式：預設跟隨系統（頁尾「外觀」可固定淺色／深色）；只用在螢幕，列印一律白底 */
+@media screen and (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #111722; --sheet: #192131; --sheet-2: #1e2838; --ink: #e6eaf2; --muted: #98a3b8;
+    --line: #2b3548; --line-strong: #41506a; --accent: #8db0f2; --accent-ink: #0f1a2e; --accent-soft: #223253;
+    --seal: #ee7f72; --seal-ink: #2a1210; --seal-soft: #3a2320; --ok: #6ec796; --ok-soft: #1e3a2b;
+    --warn: #e2b05a; --warn-soft: #3a2f1a; --off: #3a4760; --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+    color-scheme: dark;
+  }
+}
+@media screen {
+  :root[data-theme="dark"] {
+    --paper: #111722; --sheet: #192131; --sheet-2: #1e2838; --ink: #e6eaf2; --muted: #98a3b8;
+    --line: #2b3548; --line-strong: #41506a; --accent: #8db0f2; --accent-ink: #0f1a2e; --accent-soft: #223253;
+    --seal: #ee7f72; --seal-ink: #2a1210; --seal-soft: #3a2320; --ok: #6ec796; --ok-soft: #1e3a2b;
+    --warn: #e2b05a; --warn-soft: #3a2f1a; --off: #3a4760; --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+    color-scheme: dark;
+  }
 }
 
 * { box-sizing: border-box; }
@@ -389,3 +401,13 @@ details.fold > .tablebox, details.fold > .row { margin-top: 8px; }
 details.classfold > summary { padding: 8px 0; border-top: 1px solid var(--line); font-size: 15px; }
 details.classfold > summary b { font-weight: 700; margin-right: 8px; }
 details.classfold > .classcard { border-top: 0; padding-top: 4px; }
+
+/* ---------- 115.11.8 補充：待送出、對話框、鍵盤焦點 ---------- */
+.sync .waiting { color: var(--seal); font-weight: 600; }
+body.modal-open { overflow: hidden; }
+.modal .inner:focus { outline: none; }
+main:focus { outline: none; }
+nav.tabs button:focus-visible { outline-offset: -3px; }
+.ov tfoot td { background: var(--sheet-2); font-weight: 600; border-top: 1px solid var(--line-strong); }
+.ov tfoot td .mini { font-weight: 400; }
+.noscript { max-width: 460px; margin: 10vh auto; padding: 20px; text-align: center; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--sheet); }

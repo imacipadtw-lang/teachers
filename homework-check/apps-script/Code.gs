@@ -34,7 +34,8 @@ function setupData_() {
 }
 function initialized_() { return !!PropertiesService.getScriptProperties().getProperty('EDIT_KEY'); }
 function showKey() { Logger.log('教務組密碼：' + PropertiesService.getScriptProperties().getProperty('EDIT_KEY')); }
-function resetKey() { var k = rand_(8); PropertiesService.getScriptProperties().setProperty('EDIT_KEY', k); Logger.log('新的教務組密碼：' + k); }
+function resetKey() { var k = rand_(8); PropertiesService.getScriptProperties().setProperty('EDIT_KEY', k); CacheService.getScriptCache().remove('admin_fail'); Logger.log('新的教務組密碼：' + k); }
+function unlockAdmin() { CacheService.getScriptCache().remove('admin_fail'); Logger.log('已解除教務組登入暫停'); }
 
 function termName_() {
   var d = new Date(); var m = d.getMonth() + 1;
@@ -72,6 +73,12 @@ function doGet(e) {
   if (!initialized_()) return json_({ ok: false, error: 'not_initialized' });
   if (p.action === 'classes') return classList_();
   if (p.action === 'claim') return claim_(p);
+  return read_(p);
+}
+
+// 讀取全部資料（教務組看全校、導師只看自己班）。前端以 POST action=read 呼叫，密碼與 token 不會出現在網址
+function read_(p) {
+  if (p.key && adminLocked_()) return json_({ ok: false, error: 'too_many' });
   var all = readAll_();
   var who = whoIs_(p, all);
   if (!who) return json_({ ok: false, error: 'auth' });
@@ -151,6 +158,11 @@ function claim_(p) {
 function doPost(e) {
   var body;
   try { body = JSON.parse(e.postData.contents); } catch (err) { return json_({ ok: false, error: 'bad_request' }); }
+  if (!body || typeof body !== 'object') return json_({ ok: false, error: 'bad_request' });
+  if (body.action === 'read') { // 只讀，不需排隊鎖定
+    if (!initialized_()) return json_({ ok: false, error: 'not_initialized' });
+    return read_(body);
+  }
   var lock = LockService.getScriptLock();
   if (!lock.tryLock(20000)) return json_({ ok: false, error: 'busy' });
   try {
@@ -164,6 +176,7 @@ function doPost(e) {
       return json_({ ok: true, version: version_() });
     }
     if (!initialized_()) return json_({ ok: false, error: 'not_initialized' });
+    if (body.key && adminLocked_()) return json_({ ok: false, error: 'too_many' });
     var all = readAll_();
     var who = whoIs_(body, all);
     if (!who) return json_({ ok: false, error: 'auth' });
@@ -238,6 +251,7 @@ function doPost(e) {
       }
       case 'revokeDevices': {
         if (!admin) return json_({ ok: false, error: 'auth' });
+        if (!config.classes.some(function (c) { return c.id === body.classId; })) return json_({ ok: false, error: 'bad_request' });
         var auth2 = all.auth || { classes: {} };
         auth2.classes[body.classId] = { devices: [] };
         put_('auth', auth2);
@@ -261,14 +275,22 @@ function doPost(e) {
     var v = bump_();
     return json_({ ok: true, version: v });
   } catch (err) {
-    return json_({ ok: false, error: String(err && err.message || err).indexOf('too_large') >= 0 ? 'too_large' : 'server_error', detail: String(err && err.message || err) });
+    var msg = String(err && err.message || err);
+    console.error('doPost ' + (body && body.action) + ': ' + msg);
+    return json_({ ok: false, error: msg.indexOf('too_large') >= 0 ? 'too_large' : 'server_error' });
   } finally { lock.releaseLock(); }
 }
 
 /* ================= 身分 ================= */
+// 密碼錯誤 20 次（15 分鐘內）就暫停教務組登入 15 分鐘，防止有人用程式猜密碼；導師不受影響
+var FAIL_MAX = 20, FAIL_WINDOW = 900;
+function adminLocked_() { return Number(CacheService.getScriptCache().get('admin_fail') || 0) >= FAIL_MAX; }
 function isAdmin_(key) {
   if (!key) return false;
-  return String(key) === String(PropertiesService.getScriptProperties().getProperty('EDIT_KEY') || '');
+  if (adminLocked_()) return false;
+  var ok = String(key) === String(PropertiesService.getScriptProperties().getProperty('EDIT_KEY') || '');
+  if (!ok) { var c = CacheService.getScriptCache(); c.put('admin_fail', String(Number(c.get('admin_fail') || 0) + 1), FAIL_WINDOW); }
+  return ok;
 }
 function whoIs_(p, all) {
   if (isAdmin_(p.key)) return { role: 'admin' };
