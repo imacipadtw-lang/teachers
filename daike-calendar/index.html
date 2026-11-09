@@ -982,6 +982,7 @@ select{background-color:#fff}
 .wb-card{background:var(--surface-2)}
 @media screen{
 .wb-prog{display:flex;flex-direction:column}
+@media screen{.greet-back{margin-left:12px;vertical-align:middle;font-size:13px}}@media print{.greet-back{display:none}}
 body.has-wb #summary{display:none}
 .wb-prog>.wb-next,.wb-prog>.hint{margin-bottom:14px}
 .wb-mstat{margin:auto 0 0;padding-top:14px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;border-top:1px solid var(--line);margin-top:auto}
@@ -2679,7 +2680,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.10r";
+const APP_VERSION = "專業版 2026.11.10s";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -5450,7 +5451,10 @@ function renderBoard(){
   const now = new Date(), h = now.getHours(), hi = h < 11 ? "早安" : h < 18 ? "午安" : "晚安";
   const today = ymd(now), off = (state.off||{})[today];
   const me = state.viewing === "__all__" ? null : state.viewing;
-  $("#greet").textContent = !me ? `${hi}，${state.user}（教務組）` : (me === state.user ? `${hi}，${me}老師` : `正在看：${me}老師的紀錄`);
+  const tn = n => /老師$/.test(n) ? n : n + "老師";
+  $("#greet").textContent = !me ? `${hi}，${state.user}（教務組）` : (me === state.user ? `${hi}，${tn(me)}` : `正在看：${tn(me)}的紀錄`);
+  if(me && me !== state.user && state.role === "admin"){ const b = document.createElement("button"); b.type = "button"; b.className = "btn ghost small greet-back"; b.textContent = "回全校總覽";
+    b.onclick = () => { const s = document.querySelector(".viewAs"); if(s){ s.value = ""; s.dispatchEvent(new Event("change")); } }; $("#greet").append(b); }
   const todays = state.events.filter(e => e.date === today && describe(e));
   $("#todayLine").innerHTML = `今天 ${esc(md(today))}` + (off ? `・<b>${esc(off.name)}${off.kind==="颱風假"?"，停止上課":"，放假"}</b>` : "")
     + (todays.length ? `・今天有 ${todays.length} 筆紀錄` : (me ? "・今天沒有代課紀錄" : "・今天沒有代課紀錄"))
