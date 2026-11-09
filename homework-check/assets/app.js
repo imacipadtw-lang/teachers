@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.09h';
+  const APP_VERSION = '2026.11.09i';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
   const LS = { admin: 'hc.admin', teacher: 'hc.teacher', api: 'hc.api', cls: 'hc.class', outbox: 'hc.outbox', theme: 'hc.theme' };
   const GRADE = ['', '一', '二', '三', '四', '五', '六'];
@@ -234,7 +234,7 @@
     queueChange(rid, cid, { no, itemId, val });
     saveOutbox();
     clearTimeout(S.flushTimer); S.flushTimer = setTimeout(flush, 450);
-    if (!(opts && opts.quiet)) renderSoft();
+    if (!(opts && opts.quiet)) { if (!patchCell(cid, no, itemId)) renderSoft(); }
   }
   // 待送出的登記存在這台裝置；網路斷線或關掉網頁也不會遺失，下次開啟（同一身分）自動補送
   function outboxCount() { let n = 0; S.outbox.forEach(b => { n += b.size; }); S.pendingNotes.forEach(p => { if (p.retry) n++; }); return n; }
@@ -503,7 +503,7 @@
   }
   function toggleBtn(cls, s, it, ed) {
     const on = isOn(cls.id, s.no, it.id);
-    return h('button', { type: 'button', class: 'chk' + (it.kind === 'exam' ? ' exam' : ''), role: 'switch', 'aria-checked': String(on), 'aria-label': s.no + '號 ' + (s.name || '') + ' ' + it.name + (on ? (it.kind === 'exam' ? '（已繳回）' : '（已交）') : '（未交）'), title: it.name, disabled: !ed,
+    return h('button', { type: 'button', class: 'chk' + (it.kind === 'exam' ? ' exam' : ''), 'data-no': String(s.no), 'data-item': it.id, role: 'switch', 'aria-checked': String(on), 'aria-label': s.no + '號 ' + (s.name || '') + ' ' + it.name + (on ? (it.kind === 'exam' ? '（已繳回）' : '（已交）') : '（未交）'), title: it.name, disabled: !ed,
       onclick: () => setMark(cls.id, s.no, it.id, !isOn(cls.id, s.no, it.id)) });
   }
   // 一張表：列＝學生，欄＝各科習作＋考卷簽回；教務組多看到每欄人數與「收件」快捷
@@ -514,20 +514,20 @@
         const th = h('th', { class: (it.kind === 'exam' ? 'exam' : '') + examStart(items, i) }, h('div', { text: it.short || it.name }));
         const who = (cls.subjectTeachers || {})[it.id];
         if (who) th.append(h('span', { class: 'who', text: who }));
-        { th.append(h('span', { class: 'cnt', text: countItem(cls, it) + '/' + n })); if (ed) th.append(h('button', { class: 'link', onclick: () => openQuick(cls, it) }, '收件')); }
+        { th.append(h('span', { class: 'cnt', 'data-item': it.id, text: countItem(cls, it) + '/' + n })); if (ed) th.append(h('button', { class: 'link', onclick: () => openQuick(cls, it) }, '收件')); }
         return th;
       }),
       admin ? h('th', { text: '狀態' }) : null, admin ? h('th', { class: 'notecol', text: '備註（給主任、校長看）' }) : null);
     const rows = studs.map(s => {
       const miss = items.filter(it => !isOn(cls.id, s.no, it.id)).length;
-      return h('tr', { class: miss === 0 ? 'allin' : null },
+      return h('tr', { class: miss === 0 ? 'allin' : null, 'data-no': String(s.no) },
         h('td', { class: 'no', text: String(s.no) }), h('td', { class: 'name', text: s.name || '—' }),
         items.map((it, i) => h('td', { class: 'cell' + examStart(items, i) }, toggleBtn(cls, s, it, ed))),
         admin ? h('td', { class: 'st', text: miss === 0 ? '全部繳齊' : '缺 ' + miss + ' 項' }) : null, admin ? h('td', { class: 'notecol' }, noteInput(cls.id, s.no, '例如：未訂正、補交、家長未簽名')) : null);
     });
-    const table = h('table', { class: 'grid' }, h('thead', null, groupHeaderRow(items, 2, admin ? 2 : 0), thead), h('tbody', null, rows));
+    const table = h('table', { class: 'grid', 'data-cid': cls.id }, h('thead', null, groupHeaderRow(items, 2, admin ? 2 : 0), thead), h('tbody', null, rows));
     const allIn = studs.filter(s => items.every(it => isOn(cls.id, s.no, it.id))).length;
-    table.append(h('tfoot', null, h('tr', { class: 'tfoot' }, h('td', { colspan: 2, class: 'flabel', text: admin ? '已交人數' : '已交（' + allIn + ' 人繳齊）' }), items.map((it, i) => h('td', { class: examStart(items, i).trim() || null, text: countItem(cls, it) + ' / ' + n })), admin ? h('td', { text: allIn + ' 人繳齊' }) : null, admin ? h('td') : null)));
+    table.append(h('tfoot', null, h('tr', { class: 'tfoot' }, h('td', { colspan: 2, class: 'flabel', text: admin ? '已交人數' : '已交（' + allIn + ' 人繳齊）' }), items.map((it, i) => h('td', { class: examStart(items, i).trim() || null, 'data-item': it.id, text: countItem(cls, it) + ' / ' + n })), admin ? h('td', { class: 'allincnt', text: allIn + ' 人繳齊' }) : null, admin ? h('td') : null)));
     const legend = h('div', { class: 'legend' },
       h('span', null, h('i', { style: 'background:var(--accent)' }), '習作已交'),
       h('span', null, h('i', { style: 'background:var(--seal)' }), '考卷已由家長簽名並繳回'),
@@ -536,6 +536,32 @@
     if (admin) out.append(h('div', { class: 'row' }, h('span', { class: 'note', text: '本班備註' }), h('div', { class: 'grow' }, noteInput(cls.id, null, '整班的說明，例如：11/10 全班補交完成'))));
     out.append(h('div', { class: 'tablebox' }, table), legend);
     return out;
+  }
+
+  // 點一格只更新這一格與相關數字（30 人 × 13 項時，整張表重畫在中低階手機約 150 ms，只改一格幾乎即時）
+  function patchCell(cid, no, itemId) {
+    try {
+      if (S.screen !== 'app' || S.view !== 'class' || S.modal) return false;
+      const table = document.querySelector('table.grid[data-cid="' + cid + '"]'); if (!table) return false;
+      const cls = classes().find(c => c.id === cid); const it = allItems().find(x => x.id === itemId); if (!cls || !it) return false;
+      const s = (cls.students || []).find(x => String(x.no) === String(no)); if (!s) return false;
+      const btn = table.querySelector('button.chk[data-no="' + no + '"][data-item="' + itemId + '"]'); if (!btn) return false;
+      const on = isOn(cid, no, itemId);
+      btn.setAttribute('aria-checked', String(on));
+      btn.setAttribute('aria-label', s.no + '號 ' + (s.name || '') + ' ' + it.name + (on ? (it.kind === 'exam' ? '（已繳回）' : '（已交）') : '（未交）'));
+      const items = itemsFor(cls); const studs = cls.students || []; const n = studs.length;
+      const tr = table.querySelector('tbody tr[data-no="' + no + '"]');
+      if (tr) { const miss = items.filter(x => !isOn(cid, s.no, x.id)).length; tr.classList.toggle('allin', miss === 0); const st = tr.querySelector('td.st'); if (st) st.textContent = miss === 0 ? '全部繳齊' : '缺 ' + miss + ' 項'; }
+      const c = countItem(cls, it);
+      const cnt = table.querySelector('thead .cnt[data-item="' + itemId + '"]'); if (cnt) cnt.textContent = c + '/' + n;
+      const ft = table.querySelector('tfoot td[data-item="' + itemId + '"]'); if (ft) ft.textContent = c + ' / ' + n;
+      const allIn = studs.filter(x => items.every(y => isOn(cid, x.no, y.id))).length;
+      const ac = table.querySelector('tfoot td.allincnt'); if (ac) ac.textContent = allIn + ' 人繳齊';
+      if (S.role !== 'admin') { const fl = table.querySelector('tfoot td.flabel'); if (fl) fl.textContent = '已交（' + allIn + ' 人繳齊）'; }
+      const oldRing = document.querySelector('#main .classhead .ring');
+      if (oldRing) { const p = classProgress(cls); oldRing.replaceWith(ring(p.total ? Math.round(p.got / p.total * 100) : 0)); }
+      return true;
+    } catch (e) { return false; }
   }
 
   /* ---------- 快速收件（依項目逐號登記） ---------- */
