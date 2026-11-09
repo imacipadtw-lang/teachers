@@ -16,7 +16,8 @@ const marks = async (base) => { const r = await (await fetch(base + 'exec', { me
 const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')).json()).checks;
 
 (async () => {
-  const br = await chromium.launch();
+  // 指定 UTF-8 語系：沒有語系的 Linux 下 Chromium 會把中文下載檔名換成 download（學校的 Windows／Mac／手機不會）
+  const br = await chromium.launch({ env: Object.assign({}, process.env, { LANG: 'C.UTF-8', LC_ALL: 'C.UTF-8' }) });
   const errors = [];
   const newPage = async (ctx) => { const p = await ctx.newPage(); p.on('pageerror', e => errors.push(e.message)); await p.route(/fonts\.(googleapis|gstatic)\.com/, r => r.abort()); return p; };
   const B = 'http://localhost:8787/';
@@ -97,6 +98,7 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
   const csv = fs.readFileSync(await dl.path(), 'utf8');
   ok(csv.includes(`"'=HYPERLINK(""http://x"")"`), 'CSV 中備註前面加了單引號');
   ok(csv.split('\r\n').length === 7, '「本班 CSV」只匯出本班（6 人＋表頭）');
+  ok(/^作業抽查_.+_一甲\.csv$/.test(dl.suggestedFilename()), '下載檔名為中文：' + dl.suggestedFilename());
 
   console.log('8. 外觀切換與列印');
   await pg.click('footer .themebtn'); await sleep(100); await pg.click('footer .themebtn'); await sleep(100);
