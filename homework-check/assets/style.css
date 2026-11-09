@@ -108,7 +108,7 @@ textarea { line-height: 1.6; resize: vertical; }
 .btn.danger:hover { background: var(--seal-soft); }
 .btn.small { padding: 4px 10px; font-size: 13px; }
 .btn.block { width: 100%; }
-.btn:disabled { opacity: .5; }
+.btn:disabled, .btn:disabled:hover { background: var(--sheet-2); color: var(--muted); border-color: var(--line); box-shadow: none; filter: none; } /* 停用：淡底深字，不用半透明（對比足夠） */
 .btn svg { width: 15px; height: 15px; }
 .link svg { width: 14px; height: 14px; vertical-align: -2px; }
 .sync .link { display: inline-flex; margin-left: 2px; }
@@ -178,7 +178,7 @@ button.item:hover { border-color: var(--accent); }
 .chk:active { transform: scale(.92); }
 .chk[aria-checked="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 .chk.exam[aria-checked="true"] { background: var(--seal); border-color: var(--seal); color: var(--seal-ink); }
-.chk:disabled { opacity: .75; }
+.chk:disabled { cursor: default; } .chk:disabled:not([aria-checked="true"]) { background: var(--sheet-2); border-style: dashed; } /* 結案或查看模式：不用半透明，未交的格子改虛線框 */
 
 /* 學生表（桌機） */
 .tablebox { overflow-x: auto; background: var(--sheet); border: 1px solid var(--line); border-radius: var(--radius); }
@@ -569,7 +569,7 @@ table.grid tr.nomatch td { text-align: center; color: var(--muted); padding: 22p
 /* ---------- 邊界情況修正 ---------- */
 .tag svg { width: 12px; height: 12px; vertical-align: -1.5px; margin-right: 2px; } /* 「已結案」鎖頭原本沒有尺寸，會變成大圖示 */
 .tag.lock { display: inline-flex; align-items: center; gap: 3px; }
-th.name, td.name { max-width: 11em; white-space: normal; overflow-wrap: anywhere; line-height: 1.35; }
+th.name, td.name { max-width: 11em; white-space: normal; overflow-wrap: break-word; word-break: normal; line-height: 1.35; }
 @media (max-width: 719px) { th.name, td.name { max-width: 6.5em; font-size: 13.5px; } }
 
 /* ==========================================================================
