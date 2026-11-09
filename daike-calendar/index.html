@@ -70,6 +70,8 @@ textarea{min-height:90px;resize:vertical}
 .btn:hover{background:#A3DEF7;border-color:#A3DEF7;box-shadow:0 0 0 4px rgba(92,200,240,.18),0 8px 24px rgba(92,200,240,.25)}
 .btn:active{transform:translateY(1px)}
 .btn:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
+@media screen{#planBody input:not([type=checkbox]):not([type=radio]):not([type=file]),#planBody select{height:44px}}
+@media screen{html body .btn.btn:disabled,html body .btn.btn:disabled:hover{opacity:1;background:var(--line-2);color:var(--ink-2);border-color:var(--line);box-shadow:none;transform:none}}
 .btn.full{width:100%;margin-top:24px;padding:14px}
 .btn.ghost{background:rgba(17,34,58,.7);color:var(--ink);border-color:var(--line)}
 .btn.ghost:hover{background:var(--sky-soft);border-color:var(--sky);color:#fff;box-shadow:none}
@@ -240,6 +242,14 @@ button.pill:hover{border-color:var(--sky);color:#fff}
 /* ---------- 提醒（管理者）---------- */
 .alerts{background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--rose);border-radius:var(--r);padding:12px 16px;margin-bottom:16px}
 .alerts.ok{border-left-color:var(--sage)}
+@media screen{.alerts.ok{border-left:1px solid var(--line)}
+.al-clear{display:flex;gap:16px;align-items:flex-start;padding:6px 0 4px}
+.al-clear svg{flex:none;width:44px;height:44px;fill:none;stroke:var(--sage);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.al-clear b{display:block;font-size:16px;color:var(--ink);margin:2px 0 6px}
+.alerts .al-clear ul{list-style:none;margin:0 0 8px;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.alerts .al-clear li{display:inline-block;grid-template-columns:none;font-size:12.5px;font-weight:600;color:var(--ink-2);background:var(--surface-2);border:1px solid var(--line-2);border-radius:999px;padding:3px 10px;line-height:1.5}
+.alerts .al-clear li::before{content:"✓ ";color:var(--sage);font-weight:800}
+.al-clear small{font-size:12.5px;color:var(--ink-3)}}
 .alerts h3{margin:0;font-size:15px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .alerts h3 .tag{font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--rose-soft);color:var(--rose)}
 .alerts.ok h3 .tag{background:var(--sage-soft);color:var(--sage)}
@@ -278,6 +288,7 @@ details.settings>summary span{font-size:13px;color:var(--ink-3)}
 .set-tbl input,.set-tbl select{padding:6px 8px;font-size:13.5px;min-width:92px;border-radius:8px}
 .set-tbl input.num{width:96px;text-align:right;font-variant-numeric:tabular-nums}
 .set-tbl input[type=date]{width:140px}
+@media screen{.set-tbl:has(#insTbl tbody:empty)::after,.set-tbl:has(#offTbl tbody:empty)::after,.set-tbl:has(#dedTbl tbody:empty)::after{content:"還沒有資料，按下面「＋ 新增一列」開始";display:block;padding:16px;text-align:center;color:var(--ink-3);font-size:13px;border-top:1px dashed var(--line)}}
 .set-tbl select{min-width:120px;padding-right:30px;background-position:right 10px center;font-size:13.5px}
 .set-act{align-items:center}
 /* 報帳前檢查、簽到表核對、月結 */
@@ -796,6 +807,7 @@ body:not(.has-view) .ev-other button{display:none}   /* 管理者看某位老師
 .slot{display:grid;grid-template-columns:1.3fr .8fr 1fr;gap:8px;background:var(--sky-mist);border:1px solid var(--line-2);border-radius:10px;padding:8px}
 .slot .cap{grid-column:1/-1;font-size:12px;font-weight:700;color:var(--sky-deep)}
 .arrow{align-self:center;text-align:center;color:var(--sky);font-size:20px;font-weight:900}
+@media screen and (min-width:761px){.rgrid.swap>div:not(.slot):not(.arrow){padding-bottom:23px}}
 .dow-tag{font-size:12px;color:var(--ink-2);margin-top:2px;min-height:1em}
 .auto-hint{grid-column:1/-1;font-size:13px;color:var(--amber);background:var(--amber-soft);border-radius:8px;padding:6px 10px}
 .chk{margin-top:10px;font-size:14px;border-radius:10px;padding:8px 12px;line-height:1.55}
@@ -1103,6 +1115,7 @@ html[data-theme=dark] .wb-mstat .bad dd,html[data-theme=dark] .wb-mstat .bad dd 
 
 /* ---------- 分頁頁籤（10/31）：上方一排頁籤，一頁一個主題；「全部」＝原本一整頁 ---------- */
 .pagetabs{flex-basis:100%;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;margin:4px -6px -10px;padding:0 2px}
+.pagetabs{scroll-padding-inline:28px}
 .pagetabs::-webkit-scrollbar{display:none}
 .pagetabs button{position:relative;flex:none;border:0;background:none;padding:9px 14px 12px;font:inherit;font-size:14.5px;font-weight:700;color:var(--ink-2);white-space:nowrap;cursor:pointer;border-radius:10px 10px 0 0;display:inline-flex;align-items:center;gap:6px}
 .pagetabs button:hover{color:var(--ink);background:var(--sky-mist)}
@@ -1343,8 +1356,12 @@ html[data-theme=dark] .ev .fixbtn{color:var(--sky)}
 /* 頂端已有「查看哪位老師」：設定頁下方只留「老師密碼狀態」 */
 body.has-view .admin-mobile .admin-box > label,body.has-view .admin-mobile .admin-box > .viewAs,body.has-view .admin-mobile .admin-box > .pw-tip{display:none}
 body.has-view .admin-mobile .pw-list{margin-top:0;border-top:0;padding-top:0}
-@media (min-width:1051px){.admin-mobile .admin-box{max-width:640px}}
+@media (min-width:1051px){.admin-mobile .admin-box{max-width:none} .admin-mobile .pw-list .row,.admin-mobile .pw-list .pw-tip{max-width:620px}}
 .set-tbl,.scroll{position:relative}   /* 表格裡的隱藏文字（.sr）留在捲動框內，不撐寬整頁 */
+@media screen{.hr-tf{display:inline-flex;align-items:center;gap:8px;min-width:0;flex:1 1 320px}.hrbox .row .hr-tf input{flex:1 1 auto;min-width:0}
+.hrbox>.hint{margin-bottom:12px}
+.hr-tnote{margin:8px 0 0}.hr-tnote>summary{cursor:pointer;font-size:13px;color:var(--ink-2);font-weight:600}.hr-tnote>.hint{margin:6px 0 0}}
+@media screen and (max-width:600px){.hr-tf{flex-basis:100%;flex-direction:column;align-items:stretch;gap:4px}.hrbox .row .hr-tf input{flex:none;width:100%}}
 #hrTimes.bad{border-color:var(--c-leave);box-shadow:0 0 0 2px rgba(208,56,79,.18)}
 html[data-theme=dark] :is(.rowc .rhead b,.addrow,.fix-diff td.new){color:var(--sky)}
 body.has-view .ev-other{opacity:1}   /* 管理者：其他老師的紀錄可以操作，不再淡化（對比） */
@@ -2658,7 +2675,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.10n";
+const APP_VERSION = "專業版 2026.11.10o";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -3196,7 +3213,7 @@ function renderSettings(){
   $("#setDet").ontoggle = () => store.set("setOpen", $("#setDet").open ? "1" : "0");
   box.querySelectorAll("[data-undo]").forEach(b => b.onclick = () => { const u = state.undo.find(x => x.no === b.dataset.undo); if(confirm(`復原 ${u.no}：${u.text || u.sheets}\n\n「${u.sheets}」會回到 ${u.at} 這次修改之前的樣子。確定？`)) doUndo(u.no); });
   if(!ready){ box.querySelectorAll("#setSave,#insSave,#offSave,#insAdd,#offAdd,.vdel,#dedAdd,#dedSave,#exSave").forEach(b => { b.disabled = true; b.title = "後端程式（Apps Script）還沒更新到新版，更新後才能用"; });
-    box.querySelectorAll(".set-act .set-msg").forEach(m => { m.textContent = "⚠ 後端程式還沒更新到新版，這裡先不能按；請先部署新版 Code.gs"; m.style.color = "var(--amber)"; }); }
+    box.querySelectorAll(".set-act .set-msg").forEach(m => { m.textContent = "需先部署新版後端"; m.style.color = "var(--ink-3)"; }); }
   // 6. 扣款調整表
   const dedBody = box.querySelector("#dedTbl tbody"), months = termMonths().map(([y,m]) => `${y}-${String(m+1).padStart(2,"0")}`);
   const dedRow = (d = {}) => {
@@ -4739,7 +4756,7 @@ function checkBox(kind, r, msgs){
 function renderPlan(){
   document.querySelectorAll("#planModal .seg button").forEach(b=>b.setAttribute("aria-selected", b.dataset.kind===plan.kind));
   const focusKey = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.k : null;
-  let html = `<div class="scanbar"><button type="button" class="btn" id="scanBtn">📷 拍紙本／上傳照片，自動填好</button>
+  let html = `<div class="scanbar"><button type="button" class="btn ghost" id="scanBtn"><svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:6px"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>拍紙本／上傳照片，自動填好</button>
     <span>假單、調課單、代課單都可以；拍正、拍清楚。辨識完會先填進下面的欄位（黃框），請核對後再按「儲存」；看不清楚的會列在上面請您確認。</span>
     <input type="file" id="scanFile" accept="image/*,application/pdf" hidden></div>`;
   if(plan.scan) html += `<div class="scanres" role="status"><b>${esc(plan.scan.title)}</b>${plan.scan.warn.length ? `<ul>${plan.scan.warn.map(w => `<li>${esc(w)}</li>`).join("")}</ul>` : ""}${plan.scan.photo ? `<div><a href="${esc(plan.scan.photo)}" target="_blank" rel="noopener">開啟原始照片對照</a></div>` : ""}</div>`;
@@ -6035,8 +6052,8 @@ function renderHrBox(){
     ${sync}${cloudList}
     <div class="hrdrop" id="hrDrop"><textarea id="hrText" placeholder="${cloudN != null ? "把請假系統「已批核案件」新的文字貼在這裡（只要貼新的；之前的已存在雲端）。也可以把檔案拖進來" : "申請人　表單　申請時間　摘要　批核結果…（可以把檔案拖進來）"}">${esc(text)}</textarea><div class="dz">放開就上傳比對</div></div>
     <div class="row"><button type="button" class="btn small" id="hrUp">上傳請假系統資料</button><input type="file" id="hrFile" accept=".txt,.csv,.tsv,text/plain,text/csv,image/*,application/pdf" multiple hidden><button type="button" class="btn ghost small" id="hrGo">比對</button><button type="button" class="btn ghost small" id="hrClear">清除</button>
-      <label class="hint" for="hrTimes" style="margin:0">節次時間</label><input id="hrTimes" value="${esc(hrTimesSave.draft != null ? hrTimesSave.draft : hrTimes())}"${hrTimesSave.draft != null ? ' class="bad" aria-invalid="true"' : ""} aria-label="節次時間，例：0840-0920,0930-1010,…"></div>
-    <p class="hint">節次時間用來把請假的「幾點到幾點」換算成第幾節（預設 08:40–09:20、09:30–10:10、10:30–11:10、11:20–12:00、13:30–14:10、14:20–15:00、15:10–15:50）；請假和某一節重疊不到半節（20 分鐘）不算。和本校作息不同就改上面那格，再按「比對」。</p>${res}</div>`;
+      <span class="hr-tf"><label class="hint" for="hrTimes" style="margin:0">節次時間</label><input id="hrTimes" value="${esc(hrTimesSave.draft != null ? hrTimesSave.draft : hrTimes())}"${hrTimesSave.draft != null ? ' class="bad" aria-invalid="true"' : ""} aria-label="節次時間，例：0840-0920,0930-1010,…"></span></div>
+    <details class="hr-tnote"><summary>節次時間怎麼用</summary><p class="hint">節次時間用來把請假的「幾點到幾點」換算成第幾節（預設 08:40–09:20、09:30–10:10、10:30–11:10、11:20–12:00、13:30–14:10、14:20–15:00、15:10–15:50）；請假和某一節重疊不到半節（20 分鐘）不算。和本校作息不同就改上面那格，再按「比對」。</p></details>${res}</div>`;
   $("#hrGo").onclick = () => { hrTimesSave(); const v = $("#hrText").value;
     busy(true); (v.trim() ? hrRun(v) : (state.hrRecs && state.hrRecs.length ? hrRun(hrRecsToText(state.hrRecs), {noSave:true}) : Promise.resolve(toast("請先貼上或上傳請假系統資料")))).finally(() => busy(false)); };
   box.querySelectorAll("[data-hrdel]").forEach(b => b.onclick = async () => {
@@ -6102,7 +6119,7 @@ function renderAlerts(){
   if(state.role !== "admin"){ box.innerHTML = ""; return; }
   const a = state.audit || [], t = state.typhoon;
   const typh = `<p class="typh">颱風假自動檢查：${t ? esc(t.at) + "　" + (t.ok ? "正常，" : "沒有成功，") + esc(t.msg) : "還沒開始（請在資料表按「代課工具 → 開始自動處理」）"}。颱風假也可以自己寫在資料表「假日與停班停課」分頁。</p>`;
-  if(!a.length){ box.innerHTML = `<div class="alerts ok"><h3>資料檢查 <span class="tag">✓ 沒有發現衝堂、重複登錄或和課表不符的調課</span></h3>${typh}</div>` + fixesCard(); return; }
+  if(!a.length){ box.innerHTML = `<div class="alerts ok"><h3>資料檢查 <span class="tag">✓ 全部通過</span></h3><div class="al-clear"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.4 7.5 9.5 4.3-1.1 7.5-4.9 7.5-9.5V6z"/><path d="m8.5 12.2 2.4 2.4 4.6-4.9"/></svg><div><b>沒有發現問題</b><ul><li>衝堂</li><li>重複登錄</li><li>調課和課表不符</li><li>合班只調走一班</li><li>請假還沒安排代課</li><li>假日、停課當天的紀錄</li></ul><small>每次讀取資料都會自動重新檢查；有新問題會立刻通知教務組。</small></div></div>${typh}</div>` + fixesCard(); return; }
   const kd = {dup:"重複", clash:"衝堂", leave:"請假", off:"假日", weekend:"日期", dow:"日期", todo:"未安排", swapchk:"課表不符"};
   // 115.11.10：每個問題旁邊直接有「看 序號」或「看 ○／○」按鈕，按了就到那一筆（再按修改／刪除）
   const acts = i => { const ids = [...new Set((i.ids || []).filter(Boolean))].slice(0, 4);
