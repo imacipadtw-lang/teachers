@@ -898,14 +898,14 @@ main{container-type:inline-size}
    只用覆蓋的方式改顏色，原本的深藍版樣式留在上面，要改回去刪掉這一段即可。
    =================================================================== */
 :root{
-  --mist:#FDEBF2; --surface:#FFFFFF; --surface-2:#FFF7FA; --ink:#3B1E2B; --ink-2:#6B4656; --ink-3:#8F6878;
+  --mist:#FDEBF2; --surface:#FFFFFF; --surface-2:#FFF7FA; --ink:#3B1E2B; --ink-2:#6B4656; --ink-3:#7A5566;
   --line:#EFC3D3; --line-2:#F6DCE6;
   --navy:#B23A6B; --navy-2:#962E59; --navy-3:#7E234A;
   --sky:#D0457A; --sky-deep:#B8336A; --sky-soft:rgba(208,69,122,.12); --sky-mist:rgba(208,69,122,.05); --glow:#B8336A;
-  --c-sub:#2C74B8; --c-leave:#D0384F; --c-swap:#A86B0C; --c-tutor:#14825C;
+  --c-sub:#2C74B8; --c-leave:#D0384F; --c-swap:#A86B0C; --c-tutor:#0F6E4D;
   --rose:#C42B47; --rose-soft:rgba(196,43,71,.10);
-  --sage:#14825C; --sage-soft:rgba(20,130,92,.10);
-  --amber:#9A6200; --amber-soft:rgba(214,146,20,.14);
+  --sage:#0F6E4D; --sage-soft:rgba(20,130,92,.10);
+  --amber:#8A5700; --amber-soft:rgba(214,146,20,.14);
 }
 html,body{background:var(--mist)}
 body{background:radial-gradient(1100px 560px at 50% -12%,#FFD3E3 0%,transparent 62%),var(--mist);background-attachment:fixed}
@@ -1167,7 +1167,7 @@ html[data-theme=dark]{color-scheme:dark;
   --mist:#070D1A; --surface:#0F1830; --surface-2:#142142; --ink:#E8EEF8; --ink-2:#AAB8D0; --ink-3:#7A8BA8;
   --line:#26375C; --line-2:#1C2A4A;
   --navy:#1A2648; --navy-2:#22305A; --navy-3:#2C3C6E;
-  --sky:#FF6FAE; --sky-deep:#D63C78; --sky-soft:rgba(255,111,174,.15); --sky-mist:rgba(255,111,174,.06); --glow:#5CE1FF;
+  --sky:#FF6FAE; --sky-deep:#C42F69; --sky-soft:rgba(255,111,174,.15); --sky-mist:rgba(255,111,174,.06); --glow:#5CE1FF;
   --c-sub:#5CC8F0; --c-leave:#FF7A9B; --c-swap:#F2B84B; --c-tutor:#4FD1A1;
   --rose:#FF6B85; --rose-soft:rgba(255,107,133,.15);
   --sage:#4FD1A1; --sage-soft:rgba(79,209,161,.14);
@@ -1288,13 +1288,29 @@ body[data-pg]:not([data-pg=home]):not([data-pg=all]) .notice{display:none!import
   .notice{padding:7px 12px}
 }
 @media print{.view-top,.more{display:none!important}}
+/* 115.11.9 無障礙：對比、可聚焦的捲動區、觸控大小 */
+.heat .hr{display:contents}
+.btn.line,.btn.line:hover{color:#04210F!important}
+.wk-dh .nt{background:#C27C10}
+html[data-theme=dark] .d .cell-ev .cp{color:var(--sky)}
+.scroll:focus-visible,.set-tbl:focus-visible{outline:2px solid var(--sky);outline-offset:2px}
+#helpBtn{min-height:32px;padding:4px 2px}
+/* 年曆格子：整格是一顆透明按鈕（鍵盤可按），右上角「＋」是另一顆，不再按鈕包按鈕 */
+.d.has{position:relative}
+.d .dhit{position:absolute;inset:0;z-index:1;width:100%;height:100%;padding:0;margin:0;border:0;background:transparent;cursor:pointer;border-radius:inherit}
+.d .dhit:focus-visible{outline:3px solid var(--sky);outline-offset:1px}
+@media print{.d .dhit{display:none}}
+html:not([data-theme=dark]) .ev .p .k{color:#1F5C96}
+html:not([data-theme=dark]) .ev.t-swap .p .k{color:#7E4F08}
+html:not([data-theme=dark]) .wb-nav button.on{color:#A3305C}
+html[data-theme=dark] .ev .fixbtn{color:var(--sky)}
 </style>
 </head>
 <body>
 
 <canvas id="net" aria-hidden="true"></canvas>
 <!-- 登入（版面參考教務組提供的影片：置中、四色標誌、流動漸層框；背景的節點可以用滑鼠拖） -->
-<section id="login">
+<section id="login" role="main">
   <div class="banner"><b>教務組專用版</b>（<span id="appVer"></span>）：只有教務組帳號能登入，老師不開放</div>
   <nav class="lnav">
     <div class="brand"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="txt">代課・調課查詢</span></div>
@@ -1338,7 +1354,8 @@ body[data-pg]:not([data-pg=home]):not([data-pg=all]) .notice{display:none!import
 
 <!-- 主畫面 -->
 <section id="app">
-  <header class="topbar">
+  <header class="topbar" role="banner">
+    <h1 class="sr">代課・調課・請假 核對系統（教務組）</h1>
     <div class="brand"><span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="txt">代課・調課查詢</span><span class="ver-tag">教務組專用</span></div>
     <div class="who" id="who"></div>
     <div class="view-top" id="viewTop" hidden></div>
@@ -1362,18 +1379,19 @@ body[data-pg]:not([data-pg=home]):not([data-pg=all]) .notice{display:none!import
     </div>
     <nav class="pagetabs" id="pageTabs" role="tablist" aria-label="分頁" hidden></nav>
   </header>
-  <div class="notice line" id="lineNotice" hidden>
+  <div class="notice line" id="lineNotice" role="region" aria-label="LINE 通知提醒" hidden>
     開啟 LINE 通知：用 LINE 簡單提醒您今天和這一週的調代課。
     <button class="btn line small" type="button" id="openLine2">現在設定</button>
     <button class="btn ghost small" type="button" id="lineNoticeX">先不用</button>
   </div>
-  <div class="notice" id="pwNotice" hidden>
+  <div class="notice" id="pwNotice" role="region" aria-label="密碼提醒" hidden>
     您還在使用教務組發的初始密碼，建議改成自己好記的密碼。
     <button class="btn small" type="button" id="openPw2">現在更改</button>
   </div>
 
   <div class="wrap">
     <main>
+      <h2 class="sr" id="pgTitle"></h2>
       <nav class="subnav" id="subNav" aria-label="這一頁的段落" hidden></nav>
       <div id="workbench" data-page="home"></div>
       <section class="board" id="board" aria-label="課務看板" data-page="home">
@@ -1424,7 +1442,7 @@ body[data-pg]:not([data-pg=home]):not([data-pg=all]) .notice{display:none!import
       <footer class="appfoot" id="appFoot"><span class="ver"></span><span>資料只存在學校自己的 Google 雲端試算表；金鑰只放在 Apps Script，不在網頁上。</span><button type="button" class="linkbtn" id="helpBtn">使用說明與快捷鍵 <kbd>?</kbd></button></footer>
     </main>
 
-    <aside class="side" id="side">
+    <aside class="side" id="side" role="complementary" aria-label="日期明細">
       <div class="admin-box" id="adminBox"></div>
       <div class="panel">
         <h2><span id="panelTitle">點一個日期看明細</span><button class="close" id="closeSide" aria-label="關閉">×</button></h2>
@@ -2425,7 +2443,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.09";
+const APP_VERSION = "專業版 2026.11.09b";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -2840,7 +2858,7 @@ function renderAdmin(){
   const pwRows = state.pwStatus.map(p=>`<div class="row"><span>${esc(p.name)}</span>
       <span class="st ${p.changed?"c":""}">${p.changed?"已自訂 "+esc(p.at):"初始密碼"}</span>
       ${p.changed && p.name!==state.cred.name ? `<button type="button" data-reset="${esc(p.name)}">恢復初始</button>` : `<span style="width:62px"></span>`}</div>`).join("");
-  const html = `<label>查看哪位老師</label><select class="viewAs">${opts}</select>
+  const html = `<label>查看哪位老師</label><select class="viewAs" aria-label="查看哪位老師">${opts}</select>
     <div class="pw-tip">網站目前只開放教務組；選老師可以看他的課務。</div>
     <details class="pw-list"><summary>老師密碼狀態</summary>${pwRows}
     <div class="pw-tip">老師忘記密碼時按「恢復初始」，就能用密碼表上的初始密碼登入。</div></details>`;
@@ -2906,13 +2924,13 @@ function renderSettings(){
     <div class="set-sec"><h4>3. 保險與扣繳費率（${INS.year} 年）<small>投保級距、分擔比例依勞保局、健保署公告；這裡只改費率</small></h4><div class="set-grid">${SET_INS_KEYS.map(field).join("")}</div>
       <div class="mrow set-act"><button class="btn" type="button" id="setSave">儲存 1～3</button><span class="set-msg" id="setMsg"></span></div></div>
     <div class="set-sec"><h4>4. 投保資料（資料表「保險設定」分頁）<small>每人一列。每月投保日數留空＝整月 30 天；填了加保／退保日期才會按天數比例算</small></h4>
-      <div class="set-tbl"><table id="insTbl"><thead><tr>${INS_COLS.map(c => `<th>${c[1]}</th>`).join("")}<th></th></tr></thead><tbody></tbody></table></div>
+      <div class="set-tbl" tabindex="0" aria-label="表格（可左右捲動）"><table id="insTbl"><thead><tr>${INS_COLS.map(c => `<th>${c[1]}</th>`).join("")}<th><span class="sr">操作</span></th></tr></thead><tbody></tbody></table></div>
       <div class="mrow set-act"><button class="btn ghost small" type="button" id="insAdd">＋ 新增一列</button><button class="btn" type="button" id="insSave">儲存投保資料</button><span class="set-msg" id="insMsg"></span></div></div>
     <div class="set-sec"><h4>5. 假日與停班停課（資料表「假日與停班停課」分頁）<small>國定假日、補假、颱風假；要取消某天的假就選「照常上課」。合理員額教師假日照計、照給薪</small></h4>
-      <div class="set-tbl"><table id="offTbl"><thead><tr><th>日期</th><th>名稱</th><th>類型</th><th>範圍</th><th>備註</th><th>來源</th><th></th></tr></thead><tbody></tbody></table></div>
+      <div class="set-tbl" tabindex="0" aria-label="表格（可左右捲動）"><table id="offTbl"><thead><tr><th>日期</th><th>名稱</th><th>類型</th><th>範圍</th><th>備註</th><th>來源</th><th><span class="sr">操作</span></th></tr></thead><tbody></tbody></table></div>
       <div class="mrow set-act"><button class="btn ghost small" type="button" id="offAdd">＋ 新增一列</button><button class="btn" type="button" id="offSave">儲存假日</button><span class="set-msg" id="offMsg"></span></div></div>
     <div class="set-sec"><h4>6. 扣款調整（資料表「扣款調整」分頁）<small>出納、會計要多扣或少扣的項目：所得稅、補充保費、代扣款、退還（負數）…。網站、清冊、Excel 的「其他扣款」和實領都會跟著算</small></h4>
-      <div class="set-tbl"><table id="dedTbl"><thead><tr><th>月份</th><th>姓名</th><th>項目</th><th>金額（負＝退還）</th><th>帳別</th><th>備註</th><th>登錄</th><th></th></tr></thead><tbody></tbody></table></div>
+      <div class="set-tbl" tabindex="0" aria-label="表格（可左右捲動）"><table id="dedTbl"><thead><tr><th>月份</th><th>姓名</th><th>項目</th><th>金額（負＝退還）</th><th>帳別</th><th>備註</th><th>登錄</th><th><span class="sr">操作</span></th></tr></thead><tbody></tbody></table></div>
       <datalist id="dedItems"><option value="所得稅"><option value="補充保費"><option value="代扣款"><option value="退還"><option value="其他扣款"></datalist>
       <div class="mrow set-act"><button class="btn ghost small" type="button" id="dedAdd">＋ 新增一列</button><button class="btn" type="button" id="dedSave">儲存扣款</button><span class="set-msg" id="dedMsg"></span></div></div>
     <div class="set-sec"><h4>7. 資料來源 <small>代課一覽表以哪裡為準</small></h4>
@@ -2921,7 +2939,7 @@ function renderSettings(){
         <label class="set-chk"><input type="radio" name="exsync" value="on" ${st.EXCEL_SYNC === "on" ? "checked" : ""}><span>每分鐘從雲端硬碟的「代課一覽表」.xlsx 匯入並覆蓋分頁（網站的修改只記在「修正」分頁）</span></label></div>
       <div class="mrow set-act"><button class="btn" type="button" id="exSave">儲存資料來源</button><span class="set-msg" id="exMsg"></span></div></div>
     <div class="set-sec" id="undoSec"><h4>8. 變更紀錄與復原 <small>系統設定、投保資料、假日、扣款、人事保費核對、老師回報的每一次修改和刪除，都先存一份修改前的樣子；按「復原」就回到那次修改之前。復原也會留一筆，可以再復原回來。代課、調課、請假紀錄刪除後不留資料、不能還原</small></h4>
-      ${(state.undo = (state.undo||[]).filter(u => !(/請假|代課|調課|代導/.test(u.kind || "") && /刪除/.test((u.text || "") + (u.kind || ""))))).length ? `<div class="set-tbl"><table class="undo-tbl"><thead><tr><th>編號</th><th>時間</th><th>項目</th><th>改了什麼</th><th>狀態</th><th></th></tr></thead><tbody>${state.undo.map(u => `<tr class="${u.can ? "" : "done"}"><td>${esc(u.no)}</td><td>${esc(u.at.slice(5, 16))}<br><small>${esc(u.by)}</small></td><td>${esc(u.kind)}</td><td>${esc(u.text || u.sheets)}</td><td class="st">${esc(u.status)}${u.undoneAt ? `<br><small>${esc(u.undoneAt)}</small>` : ""}</td><td>${u.can ? `<button type="button" class="btn ghost small" data-undo="${esc(u.no)}">復原</button>` : ""}</td></tr>`).join("")}</tbody></table></div>`
+      ${(state.undo = (state.undo||[]).filter(u => !(/請假|代課|調課|代導/.test(u.kind || "") && /刪除/.test((u.text || "") + (u.kind || ""))))).length ? `<div class="set-tbl" tabindex="0" aria-label="表格（可左右捲動）"><table class="undo-tbl"><thead><tr><th>編號</th><th>時間</th><th>項目</th><th>改了什麼</th><th>狀態</th><th><span class="sr">操作</span></th></tr></thead><tbody>${state.undo.map(u => `<tr class="${u.can ? "" : "done"}"><td>${esc(u.no)}</td><td>${esc(u.at.slice(5, 16))}<br><small>${esc(u.by)}</small></td><td>${esc(u.kind)}</td><td>${esc(u.text || u.sheets)}</td><td class="st">${esc(u.status)}${u.undoneAt ? `<br><small>${esc(u.undoneAt)}</small>` : ""}</td><td>${u.can ? `<button type="button" class="btn ghost small" data-undo="${esc(u.no)}">復原</button>` : ""}</td></tr>`).join("")}</tbody></table></div>`
         : `<p class="hint">還沒有變更紀錄。之後在網站上改設定、刪回報…都會列在這裡。</p>`}</div>
     <p class="hint" style="margin-top:12px">每次存檔都會寫進資料表「設定異動紀錄」分頁（時間、修改者、舊值、新值），會計查帳有憑據。直接在資料表改也可以，網站會自動讀到。</p></details>`;
   $("#setDet").ontoggle = () => store.set("setOpen", $("#setDet").open ? "1" : "0");
@@ -3328,7 +3346,7 @@ function renderChecks(ym){
       const hrsOf = name => { const t = H.T.find(x => x.name === name); return t ? `每週 ${t.weekly} 節（約 ${Math.round(t.weekly * 40 / 6) / 10} 小時）` : ""; };
       const gcell = g => `<td class="sub gross"><b>${f(g.sum)}</b><small class="sysv">${g.parts.length > 1 ? g.parts.map(p => p[0] + " " + f(p[1])).join("＋") : g.parts.length ? g.parts[0][0] + "鐘點費" : "本月沒有鐘點費"}</small></td>`;
       return `<details class="hr-det"><summary>勞保、勞退、健保（合理員額代課教師；人事、出納核對用，平常不用打開）<small>系統已依「保險設定」的投保資料先算好（灰字＝系統預填）；人事或帳單的數字不一樣就直接改，系統會說明差在哪</small></summary>
-      <div class="set-tbl"><table class="hr-tbl"><thead><tr><th>姓名</th><th class="gross" title="本月應發鐘點費，扣勞健保前">總薪資</th>${HR_FIELDS.map(x => `<th>${x[1]}</th>`).join("")}<th>自付小計</th><th>單位小計</th></tr></thead>
+      <div class="set-tbl" tabindex="0" aria-label="表格（可左右捲動）"><table class="hr-tbl"><thead><tr><th>姓名</th><th class="gross" title="本月應發鐘點費，扣勞健保前">總薪資</th>${HR_FIELDS.map(x => `<th>${x[1]}</th>`).join("")}<th>自付小計</th><th>單位小計</th></tr></thead>
       <tbody>${T.rows.map((r, i) => `<tr class="${RK[i].notes.length ? "has-risk" : ""}"><td>${esc(r.name)}<small class="sysv" style="text-align:left">${esc(hrsOf(r.name))}</small></td>${gcell(G[i])}${HR_FIELDS.map(([k, label, ck]) => cell(r.name, k, ck, r.cells[k], RK[i].cells[k])).join("")}${subc(r.empV, r.empS)}${subc(r.erV, r.erS)}</tr>`
         + (RK[i].notes.length ? `<tr class="risk-note"><td colspan="${HR_FIELDS.length + 4}"><div class="rn"><b>⚠ ${esc(r.name)} 需核對：</b><ol>${RK[i].notes.map(n => `<li>${esc(n)}</li>`).join("")}</ol></div></td></tr>` : "")).join("")}
       <tr class="tot"><td>合計</td><td class="sub gross"><b>${f(gTot)}</b><small class="sysv">本月應發</small></td>${HR_FIELDS.map(([k]) => subc(T.tot[k].v, T.tot[k].sys)).join("")}${subc(T.tot.empV, T.tot.empS)}${subc(T.tot.erV, T.tot.erS)}</tr></tbody></table></div>
@@ -3622,7 +3640,7 @@ function renderYear(){
       const MAXL = 99, all = ents.map(x => ({h: short(x), fl: x.fl, o: false})).concat(oth.map(x => ({h: short(x), o: true})));
       const evHtml = all.slice(0, MAXL).map(x => `<div class="cell-ev${x.o ? " other" : ""}${x.fl ? " flag" : ""}" title="${esc(x.fl || "")}">${x.h}</div>`).join("")
         + `<div class="cell-ev more" data-total="${all.length}"${all.length > MAXL ? "" : " hidden"}>＋還有 ${all.length - MAXL} 筆</div>`;
-      cells += `<${has?"button type=\"button\"":"div"} class="d${has?" has":""}${canAdd&&!has?" canadd":""}${off?" off":""}${flagged?" flag":""}${key===today?" today":""}${dow===0||dow===6?" we":""}${key===state.selected?" sel":""}" data-date="${key}"${has?` aria-label="${m+1}月${d}日，${ents.length} 則紀錄${flagged?"，有需要確認的紀錄":""}"`:""}${off?` title="${esc(offTxt)}"`:""}><span class="n">${d}</span>${canAdd?`<span class="addp" role="button" tabindex="0" data-plan="${key}" title="補登這天的調代課" aria-label="補登 ${m+1}月${d}日的調代課">＋</span>`:""}${off?`<span class="offl">${esc(offTxt)}</span>`:""}${flagged?`<span class="mk">⚠</span>`:""}${evHtml}</${has?"button":"div"}>`;
+      cells += `<div class="d${has?" has":""}${canAdd&&!has?" canadd":""}${off?" off":""}${flagged?" flag":""}${key===today?" today":""}${dow===0||dow===6?" we":""}${key===state.selected?" sel":""}" data-date="${key}"${off?` title="${esc(offTxt)}"`:""}>${has?`<button type="button" class="dhit" aria-label="${m+1}月${d}日，${ents.length} 則紀錄${flagged?"，有需要確認的紀錄":""}，按了看明細"></button>`:""}<span class="n">${d}</span>${canAdd?`<span class="addp" role="button" tabindex="0" data-plan="${key}" title="補登這天的調代課" aria-label="補登 ${m+1}月${d}日的調代課">＋</span>`:""}${off?`<span class="offl">${esc(offTxt)}</span>`:""}${flagged?`<span class="mk">⚠</span>`:""}${evHtml}</div>`;
       if(has || (off && dow!==0 && dow!==6)){
         agenda += `<div class="ag-day" id="ag-${key}"><div class="ag-date">${m+1}/${d}<small>星期${DOW[dow]}</small></div><div>${off?`<div class="ag-off">${esc(offTxt)}${off.kind==="颱風假"?"：停止上課":"：放假"}</div>`:""}${(byDate[key]||[]).map(e=>evRow(e)).join("")}${otherBy[key] ? `<div class="ev-other">${asSchool(() => otherBy[key].map(e=>evRow(e)).join(""))}</div>` : ""}</div></div>`;
       }
@@ -3670,7 +3688,7 @@ function dashBars(rows, key, color, sel){                       // 直條小圖�
     const h = Math.round((H - top - bot) * r[key] / max), x = x0 + i * (bw + gap), y = H - bot - h, on = !sel || r.ym === sel;
     const rad = Math.min(4, h, bw / 2), d = h > 0 ? `M${x},${H-bot} V${y+rad} Q${x},${y} ${x+rad},${y} H${x+bw-rad} Q${x+bw},${y} ${x+bw},${y+rad} V${H-bot} Z` : "";
     const tip = `${r.label}：${r[key]}`;
-    return `<rect class="hit" x="${x - gap/2}" y="${top - 6}" width="${bw + gap}" height="${H - top - bot + 6}" tabindex="0" data-tip="${esc(tip)}" aria-label="${esc(tip)}"></rect>`
+    return `<rect class="hit" x="${x - gap/2}" y="${top - 6}" width="${bw + gap}" height="${H - top - bot + 6}" tabindex="0" role="img" data-tip="${esc(tip)}" aria-label="${esc(tip)}"></rect>`
       + (d ? `<path class="bar" d="${d}" fill="${color}" opacity="${on ? 1 : .38}"></path>` : "")
       + ((r.ym === sel || (!sel && i === hi)) && r[key] ? `<text class="v" x="${x + bw/2}" y="${y - 5}" text-anchor="middle">${r[key]}</text>` : "")
       + `<text x="${x + bw/2}" y="${H - 5}" text-anchor="middle">${esc(r.label)}</text>`;
@@ -3686,11 +3704,12 @@ function dashHBars(list, color, unit, limit){
 function dashHeat(D){
   if(!D.heatMax) return `<p class="none">這段期間沒有代課或調課</p>`;
   const dark = document.documentElement.getAttribute("data-theme") === "dark", rgb = dark ? "255,111,174" : "208,69,122";
-  let h = `<div class="heat" role="table" aria-label="星期與節次的代課、調課次數"><span></span>${DASH_W.map(w => `<span class="h" role="columnheader">星期${w}</span>`).join("")}`;
+  let h = `<div class="heat" role="table" aria-label="星期與節次的代課、調課次數"><div class="hr" role="row"><span role="columnheader"><span class="sr">節次</span></span>${DASH_W.map(w => `<span class="h" role="columnheader">星期${w}</span>`).join("")}</div>`;
   for(let p = 1; p <= 7; p++){
-    h += `<span class="p" role="rowheader">第${p}節</span>`;
+    h += `<div class="hr" role="row"><span class="p" role="rowheader">第${p}節</span>`;
     for(let w = 1; w <= 5; w++){ const v = D.heat[w + "|" + p] || 0, a = v ? .12 + .83 * v / D.heatMax : 0;
       h += `<span class="c${v ? "" : " z"}${a > .55 ? " hi" : ""}" role="cell" tabindex="0" style="${v ? `background:rgba(${rgb},${a.toFixed(2)})` : ""}" data-tip="星期${DASH_W[w-1]} 第${p}節：${v} 次" aria-label="星期${DASH_W[w-1]} 第${p}節 ${v} 次">${v || "0"}</span>`; }
+    h += `</div>`;
   }
   return h + `</div><div class="heat-lg"><span>少</span><i></i><span>多</span>　顏色越深＝這一節越常需要代課或調課（最多 ${D.heatMax} 次）</div>`;
 }
@@ -4025,7 +4044,7 @@ function showPage(k, opt){
   opt = opt || {};
   const list = pagesFor(); if(!list.length){ document.querySelectorAll("main [data-page]").forEach(e => e.classList.remove("pg-off")); return; }
   if(!list.some(p => p.k === k)) k = list[0].k;
-  state.page = k; store.set(K+"page", k, localStorage); document.body.dataset.pg = k;
+  state.page = k; store.set(K+"page", k, localStorage); document.body.dataset.pg = k; { const pt = $("#pgTitle"), pp = list.find(p => p.k === k); if(pt && pp) pt.textContent = pp.t; }
   document.querySelectorAll("main [data-page]").forEach(e => e.classList.toggle("pg-off", k !== "all" && e.dataset.page !== k));
   document.querySelectorAll("#pageTabs [data-pg]").forEach(b => { const on = b.dataset.pg === k; b.setAttribute("aria-selected", on); b.tabIndex = on ? 0 : -1; });
   const nb = {home:"#workbench", cal:"#year", report:"#monthly", set:"set"}[k];
@@ -5509,7 +5528,7 @@ function renderHrBox(){
   const text = cloudN != null ? "" : (store.get(K+"hrText", localStorage) || ""), R = state.hr, md = HR.md;
   const recSort = (state.hrRecs || []).map((r, i) => ({r, i})).sort((a, b) => String(a.r.from).localeCompare(String(b.r.from)) || a.r.who.localeCompare(b.r.who, "zh-Hant"));
   const cloudList = cloudN ? `<details class="hrcloud"><summary>雲端存的人事資料（${cloudN} 筆）：可以逐筆檢查、刪掉錯的</summary>
-      <table><thead><tr><th>申請人</th><th>表單</th><th>期間</th><th>時數</th><th>結果</th><th>申請時間</th><th></th></tr></thead><tbody>
+      <table><thead><tr><th>申請人</th><th>表單</th><th>期間</th><th>時數</th><th>結果</th><th>申請時間</th><th><span class="sr">操作</span></th></tr></thead><tbody>
       ${recSort.map(({r, i}) => `<tr${/^[\u4e00-\u9fff]{2,4}$/.test(r.who) ? "" : ' class="bad"'}><td>${esc(r.who)}</td><td>${esc(r.form)}</td><td>${esc(r.from)} ～ ${esc(String(r.to).slice(String(r.to).indexOf(" ") + 1))}</td><td>${esc(r.hours)}</td><td>${esc(r.result)}</td><td>${esc(r.applied)}</td><td><button type="button" class="btn ghost small" data-hrdel="${i}">刪除</button></td></tr>`).join("")}</tbody></table></details>` : "";
   const per = x => x.p==="導" ? "代導師" : `第${x.p}節`;
   const li = (x, extra) => `<li><b>${esc(x.who)}</b>　${esc(md(x.date))}　${extra}</li>`;
@@ -5888,11 +5907,11 @@ function renderAcct(r){
       ${A.flagN ? `<span class="w">⚠ 待確認 ${A.flagN} 筆</span>` : `<span>無待確認</span>`}
       ${A.voidN ? `<span>不計費 ${A.voidN} 筆</span>` : ""}${A.fixN ? `<span>管理者修正 ${A.fixN} 筆</span>` : ""}${A.unassigned ? `<span class="w">還沒安排代課 ${A.unassigned} 筆</span>` : ""}${A.heliN ? `<span>代合理員額教師課 ${A.heliN} 節（${A.heliAmt.toLocaleString("zh-TW")} 元）列在下方合理員額</span>` : ""}</div>
     <div class="acct-cols">
-      <div class="scroll"><table><caption>依老師（和出納會計月報表同一套算法）</caption>
+      <div class="scroll" tabindex="0" aria-label="表格（可左右捲動）"><table><caption>依老師（和出納會計月報表同一套算法）</caption>
         <thead><tr><th scope="col">姓名</th><th scope="col">一般 ${RATE_SUB}</th><th scope="col">代課他人 ${RATE_SUB}</th><th scope="col">合班 ${RATE_COMB}</th><th scope="col">代導師</th><th scope="col">應領（元）</th><th scope="col">待確認</th></tr></thead>
         <tbody>${names.map(nm => { const t = A.T[nm]; return `<tr><td>${esc(nm)}</td><td>${t.b || "–"}</td><td>${t.c || "–"}</td><td>${t.d || "–"}</td><td>${t.td ? t.td + " 日" : "–"}</td><td><b>${f(t.amt + t.tamt)}</b></td><td class="${t.flags ? "fl" : ""}">${t.flags ? "⚠ " + t.flags : "–"}</td></tr>`; }).join("")}</tbody>
         <tfoot><tr><td>合計 ${names.length} 人</td><td>${names.reduce((s,n) => s + A.T[n].b, 0)}</td><td>${names.reduce((s,n) => s + A.T[n].c, 0)}</td><td>${names.reduce((s,n) => s + A.T[n].d, 0)}</td><td>${A.days} 日</td><td>${f(A.byTeacher)}</td><td>${A.flagN || "–"}</td></tr></tfoot></table></div>
-      <div class="scroll"><table><caption>依假別</caption>
+      <div class="scroll" tabindex="0" aria-label="表格（可左右捲動）"><table><caption>依假別</caption>
         <thead><tr><th scope="col">假別</th><th scope="col">代課節數</th><th scope="col">代導日數</th><th scope="col">金額（元）</th></tr></thead>
         <tbody>${leaves.map(([k,x]) => `<tr><td>${esc(k)}</td><td>${x.n || "–"}</td><td>${x.days || "–"}</td><td><b>${f(x.amt)}</b></td></tr>`).join("")}</tbody>
         <tfoot><tr><td>合計</td><td>${A.n}</td><td>${A.days}</td><td>${f(A.byLeave)}</td></tr></tfoot></table></div>
@@ -5950,11 +5969,11 @@ function renderHeli(r){
       <span class="${ok ? "ok" : "bad"}">${ok ? "✓" : "✗"} 核對：依老師 ${f(H.total)}＝逐節明細重算 ${f(H.lessonSum)}${ok ? "，一致" : "，不一致，請先不要送出"}</span>
       ${H.warn.length ? `<span class="w">⚠ 要確認 ${H.warn.length} 件（見下方）</span>` : `<span>無待確認</span>`}</div>
     <div class="acct-cols one">
-      <div class="scroll"><table><caption>合理員額代課教師（本人上課）</caption>
+      <div class="scroll" tabindex="0" aria-label="表格（可左右捲動）"><table><caption>合理員額代課教師（本人上課）</caption>
         <thead><tr><th scope="col">姓名</th><th scope="col">每週</th><th scope="col">一般（1 節）</th><th scope="col">合班（1.5 節）</th><th scope="col">合計節數</th><th scope="col">請領（進位）</th><th scope="col">鐘點費（元）</th><th scope="col">代課他人（元）</th><th scope="col">應領合計（元）</th><th scope="col">假日照給</th><th scope="col">請假別人代</th><th scope="col">調課</th></tr></thead>
         <tbody>${H.T.map(t => `<tr><td>${esc(t.name)}</td><td>${t.weekly} 節</td><td>${t.n1 || "–"}</td><td>${t.n15 || "–"}</td><td>${unitsText(t.units)}</td><td><b>${t.pay}</b></td><td><b>${f(t.amt)}</b></td><td>${H.S[t.name] ? `${H.S[t.name].pay} 節 ${f(H.S[t.name].amt)}` : "–"}</td><td><b>${f(t.amt + (H.S[t.name] ? H.S[t.name].amt : 0))}</b></td><td>${t.hol || "–"}</td><td class="${t.none ? "fl" : ""}">${t.subN + t.none ? (t.subN + t.none) + (t.none ? `（${t.none} 未安排）` : "") : "–"}</td><td>${t.moved || "–"}</td></tr>`).join("")}</tbody>
         <tfoot><tr><td>合計 ${H.T.length} 人</td><td></td><td>${H.T.reduce((s,t) => s + t.n1, 0)}</td><td>${H.T.reduce((s,t) => s + t.n15, 0)}</td><td>${unitsText(H.units)}</td><td>${H.pay}</td><td>${f(H.selfTotal)}</td><td>${(() => { const v = H.T.reduce((s,t) => s + (H.S[t.name] ? H.S[t.name].amt : 0), 0); return v ? f(v) : "–"; })()}</td><td>${f(H.T.reduce((s,t) => s + t.amt + (H.S[t.name] ? H.S[t.name].amt : 0), 0))}</td><td>${H.T.reduce((s,t) => s + t.hol, 0) || "–"}</td><td>${H.T.reduce((s,t) => s + t.subN + t.none, 0) || "–"}</td><td>${H.T.reduce((s,t) => s + t.moved, 0) || "–"}</td></tr></tfoot></table></div>
-      ${subNames.length ? `<div class="scroll"><table><caption>代合理員額教師課（請假由別人代課，代課費列在這一項）</caption>
+      ${subNames.length ? `<div class="scroll" tabindex="0" aria-label="表格（可左右捲動）"><table><caption>代合理員額教師課（請假由別人代課，代課費列在這一項）</caption>
         <thead><tr><th scope="col">代課老師</th><th scope="col">一般（1 節）</th><th scope="col">合班（1.5 節）</th><th scope="col">合計節數</th><th scope="col">請領（進位）</th><th scope="col">金額（元）</th><th scope="col">代誰的課</th></tr></thead>
         <tbody>${subNames.map(n => { const s = H.S[n]; return `<tr><td>${esc(n)}</td><td>${s.n1 || "–"}</td><td>${s.n15 || "–"}</td><td>${unitsText(s.units)}</td><td><b>${s.pay}</b></td><td><b>${f(s.amt)}</b></td><td>${esc(s.list.map(x => `${fmtMD(x.e.date)} 第${x.e.period}節（${x.e.other}${x.w === 1.5 ? "，1.5 節" : ""}）`).join("、"))}${H.T.some(t => t.name === n) ? `<br><small>（${esc(n)}是合理員額代課教師，這筆也併在上表「代課他人」同一列，清冊只列一次）</small>` : ""}</td></tr>`; }).join("")}</tbody>
         <tfoot><tr><td>合計</td><td>${subNames.reduce((s,n) => s + H.S[n].n1, 0)}</td><td>${subNames.reduce((s,n) => s + H.S[n].n15, 0)}</td><td></td><td>${H.subPay}</td><td>${f(H.subTotal)}</td><td></td></tr></tfoot></table></div>` : ""}
