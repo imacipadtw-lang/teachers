@@ -1335,6 +1335,38 @@ html[data-theme=dark] .chk.stop,html[data-theme=dark] .chk.stop *{color:#2A0712}
 .hrmis li .hracts{margin-left:auto;display:inline-flex;gap:6px;flex-wrap:wrap}
 .ev .fixbtn.delbtn{color:var(--c-leave);border-color:rgba(208,56,79,.35)}
 html[data-theme=dark] .ev .fixbtn.delbtn{color:#FF8DA6}
+/* ===== 115.11.9 設計精修（只影響螢幕；列印不變）===== */
+@media screen{
+  /* 工作台看板：粉色主題改成乾淨的白卡＋細線表格（深色主題保留機場翻牌風格） */
+  html:not([data-theme=dark]) .board{background:var(--surface);color:var(--ink);border:1px solid var(--line);box-shadow:0 1px 2px rgba(60,20,40,.04),0 14px 34px rgba(60,20,40,.07)}
+  html:not([data-theme=dark]) .board::after{display:none}
+  html:not([data-theme=dark]) .board .today-line{color:var(--ink-2)}
+  html:not([data-theme=dark]) .board .today-line b{color:var(--sky-deep)}
+  html:not([data-theme=dark]) .board .board-cap{color:var(--ink-3)}
+  html:not([data-theme=dark]) .rows{gap:0;border-top:1px solid var(--line-2)}
+  html:not([data-theme=dark]) .brow{gap:0;border-bottom:1px solid var(--line-2)}
+  html:not([data-theme=dark]) .brow.head{border-bottom:0}
+  html:not([data-theme=dark]) .brow > span{background:transparent;border-radius:0;padding:12px 10px;animation-name:proRowIn;animation-duration:.4s;animation-timing-function:cubic-bezier(.2,.8,.2,1)}
+  html:not([data-theme=dark]) .brow > span::after{display:none}
+  html:not([data-theme=dark]) .brow:not(.head):hover > span{background:var(--sky-mist)}
+  html:not([data-theme=dark]) .brow .bd{color:var(--sky-deep)}
+  html:not([data-theme=dark]) .brow .bp{color:var(--ink)}
+  html:not([data-theme=dark]) .brow .bf{color:var(--ink);justify-content:flex-end}
+  html:not([data-theme=dark]) .brow .bw{color:var(--ink-3)}
+  html:not([data-theme=dark]) .brow .bt{color:var(--ink)}
+  html:not([data-theme=dark]) .brow .bx{color:var(--ink-2)}
+  html:not([data-theme=dark]) .brow .bf small,html:not([data-theme=dark]) .brow.head > span{color:var(--ink-3)}
+  html:not([data-theme=dark]) .brow.head > span:last-child{justify-content:flex-end}
+  html:not([data-theme=dark]) .brow.alert .bx{color:var(--c-leave);font-weight:700}
+  html:not([data-theme=dark]) .brow.none > span{color:var(--ink-2)}
+  html:not([data-theme=dark]) .meters{background:var(--line-2);border:1px solid var(--line-2)}
+  html:not([data-theme=dark]) .meter{background:var(--surface-2)}
+  html:not([data-theme=dark]) .meter .k{color:var(--ink-2)}
+  html:not([data-theme=dark]) .meter b{color:var(--ink)}
+  html:not([data-theme=dark]) .meter b small{color:var(--ink-2)}
+  html:not([data-theme=dark]) .meter span{color:var(--ink-3)}
+  @keyframes proRowIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+}
 </style>
 </head>
 <body>
@@ -2487,7 +2519,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.09y";
+const APP_VERSION = "專業版 2026.11.10";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
