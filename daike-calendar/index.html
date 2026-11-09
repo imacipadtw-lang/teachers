@@ -1390,6 +1390,16 @@ html[data-theme=dark] .wb-todo li.ok{background:rgba(79,209,161,.10)}
   @keyframes pgIn{from{transform:translateY(6px)}to{transform:none}}
 }
 @media (prefers-reduced-motion:reduce){.wrap main.pg-in{animation:none}}
+@media screen{
+  /* 提示列改成和內容同寬的圓角卡片 */
+  .notice{width:calc(100% - 40px);max-width:1400px;margin:12px auto 0;border:1px solid var(--line);border-radius:12px;box-shadow:0 4px 14px rgba(60,20,40,.05)}
+}
+@media screen and (max-width:600px){
+  .notice{width:calc(100% - 24px);margin-top:10px}
+  /* 手機：報帳進度只顯示數字，名稱只留目前這一步（下面「下一步」有說明） */
+  .wb-track b{display:none}
+  .wb-track li.cur b{display:block;white-space:nowrap;font-size:12px}
+}
 </style>
 </head>
 <body>
@@ -2543,7 +2553,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.10c";
+const APP_VERSION = "專業版 2026.11.10d";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
