@@ -1484,6 +1484,7 @@ html[data-theme=dark] .wb-todo li.ok{background:rgba(79,209,161,.10)}
 }
 @media screen{ .dash-zero{display:grid;place-items:center;height:120px;border:1px dashed var(--line);border-radius:10px;color:var(--ink-3);font-size:13px} }
 @media screen{ .alerts li .al-acts{grid-column:2;display:flex;gap:6px;flex-wrap:wrap} }
+@media screen and (max-width:480px){ #subNav{position:static} }   /* 小手機：書籤列不黏在上面，多出閱讀空間 */
 </style>
 </head>
 <body>
@@ -1668,7 +1669,7 @@ html[data-theme=dark] .wb-todo li.ok{background:rgba(79,209,161,.10)}
 <div class="modal plan" id="planModal" hidden>
   <div class="plan-card" role="dialog" aria-modal="true" aria-labelledby="planTitle">
     <div class="plan-head">
-      <h2 id="planTitle">排調代課</h2>
+      <h2 id="planTitle" tabindex="-1">排調代課</h2>
       <div class="seg" role="tablist">
         <button type="button" role="tab" data-kind="swap" aria-selected="true">調課</button>
         <button type="button" role="tab" data-kind="sub" aria-selected="false">代課</button>
@@ -2637,7 +2638,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.10j";
+const APP_VERSION = "專業版 2026.11.10k";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -4411,6 +4412,7 @@ function resetPlan(date){
 }
 async function openPlan(date){
   if(!plan || date) resetPlan(date);
+  if($("#planModal").hidden){ openPlan.back = document.activeElement; setTimeout(() => { const t = $("#planTitle"); if(t && !$("#planModal").hidden && !$("#planModal").contains(document.activeElement)) t.focus({preventScroll:true}); }, 0); }   // 115.11.10：焦點進到對話框
   $("#planModal").hidden = false; document.body.style.overflow="hidden";
   if(!state.meta && prefetchMeta.p){ $("#planBody").innerHTML = `<div class="empty">讀取課表與全校紀錄中…</div>`; await prefetchMeta.p; }
   if(!state.meta){
@@ -4421,7 +4423,8 @@ async function openPlan(date){
   }
   renderPlan();
 }
-function closePlan(){ $("#planModal").hidden = true; document.body.style.overflow=""; }
+function closePlan(){ $("#planModal").hidden = true; document.body.style.overflow="";
+  const b = openPlan.back; openPlan.back = null; if(b && b.isConnected && b.focus) try{ b.focus({preventScroll:true}); }catch(e){} }   // 關掉後焦點回到原本的按鈕
 function prefetchMeta(){                      // 管理者登入後在背景先讀好課表，按「排調代課」就不用等
   if((state.role!=="admin" && state.role!=="acct") || state.meta || prefetchMeta.p || !state.cred) return;
   prefetchMeta.p = api({action:"meta", name:state.cred.name, h:state.cred.h})
@@ -6347,7 +6350,7 @@ function renderAcct(r){
       <div class="total"><span class="k">應發合計（${names.length} 人）</span><b>${f(A.total)}<small>元</small></b></div></div>
     <div class="acct-chk">
       <span class="${okAll ? "ok" : "bad"}">${okAll ? "✓" : "✗"} 核對：依老師 ${f(A.byTeacher)}＝逐筆明細 ${f(A.recSum)}＝依假別 ${f(A.byLeave)}${okAll ? "，三方一致" : "，不一致，請先不要送出"}</span>
-      ${A.flagN ? `<span class="w">⚠ 待確認 ${A.flagN} 筆</span>` : `<span>無待確認</span>`}
+      ${A.flagN ? `<span class="w">⚠ 待確認 ${A.flagN} 筆</span>` : `<span>沒有待確認的項目</span>`}
       ${A.voidN ? `<span>不計費 ${A.voidN} 筆</span>` : ""}${A.fixN ? `<span>管理者修正 ${A.fixN} 筆</span>` : ""}${A.unassigned ? `<span class="w">還沒安排代課 ${A.unassigned} 筆</span>` : ""}${A.heliN ? `<span>代合理員額教師課 ${A.heliN} 節（${A.heliAmt.toLocaleString("zh-TW")} 元）列在下方合理員額</span>` : ""}</div>
     <div class="acct-cols">
       <div class="scroll" tabindex="0" aria-label="表格（可左右捲動）"><table><caption>依老師（和出納會計月報表同一套算法）</caption>
@@ -6410,7 +6413,7 @@ function renderHeli(r){
       return `<p class="hint" style="margin:0 0 8px">保費（資料表「保險設定」）：雇主負擔 勞保＋職災 ${f(cs.reduce((s,c) => s + c.erLaborAll, 0))}、勞退 ${f(cs.reduce((s,c) => s + c.erPension, 0))}、健保 ${f(cs.reduce((s,c) => s + c.erNhi, 0))}，合計 ${f(er)} 元；老師應扣合計 ${f(emp)} 元${(() => { const dd = H.T.reduce((s,t) => s + deductSum(deductFor(t.name, r, "heli")), 0); return dd ? `、扣款調整 ${f(dd)} 元；本人實領 ${f(H.selfTotal - emp - dd)} 元` : `；本人實領 ${f(H.selfTotal - emp)} 元`; })()}${miss.length ? `。⚠ 「保險設定」沒有：${esc(miss.join("、"))}` : ""}</p>`; })()}
     <div class="acct-chk">
       <span class="${ok ? "ok" : "bad"}">${ok ? "✓" : "✗"} 核對：依老師 ${f(H.total)}＝逐節明細重算 ${f(H.lessonSum)}${ok ? "，一致" : "，不一致，請先不要送出"}</span>
-      ${H.warn.length ? `<span class="w">⚠ 要確認 ${H.warn.length} 件（見下方）</span>` : `<span>無待確認</span>`}</div>
+      ${H.warn.length ? `<span class="w">⚠ 要確認 ${H.warn.length} 件（見下方）</span>` : `<span>沒有待確認的項目</span>`}</div>
     <div class="acct-cols one">
       <div class="scroll" tabindex="0" aria-label="表格（可左右捲動）"><table><caption>合理員額代課教師（本人上課）</caption>
         <thead><tr><th scope="col">姓名</th><th scope="col">每週</th><th scope="col">一般（1 節）</th><th scope="col">合班（1.5 節）</th><th scope="col">合計節數</th><th scope="col">請領（進位）</th><th scope="col">鐘點費（元）</th><th scope="col">代課他人（元）</th><th scope="col">應領合計（元）</th><th scope="col">假日照給</th><th scope="col">請假別人代</th><th scope="col">調課</th></tr></thead>
@@ -7725,6 +7728,18 @@ async function demoPost(b){
 if (DEMO) $("#demoTag").hidden = false;
 loadNames();
 resume();
+/* 115.11.10：對話框開著時，Tab／Shift＋Tab 只在對話框裡繞（不會跑到後面的畫面） */
+document.addEventListener("keydown", e => {
+  if(e.key !== "Tab") return;
+  const dlgs = [...document.querySelectorAll(".modal:not([hidden])")].filter(m => m.offsetParent || getComputedStyle(m).position === "fixed"); if(!dlgs.length) return;
+  const m = dlgs[dlgs.length - 1];
+  const f = [...m.querySelectorAll('a[href],button:not([disabled]),input:not([disabled]):not([type=hidden]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')].filter(x => x.offsetParent !== null);
+  if(!f.length) return;
+  const first = f[0], last = f[f.length - 1];
+  if(!m.contains(document.activeElement)){ e.preventDefault(); (e.shiftKey ? last : first).focus(); }
+  else if(e.shiftKey && document.activeElement === first){ e.preventDefault(); last.focus(); }
+  else if(!e.shiftKey && document.activeElement === last){ e.preventDefault(); first.focus(); }
+});
 /* Mac 顯示 ⌘K */
 try{ if(/Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)){ const h = document.querySelector("#cmdBtn .kbd-hint"); if(h) h.textContent = "⌘K"; } }catch(e){}
 </script>
