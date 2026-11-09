@@ -2680,7 +2680,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.10x";
+const APP_VERSION = "專業版 2026.11.10y";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -4833,6 +4833,10 @@ function renderPlan(){
       <p class="hintline">先選請假老師和日期，再按「帶入這天的課」。代課老師清單會把那一節有空的老師排在前面。</p>
       <button type="button" class="btn ghost small" id="fillDay" ${U.leaver&&U.date?"":"disabled"}>帶入${esc(U.leaver||"請假老師")}這天的課</button>
       <div style="height:12px"></div>`;
+    if(home){   // 115.11.10：導師請假時代導師的勾選放在課的上面，不會漏登代導費
+      html += `<div class="tutorbox"><label class="inline"><input type="checkbox" data-k="u.tutor" ${U.tutor?"checked":""}> 也登記代導師（${esc(U.leaver)}是${esc(home)}導師；全天請假通常要登）</label>
+        ${U.tutor?`<div style="margin-top:10px;max-width:260px"><label>代導師</label><select data-k="u.tutorSub">${teacherOpts(U.tutorSub)}</select></div><div data-chk="tutor.0"></div>`:""}</div>`;
+    }
     U.rows.forEach((r,i)=>{
       html += `<div class="rowc"><div class="rhead"><b>第 ${i+1} 列</b><button type="button" class="del" data-del="${i}">刪除這列</button></div>
         <div class="rgrid sub">
@@ -4844,10 +4848,6 @@ function renderPlan(){
     });
     html += `<button type="button" class="addrow" id="addRow">＋ 加一節</button>`;
     html += `<p class="fee" id="planFee"></p>`;
-    if(home){
-      html += `<div class="tutorbox"><label class="inline"><input type="checkbox" data-k="u.tutor" ${U.tutor?"checked":""}> 也登記代導師（${esc(U.leaver)}是${esc(home)}導師）</label>
-        ${U.tutor?`<div style="margin-top:10px;max-width:260px"><label>代導師</label><select data-k="u.tutorSub">${teacherOpts(U.tutorSub)}</select></div><div data-chk="tutor.0"></div>`:""}</div>`;
-    }
   }
   $("#planBody").innerHTML = html;
   // 115.11.10 無障礙：欄位沒有連到標籤的，用旁邊的標籤文字當名稱（螢幕閱讀器才念得出「節次」「代課老師」…）
