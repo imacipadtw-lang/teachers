@@ -2460,7 +2460,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.09j";
+const APP_VERSION = "專業版 2026.11.09k";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -4173,6 +4173,14 @@ const newSwapRow = () => ({cls:"",fromDate:"",fromPeriod:"",fromSubject:"",toDat
 const newSubRow  = () => ({period:"",cls:"",subject:"",sub:"",auto:{}});
 let plan = null;
 
+/* 排調代課填到一半（還沒存）就關分頁、重新整理：瀏覽器先問一次，免得紙本要重打 */
+function planDirty(){
+  if(!plan) return false;
+  const w = plan.swap || {}, b = plan.sub || {}, a = plan.absent || {}, t = plan.tutor || {};
+  return !!(plan.scan || w.teacher || w.reason || (w.rows || []).some(r => r.cls || r.fromPeriod || r.toDate || r.toPeriod || r.partner)
+    || b.leaver || (b.rows || []).length || a.teacher || a.reason || t.leaver || t.sub);
+}
+window.addEventListener("beforeunload", e => { if(planDirty()){ e.preventDefault(); e.returnValue = ""; } });
 function resetPlan(date){
   plan = { kind:"swap", force:false, server:null, scan:null, scanKeys:null,
     swap:{teacher:"", applyDate:todayYmd(), reason:"", rows:[Object.assign(newSwapRow(), date?{fromDate:date}:{})]},
