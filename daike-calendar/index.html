@@ -2473,7 +2473,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.09r";
+const APP_VERSION = "專業版 2026.11.09s";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -4483,6 +4483,27 @@ function showBlock(msgs, sub){
 }
 function closeBlock(){ $("#blockModal").hidden = true; if(blockBack && blockBack.focus) try{ blockBack.focus(); }catch(e){} }
 $("#blockOk").onclick = closeBlock;
+/* 115.11.9 避免「沒有老師」：兼任老師（一週排課不到 4 天、又不是導師）在沒排課的日子、或當天第一節課之前／最後一節課之後，
+ * 很可能不在學校。只是提醒（排序、清單分組、檢查訊息），不擋存檔、不影響金額；課表上完全沒有課的人（例如行政）不提醒。 */
+function teachMap(){
+  const m = state.meta; if(!m || !m.tSlot) return {};
+  if(teachMap.src === m.tSlot) return teachMap.map;
+  const map = {};
+  Object.keys(m.tSlot).forEach(k => { const [dw, p, t] = k.split("|"); if(!(m.tSlot[k] || []).length) return;
+    const x = map[t] = map[t] || {}; (x[dw] = x[dw] || []).push(+p); });
+  teachMap.src = m.tSlot; teachMap.map = map; return map;
+}
+function awayOf(t, date, p){
+  if(!t || !date || !state.meta) return "";
+  if(state.meta.homeroom && state.meta.homeroom[t]) return "";
+  const x = teachMap()[t], days = x ? Object.keys(x) : [];
+  if(!days.length || days.length >= 4) return "";
+  const dw = CF.dow(date), ps = x[dw] || [];
+  if(!ps.length) return `${t} 是兼任老師，課表上星期${dw}沒有課，這天可能不在學校，請先確認`;
+  const lo = Math.min(...ps), hi = Math.max(...ps);
+  if(p && (+p < lo || +p > hi)) return `${t} 星期${dw}只有第 ${lo}～${hi} 節有課，第 ${p} 節可能已經不在學校，請先確認`;
+  return "";
+}
 function checkBox(kind, r, msgs){
   const miss = missingOf(kind, r);
   const hard = hardOf(msgs), soft = msgs.filter(m => !HARD_RE.test(m));
@@ -4598,7 +4619,13 @@ function valOf(k){
 }
 function refreshPlan(){
   const form = formData(), res = CF.checkAll(ctxOf(), form);
-  const msgsOf = (kind,i) => ((res.find(x=>x.kind===kind && x.index===i)||{}).msgs)||[];
+  const msgsOf0 = (kind,i) => ((res.find(x=>x.kind===kind && x.index===i)||{}).msgs)||[];
+  const msgsOf = (kind,i) => { const m = msgsOf0(kind,i).slice();                        // 加上「可能不在學校」的提醒
+    if(kind==="sub"){ const r = plan.sub.rows[i]; const a = r && awayOf(r.sub, plan.sub.date, r.period); if(a) m.push(a); }
+    else if(kind==="tutor"){ const t = (form.tutors||[])[i]; const a = t && awayOf(t.sub, t.date); if(a) m.push(a); }
+    else if(kind==="swap"){ const r = plan.swap.rows[i]; if(r){ const a = awayOf(r.partner, r.fromDate, r.fromPeriod), b = awayOf(plan.swap.teacher, r.toDate, r.toPeriod);
+      if(a) m.push(a.replace("請先確認", "調課後要來上原本那一節，請先確認")); if(b && r.toDate) m.push(b.replace("請先確認", "調課後要去上調整後那一節，請先確認")); } }
+    return m; };
   const active = document.activeElement;
   document.querySelectorAll("#planBody [data-k]").forEach(el=>{
     if(el===active || el.type==="checkbox") return;
@@ -4618,12 +4645,15 @@ function refreshPlan(){
         const busy = state.meta.teachers.filter(t=>t!==U.leaver && free.indexOf(t)<0);
         const why = t => { if(!U.date || !r.period) return t; const b = CF.busyAt(ctx, t, U.date, r.period, ""); const l = CF.leaveOn(ctx, t, U.date, r.period);
                            return t + "　⚠ " + (b.length ? "衝堂：" + b.join("、") : l.length ? "當天請假" : "這節不能代"); };
-        sel.innerHTML = `<option value="">請選擇</option>` + (free.length?`<optgroup label="這節有空（本月代比較少的排前面）">${free.map(t=>opt(t,`${t}　本月已代 ${load[t] || 0} 節`,r.sub)).join("")}</optgroup>`:"")
+        const here = free.filter(t => !awayOf(t, U.date, r.period)), away = free.filter(t => awayOf(t, U.date, r.period));
+        sel.innerHTML = `<option value="">請選擇</option>` + (here.length?`<optgroup label="這節有空（本月代比較少的排前面）">${here.map(t=>opt(t,`${t}　本月已代 ${load[t] || 0} 節`,r.sub)).join("")}</optgroup>`:"")
+                      + (away.length?`<optgroup label="沒衝堂，但這時段可能不在學校（兼任）">${away.map(t=>opt(t,`${t}　⚠ 可能不在學校`,r.sub)).join("")}</optgroup>`:"")
                       + `<optgroup label="${free.length?"這節不能代（選了會衝堂）":"老師"}">${busy.map(t=>opt(t,why(t),r.sub)).join("")}</optgroup>`;
         sel.dataset.sig = sig;
       }
       const lab = document.querySelector(`#planBody [data-freecount="${i}"]`);
-      if(lab) lab.textContent = free.length ? `代課老師（這節有空 ${free.length} 位）` : "代課老師";
+      const nHere = free.filter(t => !awayOf(t, U.date, r.period)).length;
+      if(lab) lab.textContent = free.length ? `代課老師（這節有空 ${nHere} 位${nHere < free.length ? `，另 ${free.length - nHere} 位可能不在學校` : ""}）` : "代課老師";
     });
     const fee = $("#planFee"), home = U.leaver && state.meta.homeroom[U.leaver];
     if(fee){
