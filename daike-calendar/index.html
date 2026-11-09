@@ -1517,7 +1517,7 @@ html[data-theme=dark] .wb-todo li.ok{background:rgba(79,209,161,.10)}
   .pe-empty span{font-size:13px;line-height:1.6;max-width:240px}
   html[data-theme=dark] .pe-empty svg{stroke:var(--sky)}
 }
-@media screen{ .dash-zero{display:grid;place-items:center;height:120px;border:1px dashed var(--line);border-radius:10px;color:var(--ink-3);font-size:13px} }
+@media screen{ .dash-zero{display:grid;place-items:center;aspect-ratio:300/120;border:1px dashed var(--line);border-radius:10px;color:var(--ink-3);font-size:13px} }
 @media screen{ .alerts li .al-acts{grid-column:2;display:flex;gap:6px;flex-wrap:wrap} }
 @media screen and (max-width:480px){ #subNav{position:static} }   /* 小手機：書籤列不黏在上面，多出閱讀空間 */
 @media screen{ .m-who{margin:8px 0 0;font-size:13px;color:var(--ink-2);line-height:1.7} .m-who b{color:var(--ink)} }
@@ -2675,7 +2675,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.10o";
+const APP_VERSION = "專業版 2026.11.10p";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -3967,8 +3967,8 @@ function dashMonths(){
 }
 function dashBars(rows, key, color, sel){                       // 直條小圖（一個數列一個顏色；選到的月份實心、其他淡一點）
   if(rows.length && rows.every(r => !r[key])) return `<div class="dash-zero">本學期目前是 0</div>`;   // 115.11.10：全部 0 時不要只畫一條空軸
-  const W = 300, H = 120, top = 18, bot = 20, n = rows.length || 1, gap = 8, bw = Math.max(8, Math.min(34, (W - gap * (n + 1)) / n));
-  const max = Math.max(1, ...rows.map(r => r[key])), x0 = (W - (bw * n + gap * (n - 1))) / 2;
+  const W = 300, H = 120, top = 18, bot = 20, n = rows.length || 1, slot = W / n, bw = Math.max(8, Math.min(34, slot * .58)), gap = slot - bw;   // 每個月平均分滿整條軸
+  const max = Math.max(1, ...rows.map(r => r[key])), x0 = gap / 2;
   const hi = rows.reduce((a, r, i) => r[key] > rows[a][key] ? i : a, 0);
   const bars = rows.map((r, i) => {
     const h = Math.round((H - top - bot) * r[key] / max), x = x0 + i * (bw + gap), y = H - bot - h, on = !sel || r.ym === sel;
