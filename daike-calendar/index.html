@@ -1322,6 +1322,7 @@ body.has-view .admin-mobile .pw-list{margin-top:0;border-top:0;padding-top:0}
 html[data-theme=dark] :is(.rowc .rhead b,.addrow,.fix-diff td.new){color:var(--sky)}
 body.has-view .ev-other{opacity:1}   /* 管理者：其他老師的紀錄可以操作，不再淡化（對比） */
 html[data-theme=dark] .chk.stop,html[data-theme=dark] .chk.stop *{color:#2A0712}
+.hrmis li .hracts{margin-left:auto;display:inline-flex;gap:6px;flex-wrap:wrap}
 </style>
 </head>
 <body>
@@ -2473,7 +2474,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.09s";
+const APP_VERSION = "專業版 2026.11.09t";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -5580,6 +5581,27 @@ async function hrFix(i){
   toast(`已帶入：${x.who} ${md(x.date)}（${L.t}）。請選代課老師後儲存`);
 }
 /* ② 的「看這筆」 */
+/* 115.11.9 管理者要求：② 沒請假的項目可以直接刪除（按一次、確認一次就刪，不用再存檔） */
+function hrDelRef(x){
+  if(!x || !x.id) return null;
+  const e = state.events.find(y => y.id === x.id && y.date === x.date && (x.type !== "absent" || y.type === "absent"));
+  if(!e) return null;
+  if(e.type === "absent") return /^假-/.test(e.id) ? {absent:true, id:e.id, e} : null;
+  const ref = fixRef(e); return ref ? {ref, e} : null;
+}
+async function hrDelNoHr(i){
+  const x = state.hr && state.hr.noHr[i], d = hrDelRef(x); if(!d) return toast("找不到這筆紀錄，請重新整理");
+  const sid = sidOf(d.e) || d.e.id;
+  const what = d.absent ? "這筆請假登記" : x.type === "tutorLeave" ? "這筆代導師紀錄（代導費不再計算）" : "這筆代課紀錄（代課費不再計算）";
+  if(!confirm(`刪除${what}？\n${sid}　${x.who} ${md(x.date)} ${x.label}\n\n刪除後不留資料、不能還原；紙本單據請一併作廢。`)) return;
+  busy(true);
+  try{
+    if(d.absent){ const r = await apiPost({action:"absentDel", name:state.cred.name, h:state.cred.h, ids:[d.id]}); if(!r.ok) throw new Error(r.error==="不支援的動作" ? OLD_BACKEND_MSG : (r.error || "刪除失敗")); }
+    else await fixSend("delete", d.ref);
+    toast(`已刪除 ${sid}`); state.meta = null; await reload(true, true);
+  }catch(err){ toast("刪除失敗：" + err.message); }
+  finally{ busy(false); }
+}
 function hrSee(i){
   const x = state.hr && state.hr.noHr[i]; if(!x) return;
   const e = x.id && state.events.find(y => y.id === x.id && y.date === x.date);
@@ -5682,7 +5704,7 @@ function renderHrBox(){
   // ② 有代課（代導師、請假登記），人事系統沒有這位老師這節的請假
   const nohrHtml = !R ? "" : group(R.noHr, (x, i) => `<li class="nohr"><span class="kd">沒請假</span><b>${esc(x.who)}</b>　${esc(x.label)}${x.id ? `<span class="sid2">${esc(sidOf({id:x.id}) || x.id)}</span>` : ""}
       <span class="why">請假系統沒有這位老師這${x.p==null ? "天" : "節"}的請假${x.sameDay ? "（同一天有請假，但時段不含這節）" : ""}，請確認是否漏請假或登錯</span>
-      <button type="button" class="btn ghost small hrsee" data-hrsee="${i}">看這筆</button></li>`);
+      <span class="hracts"><button type="button" class="btn ghost small hrsee" data-hrsee="${i}">看這筆</button>${hrDelRef(x) ? `<button type="button" class="btn dghost small hrdel2" data-hrdel2="${i}" aria-label="刪除 ${esc(x.who)} ${esc(md(x.date))} ${esc(x.label)}">刪除</button>` : ""}</span></li>`);
   const edge = R && R.edge && R.edge.length ? `<details class="hredge"><summary>只重疊幾分鐘、不算遺漏的 ${R.edge.length} 節（老師多半已回來上課，供參考）</summary><ul>${R.edge.map(x => li(x, esc(`第${x.p}節 ${x.cls} ${x.subject || ""}：請假 ${x.span}，只重疊 ${x.ov} 分鐘`))).join("")}</ul></details>` : "";
   const nA = R ? R.missing.length : 0, nB = R ? R.noHr.length : 0;
   const sync = cloudN == null ? "" : state.hrSync && state.hrSync.local ? `<p class="hrsync warn">⚠ 這次只存在這台電腦（雲端沒存成功）</p>`
@@ -5728,6 +5750,7 @@ function renderHrBox(){
   box.querySelectorAll(".hrfilter [data-f]").forEach(b => b.onclick = () => { state.hrFilter = b.dataset.f; renderHrBox(); });
   box.querySelectorAll("[data-hrfix]").forEach(b => b.onclick = () => hrFix(+b.dataset.hrfix));
   box.querySelectorAll("[data-hrsee]").forEach(b => b.onclick = () => hrSee(+b.dataset.hrsee));
+  box.querySelectorAll("[data-hrdel2]").forEach(b => b.onclick = () => hrDelNoHr(+b.dataset.hrdel2));
   const dz = $("#hrDrop");
   ["dragenter","dragover"].forEach(t => dz.addEventListener(t, e => { if(e.dataTransfer && [...e.dataTransfer.types].includes("Files")){ e.preventDefault(); dz.classList.add("over"); } }));
   ["dragleave","dragend"].forEach(t => dz.addEventListener(t, () => dz.classList.remove("over")));
