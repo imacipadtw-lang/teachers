@@ -12,7 +12,8 @@
 <meta name="apple-mobile-web-app-title" content="代調課">
 <script>try{if(localStorage.getItem("theme")==="dark"){document.documentElement.setAttribute("data-theme","dark");document.querySelector('meta[name=theme-color]').setAttribute("content","#070D1A")}}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&display=swap&text=0123456789%2F%3A.-%E2%80%93" rel="stylesheet">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&display=swap&text=0123456789%2F%3A.-%E2%80%93" media="print" onload="this.media='all'"><!-- 115.11.9 非阻塞：學校網路擋 Google 時不會白畫面 -->
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&display=swap&text=0123456789%2F%3A.-%E2%80%93"></noscript>
 <style>
 /* ===================================================================
    土城國小 代課・調課 查詢 — 視覺設計
@@ -2455,7 +2456,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.09g";
+const APP_VERSION = "專業版 2026.11.09h";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
