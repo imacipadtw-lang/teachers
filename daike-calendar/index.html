@@ -2474,7 +2474,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.09u";
+const APP_VERSION = "專業版 2026.11.09v";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -2723,6 +2723,21 @@ async function openLine(){
 }
 function closeLine(){ lineStop(); $("#lineModal").hidden = true; }
 function fmtCode(c){ return c ? c.slice(0,3)+" "+c.slice(3) : ""; }
+/* 115.11.9：加好友 QR code 依後端給的加好友網址即時產生（換 LINE 官方帳號後不用換圖片）；元件或網址有問題就保留原本的 line-qr.png */
+function loadQrLib(){
+  if(window.QRCode) return Promise.resolve();
+  return loadQrLib.p = loadQrLib.p || new Promise((res, rej) => { const s = document.createElement("script"); s.src = "vendor/qrcode.min.js"; s.onload = res; s.onerror = () => { loadQrLib.p = null; rej(new Error("QR 元件載入失敗")); }; document.head.appendChild(s); });
+}
+function lineQr(box){
+  const img = box.querySelector("img[data-qrurl]"); if(!img) return;
+  const url = img.dataset.qrurl; if(!/^https:\/\/(line\.me|lin\.ee|liff\.line\.me)\//.test(url)) return;
+  loadQrLib().then(() => {
+    const tmp = document.createElement("div");
+    new QRCode(tmp, {text: url, width: 264, height: 264, correctLevel: QRCode.CorrectLevel.M});
+    const c = tmp.querySelector("canvas"); if(!c || !img.isConnected) return;
+    img.src = c.toDataURL("image/png");
+  }).catch(() => {});
+}
 function renderLine(loading){
   const L = state.line || {}, box = $("#lineBody");
   if(loading){ box.innerHTML = `<p class="line-wait">讀取中…</p>`; return; }
@@ -2742,7 +2757,7 @@ function renderLine(loading){
     h = `<ol class="line-steps">
       <li><b>加官方帳號為好友</b>
         <a class="btn line small only-touch" href="${esc(L.addUrl)}" target="_blank" rel="noopener">加好友（用手機點）</a>
-        <img class="line-qr only-desk" src="line-qr.png" width="132" height="132" alt="LINE 官方帳號 ${esc(L.id)} 的 QR code">
+        <img class="line-qr only-desk" src="line-qr.png" width="132" height="132" alt="LINE 官方帳號 ${esc(L.id)} 的 QR code" data-qrurl="${esc(L.addUrl || "")}">
         <p class="hint"><span class="only-desk">用手機 LINE 掃描上面的 QR code，或</span>在 LINE「加入好友」搜尋 ID <b style="display:inline">${esc(L.id)}</b></p></li>
       <li><b>取得 6 位數綁定碼</b>${codeBlock}</li>
       <li><b>把這 6 個數字傳給官方帳號</b><p class="hint">在 LINE 的官方帳號聊天室裡，直接打這 6 個數字送出就好。10 分鐘內有效，只能用一次。</p></li>
@@ -2761,6 +2776,7 @@ function renderLine(loading){
         <td class="act">${x.bound?`<button class="btn ghost small" type="button" data-unbind="${esc(x.name)}">解除（換手機用）</button>`:`<button class="btn ghost small" type="button" data-code="${esc(x.name)}">產生綁定碼</button>`}</td></tr>`).join("")}</tbody></table></div>`;
   }
   box.innerHTML = h;
+  lineQr(box);
   box.querySelectorAll("[data-code]").forEach(b => b.onclick = () => lineTeachCode(b.dataset.code));
   box.querySelectorAll("[data-unbind]").forEach(b => b.onclick = () => { if(confirm(`要解除 ${b.dataset.unbind} 老師的 LINE 綁定嗎？解除後要重新產生綁定碼才會再收到通知。`)) lineUnbind(b.dataset.unbind); });
   const tc = $("#lineTeachCopy"); if(tc) tc.onclick = async ()=>{ const T = lineUI.teach, L2 = state.line || {};
