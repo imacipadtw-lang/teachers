@@ -316,6 +316,8 @@ details.settings>summary span{font-size:13px;color:var(--ink-3)}
 .chk-list li.warn i{color:var(--amber)}
 .chk-list li.ok i{color:var(--c-tutor)} .chk-list li.ok span{color:var(--ink-2)}
 .chk-list li.info i{color:var(--ink-3)} .chk-list li.info span{color:var(--ink-3)}
+@media screen{.chk-list li span{flex:1;min-width:0}.chk-go{flex:none;margin-left:auto;font:inherit;font-size:12.5px;font-weight:700;line-height:1;padding:6px 11px;min-height:28px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}.chk-go:hover{border-color:var(--ink-3)}.chk-go:focus-visible{outline:2px solid var(--brand,var(--ink));outline-offset:2px}}
+@media print{.chk-go{display:none}}
 .set-msg{font-size:13px;color:var(--ink-2)}
 .set-from{grid-column:1 / -1;max-width:520px}
 .set-from select{padding:8px 34px 8px 10px;font-size:14px}
@@ -1485,6 +1487,8 @@ html[data-theme=dark] .wb-todo li.ok{background:rgba(79,209,161,.10)}
 @media screen{ .dash-zero{display:grid;place-items:center;height:120px;border:1px dashed var(--line);border-radius:10px;color:var(--ink-3);font-size:13px} }
 @media screen{ .alerts li .al-acts{grid-column:2;display:flex;gap:6px;flex-wrap:wrap} }
 @media screen and (max-width:480px){ #subNav{position:static} }   /* 小手機：書籤列不黏在上面，多出閱讀空間 */
+@media screen{ .m-who{margin:8px 0 0;font-size:13px;color:var(--ink-2);line-height:1.7} .m-who b{color:var(--ink)} }
+@media print{ .m-who{display:none} }
 </style>
 </head>
 <body>
@@ -2638,7 +2642,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.10k";
+const APP_VERSION = "專業版 2026.11.10l";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -3148,19 +3152,19 @@ function renderSettings(){
   box.innerHTML = `<details class="monthly settings" id="setDet" ${open ? "open" : ""}>
     <summary><h3>系統設定</h3><span>費率、合理員額名單、投保資料、假日。改了存檔就生效，網站、Excel、LINE 通知都用新的算。</span></summary>
     ${ready ? "" : `<p class="set-msg" style="margin:10px 0 0;color:var(--amber)">⚠ 後端程式還沒更新到新版（Apps Script 還沒重新部署），這裡先看不能存。部署好新版 Code.gs 後重新整理就能用。</p>`}
-    <div class="set-sec"><h4>1. 鐘點費率</h4><div class="set-grid">${fromSel}${SET_RATE_KEYS.map(field).join("")}</div>${vers}</div>
+    <div class="set-sec" id="secRate"><h4>1. 鐘點費率</h4><div class="set-grid">${fromSel}${SET_RATE_KEYS.map(field).join("")}</div>${vers}</div>
     <div class="set-sec"><h4>2. 合理員額代課教師 <small>勾選的老師：依課表算每月鐘點薪、看得到自己的薪資卡；請假由別人代課時，代課費列合理員額經費</small></h4>
       <div class="set-chks">${heliChecks || "<span class='hint'>「密碼」分頁還沒有老師名單</span>"}</div>
       <label class="set-f" style="margin-top:10px;max-width:420px"><span>會計唯讀帳號（頓號分隔）</span><input data-k="ACCT_USERS" autocomplete="off" value="${esc(st.ACCT_USERS || "")}" placeholder="例：會計室"><small>先在資料表「密碼」分頁加一列（姓名、初始密碼），再填這裡。這個帳號登入只能看、下載、列印，不能改任何資料</small></label></div>
     <div class="set-sec"><h4>3. 保險與扣繳費率（${INS.year} 年）<small>投保級距、分擔比例依勞保局、健保署公告；這裡只改費率</small></h4><div class="set-grid">${SET_INS_KEYS.map(field).join("")}</div>
       <div class="mrow set-act"><button class="btn" type="button" id="setSave">儲存 1～3</button><span class="set-msg" id="setMsg"></span></div></div>
-    <div class="set-sec"><h4>4. 投保資料（資料表「保險設定」分頁）<small>每人一列。每月投保日數留空＝整月 30 天；填了加保／退保日期才會按天數比例算</small></h4>
+    <div class="set-sec" id="secIns"><h4>4. 投保資料（資料表「保險設定」分頁）<small>每人一列。每月投保日數留空＝整月 30 天；填了加保／退保日期才會按天數比例算</small></h4>
       <div class="set-tbl" tabindex="0" aria-label="表格（可左右捲動）"><table id="insTbl"><thead><tr>${INS_COLS.map(c => `<th>${c[1]}</th>`).join("")}<th><span class="sr">操作</span></th></tr></thead><tbody></tbody></table></div>
       <div class="mrow set-act"><button class="btn ghost small" type="button" id="insAdd">＋ 新增一列</button><button class="btn" type="button" id="insSave">儲存投保資料</button><span class="set-msg" id="insMsg"></span></div></div>
-    <div class="set-sec"><h4>5. 假日與停班停課（資料表「假日與停班停課」分頁）<small>國定假日、補假、颱風假；要取消某天的假就選「照常上課」。合理員額教師：國定假日、颱風假照計照給；補假和其他停課不計</small></h4>
+    <div class="set-sec" id="secOff"><h4>5. 假日與停班停課（資料表「假日與停班停課」分頁）<small>國定假日、補假、颱風假；要取消某天的假就選「照常上課」。合理員額教師：國定假日、颱風假照計照給；補假和其他停課不計</small></h4>
       <div class="set-tbl" tabindex="0" aria-label="表格（可左右捲動）"><table id="offTbl"><thead><tr><th>日期</th><th>名稱</th><th>類型</th><th>範圍</th><th>備註</th><th>來源</th><th><span class="sr">操作</span></th></tr></thead><tbody></tbody></table></div>
       <div class="mrow set-act"><button class="btn ghost small" type="button" id="offAdd">＋ 新增一列</button><button class="btn" type="button" id="offSave">儲存假日</button><span class="set-msg" id="offMsg"></span></div></div>
-    <div class="set-sec"><h4>6. 扣款調整（資料表「扣款調整」分頁）<small>出納、會計要多扣或少扣的項目：所得稅、補充保費、代扣款、退還（負數）…。網站、清冊、Excel 的「其他扣款」和實領都會跟著算</small></h4>
+    <div class="set-sec" id="secDed"><h4>6. 扣款調整（資料表「扣款調整」分頁）<small>出納、會計要多扣或少扣的項目：所得稅、補充保費、代扣款、退還（負數）…。網站、清冊、Excel 的「其他扣款」和實領都會跟著算</small></h4>
       <div class="set-tbl" tabindex="0" aria-label="表格（可左右捲動）"><table id="dedTbl"><thead><tr><th>月份</th><th>姓名</th><th>項目</th><th>金額（負＝退還）</th><th>帳別</th><th>備註</th><th>登錄</th><th><span class="sr">操作</span></th></tr></thead><tbody></tbody></table></div>
       <datalist id="dedItems"><option value="所得稅"><option value="補充保費"><option value="代扣款"><option value="退還"><option value="其他扣款"></datalist>
       <div class="mrow set-act"><button class="btn ghost small" type="button" id="dedAdd">＋ 新增一列</button><button class="btn" type="button" id="dedSave">儲存扣款</button><span class="set-msg" id="dedMsg"></span></div></div>
@@ -3557,6 +3561,13 @@ function reportChecks(ym, evs){
   const order = {err:0, warn:1, ok:2, info:3};
   return C.sort((a,b) => order[a.lv] - order[b.lv]);
 }
+/* 報帳前檢查每一項的「前往」：直接帶到要處理的地方 */
+const CHK_GO = {
+  off: () => wbOpenSettings("#secOff"), ins: () => wbOpenSettings("#secIns"), rate: () => wbOpenSettings("#secRate"), deduct: () => wbOpenSettings("#secDed"),
+  signin: () => { const i = document.querySelector("#checkBox [data-si]"); if(i){ wbGo(i); } },
+  hrins: () => { const d = document.querySelector("#checkBox .hr-det"); if(d){ d.open = true; wbGo(d); } },
+  unassigned: ym => wbUnassigned(ym), flags: () => wbGo("#alerts"), dupslot: () => wbGo("#alerts")
+};
 function renderChecks(ym){
   const box = $("#checkBox"); if(!box) return;
   applySettingsAt(ym);
@@ -3588,13 +3599,14 @@ function renderChecks(ym){
         ${RO ? "" : `<button class="btn ghost small" type="button" id="hrConfirm" ${T.autoN ? "" : "disabled"}>預填的都正確（全部確認）</button><button class="btn ghost small" type="button" id="hrReset">全部改回系統預填</button>`}
         <span class="set-msg" id="hrMsg">${T.bad ? `✗ 有 ${T.bad} 人的數字和系統不一致（紅框），原因在上面的檢查` : T.autoN === T.cellN ? "全部是系統預填（灰字），請對照人事資料，不一樣的直接改" : T.autoN ? `已確認 ${T.cellN - T.autoN} 格，還有 ${T.autoN} 格是系統預填` : "✓ 全部已確認，和系統一致"}${savedAt ? `　｜已存：${esc(savedAt)}${savedBy ? "（" + esc(savedBy) + "）" : ""}` : ""}</span></div>
       <p class="hint" style="margin:6px 0 0">灰字＝系統預填（投保資料改了會自動重算）；改過或按「全部確認」就變成確定的數字（綠框＝和系統一樣，粉紅框＝人事數字和系統不一樣；紅底「⚠ 需核對」＝投保級距可能有誤，原因寫在那一列下面）。把格子清空就回到系統預填。總薪資＝本月應發鐘點費（扣保費前；本人＋代合理員額教師的課＋校內代課、代導師），小字是組成，方便截圖給護理師核對；自付小計＝勞保自付＋健保自付（老師實際被扣的）；單位小計＝勞保單位（含職災）＋勞退＋健保單位（機關補助）。按「儲存核對」寫進資料表「人事保費核對」分頁（人事數字和系統數字並列），有不一致會先問。結帳時也會一起存進月結紀錄。</p></details>`; })() : ""}
-    <ul class="chk-list">${C.map(x => `<li class="${x.lv}"><i>${CHECK_ICON[x.lv]}</i><span>${esc(x.text)}</span></li>`).join("")}</ul>
+    <ul class="chk-list">${C.map(x => `<li class="${x.lv}"><i>${CHECK_ICON[x.lv]}</i><span>${esc(x.text)}</span>${(x.lv === "err" || x.lv === "warn" || x.k === "hrins" && x.lv === "info") && CHK_GO[x.k] && !(RO && /^(off|ins|rate|deduct)$/.test(x.k)) ? `<button type="button" class="chk-go" data-chkgo="${x.k}">前往</button>` : ""}</li>`).join("")}</ul>
     <div class="mrow set-act">
       <button class="btn ghost small" type="button" id="chkRun">重新檢查</button>
       ${RO ? `<span class="set-msg">${closed ? "這個月教務組已結帳，數字已鎖定；上面若有紅字表示結帳後資料有變動，請向教務組確認" : "這個月教務組還沒結帳，數字還可能變動；請以結帳後的 Excel 為準"}</span>`
          : closed ? `<button class="btn" type="button" id="chkClose" ${ready ? "" : "disabled"}>重新結帳</button><button class="btn dghost small" type="button" id="chkReopen" ${ready ? "" : "disabled"}>解除月結</button>`
                   : `<button class="btn" type="button" id="chkClose" ${ready && !blocking.length ? "" : "disabled"}>本月結帳</button>`}
       ${RO ? "" : `<span class="set-msg" id="chkMsg">${!ready ? "（後端還沒更新到新版，月結先不能存）" : blocking.length ? `還有 ${blocking.length} 項要處理才能結帳` : closed ? "" : "檢查通過，送會計後按「本月結帳」鎖定本月數字"}</span>`}</div>`;
+  box.querySelectorAll("[data-chkgo]").forEach(b => b.onclick = () => CHK_GO[b.dataset.chkgo](ym));
   if(!RO && $("#hrSave")) $("#hrSave").onclick = async () => {
     const T = hrInsTable(ym, H), f = v => Number(v).toLocaleString("zh-TW");
 
@@ -6288,10 +6300,11 @@ function renderMonthly(){
   box.innerHTML = `<div class="monthly"><h3>每月報表</h3>
     <p>選月份後按按鈕，會打開列印畫面；要存檔就在列印畫面選「另存為 PDF」。老師簽收單印出來請老師核對、簽名；月報表送出納、會計。</p>
     <div class="mrow"><select id="mSel" aria-label="月份">${months.map(v => `<option value="${v}" ${v===pick?"selected":""}>${+v.slice(0,4)-1911} 年 ${+v.slice(5)} 月</option>`).join("")}</select>
-      <button class="btn" type="button" id="mSign">老師簽收單（列印／PDF）</button>
-      <button class="btn ghost" type="button" id="mAcct">出納會計月報表（列印／PDF）</button>
-      <button class="btn ghost" type="button" id="mAcctX">出納會計試算表（雲端）</button>
-      <button class="btn ghost" type="button" id="mExcel">本月明細試算表（雲端）</button></div>
+      <button class="btn" type="button" id="mSign" title="印給老師核對、簽名">老師簽收單（列印／PDF）</button>
+      <button class="btn ghost" type="button" id="mAcct" title="印出來送出納、會計">出納會計月報表（列印／PDF）</button>
+      <button class="btn ghost" type="button" id="mAcctX" title="同一份月報表的雲端試算表版本，可以給會計開">出納會計試算表（雲端）</button>
+      <button class="btn ghost" type="button" id="mExcel" title="這個月每一筆代課、調課的明細">本月明細試算表（雲端）</button></div>
+    <p class="m-who"><b>給誰：</b>簽收單 → 老師簽名｜月報表 → 送出納、會計｜雲端試算表 → 會計可以隨時開｜明細 → 教務組自己核對</p>
     <div class="steps"><span><b>1</b>月底印簽收單</span><span><b>2</b>請老師核對、簽名</span><span><b>3</b>有錯就在網站按「修改」，再印一次</span><span><b>4</b>印月報表送出納、會計</span></div>
     <div class="acct" id="acctBox" aria-live="polite"></div>
     ${(state.heli||[]).length ? `<div class="heli-panel"><h3>合理員額代課教師鐘點費 <span>（另一個會計項目：${esc(state.heli.join("、"))}）</span></h3>
