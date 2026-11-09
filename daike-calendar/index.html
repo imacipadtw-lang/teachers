@@ -2425,7 +2425,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.08b";
+const APP_VERSION = "專業版 2026.11.09";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -2920,8 +2920,8 @@ function renderSettings(){
         <label class="set-chk"><input type="radio" name="exsync" value="off" ${st.EXCEL_SYNC === "on" ? "" : "checked"}><span>以試算表「代課一覽表」分頁為準（網站的修改直接寫回分頁；雲端 .xlsx 不再匯入）</span></label>
         <label class="set-chk"><input type="radio" name="exsync" value="on" ${st.EXCEL_SYNC === "on" ? "checked" : ""}><span>每分鐘從雲端硬碟的「代課一覽表」.xlsx 匯入並覆蓋分頁（網站的修改只記在「修正」分頁）</span></label></div>
       <div class="mrow set-act"><button class="btn" type="button" id="exSave">儲存資料來源</button><span class="set-msg" id="exMsg"></span></div></div>
-    <div class="set-sec" id="undoSec"><h4>8. 變更紀錄與復原 <small>系統設定、投保資料、假日、扣款、人事保費核對、老師回報的每一次修改和刪除，都先存一份修改前的樣子；按「復原」就回到那次修改之前。復原也會留一筆，可以再復原回來。代課紀錄的修改刪除在「已修正的資料」按「還原」</small></h4>
-      ${(state.undo||[]).length ? `<div class="set-tbl"><table class="undo-tbl"><thead><tr><th>編號</th><th>時間</th><th>項目</th><th>改了什麼</th><th>狀態</th><th></th></tr></thead><tbody>${state.undo.map(u => `<tr class="${u.can ? "" : "done"}"><td>${esc(u.no)}</td><td>${esc(u.at.slice(5, 16))}<br><small>${esc(u.by)}</small></td><td>${esc(u.kind)}</td><td>${esc(u.text || u.sheets)}</td><td class="st">${esc(u.status)}${u.undoneAt ? `<br><small>${esc(u.undoneAt)}</small>` : ""}</td><td>${u.can ? `<button type="button" class="btn ghost small" data-undo="${esc(u.no)}">復原</button>` : ""}</td></tr>`).join("")}</tbody></table></div>`
+    <div class="set-sec" id="undoSec"><h4>8. 變更紀錄與復原 <small>系統設定、投保資料、假日、扣款、人事保費核對、老師回報的每一次修改和刪除，都先存一份修改前的樣子；按「復原」就回到那次修改之前。復原也會留一筆，可以再復原回來。代課、調課、請假紀錄刪除後不留資料、不能還原</small></h4>
+      ${(state.undo = (state.undo||[]).filter(u => !(/請假|代課|調課|代導/.test(u.kind || "") && /刪除/.test((u.text || "") + (u.kind || ""))))).length ? `<div class="set-tbl"><table class="undo-tbl"><thead><tr><th>編號</th><th>時間</th><th>項目</th><th>改了什麼</th><th>狀態</th><th></th></tr></thead><tbody>${state.undo.map(u => `<tr class="${u.can ? "" : "done"}"><td>${esc(u.no)}</td><td>${esc(u.at.slice(5, 16))}<br><small>${esc(u.by)}</small></td><td>${esc(u.kind)}</td><td>${esc(u.text || u.sheets)}</td><td class="st">${esc(u.status)}${u.undoneAt ? `<br><small>${esc(u.undoneAt)}</small>` : ""}</td><td>${u.can ? `<button type="button" class="btn ghost small" data-undo="${esc(u.no)}">復原</button>` : ""}</td></tr>`).join("")}</tbody></table></div>`
         : `<p class="hint">還沒有變更紀錄。之後在網站上改設定、刪回報…都會列在這裡。</p>`}</div>
     <p class="hint" style="margin-top:12px">每次存檔都會寫進資料表「設定異動紀錄」分頁（時間、修改者、舊值、新值），會計查帳有憑據。直接在資料表改也可以，網站會自動讀到。</p></details>`;
   $("#setDet").ontoggle = () => store.set("setOpen", $("#setDet").open ? "1" : "0");
@@ -4272,7 +4272,7 @@ document.addEventListener("click", async e => {
   const b = e.target.closest("[data-absdel]"); if(!b) return;
   e.stopPropagation();
   const id = b.dataset.absdel, ev = state.events.find(x => x.type==="absent" && x.id===id);
-  if(!confirm(`刪除這筆請假？\n${id}　${ev ? ev.who + " " + md(ev.date) + "（" + CF.absText(ev) + "）" : ""}\n（之後可以在「變更紀錄與復原」還原）`)) return;
+  if(!confirm(`刪除這筆請假？\n${id}　${ev ? ev.who + " " + md(ev.date) + "（" + CF.absText(ev) + "）" : ""}\n（刪除後不留資料、不能還原）`)) return;
   busy(true);
   try{ const d = await apiPost({action:"absentDel", name:state.cred.name, h:state.cred.h, ids:[id]}); if(!d.ok) throw new Error(d.error==="不支援的動作" ? OLD_BACKEND_MSG : (d.error||"刪除失敗")); toast("已刪除 " + id); state.meta = null; await reload(true, true); }
   catch(err){ toast("刪除失敗：" + err.message); }
@@ -4808,11 +4808,11 @@ function renderFix(){
     body = (e.fix ? `<div class="fix-now">✎ 這筆已經修正過：${esc(e.fix.text)}${e.fix.pending && exSyncOn() ?"（Excel 還沒改）":""}</div>` : "")
       + `<div class="fix-grid">${FIXF[r.kind].map(([k,l,t]) => fixField(k,l,t)).join("")}</div>`
       + `<p class="fix-tip">${r.src==="Excel" && exSyncOn() ? "Excel 原檔不會被改；網站、LINE、代課總表、月報表會用修改後的資料，之後 Excel 同步也不會蓋掉。" : "修改會直接寫回資料表那一列；網站、LINE、代課總表、月報表一起更新，「修正」分頁留紀錄。"}</p>`;
-    acts = `<button type="button" class="btn dghost" data-fxa="delete">刪除這筆</button>${e.fix ? `<button type="button" class="btn ghost" data-fxa="undo">還原成原本</button>` : ""}`
+    acts = `<button type="button" class="btn dghost" data-fxa="delete">刪除這筆</button>`
       + `<span class="r"><button type="button" class="btn ghost" data-fxa="close">取消</button><button type="button" class="btn" data-fxa="next">下一步：確認</button></span>`;
   } else if(fx.step==="confirm" && fx.op==="delete"){
     const d = describe(e) || {p:"", w:""};
-    body = `<div class="about">${esc(md(e.date))} ${esc(d.p)}｜${esc(d.w)}</div><p class="fix-tip">刪除後網站、LINE、代課總表、月報表都不再算這筆${exSyncOn() ? "（Excel 原檔不會被改）" : "（資料表那一列會一併刪除，「修正」分頁留紀錄）"}。之後可以在「已修正的資料」按「還原」找回來。</p>`;
+    body = `<div class="about">${esc(md(e.date))} ${esc(d.p)}｜${esc(d.w)}</div><p class="fix-tip">刪除後網站、LINE、代課總表、月報表都不再算這筆${exSyncOn() ? "（Excel 原檔不會被改）" : "（資料表那一列會一併刪除，「修正」分頁留紀錄）"}。刪除後不會再列出，也不能還原，請確認。</p>`;
     acts = `<span class="r"><button type="button" class="btn ghost" data-fxa="back">返回</button><button type="button" class="btn danger" data-fxa="save">確認刪除</button></span>`;
   } else if(fx.step==="confirm"){
     const ch = fixChanges(), L = {}; FIXF[r.kind].forEach(([k,l]) => L[k] = l);
@@ -5141,7 +5141,7 @@ function wbTodos(ym, P){
   const todo = (state.reports || []).filter(r => r.status === "待處理"); if(todo.length) L.push({lv:"warn", text:`${todo.length} 件老師回報還沒回覆（${[...new Set(todo.map(r => r.teacher))].slice(0,3).join("、")}）`, verb:"去回覆", act: () => wbGo("#myReports")});
   if(state.hr){ if(state.hr.missing.length) L.push({lv:"err", text:`請假系統比對 ①：${state.hr.missing.length} 節有請假、有課，卻沒有代課也沒有調課（可能沒收到代課單，代課費會漏發）`, verb:"去看", act: () => wbGo("#hrBox")});
     if(state.hr.noHr.length) L.push({lv:"warn", text:`請假系統比對 ②：${state.hr.noHr.length} 筆有代課，請假系統卻沒有請假`, verb:"去看", act: () => wbGo("#hrBox")}); }
-  const fx = (state.fixes || []).filter(x => x.warn); if(fx.length) L.push({lv:"warn", text:`${fx.length} 筆修正要留意（原始資料又變了或找不到）`, verb:"去看", act: () => wbGo("#alerts")});
+  const fx = (state.fixes || []).filter(x => x.warn && !fixIsDel(x)); if(fx.length) L.push({lv:"warn", text:`${fx.length} 筆修正要留意（原始資料又變了或找不到）`, verb:"去看", act: () => wbGo("#alerts")});
   P.err.slice(0, 4).forEach(x => L.push({lv:"err", text: x.text, verb:"去處理", act: () => wbGo("#checkBox")}));
   if(P.err.length > 4) L.push({lv:"err", text:`還有 ${P.err.length - 4} 個檢查紅字`, verb:"看檢查", act: () => wbGo("#checkBox")});
   if(state.line && state.line.on && !state.line.bound) L.push({lv:"info", text:"您還沒綁定 LINE：綁了就會收到今天和這一週的調代課提醒", verb:"現在綁定", act: () => $("#openLine").click()});
@@ -5620,14 +5620,15 @@ function renderAlerts(){
     <p class="typh">重複登錄：網頁只算一次，請到 Excel 刪掉多的那一列（或在那筆紀錄按「修改」→「刪除這筆」）。衝堂：請確認是否改請其他老師代課。課表不符、未安排：每筆調課都會對課表（老師名字、原節次、調整後節次、合班的另一班），請按那筆的「修改」更正。有新的問題會立刻用 LINE 通知您。</p>${typh}</div>` + fixesCard();
 }
 /* 管理者修正清單 */
+/* 刪除的紀錄刪了就不再列出（115.11.9 管理者要求：刪除後不留資料、不需要還原鈕） */
+const fixIsDel = f => f && (f.op === "delete" || /刪除整筆/.test(f.text || "") || /從分頁刪除/.test(f.state || ""));
 function fixesCard(){
-  const F = state.fixes || [];
+  const F = (state.fixes || []).filter(f => !fixIsDel(f));
   if(state.role !== "admin" || !F.length) return "";
   const wait = F.filter(f => f.warn || /還沒改/.test(f.state)).length;
   return `<div class="fixes"><h3>已修正的資料（${F.length} 筆${wait ? `，${wait} 筆要留意` : ""}）</h3><ul>${F.map(f => `<li><div><b>${esc(f.no)}</b>　${esc(f.kind)} ${esc(f.id)}｜${esc(f.text)}
-      <div class="st ${f.warn || /還沒改/.test(f.state) ? "wait" : "done"}">${esc(f.state)}・${esc(f.by)} ${esc(f.at)}</div></div>
-      <button type="button" data-fixundo="${esc([f.kind, f.src, f.id].join("|"))}" aria-label="還原 ${esc(f.no)}">還原</button></li>`).join("")}</ul>
-    <p class="typh">${exSyncOn() ? "Excel 原檔不會被改。有空時把 Excel 也改成一樣，提醒會自動變成「Excel 已改成一樣」；" : "修改已直接寫回資料表分頁；"}按「還原」可以回到原本的資料。</p></div>`;
+      <div class="st ${f.warn || /還沒改/.test(f.state) ? "wait" : "done"}">${esc(f.state)}・${esc(f.by)} ${esc(f.at)}</div></div></li>`).join("")}</ul>
+    <p class="typh">${exSyncOn() ? "Excel 原檔不會被改。有空時把 Excel 也改成一樣，提醒會自動變成「Excel 已改成一樣」。" : "修改已直接寫回資料表分頁。要再改，請在那筆紀錄按「修改」。"}</p></div>`;
 }
 
 /* ---------- 範圍（整學期／每個月） ---------- */
