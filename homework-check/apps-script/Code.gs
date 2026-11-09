@@ -32,6 +32,7 @@ function setupData_() {
   ensureAuth_(all.config || defaultConfig_(), all.auth);
   bump_();
 }
+function claimClosed_() { return PropertiesService.getScriptProperties().getProperty('CLAIM_CLOSED') === '1'; }
 function initialized_() { return !!PropertiesService.getScriptProperties().getProperty('EDIT_KEY'); }
 function showKey() { Logger.log('教務組密碼：' + PropertiesService.getScriptProperties().getProperty('EDIT_KEY')); }
 function resetKey() { var k = rand_(8); PropertiesService.getScriptProperties().setProperty('EDIT_KEY', k); CacheService.getScriptCache().remove('admin_fail'); saveAdminSessions_({}); Logger.log('新的教務組密碼：' + k); }
@@ -94,10 +95,18 @@ function doGet(e) {
 // 讀取全部資料（教務組看全校、導師只看自己班）。前端以 POST action=read 呼叫，密碼與 token 不會出現在網址
 function read_(p) {
   if (p.key && adminLocked_()) return json_({ ok: false, error: 'too_many' });
+  // 快速路徑：資料沒有變動就不讀試算表（每台裝置每 45 秒問一次，大多是「沒變」）。
+  // 任何寫入（含解除裝置）都會改版本號，所以被解除的裝置下一次一定走完整驗證。
+  var version = version_();
+  if (p.v && String(p.v) === version) {
+    var cache = CacheService.getScriptCache();
+    if (p.atoken) { var sess = adminSessions_()[p.atoken]; if (sess && sess.exp > Date.now()) return json_({ ok: true, unchanged: true, version: version }); }
+    else if (p.token && cache.get('tok:' + p.token)) return json_({ ok: true, unchanged: true, version: version });
+  }
   var all = readAll_();
   var who = whoIs_(p, all);
   if (!who) return json_({ ok: false, error: 'auth' });
-  var version = version_();
+  if (who.role === 'teacher' && p.token) CacheService.getScriptCache().put('tok:' + p.token, who.classId, 21600);
   if (p.v && String(p.v) === version) return json_({ ok: true, unchanged: true, version: version });
 
   var config = all.config || { items: [], classes: [] };
@@ -126,6 +135,7 @@ function read_(p) {
       links[cid] = { devices: (a.devices || []).map(function (d) { return { label: d.label || '', claimedAt: d.claimedAt || '' }; }) };
     });
     out.links = links;
+    out.claimClosed = claimClosed_();
     try { out.sheetUrl = ss_().getUrl(); } catch (err) { out.sheetUrl = ''; }
   } else {
     var mine = config.classes.filter(function (c) { return c.id === who.classId; });
@@ -144,13 +154,14 @@ function classList_() {
     var a = auth.classes[c.id] || {};
     return { id: c.id, name: c.name, teacher: c.teacher || '', claimed: !!(a.devices && a.devices.length) };
   });
-  return json_({ ok: true, classes: list });
+  return json_({ ok: true, classes: list, closed: claimClosed_() });
 }
 
 // 導師第一次登入：綁定此裝置；該班已有裝置登入則拒絕
 function claim_(p) {
   var cid = String(p.classId || '').trim();
   if (!cid) return json_({ ok: false, error: 'invalid' });
+  if (claimClosed_()) return json_({ ok: false, error: 'closed' });
   var lock = LockService.getScriptLock();
   if (!lock.tryLock(20000)) return json_({ ok: false, error: 'busy' });
   try {
@@ -273,6 +284,11 @@ function doPost(e) {
         put_(nkey, ndoc);
         break;
       }
+      case 'setClaim':
+        // 教務組可暫停導師新登入（已登入的裝置不受影響），避免學生或他人搶先選班級登入
+        if (!admin) return json_({ ok: false, error: 'auth' });
+        PropertiesService.getScriptProperties().setProperty('CLAIM_CLOSED', body.closed ? '1' : '');
+        break;
       case 'revokeDevices': {
         if (!admin) return json_({ ok: false, error: 'auth' });
         if (!config.classes.some(function (c) { return c.id === body.classId; })) return json_({ ok: false, error: 'bad_request' });

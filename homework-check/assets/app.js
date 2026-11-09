@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.09b';
+  const APP_VERSION = '2026.11.09c';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
   const LS = { admin: 'hc.admin', teacher: 'hc.teacher', api: 'hc.api', cls: 'hc.class', outbox: 'hc.outbox', theme: 'hc.theme' };
   const GRADE = ['', '一', '二', '三', '四', '五', '六'];
@@ -172,7 +172,7 @@
       if (!r.ok) { if (r.error === 'auth') return authLost(); if (r.error === 'not_initialized') { S.screen = 'init'; render(); return; } throw new Error(r.error === 'too_many' ? errText('too_many') : '讀取失敗：' + errText(r.error)); }
       S.version = r.version; S.sheetUrl = r.sheetUrl || S.sheetUrl || '';
       if (r.unchanged) { S.lastSync = new Date(); setSync('ok'); return; }
-      S.role = r.role; S.config = r.config || { items: [], classes: [] }; S.rounds = r.rounds || []; S.links = r.links || {};
+      S.role = r.role; S.config = r.config || { items: [], classes: [] }; S.rounds = r.rounds || []; S.links = r.links || {}; S.claimClosed = !!r.claimClosed;
       if (r.role === 'teacher') S.classId = r.classId;
       S.rid = r.rid || null; S.loadedRid = S.rid;
       applyServer(r.checks || {}, startedAt);
@@ -1083,6 +1083,10 @@
     /* 導師登入狀態 */
     const lp = h('div', { class: 'panel' }, h('h2', null, '導師登入裝置', h('small', { text: '導師在登入頁選自己的班級，第一台登入的裝置即綁定；之後該班不能再從別的裝置登入' })));
     lp.append(h('div', { class: 'note', text: '導師換手機、或誤用別人的手機登入時，在這裡「解除」後，導師再用新裝置選班級登入即可。' }));
+    const nLogged = classes().filter(c => ((S.links[c.id] || {}).devices || []).length).length;
+    lp.append(h('div', { class: 'claimbox' + (S.claimClosed ? ' closed' : '') },
+      h('label', { class: 'ck' }, h('input', { type: 'checkbox', checked: S.claimClosed, onchange: async e => { const v = e.target.checked; e.target.disabled = true; try { await adminPost({ action: 'setClaim', closed: v }, v ? '已暫停新的導師登入' : '已開放導師登入'); S.version = null; await load({ force: true }); renderMain(); } catch (err) { e.target.checked = !v; e.target.disabled = false; } } }), '暫停新的導師登入'),
+      h('span', { class: 'note', text: '已登入 ' + nLogged + ' / ' + classes().length + ' 班。全部導師都登入後建議勾選，避免學生或他人在登入頁搶先選班級；已登入的裝置不受影響。要讓導師換新裝置時，先「解除」再暫時取消勾選。' })));
     classes().forEach(cls => lp.append(deviceEditor(cls)));
     box.append(lp);
 
@@ -1242,7 +1246,7 @@
           const r = await apiGet({ action: 'claim', classId: cid, label: deviceLabel() });
           if (!r.ok) {
             msg.className = 'note err';
-            msg.textContent = r.error === 'claimed' ? '這個班級已經有其他裝置登入過了。若您換了手機，請教務組在「設定」中解除後再登入。' : '登入失敗：' + errText(r.error);
+            msg.textContent = r.error === 'claimed' ? '這個班級已經有其他裝置登入過了。若您換了手機，請教務組在「設定」中解除後再登入。' : r.error === 'closed' ? '教務組目前暫停新的裝置登入，請洽教務組開放。' : '登入失敗：' + errText(r.error);
             btn.disabled = false; return;
           }
           S.token = r.token; S.classId = r.classId; S.role = 'teacher'; lsSet(LS.teacher, { token: r.token, classId: r.classId });
@@ -1255,6 +1259,7 @@
         sel.replaceChildren(h('option', { value: '', text: '請選擇班級／導師' }));
         if (!r.ok && r.error === 'not_initialized') { S.screen = 'init'; render(); return; }
         if (!r.ok || !r.classes || !r.classes.length) { sel.append(h('option', { value: '', text: '尚未建立班級，請洽教務組' })); return; }
+        if (r.closed) { sel.replaceChildren(h('option', { value: '', text: '目前暫停新的導師登入' })); btn.disabled = true; msg.textContent = '教務組目前暫停新的裝置登入。若您是導師、需要登入，請洽教務組開放。'; msg.className = 'note'; return; }
         r.classes.forEach(c => sel.append(h('option', { value: c.id, text: c.name + (c.teacher ? '　' + c.teacher : '') + (c.claimed ? '（已登入）' : ''), disabled: !!c.claimed })));
         sel.disabled = false;
       }).catch(e => {                                   // 導師頁不顯示技術錯誤；原因（例如部署權限）只給教務組看
