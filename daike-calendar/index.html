@@ -2680,7 +2680,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.10u";
+const APP_VERSION = "專業版 2026.11.10v";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -4755,7 +4755,7 @@ function checkBox(kind, r, msgs){
   const out = termOf(kind, r);
   if(out.length) return `<div class="chk bad" role="alert"><b>⚠ 日期不在本學期（${esc(termText())}）</b>：${esc(out.join("、"))}</div>`;
   if(soft.length) return `<div class="chk bad" role="alert"><b>⚠ 提醒（${soft.length}）</b><ul>${soft.map(m=>`<li>${esc(m)}</li>`).join("")}</ul></div>`;
-  return kind==="absent" ? `<div class="chk good">✓ 可以登記</div>` : `<div class="chk good">✓ 檢查過了，沒有衝堂、沒有請假</div>`;
+  return kind==="absent" ? `<div class="chk good">✓ 可以登記</div>` : `<div class="chk good">✓ 檢查過了：${kind==="swap" ? "兩位老師" : "代課老師"}沒有衝堂、沒有請假</div>`;
 }
 
 function renderPlan(){
