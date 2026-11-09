@@ -5818,9 +5818,16 @@ function renderHrBox(){
   const group = (list, row) => { const by = {}; list.forEach((x, i) => (by[x.date] = by[x.date] || []).push(row(x, i)));
     return Object.keys(by).sort().map(d => `<div class="hrday"><div class="hrdate">${esc(md(d))}</div><ul>${by[d].join("")}</ul></div>`).join(""); };
   // ① 有請假、這節有課，卻沒有代課也沒有調課 → 可能沒收到代課單（代課費會漏發）
-  const missHtml = !R ? "" : group(R.missing, (x, i) => `<li class="miss"><span class="kd">${x.tutor ? "沒代導" : "沒代課"}</span><b>${esc(x.who)}</b>　${esc(per(x))} ${esc(x.cls)}${x.subject && !x.tutor ? " " + esc(x.subject) : ""}
-      <span class="tag">請假系統：${esc(x.leaveType)}${x.span ? "　" + esc(x.span) : ""}</span>${x.tutor ? `<span class="why">導師整天請假，沒有登記代導師（代導費可能漏發）</span>` : `<span class="why">這節有課，沒有代課也沒有調課（可能沒收到代課單）</span>`}${x.co && x.co.length ? `<span class="co">協同課：${esc(x.co.join("、"))} 也在上，請確認是否需要代課</span>` : ""}
-      <button type="button" class="btn small hrfix" data-hrfix="${i}">${x.tutor ? "登記代導師" : "登記代課"}</button></li>`);
+  // 115.11.10：同一位老師同一天合成一張卡（原本一節一張、每張都有一樣的按鈕）；按鈕會帶入那天全部的節次
+  const missHtml = !R ? "" : (() => { const by = {};
+    R.missing.forEach((x, i) => { const k = x.date + "|" + x.who + "|" + (x.tutor ? 1 : 0); (by[k] = by[k] || {x, i, items: []}).items.push(x); });
+    const days = {}; Object.values(by).forEach(g => (days[g.x.date] = days[g.x.date] || []).push(g));
+    return Object.keys(days).sort().map(d => `<div class="hrday"><div class="hrdate">${esc(md(d))}</div><ul>${days[d].map(g => { const x = g.x, n = g.items.length;
+      const what = x.tutor ? `${x.cls || ""} 導師` : g.items.map(y => `${per(y)} ${y.cls}${y.subject ? " " + y.subject : ""}`).join("、");
+      const spans = [...new Set(g.items.map(y => y.span).filter(Boolean))].join("、"), co = [...new Set(g.items.flatMap(y => y.co || []))];
+      return `<li class="miss"><span class="kd">${x.tutor ? "沒代導" : "沒代課"}</span><b>${esc(x.who)}</b>　${esc(what)}
+      <span class="tag">請假系統：${esc(x.leaveType)}${spans ? "　" + esc(spans) : ""}</span>${x.tutor ? `<span class="why">導師整天請假，沒有登記代導師（代導費可能漏發）</span>` : `<span class="why">${n > 1 ? `這 ${n} 節` : "這節"}有課，沒有代課也沒有調課（可能沒收到代課單）</span>`}${co.length ? `<span class="co">協同課：${esc(co.join("、"))} 也在上，請確認是否需要代課</span>` : ""}
+      <button type="button" class="btn small hrfix" data-hrfix="${g.i}">${x.tutor ? "登記代導師" : `登記這天的代課${n > 1 ? `（${n} 節）` : ""}`}</button></li>`; }).join("")}</ul></div>`).join(""); })();
   // ② 有代課（代導師、請假登記），人事系統沒有這位老師這節的請假
   const nohrHtml = !R ? "" : group(R.noHr, (x, i) => `<li class="nohr"><span class="kd">沒請假</span><b>${esc(x.who)}</b>　${esc(x.label)}${x.id ? `<span class="sid2">${esc(sidOf({id:x.id}) || x.id)}</span>` : ""}
       <span class="why">請假系統沒有這位老師這${x.p==null ? "天" : "節"}的請假${x.sameDay ? "（同一天有請假，但時段不含這節）" : ""}，請確認是否漏請假或登錯</span>
@@ -5836,7 +5843,7 @@ function renderHrBox(){
       ${F !== "nohr" ? `<div class="hrmis"><h4>① 有請假、這節有課，但沒有代課也沒有調課<span class="n">${nA}</span></h4>
         <p class="hrlegend">可能還沒收到代課單（或代導師單）→ <b class="m">代課費可能漏發</b>。按「登記代課」會帶好老師、日期、假別、節次，選代課老師就能存。</p>
         ${missHtml || `<p class="none">✓ 沒有：請假的課都有代課或調課。</p>`}</div>` : ""}
-      ${F !== "miss" ? `<div class="hrmis hrb"><h4>② 有代課，但請假系統沒有請假<span class="n">${nB}</span></h4>
+      ${F !== "miss" ? `<div class="hrmis hrb"><h4>② 請假對照檢視遺漏：有代課，但請假系統沒有請假<span class="n">${nB}</span></h4>
         <p class="hrlegend">代課（或代導師）紀錄找不到對應的假，請確認老師是否漏請假，或代課登錯日期、節次。</p>
         ${hrSkipNames().length ? `<p class="hrlegend">不列入：${hrSkipNames().map(n => `${esc(n)}${state.cred && n === state.cred.name ? "（登入的核准人）" : ""} <button type="button" class="linkbtn" data-hrunskip="${esc(n)}">恢復</button>`).join("、")}</p>` : ""}
         ${nohrHtml || `<p class="none">✓ 沒有：代課都有對應的請假。</p>`}</div>` : ""}
