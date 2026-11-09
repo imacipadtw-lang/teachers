@@ -990,6 +990,8 @@ body.has-wb #summary{display:none}
 .wb-mstat dt{font-size:12px;color:var(--ink-3);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wb-mstat dd{margin:2px 0 0;font-size:22px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-.01em;line-height:1.2}
 .wb-ms-sub{display:block;margin:2px 0 0;font-weight:500;letter-spacing:0;line-height:1.4;font-size:11.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wb-ms-sub.warn{color:#8F5A08;white-space:normal}
+html[data-theme=dark] .wb-ms-sub.warn{color:#F5C46B}
 .wb-mstat dd small{font-size:12px;font-weight:600;color:var(--ink-3);margin-left:2px}
 .wb-mstat .bad dd,.wb-mstat .bad dd small{color:#B4234A}
 html[data-theme=dark] .wb-mstat .bad dd,html[data-theme=dark] .wb-mstat .bad dd small{color:#FF8DA1}
@@ -2677,7 +2679,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.10q";
+const APP_VERSION = "專業版 2026.11.10r";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -5728,7 +5730,7 @@ function renderWorkbench(){
   const todos = P ? wbTodos(ym, P) : [];
   // 本月數字（只顯示；金額一律用 tally()／feeOf()，和報表同一套）
   const mt = (() => { try { applySettingsAt(ym); return tally(state.events.filter(e => inRange(e, ym))); } catch(e){ return null; } })();
-  const mstat = mt ? `<dl class="wb-mstat" aria-label="${roc} 數字"><div><dt>代課</dt><dd>${mt.subN}<small>節</small></dd></div><div><dt>代導師</dt><dd>${mt.tutorD}<small>日</small></dd></div><div title="代課費 ${Number(mt.subFee).toLocaleString("zh-TW")} 元＋代導費 ${Number(mt.tutorFee).toLocaleString("zh-TW")} 元"><dt>應發合計</dt><dd>${Number(mt.subFee + mt.tutorFee).toLocaleString("zh-TW")}<small>元</small><span class="wb-ms-sub">代課 ${Number(mt.subFee).toLocaleString("zh-TW")}＋代導 ${Number(mt.tutorFee).toLocaleString("zh-TW")}</span></dd></div>`
+  const mstat = mt ? `<dl class="wb-mstat" aria-label="${roc} 數字"><div><dt>代課</dt><dd>${mt.subN}<small>節</small></dd></div><div><dt>代導師</dt><dd>${mt.tutorD}<small>日</small></dd></div><div title="代課費 ${Number(mt.subFee).toLocaleString("zh-TW")} 元＋代導費 ${Number(mt.tutorFee).toLocaleString("zh-TW")} 元${mt.heliN ? `；含代合理員額教師課 ${mt.heliN} 節，這幾節實發依合理員額報表進位計算，不在校內代課清冊` : ""}"><dt>應發合計</dt><dd>${Number(mt.subFee + mt.tutorFee).toLocaleString("zh-TW")}<small>元</small><span class="wb-ms-sub">代課 ${Number(mt.subFee).toLocaleString("zh-TW")}＋代導 ${Number(mt.tutorFee).toLocaleString("zh-TW")}</span>${mt.heliN ? `<span class="wb-ms-sub warn">含代合理員額教師課 ${mt.heliN} 節（實發依合理員額報表進位）</span>` : ""}</dd></div>`
     + `<div class="${mt.unN ? "bad" : ""}"><dt>還沒安排代課</dt><dd>${mt.unN ? `<button type="button" id="wbUnN" title="看清單">${mt.unN}<small>筆</small></button>` : `0<small>筆</small>`}</dd></div></dl>` : "";
   const list = todos.length ? `<ul class="wb-todo">${todos.map((x, i) => `<li class="${x.lv}"><span>${esc2(x.text)}</span>${x.act ? `<button type="button" class="btn ghost small" data-todo="${i}">${esc2(x.verb)}</button>` : ""}</li>`).join("")}</ul>`
                             : `<div class="wb-clear"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m7.5 12.5 3 3 6-6.5"/></svg><b>都處理好了</b><span>目前沒有要處理的事</span></div>`;
