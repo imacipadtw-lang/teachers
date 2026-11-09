@@ -1400,6 +1400,11 @@ html[data-theme=dark] .wb-todo li.ok{background:rgba(79,209,161,.10)}
   .wb-track b{display:none}
   .wb-track li.cur b{display:block;white-space:nowrap;font-size:12px}
 }
+@media (max-width:760px){   /* 手機：節次／班級／科目並排，代課老師整行（一列從約 410px 降到約 260px） */
+  .rgrid.sub{grid-template-columns:minmax(0,.9fr) minmax(0,1fr) minmax(0,1.2fr)}
+  .rgrid.sub > div:nth-child(4){grid-column:1/-1}
+  .rgrid.sub select,.rgrid.sub input{min-width:0;width:100%;padding-left:8px;padding-right:22px}
+}
 </style>
 </head>
 <body>
@@ -2553,7 +2558,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.10d";
+const APP_VERSION = "專業版 2026.11.10e";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
