@@ -1397,7 +1397,7 @@ html[data-theme=dark] .wb-todo li.ok{background:rgba(79,209,161,.10)}
 @media screen and (max-width:600px){
   .notice{width:calc(100% - 24px);margin-top:10px}
   /* 手機：報帳進度只顯示數字，名稱只留目前這一步（下面「下一步」有說明） */
-  .wb-track b{display:none}
+  .wb-track li:not(.cur) b{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}   /* 看不到但螢幕閱讀器念得到 */
   .wb-track li.cur b{display:block;white-space:nowrap;font-size:12px}
 }
 @media (max-width:760px){   /* 手機：節次／班級／科目並排，代課老師整行（一列從約 410px 降到約 260px） */
@@ -1447,7 +1447,7 @@ html[data-theme=dark] .wb-todo li.ok{background:rgba(79,209,161,.10)}
 @media screen and (max-width:600px){
   .monthly .mrow > .btn,.monthly .mrow > select{flex:1 1 100%}
 }
-@media screen and (max-width:760px){ .d.today .n::after{display:none} .d.today .n{color:var(--c-swap);font-weight:800} }   /* 手機：今天用金框＋金色數字標示 */
+@media screen and (max-width:760px){ .d.today .n::after{display:none} .d.today .n{color:var(--c-swap);font-weight:800} html:not([data-theme=dark]) .d.today .n{color:#8F5A08} }   /* 手機：今天用金框＋金色數字標示 */
 </style>
 </head>
 <body>
@@ -2601,7 +2601,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.10f";
+const APP_VERSION = "專業版 2026.11.10g";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -4248,7 +4248,8 @@ function showPage(k, opt){
   const list = pagesFor(); if(!list.length){ document.querySelectorAll("main [data-page]").forEach(e => e.classList.remove("pg-off")); return; }
   if(!list.some(p => p.k === k)) k = list[0].k;
   state.page = k; store.set(K+"page", k, localStorage); document.body.dataset.pg = k;
-  { const m = document.querySelector(".wrap main"); if(m){ m.classList.remove("pg-in"); void m.offsetWidth; m.classList.add("pg-in"); } }   // 換頁時輕輕滑入 { const pt = $("#pgTitle"), pp = list.find(p => p.k === k); if(pt && pp) pt.textContent = pp.t; }
+  { const m = document.querySelector(".wrap main"); if(m){ m.classList.remove("pg-in"); void m.offsetWidth; m.classList.add("pg-in"); } }   // 換頁時輕輕滑入
+  { const pt = $("#pgTitle"), pp = list.find(p => p.k === k); if(pt && pp) pt.textContent = pp.t; }
   document.querySelectorAll("main [data-page]").forEach(e => e.classList.toggle("pg-off", k !== "all" && e.dataset.page !== k));
   document.querySelectorAll("#pageTabs [data-pg]").forEach(b => { const on = b.dataset.pg === k; b.setAttribute("aria-selected", on); b.tabIndex = on ? 0 : -1; });
   const nb = {home:"#workbench", cal:"#year", report:"#monthly", set:"set"}[k];
@@ -4931,6 +4932,7 @@ function applyScan(d){
   const ymdOk = v => /^\d{4}-\d{2}-\d{2}$/.test(v || "") ? v : "";
   const clsOk = v => { v = String(v || "").replace(/\s/g, ""); if(CLASSES.includes(v)) return v; if(v) warn.push(`班級照片上寫「${v}」，請手動選`); return ""; };
   const pOk = v => /^[1-7]$/.test(String(v || "")) ? String(v) : "";
+  plan.backTo = null;                                // 拍照登錄是新的一張單，不要回到之前的假單
   recs.forEach(r => { r.periods = Array.isArray(r.periods) ? r.periods : []; r.toPeriods = Array.isArray(r.toPeriods) ? r.toPeriods : []; });   // 辨識結果少了節次清單也不會出錯
   if(!recs.length){ plan.scan = {title:"照片裡沒有找到請假、調課或代課的資料，請手動填寫", warn:[], photo:d.photo}; plan.scanKeys = []; renderPlan(); return; }
   const absRecs = recs.filter(r => r.type === "請假");
@@ -5014,10 +5016,13 @@ function applyScan(d){
   plan.scanKeys = keys; plan.force = false; plan.server = null;
   renderPlan();
 }
+let planSaving = false;
 $("#planSave").onclick = async ()=>{
+  if(planSaving) return;                          // 115.11.10：存檔中不接受第二次（Ctrl＋Enter 連按、按住都不會重複送）
   const form = formData();
   const hm = hardMap(), hard = [].concat(...Object.values(hm));
   if(hard.length){ showBlock(hard, "這張單有衝堂或請假的老師，不能儲存。請先改選老師。"); return; }
+  planSaving = true; $("#planSave").disabled = true;
   busy(true);
   try{
     const d = await apiPost(Object.assign({action:"save", name:state.cred.name, h:state.cred.h, force:plan.force}, form));
@@ -5026,7 +5031,7 @@ $("#planSave").onclick = async ()=>{
       state.meta = null; await reload(true); await openPlan();
       plan.kind = "absent"; plan.absent = keep; plan.scan = null; plan.scanKeys = null; renderPlan();
       toast(`已儲存請假（${keep.saved}）`);
-    } else if(d.ok && plan.kind==="sub" && plan.backTo){   // 從假單「排這天的代課」來的：存好回到假單
+    } else if(d.ok && plan.kind==="sub" && plan.backTo && plan.sub.leaver === plan.backTo.teacher && plan.sub.date >= plan.backTo.from && plan.sub.date <= (plan.backTo.to || plan.backTo.from)){   // 從假單「排這天的代課」來的：存好回到假單
       const keep = plan.backTo; lastSavedNote(d.ids);
       state.meta = null; await reload(true); await openPlan();
       plan.kind = "absent"; plan.absent = keep; plan.backTo = null; plan.sub = {leaver:"", leaveType:"公假", date:"", note:"", rows:[], tutor:false, tutorSub:""};
@@ -5043,13 +5048,13 @@ $("#planSave").onclick = async ()=>{
       $("#planSum").innerHTML = `<span style="color:var(--rose);font-weight:700">⚠ 伺服器檢查到 ${d.conflicts.length} 列需要確認（內容在各列下方）。確定要登記就再按一次。</span>`;
     } else if(plan.kind==="absent" && /^(沒有要登記的資料|不支援的動作)$/.test(d.error||"")) throw new Error(OLD_BACKEND_MSG);
     else throw new Error(d.error||"儲存失敗");
-  }catch(err){ toast("儲存失敗："+err.message.split("\n")[0]); $("#planSum").textContent = err.message; }
-  finally{ busy(false); }
+  }catch(err){ toast("儲存失敗："+err.message.split("\n")[0]); $("#planSum").textContent = err.message; $("#planSave").disabled = false; }
+  finally{ busy(false); planSaving = false; }
 };
 document.addEventListener("keydown", e=>{
   if(e.key==="Escape" && !$("#blockModal").hidden){ closeBlock(); return; }
   if(e.key==="Escape" && !$("#planModal").hidden) closePlan();
-  if((e.ctrlKey || e.metaKey) && e.key==="Enter" && !$("#planModal").hidden && !$("#planSave").disabled){ e.preventDefault(); $("#planSave").click(); }   // Ctrl／⌘＋Enter 儲存
+  if((e.ctrlKey || e.metaKey) && e.key==="Enter" && !e.repeat && !planSaving && !$("#planModal").hidden && !$("#planSave").disabled){ e.preventDefault(); $("#planSave").click(); }   // Ctrl／⌘＋Enter 儲存
 });
 
 /* ================================================================
@@ -5895,7 +5900,7 @@ function renderHrBox(){
   // ① 有請假、這節有課，卻沒有代課也沒有調課 → 可能沒收到代課單（代課費會漏發）
   // 115.11.10：同一位老師同一天合成一張卡（原本一節一張、每張都有一樣的按鈕）；按鈕會帶入那天全部的節次
   const missHtml = !R ? "" : (() => { const by = {};
-    R.missing.forEach((x, i) => { const k = x.date + "|" + x.who + "|" + (x.tutor ? 1 : 0); (by[k] = by[k] || {x, i, items: []}).items.push(x); });
+    R.missing.forEach((x, i) => { const k = x.date + "|" + x.who + "|" + (x.tutor ? 1 : 0) + "|" + (x.leaveType || ""); (by[k] = by[k] || {x, i, items: []}).items.push(x); });
     const days = {}; Object.values(by).forEach(g => (days[g.x.date] = days[g.x.date] || []).push(g));
     return Object.keys(days).sort().map(d => `<div class="hrday"><div class="hrdate">${esc(md(d))}</div><ul>${days[d].map(g => { const x = g.x, n = g.items.length;
       const what = x.tutor ? `${x.cls || ""} 導師` : g.items.map(y => `${per(y)} ${y.cls}${y.subject ? " " + y.subject : ""}`).join("、");
