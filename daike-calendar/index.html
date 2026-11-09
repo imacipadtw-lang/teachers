@@ -1312,6 +1312,10 @@ html[data-theme=dark] .ev .fixbtn{color:var(--sky)}
   .plan-foot #planCancel{flex:0 0 auto}
   .plan-foot #planSave{flex:1 1 auto}
 }
+/* 頂端已有「查看哪位老師」：設定頁下方只留「老師密碼狀態」 */
+body.has-view .admin-mobile .admin-box > label,body.has-view .admin-mobile .admin-box > .viewAs,body.has-view .admin-mobile .admin-box > .pw-tip{display:none}
+body.has-view .admin-mobile .pw-list{margin-top:0;border-top:0;padding-top:0}
+@media (min-width:1051px){.admin-mobile .admin-box{max-width:640px}}
 </style>
 </head>
 <body>
@@ -2451,7 +2455,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.09f";
+const APP_VERSION = "專業版 2026.11.09g";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
