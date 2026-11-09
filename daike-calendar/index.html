@@ -2456,7 +2456,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.09h";
+const APP_VERSION = "專業版 2026.11.09i";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -2469,15 +2469,19 @@ function setTheme(t){
 }
 setTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "pink");
 document.getElementById("themeBtn").onclick = () => setTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "pink" : "dark");
+/* 雲端回應超過 20 秒：提示還在處理、不要重複按（不中斷請求：有些雲端作業本來就要幾分鐘，中斷存檔反而可能重複登記） */
+function slowNote(post){ return setTimeout(() => { try{ toast(post ? "雲端還在存檔中（Google 那邊比較慢），請稍候，不要重複按" : "雲端回應比較慢，還在讀取中，請稍候…"); }catch(e){} }, 20000); }
 async function api(params){
-  const t0 = performance.now();
+  const t0 = performance.now(), slow = DEMO ? 0 : slowNote(false);
   try{ const x = await api0(params); sysMark(true, performance.now() - t0); return x; }
   catch(e){ sysMark(false); throw e; }
+  finally{ clearTimeout(slow); }
 }
 async function apiPost(body){
-  const t0 = performance.now();
+  const t0 = performance.now(), slow = DEMO ? 0 : slowNote(true);
   try{ const x = await apiPost0(body); sysMark(true, performance.now() - t0); return x; }
   catch(e){ sysMark(false); throw e; }
+  finally{ clearTimeout(slow); }
 }
 async function api0(params){
   if (DEMO) return demoApi(params);
@@ -2504,7 +2508,8 @@ async function apiPost0(body){
   let r;
   const payload = JSON.stringify(Object.assign({rid: "r" + Date.now().toString(36) + Math.random().toString(36).slice(2, 10)}, body));
   for (let i = 0; ; i++) {
-    r = await fetch(API_URL, {method:"POST", body: payload});
+    try { r = await fetch(API_URL, {method:"POST", body: payload}); }
+    catch(e){ throw new Error("網路中斷，這筆可能沒有存到：請確認網路後按「重新整理」看看有沒有存好，再決定要不要重送"); }
     if (r.status !== 404 || i >= 2) break;
     await new Promise(ok => setTimeout(ok, 1200 * (i + 1)));
   }
