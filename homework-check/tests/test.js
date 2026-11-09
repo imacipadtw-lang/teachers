@@ -429,6 +429,27 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
   await ctx.close();
   await fetch(B + '__reset'); await fetch(B + '__seed');
 
+
+  console.log('24. Google 卡住不回應時不會一直「登入中…」');
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+  await fetch(B + '__hang');
+  ctx = await br.newContext(); pg = await newPage(ctx);
+  let t24 = Date.now(); await pg.goto(B);
+  await pg.waitForSelector('button:has-text("重新載入班級"):visible', { timeout: 30000 });
+  let d24 = Date.now() - t24;
+  ok(d24 < 20000, Math.round(d24 / 1000) + ' 秒後出現「重新載入班級」（測試用逾時 5 秒 × 3 次），不會卡住');
+  ok(/目前無法載入班級/.test(await pg.textContent('#whoSel')), '下拉顯示「目前無法載入班級」');
+  await pg.click('text=教務組登入'); await pg.fill('input[type=password]', 'test1234'); t24 = Date.now(); await pg.keyboard.press('Enter');
+  await pg.waitForSelector('.gate .note.err', { timeout: 30000 }); d24 = Date.now() - t24;
+  const em = await pg.textContent('.gate .note.err');
+  ok(/沒有回應/.test(em) && d24 < 20000, Math.round(d24 / 1000) + ' 秒後教務組登入顯示逾時訊息：' + em.slice(0, 30) + '…');
+  await fetch(B + '__unhang');
+  await pg.click('text=重新載入班級'); await pg.waitForSelector('#whoSel:not([disabled])', { timeout: 15000 });
+  ok((await pg.$$eval('#whoSel option', o => o.length)) > 3, '恢復後按「重新載入班級」即載入成功，不必重新整理');
+  await pg.fill('input[type=password]', 'test1234'); await pg.keyboard.press('Enter'); await pg.waitForSelector('nav.tabs', { timeout: 15000 });
+  ok(true, '接著教務組登入成功');
+  await ctx.close();
+
   await br.close();
   console.log('\n頁面錯誤：' + (errors.length ? errors.join(' | ') : '無'));
   console.log(`結果：${pass} 通過，${fail} 失敗`);

@@ -116,5 +116,6 @@
   - 115.11.9（2026.11.09j）：收件模式與掃描登記只重畫對話框，背後表格在關閉時補畫（`S.mainDirty`；實測每次點擊 145–197 ms → 27–44 ms）。
   - 115.11.9（2026.11.09k）：全校總覽顯示「導師已登入 x / y 班」並列出尚未登入的班級；淺色模式 `--ok`、`--warn` 加深（對比度 ≥ 4.95:1，axe 0 項）。
   - 115.11.9（2026.11.09m）：教務組「解除」單班後該班即使在暫停新登入中也可重新登入一次（`auth.classes[id].reopen`，登入成功即清除）；新增「全部班級解除，讓導師重新登入」（後端 `revokeAll`，同時取消暫停；舊版後端時前端逐班 `revokeDevices`）。
-  - **自動測試**：`homework-check/tests/run.sh`（Node 模擬 Apps Script 執行 `Code.gs`＋Playwright 實際操作；23 組 106 項，含斷線、掃描、列印、登入憑證、舊版後端相容；`npm i axe-core` 後另跑無障礙檢查）。改 homework-check 後必跑，新功能請加測試。
+  - 115.11.9（2026.11.09n）：每次請求最多等 20 秒（`fetchT`，`CFG.timeoutMs` 可調、下限 5 秒），逾時視同網路錯誤重試 3 次後顯示「Google 沒有回應」；登入頁班級載入失敗出現「重新載入班級」。起因：對正式後端實測時 Google 會間歇卡住 30 秒以上，原本的畫面會永遠停在「登入中…」。測試伺服器 `/__hang`／`/__unhang` 可模擬。
+  - **自動測試**：`homework-check/tests/run.sh`（Node 模擬 Apps Script 執行 `Code.gs`＋Playwright 實際操作；24 組 111 項，含斷線、掃描、列印、登入憑證、舊版後端相容；`npm i axe-core` 後另跑無障礙檢查）。改 homework-check 後必跑，新功能請加測試。
   - 改 `config.js`、`app.js`、`style.css` 後要同步改 `index.html` 的 `?v=` 版本號，不然瀏覽器會用舊快取。密碼、導師姓名、學生名單只存在試算表與指令碼屬性，不進倉庫。

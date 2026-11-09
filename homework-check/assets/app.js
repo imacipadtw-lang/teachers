@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.09m';
+  const APP_VERSION = '2026.11.09n';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
   const LS = { admin: 'hc.admin', teacher: 'hc.teacher', api: 'hc.api', cls: 'hc.class', outbox: 'hc.outbox', theme: 'hc.theme' };
   const GRADE = ['', '一', '二', '三', '四', '五', '六'];
@@ -98,6 +98,13 @@
     if (typeof navigator !== 'undefined' && navigator.onLine === false) return '網路連不上，請確認網路後再試';
     return '連不到資料表。請教務組確認 Apps Script 的部署：「誰可以存取」要選「所有人」，而且網址是「網頁應用程式網址」（結尾 /exec）；改完要「管理部署作業 → 編輯 → 新版本 → 部署」。';
   }
+  // Google 偶爾會卡住不回應；沒有時限的話畫面會一直停在「登入中…」。每次最多等 FETCH_TIMEOUT 毫秒，超過就中止並重試
+  const FETCH_TIMEOUT = Math.max(5000, Number(CFG.timeoutMs) || 20000);
+  function fetchT(url, opts) {
+    const ac = new AbortController(); const t = setTimeout(() => ac.abort(), FETCH_TIMEOUT);
+    return fetch(url, Object.assign({}, opts, { signal: ac.signal })).finally(() => clearTimeout(t));
+  }
+  function timeoutMsg(tries) { return 'Google 超過 ' + Math.round(FETCH_TIMEOUT / 1000) + ' 秒沒有回應，已自動重試 ' + tries + ' 次。請確認網路後再試一次；若一直如此，可能是 Google 暫時忙碌，稍等幾分鐘再試。'; }
   function authParams() {
     if (S.role === 'admin') { if (S.atoken) return { atoken: S.atoken }; if (S.key) return { key: S.key }; }
     return S.token ? { token: S.token } : {};
@@ -123,7 +130,7 @@
     for (let i = 0; ; i++) {
       u.searchParams.set('_', Date.now());
       let r = null;
-      try { r = await fetch(u, { redirect: 'follow' }); } catch (e) { if (i >= 2) throw new Error(netErr()); }
+      try { r = await fetchT(u, { redirect: 'follow' }); } catch (e) { if (i >= 2) throw new Error(e && e.name === 'AbortError' ? timeoutMsg(3) : netErr()); }
       if (r && r.ok) return parseJson(r);
       if (r && !(r.status === 404 || r.status === 429 || r.status >= 500)) throw new Error('連不到資料表（' + r.status + '）');
       if (i >= 2) throw new Error('Google 暫時沒有回應，已自動重試 3 次，請稍後再試');
@@ -136,7 +143,7 @@
     for (let i = 0; ; i++) {
       let r = null;
       // 以純文字送 JSON：瀏覽器不做跨網域預檢，Apps Script 由 e.postData.contents 接收
-      try { r = await fetch(S.apiUrl, { method: 'POST', body: payload, headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }); } catch (e) { if (i >= 2) throw new Error(netErr()); }
+      try { r = await fetchT(S.apiUrl, { method: 'POST', body: payload, headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }); } catch (e) { if (i >= 2) throw new Error(e && e.name === 'AbortError' ? timeoutMsg(3) : netErr()); }
       if (r && r.ok) return parseJson(r);
       if (r && !(r.status === 404 || r.status === 429 || r.status >= 500)) throw new Error('連不到資料表（' + r.status + '）');
       if (i >= 2) throw new Error('Google 暫時沒有回應');
@@ -1308,7 +1315,9 @@
         } catch (e) { msg.textContent = e.message; msg.className = 'note err'; btn.disabled = false; }
       };
       const btn = h('button', { class: 'btn primary block', onclick: go }, '登入');
-      p.append(h('h2', { text: '導師登入' }), h('p', { text: '請選擇自己的班級。只有第一次登入的那一台手機或電腦會被綁定，之後開啟網頁直接進入，不需要密碼。如果換了手機、或需要重新登入，請跟教務組聯繫。' }), sel, btn, msg);
+      const retryBtn = h('button', { class: 'btn ghost block', hidden: true, onclick: () => loadClasses() }, '重新載入班級');
+      p.append(h('h2', { text: '導師登入' }), h('p', { text: '請選擇自己的班級。只有第一次登入的那一台手機或電腦會被綁定，之後開啟網頁直接進入，不需要密碼。如果換了手機、或需要重新登入，請跟教務組聯繫。' }), sel, btn, retryBtn, msg);
+      const loadClasses = () => { sel.disabled = true; retryBtn.hidden = true; sel.replaceChildren(h('option', { value: '', text: '載入班級中…' })); msg.textContent = ''; msg.className = 'note';
       apiGet({ action: 'classes' }).then(r => {
         sel.replaceChildren(h('option', { value: '', text: '請選擇班級／導師' }));
         if (!r.ok && r.error === 'not_initialized') { S.screen = 'init'; render(); return; }
@@ -1319,9 +1328,10 @@
         sel.disabled = false;
       }).catch(e => {                                   // 導師頁不顯示技術錯誤；原因（例如部署權限）只給教務組看
         sel.replaceChildren(h('option', { value: '', text: '目前無法載入班級，請稍後再試' }));
-        msg.textContent = '目前連不到資料表。只有第一次登入的那一台手機或電腦會被綁定；如果需要重新登入，請跟教務組聯繫。'; msg.className = 'note';
-        S.gateErr = e.message;
-      });
+        msg.textContent = '目前連不到資料表，請稍後按「重新載入班級」。只有第一次登入的那一台手機或電腦會被綁定；如果需要重新登入，請跟教務組聯繫。'; msg.className = 'note';
+        S.gateErr = e.message; retryBtn.hidden = false;
+      }); };
+      loadClasses();
       // 教務組
       const ap = h('div', { class: 'panel' });
       const inp = h('input', { type: 'password', placeholder: '教務組密碼', autocomplete: 'current-password', hidden: true, onkeydown: e => { if (e.key === 'Enter') goAdmin(); } });

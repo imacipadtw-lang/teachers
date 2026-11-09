@@ -3,6 +3,7 @@
 const http = require('http'), fs = require('fs'), path = require('path'), vm = require('vm'), crypto = require('crypto');
 const ROOT = path.resolve(process.argv[2]); const PORT = +process.argv[3] || 8787;
 const LOG = []; // 記錄後端收到的請求（檢查密碼是否出現在網址）
+const HANG = { on: false, list: [] }; // 模擬 Google 卡住不回應：/__hang 開、/__unhang 關（並切斷卡住的連線）
 
 function makeEnv() {
   const props = {}; const cache = {};
@@ -50,6 +51,8 @@ http.createServer((req, res) => {
   if (u.pathname === '/__reset') { env = makeEnv(); LOG.length = 0; res.end('ok'); return; }
   if (u.pathname === '/__sheet') { const sh = env.sheets[u.searchParams.get('name')]; res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(sh ? sh._rows : null)); return; }
   if (u.pathname === '/__breaklog') { env.ctx.Utilities.formatDate = function () { throw new Error('boom'); }; res.end('ok'); return; }
+  if (u.pathname === '/__hang') { HANG.on = true; res.end('ok'); return; }
+  if (u.pathname === '/__unhang') { HANG.on = false; HANG.list.forEach(r => { try { r.socket.destroy(); } catch (e) { } }); HANG.list = []; res.end('ok'); return; }
   if (u.pathname === '/__reads') { res.end(String(env.counter.reads)); return; }
   if (u.pathname === '/__log') { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(LOG)); return; }
   if (u.pathname === '/__seed') { // 建立測試資料：密碼 test1234、3 班、每班 6 人
@@ -63,6 +66,7 @@ http.createServer((req, res) => {
     }); return;
   }
   if (u.pathname === '/exec') {
+    if (HANG.on) { HANG.list.push(res); return; } // 永遠不回應
     const fail = () => { if (process.env.FAIL_EXEC === '1' || fs.existsSync(path.join(__dirname, 'OFFLINE'))) { req.socket.destroy(); return true; } return false; };
     res.setHeader('Access-Control-Allow-Origin', '*');
     if (req.method === 'GET') {
@@ -78,7 +82,7 @@ http.createServer((req, res) => {
     }); return;
   }
   let p = u.pathname.replace(/^\/+/, ''); if (!p || p.endsWith('/')) p += 'index.html';
-  if (p === 'config.js') { res.setHeader('Content-Type', TYPES['.js']); res.end(fs.readFileSync(path.join(ROOT, 'config.js'), 'utf8').replace(/apiUrl:\s*"[^"]*"/, 'apiUrl: "http://localhost:' + PORT + '/exec"')); return; }
+  if (p === 'config.js') { res.setHeader('Content-Type', TYPES['.js']); res.end(fs.readFileSync(path.join(ROOT, 'config.js'), 'utf8').replace(/apiUrl:\s*"[^"]*"/, 'apiUrl: "http://localhost:' + PORT + '/exec"').replace(/pollSeconds:\s*\d+/, 'pollSeconds: 45, timeoutMs: 1500')); return; }
   const f = path.join(ROOT, p);
   if (!f.startsWith(ROOT) || !fs.existsSync(f)) { res.statusCode = 404; res.end('nf'); return; }
   res.setHeader('Content-Type', TYPES[path.extname(f)] || 'application/octet-stream'); res.end(fs.readFileSync(f));
