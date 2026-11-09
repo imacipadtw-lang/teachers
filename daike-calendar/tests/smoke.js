@@ -80,6 +80,12 @@ async function login(p){
       await new Promise(r => setTimeout(r, 200)); return plan.sub.rows.length; });
     ok(auto > 0, '選好請假老師和日期自動帶入那天的課');
     await p.evaluate(() => { resetPlan(); closePlan(); state.lastSaved = null; try{ localStorage.removeItem('planKind'); }catch(e){} });
+    ok(await p.evaluate(() => { showPage('report'); return document.getElementById('pgTitle').textContent.trim().length > 0; }), '換頁後頁面標題（螢幕閱讀器）有內容');
+    const saves = await p.evaluate(async () => { let n = 0; const o = apiPost; apiPost = async b => { if(b.action === 'save'){ n++; await new Promise(r => setTimeout(r, 600)); } return o(b); };
+      await openPlan('2026-11-17'); plan.kind = 'sub'; plan.sub.leaver = '丁老師'; plan.sub.date = '2026-11-17'; fillDay(); plan.sub.rows.forEach(r => r.sub = '王教務'); renderPlan(); await new Promise(r => setTimeout(r, 200));
+      document.getElementById('planSave').click(); document.getElementById('planSave').click(); await new Promise(r => setTimeout(r, 2500)); apiPost = o; return n; });
+    ok(saves === 1, `連按儲存只送出一次（送了 ${saves} 次）`);
+    await p.evaluate(() => { try{ resetPlan(); closePlan(); }catch(e){} state.lastSaved = null; });
     // 列印
     for (const fn of ['printSign', 'printAcct']) {
       await p.evaluate(async fn => { document.getElementById('printArea').innerHTML = ''; await window[fn](document.getElementById('mSel') ? document.getElementById('mSel').value : state.range); }, fn);
