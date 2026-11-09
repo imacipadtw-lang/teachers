@@ -2474,7 +2474,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.09v";
+const APP_VERSION = "專業版 2026.11.09w";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -5542,11 +5542,26 @@ async function hrRun(text, opt){
   }
   const ev = await allEvents();
   const R = HR.compare(text, {tSlot: state.meta.tSlot, tt: state.meta.tt, ev, off: state.off || {}, homeroom: state.meta.homeroom || {}, times: hrTimes(), skipIfAbsent: state.heli || []}, state.meta.teachers);
+  // 115.11.9 管理者要求：核准請假的人（登入的教務組本人，和手動加的）不用出現在「② 沒請假」：不用自己核准自己
+  const skip = hrSkipNames(); R.skipped = R.noHr.filter(x => skip.includes(x.who)).length;
+  R.noHr = R.noHr.filter(x => !skip.includes(x.who)); if(R.noName) R.noName = R.noName.filter(x => !skip.includes(x.who));
   R.byId = {}; R.byKey = {};
   R.noHr.forEach(x => { if(x.id) R.byId[x.id] = x; const e = ev.find(y => y.id === x.id && y.date === x.date) || {}; const k = hrKey(e); if(k) R.byKey[k] = x; });
   R.at = new Date().toLocaleString("zh-TW", {month:"numeric", day:"numeric", hour:"2-digit", minute:"2-digit", hour12:false});
   state.hr = R; store.set(K+"hrText", text, localStorage);
   renderHrBox(); renderList(); if(state.selected) renderPanel(state.selected); renderWorkbench();
+}
+function hrSkipNames(){
+  let L = []; try{ L = JSON.parse(store.get(K+"hrSkip", localStorage) || "[]"); }catch(e){}
+  const me = state.cred && state.cred.name, off = store.get(K+"hrSkipMeOff", localStorage) === "1";
+  return [...new Set((me && !off ? [me] : []).concat(Array.isArray(L) ? L : []))];
+}
+function hrSkipSet(name, on){
+  if(state.cred && name === state.cred.name){ store.set(K+"hrSkipMeOff", on ? "0" : "1", localStorage); }
+  else { let L = []; try{ L = JSON.parse(store.get(K+"hrSkip", localStorage) || "[]"); }catch(e){}
+    L = L.filter(n => n !== name); if(on) L.push(name); store.set(K+"hrSkip", JSON.stringify(L), localStorage); }
+  const t = Array.isArray(state.hrRecs) && state.hrRecs.length ? hrRecsToText(state.hrRecs) : store.get(K+"hrText", localStorage);
+  if(t) hrRun(t, {noSave: true}).catch(() => {}); else renderHrBox();
 }
 function hrAuto(){                                 // 資料讀進來（重新整理、登記完）就用雲端存的人事資料自動再比對一次
   if(state.role!=="admin" || !isAll() || hrAuto.t) return;
@@ -5720,7 +5735,7 @@ function renderHrBox(){
   // ② 有代課（代導師、請假登記），人事系統沒有這位老師這節的請假
   const nohrHtml = !R ? "" : group(R.noHr, (x, i) => `<li class="nohr"><span class="kd">沒請假</span><b>${esc(x.who)}</b>　${esc(x.label)}${x.id ? `<span class="sid2">${esc(sidOf({id:x.id}) || x.id)}</span>` : ""}
       <span class="why">請假系統沒有這位老師這${x.p==null ? "天" : "節"}的請假${x.sameDay ? "（同一天有請假，但時段不含這節）" : ""}，請確認是否漏請假或登錯</span>
-      <span class="hracts"><button type="button" class="btn ghost small hrsee" data-hrsee="${i}">看這筆</button>${hrDelRef(x) ? `<button type="button" class="btn dghost small hrdel2" data-hrdel2="${i}" aria-label="刪除 ${esc(x.who)} ${esc(md(x.date))} ${esc(x.label)}">刪除</button>` : ""}</span></li>`);
+      <span class="hracts"><button type="button" class="btn ghost small hrsee" data-hrsee="${i}">看這筆</button><button type="button" class="btn ghost small" data-hrskip="${esc(x.who)}" title="核准請假的人（例如教務組）不用自己核准自己">${esc(x.who)}不用比對</button>${hrDelRef(x) ? `<button type="button" class="btn dghost small hrdel2" data-hrdel2="${i}" aria-label="刪除 ${esc(x.who)} ${esc(md(x.date))} ${esc(x.label)}">刪除</button>` : ""}</span></li>`);
   const edge = R && R.edge && R.edge.length ? `<details class="hredge"><summary>只重疊幾分鐘、不算遺漏的 ${R.edge.length} 節（老師多半已回來上課，供參考）</summary><ul>${R.edge.map(x => li(x, esc(`第${x.p}節 ${x.cls} ${x.subject || ""}：請假 ${x.span}，只重疊 ${x.ov} 分鐘`))).join("")}</ul></details>` : "";
   const nA = R ? R.missing.length : 0, nB = R ? R.noHr.length : 0;
   const sync = cloudN == null ? "" : state.hrSync && state.hrSync.local ? `<p class="hrsync warn">⚠ 這次只存在這台電腦（雲端沒存成功）</p>`
@@ -5734,6 +5749,7 @@ function renderHrBox(){
         ${missHtml || `<p class="none">✓ 沒有：請假的課都有代課或調課。</p>`}</div>` : ""}
       ${F !== "miss" ? `<div class="hrmis hrb"><h4>② 有代課，但請假系統沒有請假<span class="n">${nB}</span></h4>
         <p class="hrlegend">代課（或代導師）紀錄找不到對應的假，請確認老師是否漏請假，或代課登錯日期、節次。</p>
+        ${hrSkipNames().length ? `<p class="hrlegend">不列入：${hrSkipNames().map(n => `${esc(n)}${state.cred && n === state.cred.name ? "（登入的核准人）" : ""} <button type="button" class="linkbtn" data-hrunskip="${esc(n)}">恢復</button>`).join("、")}</p>` : ""}
         ${nohrHtml || `<p class="none">✓ 沒有：代課都有對應的請假。</p>`}</div>` : ""}
       ${edge}
       ${R.typeDiff.length ? `<h4 class="warn">假別不一樣<span class="n">${R.typeDiff.length}</span></h4><ul>${R.typeDiff.map(x => li(x, esc(`第${x.p}節 ${x.cls}：人事「${x.hr}」、系統「${x.sys}」（${x.id || ""}）`))).join("")}</ul>` : ""}
@@ -5766,6 +5782,8 @@ function renderHrBox(){
   box.querySelectorAll(".hrfilter [data-f]").forEach(b => b.onclick = () => { state.hrFilter = b.dataset.f; renderHrBox(); });
   box.querySelectorAll("[data-hrfix]").forEach(b => b.onclick = () => hrFix(+b.dataset.hrfix));
   box.querySelectorAll("[data-hrsee]").forEach(b => b.onclick = () => hrSee(+b.dataset.hrsee));
+  box.querySelectorAll("[data-hrskip]").forEach(b => b.onclick = () => { if(confirm(`${b.dataset.hrskip} 以後都不列在「② 沒請假」？（核准請假的人不用自己核准自己；下方可以恢復）`)) hrSkipSet(b.dataset.hrskip, true); });
+  box.querySelectorAll("[data-hrunskip]").forEach(b => b.onclick = () => hrSkipSet(b.dataset.hrunskip, false));
   box.querySelectorAll("[data-hrdel2]").forEach(b => b.onclick = () => hrDelNoHr(+b.dataset.hrdel2));
   const dz = $("#hrDrop");
   ["dragenter","dragover"].forEach(t => dz.addEventListener(t, e => { if(e.dataTransfer && [...e.dataTransfer.types].includes("Files")){ e.preventDefault(); dz.classList.add("over"); } }));
