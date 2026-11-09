@@ -1333,6 +1333,8 @@ html[data-theme=dark] :is(.rowc .rhead b,.addrow,.fix-diff td.new){color:var(--s
 body.has-view .ev-other{opacity:1}   /* 管理者：其他老師的紀錄可以操作，不再淡化（對比） */
 html[data-theme=dark] .chk.stop,html[data-theme=dark] .chk.stop *{color:#2A0712}
 .hrmis li .hracts{margin-left:auto;display:inline-flex;gap:6px;flex-wrap:wrap}
+.ev .fixbtn.delbtn{color:var(--c-leave);border-color:rgba(208,56,79,.35)}
+html[data-theme=dark] .ev .fixbtn.delbtn{color:#FF8DA6}
 </style>
 </head>
 <body>
@@ -2485,7 +2487,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.09x";
+const APP_VERSION = "專業版 2026.11.09y";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -2559,8 +2561,9 @@ function busy(on){
   if(on) busy._t = setTimeout(()=>{ $("#loadingHint").textContent = "資料表讀取中，第一次會比較久，請稍候"; }, 3500);
 }
 function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("on"); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove("on"), Math.min(9000, 2600 + Math.max(0, String(msg).length - 20) * 90)); }   // 字多就多留一會
-/* 剛做完一個可以復原的動作：下方出現「復原」鍵 15 秒（之後到「系統設定 → 8. 變更紀錄與復原」也找得到） */
+/* （停用）原本做完動作後下方會出現「復原」鍵；115.11.9 起不提供復原 */
 function offerUndo(msg, no){
+  return;                                   // 115.11.9 管理者要求：刪除、修改都不提供復原（不再出現「復原」鍵）
   if(!no) return; const bar = $("#undoBar");
   $("#undoMsg").textContent = msg; bar.hidden = false;
   $("#undoBtn").onclick = () => { bar.hidden = true; doUndo(no); };
@@ -3015,8 +3018,8 @@ function renderSettings(){
         <label class="set-chk"><input type="radio" name="exsync" value="off" ${st.EXCEL_SYNC === "on" ? "" : "checked"}><span>以試算表「代課一覽表」分頁為準（網站的修改直接寫回分頁；雲端 .xlsx 不再匯入）</span></label>
         <label class="set-chk"><input type="radio" name="exsync" value="on" ${st.EXCEL_SYNC === "on" ? "checked" : ""}><span>每分鐘從雲端硬碟的「代課一覽表」.xlsx 匯入並覆蓋分頁（網站的修改只記在「修正」分頁）</span></label></div>
       <div class="mrow set-act"><button class="btn" type="button" id="exSave">儲存資料來源</button><span class="set-msg" id="exMsg"></span></div></div>
-    <div class="set-sec" id="undoSec"><h4>8. 變更紀錄與復原 <small>系統設定、投保資料、假日、扣款、人事保費核對、老師回報的每一次修改和刪除，都先存一份修改前的樣子；按「復原」就回到那次修改之前。復原也會留一筆，可以再復原回來。代課、調課、請假紀錄刪除後不留資料、不能還原</small></h4>
-      ${(state.undo = (state.undo||[]).filter(u => !(/請假|代課|調課|代導/.test(u.kind || "") && /刪除/.test((u.text || "") + (u.kind || ""))))).length ? `<div class="set-tbl" tabindex="0" aria-label="表格（可左右捲動）"><table class="undo-tbl"><thead><tr><th>編號</th><th>時間</th><th>項目</th><th>改了什麼</th><th>狀態</th><th><span class="sr">操作</span></th></tr></thead><tbody>${state.undo.map(u => `<tr class="${u.can ? "" : "done"}"><td>${esc(u.no)}</td><td>${esc(u.at.slice(5, 16))}<br><small>${esc(u.by)}</small></td><td>${esc(u.kind)}</td><td>${esc(u.text || u.sheets)}</td><td class="st">${esc(u.status)}${u.undoneAt ? `<br><small>${esc(u.undoneAt)}</small>` : ""}</td><td>${u.can ? `<button type="button" class="btn ghost small" data-undo="${esc(u.no)}">復原</button>` : ""}</td></tr>`).join("")}</tbody></table></div>`
+    <div class="set-sec" id="undoSec"><h4>8. 變更紀錄 <small>系統設定、投保資料、假日、扣款、人事保費核對、老師回報的每一次修改和刪除都記在這裡（只供查核，不提供復原）。代課、調課、請假紀錄刪除後不留資料。</small></h4>
+      ${(state.undo = (state.undo||[]).filter(u => !(/請假|代課|調課|代導/.test(u.kind || "") && /刪除/.test((u.text || "") + (u.kind || ""))))).length ? `<div class="set-tbl" tabindex="0" aria-label="表格（可左右捲動）"><table class="undo-tbl"><thead><tr><th>編號</th><th>時間</th><th>項目</th><th>改了什麼</th><th>狀態</th></tr></thead><tbody>${state.undo.map(u => `<tr class="${u.can ? "" : "done"}"><td>${esc(u.no)}</td><td>${esc(u.at.slice(5, 16))}<br><small>${esc(u.by)}</small></td><td>${esc(u.kind)}</td><td>${esc(u.text || u.sheets)}</td><td class="st">${esc(u.status)}${u.undoneAt ? `<br><small>${esc(u.undoneAt)}</small>` : ""}</td></tr>`).join("")}</tbody></table></div>`
         : `<p class="hint">還沒有變更紀錄。之後在網站上改設定、刪回報…都會列在這裡。</p>`}</div>
     <p class="hint" style="margin-top:12px">每次存檔都會寫進資料表「設定異動紀錄」分頁（時間、修改者、舊值、新值），會計查帳有憑據。直接在資料表改也可以，網站會自動讀到。</p></details>`;
   $("#setDet").ontoggle = () => store.set("setOpen", $("#setDet").open ? "1" : "0");
@@ -3599,10 +3602,12 @@ function evRow(e){
   const fr = state.role==="admin" ? fixRef(e) : null;
   const fixBtn = fr ? `<button type="button" class="fixbtn" data-fix="${esc(fr.key)}" aria-label="修改這筆：${esc(md(e.date)+" "+d.p)}">修改</button>`
     : state.role==="admin" && e.type==="absent" && /^假-/.test(e.id||"") ? `<button type="button" class="fixbtn" data-absdel="${esc(e.id)}" aria-label="刪除這筆請假：${esc(md(e.date))}">刪除這筆請假</button>` : "";
+  // 115.11.9 管理者要求：每一筆都能直接刪除（確認一次，不用進修改視窗，不提供復原）
+  const delBtn = fr ? `<button type="button" class="fixbtn delbtn" data-evdel="${esc(fr.key)}" aria-label="刪除這筆：${esc(md(e.date)+" "+d.p)}">刪除</button>` : "";
   const stampDone = /^已核章完成/.test(e.stamp || "");
   const stampBtn = state.role==="admin" && sid ? `<button type="button" class="fixbtn" data-stampid="${esc(e.id)}" aria-label="${stampDone ? "看紙本序號" : "核章完成，看紙本序號"}：${esc(sid)}">${stampDone ? "看序號" : "核章完成"}</button>` : "";
   const fixd = e.fix ? `<div class="fixd">✎ ${state.role==="admin" ? "已修正："+esc(e.fix.text)+(e.fix.pending && exSyncOn() ?"（Excel 還沒改）":"") : "教務組已更正這筆資料"}</div>` : "";
-  return `<div class="ev t-${e.type}${fl?" flag":""}"${sid ? ` data-sid="${esc(sid)}"` : ""}><div class="p">${sid ? `<span class="sid">序號 ${esc(sid)}</span>` : ""}<span class="k">${KIND[e.type]||""}</span>${esc(KIND[e.type] && String(d.p).startsWith(KIND[e.type] + "・") ? String(d.p).slice(KIND[e.type].length + 1) : d.p)}</div><div class="w">${esc(d.w)}</div><div class="f">${esc(d.f)}</div>${fl}${fixd}${e.stamp?`<div class="stp${e.stamp.indexOf("已核章完成")===0?"":" wait"}">${e.stamp.indexOf("已核章完成")===0?"✓ ":"⏳ "}${esc(e.stamp)}</div>`:""}${e.note?`<div class="x">備註：${esc(e.note)}</div>`:""}${repBtn}${fixBtn}${stampBtn}${state.role==="admin" ? `<button type="button" class="fixbtn" data-copyev aria-label="複製這筆紀錄的文字">複製</button>` : ""}</div>`;
+  return `<div class="ev t-${e.type}${fl?" flag":""}"${sid ? ` data-sid="${esc(sid)}"` : ""}><div class="p">${sid ? `<span class="sid">序號 ${esc(sid)}</span>` : ""}<span class="k">${KIND[e.type]||""}</span>${esc(KIND[e.type] && String(d.p).startsWith(KIND[e.type] + "・") ? String(d.p).slice(KIND[e.type].length + 1) : d.p)}</div><div class="w">${esc(d.w)}</div><div class="f">${esc(d.f)}</div>${fl}${fixd}${e.stamp?`<div class="stp${e.stamp.indexOf("已核章完成")===0?"":" wait"}">${e.stamp.indexOf("已核章完成")===0?"✓ ":"⏳ "}${esc(e.stamp)}</div>`:""}${e.note?`<div class="x">備註：${esc(e.note)}</div>`:""}${repBtn}${fixBtn}${delBtn}${stampBtn}${state.role==="admin" ? `<button type="button" class="fixbtn" data-copyev aria-label="複製這筆紀錄的文字">複製</button>` : ""}</div>`;
 }
 
 /* 月曆格子用：每一節分開寫，寫出班級、科目、誰代誰、誰領多少錢 */
@@ -5130,8 +5135,8 @@ function renderReports(){
       await reload(true); toast(`已刪除 ${d.deleted} 件回報`); offerUndo(`已刪除 ${d.deleted} 件回報`, d.undoNo); }
     catch(e){ toast("刪除失敗：" + e.message); }
     finally{ busy(false); } };
-  box.querySelectorAll("[data-rdel]").forEach(b => b.onclick = () => { const r = list.find(x => x.id === b.dataset.rdel); if(confirm(`刪除 ${r.id}（${r.teacher}：${r.text.slice(0, 30)}）？\n刪掉後可以按「復原」救回來。`)) del([r.id]); });
-  const all = box.querySelector("[data-rdelall]"); if(all) all.onclick = () => { if(confirm(`刪除全部 ${done.length} 件已處理的回報？\n刪掉後可以按「復原」救回來。`)) del(done.map(r => r.id)); };
+  box.querySelectorAll("[data-rdel]").forEach(b => b.onclick = () => { const r = list.find(x => x.id === b.dataset.rdel); if(confirm(`刪除 ${r.id}（${r.teacher}：${r.text.slice(0, 30)}）？\n（刪除後不留資料）`)) del([r.id]); });
+  const all = box.querySelector("[data-rdelall]"); if(all) all.onclick = () => { if(confirm(`刪除全部 ${done.length} 件已處理的回報？\n（刪除後不留資料）`)) del(done.map(r => r.id)); };
 }
 /* 給老師的 LINE 訊息 */
 const DEFAULT_REPLY = "已處理完成，謝謝您的提醒。";
@@ -5265,7 +5270,7 @@ const WB_FUNCS = [
   ["會計總覽", () => wbGo("#acctBox")], ["合理員額", () => wbGo("#heliBox")], ["每月報表", () => wbGo("#monthly")], ["會計總帳", () => wbGo("#hLedger", "#monthly")], ["Excel", () => wbGo("#hLedger", "#monthly")],
   ["會計報表（即時）", () => wbGo(".live-box")], ["即時報表", () => wbGo(".live-box")], ["試算表", () => wbGo(".live-box")],
   ["系統設定", () => wbOpenSettings()], ["設定", () => wbOpenSettings()], ["費率", () => wbOpenSettings()], ["保險設定", () => wbOpenSettings("#insTbl")], ["投保", () => wbOpenSettings("#insTbl")], ["假日", () => wbOpenSettings("#offTbl")], ["颱風假", () => wbOpenSettings("#offTbl")], ["扣款", () => wbOpenSettings("#dedTbl")],
-  ["復原", () => wbOpenSettings("#undoSec")], ["變更紀錄", () => wbOpenSettings("#undoSec")], ["刪除", () => wbOpenSettings("#undoSec")],
+  ["變更紀錄", () => wbOpenSettings("#undoSec")], ["刪除", () => wbOpenSettings("#undoSec")],
   ["資料檢查", () => wbGo("#alerts")], ["衝堂", () => wbGo("#alerts")], ["修正", () => wbGo("#alerts")],
   ["老師回報", () => wbGo("#myReports")], ["回報", () => wbGo("#myReports")],
   ["老師密碼", () => { const d = document.querySelector("#adminBox .pw-list") || document.querySelector("#adminMobile .pw-list"); if(d) d.open = true; wbGo(d && d.offsetParent ? d : "#adminMobile"); }], ["密碼", () => $("#openPw").click()],
@@ -5415,6 +5420,18 @@ function evCopyText(el){
 }
 document.addEventListener("click", async e => { const b = e.target.closest("[data-copyev]"); if(!b) return; e.stopPropagation();
   const t = evCopyText(b); const ok = await copyText(t); toast(ok ? "已複製這筆紀錄" : "沒辦法自動複製，請手動選取"); });
+document.addEventListener("click", async ev => {
+  const b = ev.target.closest("[data-evdel]"); if(!b) return; ev.stopPropagation();
+  const pool = isAll() ? state.events : state.events.concat(state.school || []);
+  const e = pool.find(x => { const r = fixRef(x); return r && r.key === b.dataset.evdel; }); if(!e) return toast("找不到這筆紀錄，請重新整理");
+  const ref = fixRef(e), d = describe(e) || {p:"", w:""}, sid = sidOf(e) || e.id;
+  const money = e.type === "swap" ? "" : e.type === "tutor" || e.type === "tutorLeave" ? "（代導費不再計算）" : "（代課費不再計算）";
+  if(!confirm(`刪除這筆${KIND[e.type] || "紀錄"}${money}？\n${sid}　${md(e.date)} ${d.p}\n${d.w}\n\n刪除後不留資料、不能還原；紙本單據請一併作廢。`)) return;
+  busy(true);
+  try{ await fixSend("delete", ref); toast(`已刪除 ${sid}`); state.meta = null; await reload(true, true); }
+  catch(err){ toast("刪除失敗：" + err.message); }
+  finally{ busy(false); }
+});
 document.addEventListener("click", e => { const b = e.target.closest("[data-stampid]"); if(!b) return; e.stopPropagation(); openSidModal(b.dataset.stampid); });
 $("#sidClose").onclick = () => { $("#sidModal").hidden = true; };
 $("#sidModal").addEventListener("keydown", e => { if(e.key === "Escape") $("#sidModal").hidden = true; });
