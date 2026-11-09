@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.10k';
+  const APP_VERSION = '2026.11.10l';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
   const LS = { admin: 'hc.admin', teacher: 'hc.teacher', api: 'hc.api', cls: 'hc.class', outbox: 'hc.outbox', theme: 'hc.theme', cache: 'hc.cache' };
   const GRADE = ['', '一', '二', '三', '四', '五', '六'];
@@ -382,7 +382,7 @@
     const app = $('#app');
     app.replaceChildren();
     document.body.classList.toggle('gatebg', S.screen !== 'app');
-    if (S.screen !== 'app') { app.append(renderGate(), h('footer', { class: 'gatefoot', text: CFG.appName + '　版本 ' + APP_VERSION })); return; }
+    if (S.screen !== 'app') { app.append(renderGate(), h('footer', { class: 'gatefoot' }, h('button', { class: 'link helpbtn', onclick: openHelp }, '第一次使用？看使用說明'), h('div', { text: CFG.appName + '　版本 ' + APP_VERSION }))); return; }
     app.append(renderMasthead(), renderRoundbar(), S.role === 'admin' ? renderTabs() : '', h('main', { id: 'main', tabindex: '-1' }), renderFoot());
     renderMain();
   }
@@ -502,8 +502,41 @@
       onkeydown: e => { if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft' && e.key !== 'Home' && e.key !== 'End') return; e.preventDefault(); const i = tabs.findIndex(t => t[0] === S.view); const n = e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1 : (i + (e.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length; go(tabs[n][0]); const b = document.querySelector('nav.tabs button[data-view="' + tabs[n][0] + '"]'); if (b) b.focus(); } },
       tabs.map(([id, label]) => h('button', { role: 'tab', 'data-view': id, 'aria-controls': 'main', 'aria-selected': String(S.view === id), tabindex: S.view === id ? '0' : '-1', onclick: () => go(id) }, label))));
   }
+  /* ---------- 使用說明（網站內，依身分顯示） ---------- */
+  function openHelp() {
+    const admin = S.role === 'admin' && S.screen === 'app';
+    const sec = (title, items) => h('section', { class: 'hsec' }, h('h4', { text: title }), h('ul', { class: 'hlist' }, items.map(t => h('li', null, Array.isArray(t) ? [h('b', { text: t[0] }), t[1]] : t))));
+    openModal(inner => {
+      inner.classList.add('helpdlg');
+      inner.append(h('h3', null, '使用說明', h('small', { text: admin ? '教務組' : '導師' })));
+      if (S.screen !== 'app') inner.append(sec('第一次使用', [
+        ['選班級登入：', '在登入頁選自己的班級，按「登入」。這台手機或電腦會被記住，之後打開網頁就直接進入，不用密碼。'],
+        ['一個班一台裝置：', '換手機或登錯班，請教務組在「設定」按「解除」，再用新裝置登入。'],
+        ['像 App 一樣用：', '手機瀏覽器選「加入主畫面」，桌面就會有「作業抽查」圖示。']]));
+      inner.append(sec('收作業時', [
+        ['點格子登記：', '收到習作點藍色格；家長簽名的考卷繳回點紅色格。再點一次可取消，畫面會自動儲存。'],
+        ['一次收一整疊：', '在表頭按「收件」，依本子上的座號一個一個點，比找格子快。'],
+        ['有貼標籤：', '按「掃描登記」，用手機相機或條碼掃描器掃，掃到就登記；同一本重複掃不會取消。'],
+        ['找學生：', '表格上方輸入座號或姓名；按「只看未繳齊」只列出還沒交齊的學生。']]));
+      inner.append(sec('提醒與通知', [
+        ['家長通知單：', '每位缺交的學生印一張「作業繳交提醒」，列出還沒交的項目，請家長簽名。'],
+        ['未交名單：', '一鍵產生文字，可以複製貼到 LINE。']]));
+      if (admin) inner.append(sec('教務組', [
+        ['不用繳：', '這一次、這一班有些習作或考卷不用交，在「班級檢核」該欄表頭按「不用繳」，隨時可「恢復」。'],
+        ['全校總覽與報表：', '看各班完成率、截止倒數；「報表」可列印或下載 Excel 給主任、校長，也有歷次抽查的趨勢。'],
+        ['結案：', '抽查結束到「設定 → 抽查次別」勾「結案」，導師就不能再改；教務組仍可更正。'],
+        ['導師登入：', '「設定 → 導師登入裝置」可解除單班、全部重新登入，或暫停新的導師登入。'],
+        ['查核與備份：', '試算表「異動紀錄」記下每一次登記與變更；「設定 → 系統」可下載備份。']]));
+      inner.append(sec('網路不穩時', [
+        ['照常登記：', '右上角會顯示「N 筆待送出」，網路恢復後自動補送；就算關掉網頁也不會遺失。'],
+        ['打不開也沒關係：', '網頁會先顯示上次的資料，連上後自動更新。']]));
+      inner.append(h('div', { class: 'row', style: 'justify-content:flex-end' }, h('button', { class: 'btn primary', onclick: closeModal }, '知道了')));
+    });
+  }
+
   function renderFoot() {
     const f = h('footer', { class: 'foot' }, h('span', { text: CFG.appName + '　版本 ' + APP_VERSION + '　資料存於 Google 試算表，開啟網頁即為最新。' }));
+    f.append(h('button', { class: 'link helpbtn', onclick: openHelp }, '使用說明'));
     const cur = lsGet(LS.theme) || 'auto';
     const curName = (THEMES.find(t => t[0] === cur) || THEMES[0])[1];
     f.append(h('button', { class: 'link', 'aria-label': '切換外觀，目前為' + curName, onclick: () => { const i = THEMES.findIndex(t => t[0] === (lsGet(LS.theme) || 'auto')); const next = THEMES[(i + 1) % THEMES.length]; lsSet(LS.theme, next[0] === 'auto' ? null : next[0]); applyTheme(); toast('外觀：' + next[1] + (next[0] === 'auto' ? '（跟隨系統）' : '')); const of = document.querySelector('footer.foot'); if (of) { of.replaceWith(renderFoot()); const nb = document.querySelector('footer.foot .themebtn'); if (nb) nb.focus(); } }, class: 'link themebtn' }, '外觀：' + curName));

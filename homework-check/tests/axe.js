@@ -14,5 +14,6 @@ const B = 'http://localhost:8787/'; const scheme = process.argv[2] || 'light';
   await run('班級檢核');
   for (const t of ['全校總覽', '報表', '設定']) { await pg.click('nav.tabs >> text=' + t); await pg.waitForTimeout(400); await run(t); }
   await pg.click('nav.tabs >> text=班級檢核'); await pg.click('button:has-text("掃描登記")'); await pg.waitForTimeout(300); await run('掃描對話框');
+  await pg.keyboard.press('Escape'); await pg.waitForTimeout(200); await pg.click('footer .helpbtn'); await pg.waitForTimeout(200); await run('使用說明');
   await br.close();
 })();

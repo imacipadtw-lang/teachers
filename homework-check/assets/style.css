@@ -692,3 +692,12 @@ input[type=checkbox], input[type=radio] { accent-color: var(--accent); }
 /* 列印一律不要動畫（避免印到淡入途中、半透明的表格） */
 @media print { *, *::before, *::after { animation: none !important; transition: none !important; } }
 @media print { .report .hxsec { break-inside: avoid; page-break-inside: avoid; } }
+
+/* ---------- 使用說明 ---------- */
+.modal .inner.helpdlg { max-width: 640px; }
+.hsec h4 { margin: 4px 0 6px; font-size: 14.5px; color: var(--accent); letter-spacing: .06em; }
+.hlist { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 6px; font-size: 14px; line-height: 1.65; }
+.hlist b { color: var(--ink); }
+.gatefoot { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.gatefoot .helpbtn { font-size: 13.5px; }
+footer.foot .helpbtn { font-size: 12px; }

@@ -738,6 +738,23 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
   }
   await ctx.close();
 
+
+  console.log('33. 使用說明');
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+  ctx = await br.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true }); pg = await newPage(ctx);
+  await pg.goto(B); await pg.waitForSelector('.gatefoot .helpbtn'); await pg.click('.gatefoot .helpbtn'); await sleep(200);
+  let ht = await pg.textContent('.helpdlg');
+  ok(/第一次使用/.test(ht) && /加入主畫面/.test(ht) && !/不用繳：/.test(ht), '登入頁的說明：第一次使用、加入主畫面，沒有教務組專用內容');
+  await pg.click('.helpdlg button:has-text("知道了")'); await sleep(150);
+  ok(!(await pg.$('.helpdlg')), '「知道了」關閉說明');
+  await ctx.close();
+  ctx = await br.newContext({ viewport: { width: 1280, height: 860 } }); pg = await newPage(ctx); await adminLogin(pg, B);
+  await pg.click('footer .helpbtn'); await sleep(200); ht = await pg.textContent('.helpdlg');
+  ok(/教務組/.test(ht) && /不用繳：/.test(ht) && /結案：/.test(ht) && !/第一次使用/.test(ht), '教務組的說明含「不用繳、結案、導師登入、查核與備份」');
+  await pg.keyboard.press('Escape'); await sleep(150);
+  ok(await pg.evaluate(() => document.activeElement && document.activeElement.classList.contains('helpbtn')), 'Esc 關閉後焦點回到「使用說明」');
+  await ctx.close();
+
   await br.close();
   console.log('\n頁面錯誤：' + (errors.length ? errors.join(' | ') : '無'));
   console.log(`結果：${pass} 通過，${fail} 失敗`);
