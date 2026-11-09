@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.09e';
+  const APP_VERSION = '2026.11.09f';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
   const LS = { admin: 'hc.admin', teacher: 'hc.teacher', api: 'hc.api', cls: 'hc.class', outbox: 'hc.outbox', theme: 'hc.theme' };
   const GRADE = ['', '一', '二', '三', '四', '五', '六'];
@@ -899,7 +899,7 @@
       const pct = p.total ? Math.round(p.got / p.total * 100) : null;
       return h('tr', null, h('td', { class: 'rname', text: cls.name }), h('td', { text: cls.teacher || '' }), h('td', { text: String(n) }),
         items.map((it, i) => h('td', { class: examStart(items, i).trim() || null, text: classHasItem(cls, it) ? countItem(cls, it) + '/' + n : '—' })),
-        h('td', { class: pct === 100 ? 'okcell' : null, text: pct == null ? '—' : pct + '%' }), h('td', { class: 'left', text: noteValue(cls.id, null) }));
+        h('td', { class: pct === 100 ? 'okcell' : null, text: pct == null ? '—' : pct + '%' }), h('td', { class: 'left rnote', text: noteValue(cls.id, null) }));
     });
     const pctAll = total ? Math.round(got / total * 100) : 0;
     box.append(h('div', { class: 'rsec' }, h('h3', { text: '一、全校摘要' }),

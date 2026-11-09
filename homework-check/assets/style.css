@@ -444,3 +444,19 @@ nav.tabs button:focus-visible { outline-offset: -3px; }
 .claimbox { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--sheet-2); }
 .claimbox.closed { border-color: var(--ok); background: var(--ok-soft); }
 .claimbox .note { flex: 1 1 260px; }
+
+/* ---------- 列印品質（A4 直式放得下全校摘要；白底；標題不落單） ---------- */
+@media print {
+  @page { size: A4; margin: 10mm 8mm; }
+  .tablebox { overflow: visible !important; border-radius: 0; background: #fff; }
+  table, th, td, tbody tr:hover td { background: #fff !important; }
+  th, .tfoot td, th.grp, td.grpblank { background: #f2f2f2 !important; color: #000 !important; }
+  .report table.rtable { table-layout: auto; width: 100%; }
+  .report table.rtable th, .report table.rtable td { padding: 3px 3px; font-size: 9.5pt; white-space: nowrap; }
+  .report table.rtable td.left { white-space: normal; min-width: 0; }
+  .report .rsec h3, .report .rclass h4 { break-after: avoid; page-break-after: avoid; }
+  .report .rclass { break-inside: avoid; page-break-inside: avoid; }
+  .report .rsec:first-of-type { break-inside: avoid; }
+  table.ov th, table.ov td { padding: 3px 4px; font-size: 9.5pt; min-width: 0; }
+  table.ov .bar { display: none; }
+}
