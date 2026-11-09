@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.09i';
+  const APP_VERSION = '2026.11.09j';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
   const LS = { admin: 'hc.admin', teacher: 'hc.teacher', api: 'hc.api', cls: 'hc.class', outbox: 'hc.outbox', theme: 'hc.theme' };
   const GRADE = ['', '一', '二', '三', '四', '五', '六'];
@@ -594,6 +594,7 @@
     if (m.onClose) { try { m.onClose(); } catch (e) { } }
     m.el.remove(); document.removeEventListener('keydown', m.onKey);
     document.body.classList.remove('modal-open');
+    if (S.mainDirty) { S.mainDirty = false; renderSoft(); }
     if (!silent && m.opener && m.opener.isConnected && m.opener.focus) m.opener.focus({ preventScroll: true });
   }
   function openQuick(cls, it) {
@@ -608,9 +609,9 @@
       inner.append(h('div', { class: 'row between' },
         h('div', { class: 'counter' }, h('b', { text: String(got.length) }), '／' + n + ' 人' + (it.kind === 'exam' ? '已繳回' : '已交')),
         h('div', { class: 'row' },
-          ed ? armed(h('button', { class: 'btn small ghost' }), '全部' + (it.kind === 'exam' ? '繳回' : '已交'), '確定全部勾選？', () => { studs.forEach(s => { if (!isOn(c.id, s.no, it.id)) setMark(c.id, s.no, it.id, true, { quiet: true }); }); renderSoft(); }) : null,
-          ed ? armed(h('button', { class: 'btn small ghost' }), '全部清除', '確定全部取消？', () => { studs.forEach(s => { if (isOn(c.id, s.no, it.id)) setMark(c.id, s.no, it.id, false, { quiet: true }); }); renderSoft(); }) : null)));
-      inner.append(h('div', { class: 'tiles' + (it.kind === 'exam' ? ' exam' : '') }, studs.map(s => h('button', { type: 'button', class: 'tile', role: 'switch', 'aria-checked': String(isOn(c.id, s.no, it.id)), disabled: !ed, onclick: () => setMark(c.id, s.no, it.id, !isOn(c.id, s.no, it.id)) }, h('b', { text: String(s.no) }), h('small', { text: s.name || '' })))));
+          ed ? armed(h('button', { class: 'btn small ghost' }), '全部' + (it.kind === 'exam' ? '繳回' : '已交'), '確定全部勾選？', () => { studs.forEach(s => { if (!isOn(c.id, s.no, it.id)) setMark(c.id, s.no, it.id, true, { quiet: true }); }); S.mainDirty = true; if (S.modal && S.modal.refresh) S.modal.refresh(); }) : null,
+          ed ? armed(h('button', { class: 'btn small ghost' }), '全部清除', '確定全部取消？', () => { studs.forEach(s => { if (isOn(c.id, s.no, it.id)) setMark(c.id, s.no, it.id, false, { quiet: true }); }); S.mainDirty = true; if (S.modal && S.modal.refresh) S.modal.refresh(); }) : null)));
+      inner.append(h('div', { class: 'tiles' + (it.kind === 'exam' ? ' exam' : '') }, studs.map(s => h('button', { type: 'button', class: 'tile', role: 'switch', 'aria-checked': String(isOn(c.id, s.no, it.id)), 'aria-label': s.no + '號 ' + (s.name || ''), disabled: !ed, onclick: () => { setMark(c.id, s.no, it.id, !isOn(c.id, s.no, it.id), { quiet: true }); S.mainDirty = true; if (S.modal && S.modal.refresh) S.modal.refresh(); } }, h('b', { text: String(s.no) }), h('small', { text: s.name || '' })))));
       inner.append(h('div', { class: 'miss', text: miss.length ? '尚未' + (it.kind === 'exam' ? '繳回' : '交') + '：' + miss.map(s => s.no + '號').join('、') : '全班皆已' + (it.kind === 'exam' ? '繳回' : '繳交') + '。' }));
       inner.append(h('div', { class: 'row', style: 'justify-content:flex-end' }, h('button', { class: 'btn primary', onclick: closeModal }, '完成')));
     });
@@ -725,7 +726,7 @@
       if (!it) return show('err', '請先在上方選擇要登記的項目', '這張標籤沒有科目');
       const label = st.no + '號 ' + (st.name || '') + '　' + it.name;
       if (isOn(c.id, st.no, it.id)) { show('dup', '已經登記過', label); return; }
-      setMark(c.id, st.no, it.id, true, { quiet: true });
+      setMark(c.id, st.no, it.id, true, { quiet: true }); S.mainDirty = true;
       sc.count++; counterEl.textContent = String(sc.count);
       sc.log.unshift(label); if (sc.log.length > 8) sc.log.pop();
       logEl.replaceChildren(...sc.log.map((t, i) => h('li', { class: i === 0 ? 'new' : null, text: t })));
