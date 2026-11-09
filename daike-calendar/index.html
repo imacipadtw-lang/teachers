@@ -2474,7 +2474,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.09t";
+const APP_VERSION = "專業版 2026.11.09u";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -3533,7 +3533,7 @@ function describe0(e){
       case "tutor": return {p:`${e.cls} 導師 ${daysTxt(e)}・${o}${leaveWord(e)}`, w:`${w} 代 ${o} 當導師`, f:`${w} 領代導費 ${yuan(f)}`};
       case "leave": return o ? null : {p:`${per} ${courseOf(e)}`, w:`${w} ${leaveWord(e)}`, f:"還沒有安排代課老師"};
       case "tutorLeave": return o ? null : {p:`${e.cls} 導師`, w:`${w} ${leaveWord(e)}`, f:"還沒有安排代導師"};
-      case "swap": { const v=swapView(e); return {p:"調課・"+v.p, w:v.w, f:v.f+"（調課沒有代課費）"}; }
+      case "swap": { const v=swapView(e); return {p:"調課・"+v.p, w:v.w, f:v.f}; }
       case "absent": return absentView(e);
     }
     return null;
@@ -3545,7 +3545,7 @@ function describe0(e){
     case "tutor": return {p:`${e.cls} 導師 ${daysTxt(e)}・${o}${leaveWord(e)}`, w:`${w} 代 ${o} 當導師`, f:`${w} 領代導費 ${yuan(f)}`};
     case "tutorLeave": return o ? {p:`${e.cls} 導師・${w}${leaveWord(e)}`, w:`${o} 代 ${w} 當導師`, f:`代導費 ${yuan(f)} 由 ${o} 領`}
                                 : {p:`${e.cls} 導師`, w:`${w}${leaveWord(e)}`, f:"還沒有安排代導師"};
-    case "swap": { const v=swapView(e); return {p:"調課・"+v.p, w:v.w, f:v.f+"（調課沒有代課費）"}; }
+    case "swap": { const v=swapView(e); return {p:"調課・"+v.p, w:v.w, f:v.f}; }
     case "absent": return absentView(e);
   }
   return null;
@@ -3782,7 +3782,7 @@ function renderDash(){
   const kpi = [
     ["代課", D.t.subN, "節", diff == null ? (r ? "" : "整學期") : diff === 0 ? "和上個月一樣" : `比上個月${diff > 0 ? "多" : "少"} ${Math.abs(diff)} 節`, ""],
     ["代課費＋代導費", D.t.subFee + D.t.tutorFee, "元", `代課 ${yuan(D.t.subFee)}・代導 ${yuan(D.t.tutorFee)}`, ""],
-    ["調課", D.swapN, "筆", "調課沒有代課費", ""],
+    ["調課", D.swapN, "筆", "", ""],
     ["代導師", D.t.tutorD, "日", "", ""],
     ["請假登記", D.absN, "筆", D.t.unN ? `還沒安排代課 ${D.t.unN} 筆` : "都已安排", D.t.unN ? "up" : ""],
     ["最忙的一天", D.busy ? D.busy[1] : 0, "筆", busy, ""]
