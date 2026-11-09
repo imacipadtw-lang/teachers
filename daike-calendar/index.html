@@ -1373,6 +1373,7 @@ html[data-theme=dark] .wb-todo li.ok{background:rgba(79,209,161,.10)}
 @keyframes chkFlash{0%,40%{box-shadow:0 0 0 4px var(--sky)}100%{box-shadow:0 0 0 0 transparent}}
 @media (prefers-reduced-motion:reduce){.chk.flash{animation:none;outline:3px solid var(--sky)}}
 .plan-sum .sumfee{color:var(--ink-2);font-size:13px}
+@media (max-width:600px){ .ev .fixbtn{min-height:40px;padding:6px 14px;margin:6px 6px 0 0} .ev .fixbtn.delbtn{margin-left:10px} }   /* 手機：按鈕好按、刪除和修改分開一點 */
 </style>
 </head>
 <body>
@@ -2526,7 +2527,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.10";
+const APP_VERSION = "專業版 2026.11.10b";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -2947,7 +2948,7 @@ function applyData(d){
   $("#pwNotice").hidden = d.pwChanged !== false;
   state.line = d.line || null;
   $("#openLine").hidden = state.role==="acct" || !(state.line && state.line.on);
-  $("#lineNotice").hidden = state.role==="acct" || !(state.line && state.line.on && !state.line.bound) || store.get("lineNoticeOff", localStorage) === "1";
+  $("#lineNotice").hidden = state.role==="acct" || state.role==="admin" || !(state.line && state.line.on && !state.line.bound) || store.get("lineNoticeOff", localStorage) === "1";
   state.pwStatus = d.pwStatus || [];
   $("#openPlan").hidden = state.role!=="admin"; $("#cmdBtn").hidden = state.role!=="admin";
   $("#dlExcel").textContent = state.role==="admin" || state.role==="acct" ? "明細試算表（雲端）" : "下載 Excel";
@@ -4310,6 +4311,7 @@ function prefetchMeta(){                      // 管理者登入後在背景先�
   if((state.role!=="admin" && state.role!=="acct") || state.meta || prefetchMeta.p || !state.cred) return;
   prefetchMeta.p = api({action:"meta", name:state.cred.name, h:state.cred.h})
     .then(m=>{ if(m.ok && m.tt){ state.meta = m; try{ renderWorkbench(); }catch(e){ console.error(e); }
+      try{ const ms = $("#mSel"); if(ms && $("#checkBox")){ renderHeli(ms.value); renderChecks(ms.value); } }catch(e){ console.error(e); }   // 115.11.10：課表讀到就重算報帳前檢查，不再留著「課表還沒讀到」的紅字
       hrAuto(); } }).catch(()=>{}).finally(()=>{ prefetchMeta.p = null; });
 }
 $("#openPlan").onclick = ()=>openPlan();
@@ -5375,6 +5377,8 @@ function wbTodos(ym, P){
   const L = [], today = ymd(new Date()), f = v => Number(v).toLocaleString("zh-TW");
   if(state.lastSaved && state.lastSaved.ids.length){ const ids = state.lastSaved.ids.map(x => sidOf({id:x}) || x).join("、");
     L.push({lv:"ok", text:`剛存好的序號（請寫在紙本上）：${ids}`, verb:"複製", act: () => copyText(ids).then(ok => { toast(ok ? "已複製序號" : "請手動抄下：" + ids); state.lastSaved = null; renderWorkbench(); })}); }
+  { const tn = new Set(state.events.filter(e => e.date === today && describe(e)).map(e => sidOf(e) || (e.type + e.period + e.cls))).size;   // 115.11.10：今天的課務排第一個
+    if(tn) L.push({lv:"info", text:`今天 ${md(today)}：${tn} 筆課務`, verb:"看今天", act: () => wbOpenDay(today)}); }
   if(!(state.settings && state.settings.labels)) L.push({lv:"err", text:"後端程式（Apps Script）還是舊版：系統設定、月結、會計報表（即時）都還不能用", verb:"", act:null});
   if(P.un) L.push({lv:"err", text:`${+ym.slice(5)} 月有 ${P.un} 筆請假還沒安排代課老師`, verb:"看哪幾筆", act: () => wbUnassigned(ym)});
   const a = state.audit || []; if(a.length) L.push({lv:"warn", text:`資料檢查有 ${a.length} 個問題（衝堂、重複登錄…）`, verb:"去看", act: () => wbGo("#alerts")});
