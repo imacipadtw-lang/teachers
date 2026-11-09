@@ -968,6 +968,21 @@ select{background-color:#fff}
 .acct-kpi .total{background:linear-gradient(160deg,rgba(208,69,122,.16),#FFF7FA)}
 .wb{background:#fff;box-shadow:0 10px 30px rgba(178,58,107,.10)}
 .wb-card{background:var(--surface-2)}
+@media screen{
+.wb-prog{display:flex;flex-direction:column}
+.wb-prog>.wb-next,.wb-prog>.hint{margin-bottom:14px}
+.wb-mstat{margin:auto 0 0;padding-top:14px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;border-top:1px solid var(--line);margin-top:auto}
+.wb-mstat>div{padding:10px 4px 0 12px;border-left:1px solid var(--line);min-width:0}
+.wb-mstat>div:first-child{border-left:0;padding-left:0}
+.wb-mstat dt{font-size:12px;color:var(--ink-3);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wb-mstat dd{margin:2px 0 0;font-size:22px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-.01em;line-height:1.2}
+.wb-mstat dd small{font-size:12px;font-weight:600;color:var(--ink-3);margin-left:2px}
+.wb-mstat .bad dd,.wb-mstat .bad dd small{color:#B4234A}
+html[data-theme=dark] .wb-mstat .bad dd,html[data-theme=dark] .wb-mstat .bad dd small{color:#FF8DA1}
+.wb-mstat dd button{all:unset;cursor:pointer;border-bottom:2px solid currentColor;line-height:1.1}
+.wb-mstat dd button:focus-visible{outline:2px solid currentColor;outline-offset:3px;border-radius:4px}
+}
+@media screen and (max-width:640px){.wb-mstat{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:10px}.wb-mstat>div:nth-child(3){border-left:0;padding-left:0}.wb-mstat dd{font-size:19px}}
 .wb-todo li{background:#fff}
 .wb-track li.done i,.wb-track li.cur i{color:#fff}
 .seg2{background:#fff}
@@ -2642,7 +2657,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.10l";
+const APP_VERSION = "專業版 2026.11.10m";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -5691,6 +5706,10 @@ function renderWorkbench(){
   const next = P ? (P.cur ? `<div class="wb-next"><span>下一步</span><b>${esc2(P.cur.t)}</b><em>${esc2(P.cur.sub)}</em><button class="btn" type="button" id="wbNext">${esc2(P.cur.verb)}</button></div>`
                           : `<div class="wb-next ok"><span>${roc}</span><b>${P.closed ? "已結帳 ✓" : "能判斷的步驟都完成了"}</b></div>`) : "";
   const todos = P ? wbTodos(ym, P) : [];
+  // 本月數字（只顯示；金額一律用 tally()／feeOf()，和報表同一套）
+  const mt = (() => { try { applySettingsAt(ym); return tally(state.events.filter(e => inRange(e, ym))); } catch(e){ return null; } })();
+  const mstat = mt ? `<dl class="wb-mstat" aria-label="${roc} 數字"><div><dt>代課</dt><dd>${mt.subN}<small>節</small></dd></div><div><dt>代課費</dt><dd>${Number(mt.subFee).toLocaleString("zh-TW")}<small>元</small></dd></div><div><dt>代導師</dt><dd>${mt.tutorD}<small>日</small></dd></div>`
+    + `<div class="${mt.unN ? "bad" : ""}"><dt>還沒安排代課</dt><dd>${mt.unN ? `<button type="button" id="wbUnN" title="看清單">${mt.unN}<small>筆</small></button>` : `0<small>筆</small>`}</dd></div></dl>` : "";
   const list = todos.length ? `<ul class="wb-todo">${todos.map((x, i) => `<li class="${x.lv}"><span>${esc2(x.text)}</span>${x.act ? `<button type="button" class="btn ghost small" data-todo="${i}">${esc2(x.verb)}</button>` : ""}</li>`).join("")}</ul>`
                             : `<div class="wb-clear"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m7.5 12.5 3 3 6-6.5"/></svg><b>都處理好了</b><span>目前沒有要處理的事</span></div>`;
   const teachers = state.teachers || [], months = termMonths().map(([y,m]) => `${y-1911} 年 ${m+1} 月`);
@@ -5700,7 +5719,7 @@ function renderWorkbench(){
       <form class="wb-find" id="wbFind" autocomplete="off"><input id="wbQ" list="wbList" placeholder="找老師、日期（10/27）、序號（調-11511001）或功能" aria-label="找老師、日期、序號或功能"><datalist id="wbList">${teachers.map(t => `<option value="${esc2(t)}">`).join("")}${months.map(m => `<option value="${m}">`).join("")}${WB_FUNCS.map(x => `<option value="${esc2(x[0])}">`).join("")}</datalist><button class="btn small" type="submit">前往</button></form>
     </div>
     <div class="wb-grid">
-      <div class="wb-card wb-prog"><h3>${roc} 報帳進度 <small>${P ? `${P.doneN}／7` : ""}</small></h3>${steps}${next}</div>
+      <div class="wb-card wb-prog"><h3>${roc} 報帳進度 <small>${P ? `${P.doneN}／7` : ""}</small></h3>${steps}${next}${mstat}</div>
       <div class="wb-card"><h3>現在該處理 <small>${todos.length ? `${todos.length} 項` : ""}</small></h3>${list}</div>
       <div class="wb-card wb-quick"><h3>常用</h3><div class="wb-btns">
         <button type="button" class="btn" data-q="plan">＋ 排調代課</button>
@@ -5716,6 +5735,7 @@ function renderWorkbench(){
     </div>${wbWeekHtml()}</section>`;
   if(P){ box.querySelectorAll("[data-step]").forEach(b => b.onclick = () => { const s = P.steps[+b.dataset.step]; if(s.k === "sent" && s.done && !P.closed){ if(confirm("取消「已送會計」的記錄？")) { wbFlag(ym, "sent", false); renderWorkbench(); } return; } s.act(); });
     if($("#wbNext")) $("#wbNext").onclick = () => P.cur.act(); }
+  if($("#wbUnN")) $("#wbUnN").onclick = () => wbUnassigned(ym);
   box.querySelectorAll("[data-todo]").forEach(b => b.onclick = () => todos[+b.dataset.todo].act());
   box.querySelectorAll("[data-wkd]").forEach(b => b.onclick = () => wbOpenDay(b.dataset.wkd));
   const Q = {plan: () => openPlan(), sign: () => printHeliSign(ym), check: () => wbGo("#checkBox"), ledger: () => ledgerExcel(ym), live: () => state.liveUrl ? window.open(state.liveUrl, "_blank", "noopener") : wbGo(".live-box"), set: () => wbOpenSettings(), pw: () => WB_FUNCS.find(x => x[0] === "老師密碼")[1](), scan: async () => { await openPlan(); const f = $("#scanFile"); if(f) f.click(); }, hr: () => { wbGo("#hrBox"); setTimeout(() => { const f = $("#hrFile"); if(f) f.click(); }, 350); }, reload: () => reload()};
