@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.09j';
+  const APP_VERSION = '2026.11.09k';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
   const LS = { admin: 'hc.admin', teacher: 'hc.teacher', api: 'hc.api', cls: 'hc.class', outbox: 'hc.outbox', theme: 'hc.theme' };
   const GRADE = ['', '一', '二', '三', '四', '五', '六'];
@@ -1020,16 +1020,19 @@
         h('td', { class: 'mini', text: d && d.updatedAt ? fmtStamp(d.updatedAt) : '尚未登記' }));
     });
     const pct = total ? Math.round(got / total * 100) : 0;
+    const notLogged = cl.filter(c => !((S.links[c.id] || {}).devices || []).length);
     box.append(h('div', { class: 'row between' },
       h('div', { class: 'stats' },
         h('div', { class: 'stat' + (pct === 100 && total ? ' ok' : '') }, '全校完成率', h('b', { text: pct + '%' })),
         h('div', { class: 'stat' }, '已交／應交', h('b', { text: got + ' / ' + total })),
-        h('div', { class: 'stat' }, '全班繳齊', h('b', { text: full + ' / ' + cl.length + ' 班' }))),
+        h('div', { class: 'stat' }, '全班繳齊', h('b', { text: full + ' / ' + cl.length + ' 班' })),
+        h('div', { class: 'stat' + (notLogged.length ? ' warnstat' : '') }, '導師已登入', h('b', { text: (cl.length - notLogged.length) + ' / ' + cl.length + ' 班' }))),
       h('div', { class: 'row' },
         h('button', { class: 'btn ghost small', onclick: () => openMissing(cl) }, svg('list'), '全校未交名單'),
         h('button', { class: 'btn ghost small', onclick: () => exportCSV(cl) }, svg('down'), '匯出 CSV'),
         h('button', { class: 'btn ghost small', onclick: () => window.print() }, svg('print'), '列印'))));
     box.append(h('div', { class: 'print-meta', text: (CFG.schoolName || '') + '　' + r.name + '　全校總覽　列印時間 ' + new Date().toLocaleString('zh-TW') }));
+    if (notLogged.length) box.append(h('div', { class: 'banner warn no-print' }, h('span', { text: '尚未登入的班級：' + notLogged.map(c => c.name + (c.teacher ? '（' + c.teacher + '）' : '')).join('、') + '。這些班級的導師還不能登記，請提醒導師開啟網址、選擇自己的班級登入' + (S.claimClosed ? '（目前「暫停新的導師登入」中，需先到設定取消勾選）' : '') + '。' })));
     box.append(h('section', { class: 'panel chartpanel', 'aria-label': '各班完成率' }, h('h2', { text: '各班完成率' }), classChart(cl, r)));
     box.append(h('div', { class: 'tablebox' }, h('table', { class: 'ov' },
       h('thead', null, groupHeaderRow(items, 1, 2), h('tr', null, h('th', { style: 'text-align:left', text: '班級' }), items.map((it, i) => h('th', { class: (it.kind === 'exam' ? 'exam' : '') + examStart(items, i), text: it.short || it.name })), h('th', { text: '完成率' }), h('th', { text: '最後登記' }))),

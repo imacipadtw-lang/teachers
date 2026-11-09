@@ -16,9 +16,9 @@
   --seal: #b3362c;
   --seal-ink: #ffffff;
   --seal-soft: #f7e6e3;
-  --ok: #2d7a4b;
+  --ok: #2a7246;
   --ok-soft: #e1f1e6;
-  --warn: #a35f00;
+  --warn: #975800;
   --warn-soft: #fbefd9;
   --off: #c9d1dd;
   --shadow: 0 1px 2px rgba(60, 50, 20, .08), 0 6px 20px rgba(60, 50, 20, .07);
@@ -465,3 +465,5 @@ nav.tabs button:focus-visible { outline-offset: -3px; }
   input.noteinput::placeholder { color: transparent !important; }
   .stack > .note, .classhead + .print-meta + .note { display: none; }
 }
+
+.stat.warnstat b { color: var(--warn); }

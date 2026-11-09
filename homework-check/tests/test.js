@@ -367,6 +367,18 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
     ok(flat.includes('全班延後') && flat.includes('各班統計'), '各班統計含班級備註');
   }
 
+
+  console.log('22. 總覽：導師登入狀態');
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+  await fetch(B + 'exec?action=claim&classId=g1&label=t');
+  ctx = await br.newContext({ viewport: { width: 1280, height: 860 } }); pg = await newPage(ctx);
+  await adminLogin(pg, B); await pg.click('nav.tabs >> text=全校總覽'); await sleep(400);
+  ok(/導師已登入\s*1 \/ 3 班/.test(await pg.textContent('.stats')), '統計顯示「導師已登入 1 / 3 班」');
+  const bn = await pg.textContent('.banner.warn');
+  ok(/二甲（測試2）/.test(bn) && /三甲（測試3）/.test(bn) && !/一甲/.test(bn), '提醒列出尚未登入的二甲、三甲（含導師姓名）');
+  await ctx.close();
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+
   await br.close();
   console.log('\n頁面錯誤：' + (errors.length ? errors.join(' | ') : '無'));
   console.log(`結果：${pass} 通過，${fail} 失敗`);
