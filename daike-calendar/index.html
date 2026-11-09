@@ -2680,7 +2680,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.10t";
+const APP_VERSION = "專業版 2026.11.10u";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -4964,6 +4964,7 @@ function setField(k, v){
 }
 $("#planBody").addEventListener("change", e=>{
   const k = e.target.dataset.k; if(!k) return;
+  if(e.target.type === "date" && e.target.value && +e.target.value.slice(0,4) < 2000) return;   // 115.11.10：用鍵盤打日期時年份還沒打完（0002…）先不處理，避免重畫成錯的日期
   const before = hardMap(), saved = JSON.stringify(plan);
   setField(k, e.target.type==="checkbox" ? e.target.checked : e.target.value);
   // 這個動作造成新的衝堂／請假衝突 → 跳出警示、取消這個動作（回到原來的值）
