@@ -470,3 +470,13 @@ nav.tabs button:focus-visible { outline-offset: -3px; }
 
 .resetall { border-top: 1px solid var(--line); padding-top: 12px; }
 .resetall .note { flex: 1 1 280px; }
+
+/* ---------- 本次不用繳 ---------- */
+.skipline { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; }
+.skiptag { display: inline-flex; gap: 6px; align-items: center; background: var(--sheet-2); color: var(--muted); padding: 3px 10px; }
+.skiptag.exam { color: var(--seal); }
+.skiptag .link { font-size: 12px; }
+.thops { display: flex; gap: 8px; justify-content: center; }
+.skipbtn { color: var(--muted); }
+td.skipcell { color: var(--muted); font-size: 12px; }
+@media print { .skiptag .link { display: none; } }

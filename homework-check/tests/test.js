@@ -339,7 +339,7 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
   await fetch(B + '__reset'); await fetch(B + '__seed');
   ctx = await br.newContext({ viewport: { width: 1280, height: 860 } }); pg = await newPage(ctx);
   await adminLogin(pg, B);
-  await pg.click('thead .link >> nth=1'); await pg.waitForSelector('.tiles');
+  await pg.locator('thead button:has-text("收件")').nth(1).click(); await pg.waitForSelector('.tiles');
   await pg.locator('.tiles .tile').nth(0).click(); await pg.locator('.tiles .tile').nth(2).click(); await pg.locator('.tiles .tile').nth(4).click(); await pg.locator('.tiles .tile').nth(4).click();
   ok((await pg.textContent('.modal .counter')).includes('2'), '對話框計數即時更新（2 人）');
   await pg.click('.modal button:has-text("完成")'); await sleep(300);
@@ -449,6 +449,58 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
   await pg.fill('input[type=password]', 'test1234'); await pg.keyboard.press('Enter'); await pg.waitForSelector('nav.tabs', { timeout: 15000 });
   ok(true, '接著教務組登入成功');
   await ctx.close();
+
+
+  console.log('25. 這一次、這一班不用繳某項目');
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+  { const R = async b => (await fetch(B + 'exec', { method: 'POST', body: JSON.stringify(b) })).json();
+    ctx = await br.newContext({ viewport: { width: 1280, height: 860 } }); pg = await newPage(ctx); await adminLogin(pg, B);
+    await pg.locator('table.grid button.chk[data-no="1"][data-item="math"]').click(); await sleep(1500);
+    const thBefore = await pg.locator('table.grid thead tr:nth-child(2) th').count();
+    await pg.locator('button.skipbtn[aria-label="數學習作：本次不用繳"]').click(); await sleep(1500);
+    ok((await pg.locator('table.grid thead tr:nth-child(2) th').count()) === thBefore - 1 && (await pg.locator('table.grid button.chk[data-item="math"]').count()) === 0, '按「不用繳」後數學習作欄消失');
+    ok(/本次不用繳：.*數學習作/.test(await pg.textContent('.skipline')) && (await pg.locator('.skipline button:has-text("恢復")').count()) === 1, '顯示「本次不用繳：數學習作」與「恢復」');
+    const rd = await R({ action: 'read', key: 'test1234' });
+    ok(rd.checks.g1.skip && rd.checks.g1.skip.math === true && rd.checks.g1.marks['1'] && rd.checks.g1.marks['1'].math, '後端記錄 skip，原本 1 號的登記保留');
+    ok((await pg.textContent('.classhead .ring')).trim() === '0%', '完成率不再把數學算進去（0%）');
+    const t1 = await (await fetch(B + 'exec?action=claim&classId=g1&label=t')).json();
+    await R({ action: 'marks', token: t1.token, rid: 'r1', classId: 'g1', changes: [{ no: 2, itemId: 'math', val: true }, { no: 2, itemId: 'chinese', val: true }] });
+    const rd2 = await R({ action: 'read', key: 'test1234' });
+    ok(!(rd2.checks.g1.marks['2'] && rd2.checks.g1.marks['2'].math) && rd2.checks.g1.marks['2'].chinese, '後端拒絕登記不用繳的項目，其他項目照常');
+    await pg.click('nav.tabs >> text=全校總覽'); await sleep(400);
+    ok(/不用繳/.test(await pg.locator('table.ov tbody tr').first().innerText()), '總覽一甲列顯示「不用繳」');
+    await pg.click('nav.tabs >> text=報表'); await sleep(400);
+    ok(/不用繳/.test(await pg.locator('.report .rtable tbody tr').first().innerText()) && /本次不用繳：數學習作/.test(await pg.textContent('.report')), '報表摘要顯示「不用繳」、各班明細標題列出');
+    await pg.click('nav.tabs >> text=班級檢核'); await pg.waitForSelector('table.grid');
+    const [dl] = await Promise.all([pg.waitForEvent('download'), pg.click('button:has-text("本班 CSV")')]);
+    const csv = fs.readFileSync(await dl.path(), 'utf8');
+    ok(csv.split('\r\n')[1].includes('本次不用繳'), 'CSV 該欄寫「本次不用繳」');
+    await pg.click('button:has-text("掃描登記")'); await pg.waitForSelector('#scanInput');
+    await pg.fill('#scanInput', '1010202'); await pg.press('#scanInput', 'Enter'); await sleep(250);
+    ok(/不用繳/.test(await pg.textContent('.scanstatus .big')), '掃描不用繳的習作 → 提示「這次不用繳」');
+    await pg.click('.scanmode button:has-text("結束")'); await sleep(300);
+    const tctx = await br.newContext({ viewport: { width: 1280, height: 860 } }); const tp = await newPage(tctx);
+    await tp.goto(B); await tp.evaluate(t => localStorage.setItem('hc.teacher', JSON.stringify({ token: t.token, classId: 'g1' })), t1); await tp.reload(); await tp.waitForSelector('table.grid');
+    ok((await tp.locator('table.grid button.chk[data-item="math"]').count()) === 0 && /本次不用繳：數學習作/.test(await tp.textContent('.skipline')) && (await tp.locator('.skipline button').count()) === 0, '導師看不到數學欄、看到「本次不用繳」、沒有恢復鈕');
+    await tctx.close();
+    await pg.click('.skipline button:has-text("恢復")'); await sleep(1500);
+    ok((await pg.locator('table.grid button.chk[data-item="math"]').count()) === 6 && await pg.locator('table.grid button.chk[data-no="1"][data-item="math"]').getAttribute('aria-checked') === 'true', '恢復後欄位回來，1 號原本的登記還在');
+    const lg = JSON.stringify(await (await fetch(B + '__sheet?name=' + encodeURIComponent('異動紀錄'))).json());
+    ok(lg.includes('"本次不用繳"') && lg.includes('"恢復要繳"'), '異動紀錄有「本次不用繳」「恢復要繳」');
+    await pg.locator('button.skipbtn[aria-label="數學習作：本次不用繳"]').click(); await sleep(1200);
+    await R({ action: 'snapshot', key: 'test1234', rid: 'r1' });
+    const rdx = await R({ action: 'read', key: 'test1234' });
+    const sheet = await (await fetch(B + '__sheet?name=' + encodeURIComponent('總表 ' + rdx.rounds[0].name))).json();
+    const row1 = sheet.find(r => r[0] === '一甲' && r[2] === 1);
+    ok(row1 && row1.includes('不用繳'), '試算表總表該欄寫「不用繳」');
+    await ctx.close();
+  }
+  await fetch(L + '__reset'); await fetch(L + '__seed');
+  ctx = await br.newContext({ viewport: { width: 1280, height: 860 } }); pg = await newPage(ctx); await adminLogin(pg, L);
+  await pg.locator('button.skipbtn[aria-label="數學習作：本次不用繳"]').click(); await sleep(1500);
+  ok(/更新後端/.test(await pg.textContent('.toast')) && (await pg.locator('table.grid button.chk[data-item="math"]').count()) === 6, '舊版後端：提示需更新後端，欄位不變');
+  await ctx.close();
+  await fetch(B + '__reset'); await fetch(B + '__seed');
 
   await br.close();
   console.log('\n頁面錯誤：' + (errors.length ? errors.join(' | ') : '無'));

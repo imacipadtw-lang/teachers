@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.09n';
+  const APP_VERSION = '2026.11.09o';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
   const LS = { admin: 'hc.admin', teacher: 'hc.teacher', api: 'hc.api', cls: 'hc.class', outbox: 'hc.outbox', theme: 'hc.theme' };
   const GRADE = ['', '一', '二', '三', '四', '五', '六'];
@@ -195,7 +195,7 @@
   }
   function applyServer(checks, startedAt) {
     const next = {};
-    Object.keys(checks).forEach(cid => { next[cid] = { marks: Object.assign({}, checks[cid].marks || {}), notes: Object.assign({}, checks[cid].notes || {}), classNote: checks[cid].classNote || '', updatedAt: checks[cid].updatedAt || '', updatedBy: checks[cid].updatedBy || '' }; });
+    Object.keys(checks).forEach(cid => { next[cid] = { marks: Object.assign({}, checks[cid].marks || {}), skip: Object.assign({}, checks[cid].skip || {}), notes: Object.assign({}, checks[cid].notes || {}), classNote: checks[cid].classNote || '', updatedAt: checks[cid].updatedAt || '', updatedBy: checks[cid].updatedBy || '' }; });
     S.pendingNotes.forEach((p, key) => {
       if (p.ackAt && p.ackAt < startedAt) { S.pendingNotes.delete(key); return; }
       const [rid, cid, no] = key.split('|');
@@ -314,7 +314,12 @@
   const allItems = () => (S.config && S.config.items) || [];
   function classHasItem(cls, it) { if (Array.isArray(cls.itemIds)) return cls.itemIds.includes(it.id); return (it.grades || []).map(Number).includes(Number(cls.grade)); }
   const grouped = list => list.filter(it => it.kind !== 'exam').concat(list.filter(it => it.kind === 'exam')); // 習作在前、考卷在後
-  function itemsFor(cls, r) { r = r || round(); if (!r || !cls) return []; const ids = new Set(r.itemIds || []); return grouped(allItems().filter(it => ids.has(it.id) && classHasItem(cls, it))); }
+  // 「不用繳」：教務組在班級檢核表頭設定，只影響這一次抽查、這一班；已登記的紀錄保留但不顯示、不計算
+  function skipped(cid, itemId) { const d = S.checks[cid]; return !!(d && d.skip && d.skip[itemId]); }
+  function skippedItems(cls, r) { r = r || round(); if (!r || !cls) return []; const ids = new Set(r.itemIds || []); return grouped(allItems().filter(it => ids.has(it.id) && classHasItem(cls, it) && skipped(cls.id, it.id))); }
+  function applies(cls, it, r) { r = r || round(); return !!r && (r.itemIds || []).includes(it.id) && classHasItem(cls, it) && !skipped(cls.id, it.id); }
+  // opts.all＝連「不用繳」的也算（標籤列印用：標籤不該隨這一次的設定變動）
+  function itemsFor(cls, r, opts) { r = r || round(); if (!r || !cls) return []; const ids = new Set(r.itemIds || []); return grouped(allItems().filter(it => ids.has(it.id) && classHasItem(cls, it) && ((opts && opts.all) || !skipped(cls.id, it.id)))); }
   function roundItems(r) { r = r || round(); if (!r) return []; const ids = new Set(r.itemIds || []); return grouped(allItems().filter(it => ids.has(it.id))); }
   // 兩層表頭：習作｜考卷（家長簽名）
   function groupHeaderRow(items, leftCols, rightCols) {
@@ -386,6 +391,26 @@
       S.pendingNotes.delete(key); setSync('err', errText(r.error)); toast('備註儲存失敗：' + errText(r.error), 3200);
     };
     S.noteTimers[key] = setTimeout(() => send(0), 700);
+  }
+  // 教務組：這一班這次「不用繳」某項目／恢復。舊版後端不認得時提示改用設定頁
+  async function setSkip(cls, it, skip) {
+    const rid = S.rid; if (!rid || S.role !== 'admin') return;
+    const d = S.checks[cls.id] || (S.checks[cls.id] = { marks: {}, notes: {}, classNote: '', skip: {}, updatedAt: '', updatedBy: '' });
+    const before = Object.assign({}, d.skip || {});
+    d.skip = Object.assign({}, d.skip || {}); if (skip) d.skip[it.id] = true; else delete d.skip[it.id];
+    renderMain(); setSync('busy');
+    try {
+      const r = await apiPost({ action: 'skipItem', rid, classId: cls.id, itemId: it.id, skip });
+      if (!r.ok) {
+        d.skip = before; renderMain();
+        if (r.error === 'auth') return authLost();
+        if (r.error === 'unknown_action') { setSync('ok'); toast('「不用繳」需要先更新後端程式（Code.gs 重新部署）。在那之前可到「設定 → 班級」取消勾選該項目。', 5200); return; }
+        throw new Error(errText(r.error));
+      }
+      S.version = null; setSync('ok');
+      toast(cls.name + (skip ? ' 本次不用繳「' + it.name + '」；已登記的紀錄會保留，恢復後再顯示' : ' 恢復要繳「' + it.name + '」'), 3400);
+      load({ force: true });
+    } catch (e) { d.skip = before; renderMain(); setSync('err', e.message); toast('操作失敗：' + e.message, 3600); }
   }
   function noteInput(cid, no, placeholder) {
     const inp = h('input', { type: 'text', class: 'noteinput', value: noteValue(cid, no), placeholder: placeholder || '備註', maxlength: '200', 'aria-label': placeholder || '備註',
@@ -492,7 +517,9 @@
     box.append(h('div', { class: 'classhead' }, headLeft, actions));
     box.append(h('div', { class: 'print-meta', text: (CFG.schoolName || '') + '　' + (r ? r.name : '') + '　' + cls.name + '　列印時間 ' + new Date().toLocaleString('zh-TW') }));
 
-    if (!items.length) { box.append(h('div', { class: 'empty', text: '這次抽查沒有適用於本班的項目。' + (admin ? '請到「設定」檢查本次抽查項目與本班的習作項目。' : '') })); return box; }
+    const skips = skippedItems(cls, r);
+    if (skips.length) box.append(h('div', { class: 'skipline' }, h('span', { class: 'note', text: '本次不用繳：' }), skips.map(it => h('span', { class: 'tag skiptag' + (it.kind === 'exam' ? ' exam' : '') }, it.name, admin ? h('button', { class: 'link', 'aria-label': '恢復 ' + it.name + ' 要繳', onclick: () => setSkip(cls, it, false) }, '恢復') : null))));
+    if (!items.length) { box.append(h('div', { class: 'empty', text: skips.length ? '本班這次的項目都已設為「不用繳」。' : '這次抽查沒有適用於本班的項目。' + (admin ? '請到「設定」檢查本次抽查項目與本班的習作項目。' : '') })); return box; }
     if (!n) { box.append(h('div', { class: 'empty', text: admin ? '這個班級還沒有學生名單，請到「設定」貼上名單。' : '這個班級還沒有學生名單，請洽教務組。' })); return box; }
 
     if (!ed) box.append(h('div', { class: 'banner info', text: r && r.locked && S.role === 'teacher' ? '本次抽查已結案，紀錄僅供查看；如需更正請洽教務組。' : '目前為查看模式。' }));
@@ -521,7 +548,7 @@
         const th = h('th', { class: (it.kind === 'exam' ? 'exam' : '') + examStart(items, i) }, h('div', { text: it.short || it.name }));
         const who = (cls.subjectTeachers || {})[it.id];
         if (who) th.append(h('span', { class: 'who', text: who }));
-        { th.append(h('span', { class: 'cnt', 'data-item': it.id, text: countItem(cls, it) + '/' + n })); if (ed) th.append(h('button', { class: 'link', onclick: () => openQuick(cls, it) }, '收件')); }
+        { th.append(h('span', { class: 'cnt', 'data-item': it.id, text: countItem(cls, it) + '/' + n })); if (ed) th.append(h('span', { class: 'thops' }, h('button', { class: 'link', onclick: () => openQuick(cls, it) }, '收件'), admin ? h('button', { class: 'link skipbtn', title: cls.name + '這次不用繳' + it.name, 'aria-label': it.name + '：本次不用繳', onclick: () => setSkip(cls, it, true) }, '不用繳') : null)); }
         return th;
       }),
       admin ? h('th', { text: '狀態' }) : null, admin ? h('th', { class: 'notecol', text: '備註（給主任、校長看）' }) : null);
@@ -725,6 +752,8 @@
       const items = itemsFor(c);
       let it = p.itemId ? items.find(x => x.id === p.itemId) : items.find(x => x.id === sc.itemId);
       if (p.itemId && !it) {
+        const skIt = allItems().find(x => x.id === p.itemId);
+        if (skIt && skipped(c.id, skIt.id)) return show('err', c.name + '這次不用繳「' + skIt.name + '」', '教務組已設定本次不用繳交');
         if (String(p.itemId).startsWith('?')) return show('err', '沒有代碼 ' + p.itemId.slice(1) + ' 的項目', raw);
         const anyIt = allItems().find(x => x.id === p.itemId); const rr = round();
         const inRound = anyIt && rr && (rr.itemIds || []).includes(anyIt.id);
@@ -837,7 +866,7 @@
     const cl = classes(); const r = round(); const base = location.href.split('#')[0].split('?')[0];
     const rows = [['班級', '座號', '姓名', '科目', '班級座號', '條碼內容', '學生編號', '編號科目', '標籤文字']];
     cl.filter(c => (LB.classIds || []).includes(c.id)).forEach(c => {
-      const its = LB.mode === 'book' ? itemsFor(c, r).filter(it => LB.exams || it.kind !== 'exam') : [null];
+      const its = LB.mode === 'book' ? itemsFor(c, r, { all: true }).filter(it => LB.exams || it.kind !== 'exam') : [null];
       (c.students || []).slice().sort((a, b) => a.no - b.no).forEach(s => its.forEach(it => {
         const payload = scanPayload(c, s, it);
         rows.push([c.name, pad2(s.no), s.name || '', it ? it.name : '作業抽查', c.name + ' ' + pad2(s.no) + '號', LB.url ? base + '#s=' + payload : payload, studentCode(c, s), studentCode(c, s) + (it ? it.name : ''), studentCode(c, s) + (it ? it.name : '') + '\n' + (s.name || '') + ' ' + c.name + pad2(s.no) + '號']);
@@ -891,7 +920,7 @@
       sheet.replaceChildren();
       const list = [];
       cl.filter(c => LB.classIds.includes(c.id)).forEach(c => {
-        const its = LB.mode === 'book' ? itemsFor(c, r).filter(it => LB.exams || it.kind !== 'exam') : [null];
+        const its = LB.mode === 'book' ? itemsFor(c, r, { all: true }).filter(it => LB.exams || it.kind !== 'exam') : [null];
         (c.students || []).slice().sort((a, b) => a.no - b.no).forEach(s => its.forEach(it => list.push({ c, s, it })));
       });
       const base = location.href.split('#')[0].split('?')[0];
@@ -937,7 +966,7 @@
       const n = (cls.students || []).length; const p = classProgress(cls, r); got += p.got; total += p.total;
       const pct = p.total ? Math.round(p.got / p.total * 100) : null;
       return h('tr', null, h('td', { class: 'rname', text: cls.name }), h('td', { text: cls.teacher || '' }), h('td', { text: String(n) }),
-        items.map((it, i) => h('td', { class: examStart(items, i).trim() || null, text: classHasItem(cls, it) ? countItem(cls, it) + '/' + n : '—' })),
+        items.map((it, i) => h('td', { class: examStart(items, i).trim() || null, text: !classHasItem(cls, it) ? '—' : skipped(cls.id, it.id) ? '不用繳' : countItem(cls, it) + '/' + n })),
         h('td', { class: pct === 100 ? 'okcell' : null, text: pct == null ? '—' : pct + '%' }), h('td', { class: 'left rnote', text: noteValue(cls.id, null) }));
     });
     const pctAll = total ? Math.round(got / total * 100) : 0;
@@ -947,7 +976,7 @@
       h('div', { class: 'tablebox' }, h('table', { class: 'rtable' },
         h('thead', null, groupHeaderRow(items, 3, 2), h('tr', null, h('th', { text: '班級' }), h('th', { text: '導師' }), h('th', { text: '人數' }), items.map((it, i) => h('th', { class: (it.kind === 'exam' ? 'exam' : '') + examStart(items, i), text: it.short || it.name })), h('th', { text: '完成率' }), h('th', { text: '班級備註' }))),
         h('tbody', null, sumRows),
-        h('tfoot', null, h('tr', { class: 'tfoot' }, h('td', { colspan: 3, class: 'left', text: '全校' }), items.map(it => { let c = 0, t = 0; cl.forEach(cls => { if (classHasItem(cls, it)) { c += countItem(cls, it); t += (cls.students || []).length; } }); return h('td', { text: t ? c + '/' + t : '—' }); }), h('td', { text: pctAll + '%' }), h('td')))))));
+        h('tfoot', null, h('tr', { class: 'tfoot' }, h('td', { colspan: 3, class: 'left', text: '全校' }), items.map(it => { let c = 0, t = 0; cl.forEach(cls => { if (applies(cls, it, r)) { c += countItem(cls, it); t += (cls.students || []).length; } }); return h('td', { text: t ? c + '/' + t : '—' }); }), h('td', { text: pctAll + '%' }), h('td')))))));
     // 未交與備註名單
     const missing = [];
     cl.forEach(cls => { const its = itemsFor(cls, r); (cls.students || []).slice().sort((a, b) => a.no - b.no).forEach(s => { const miss = its.filter(it => !isOn(cls.id, s.no, it.id)); const note = noteValue(cls.id, s.no); if (miss.length || note) missing.push({ cls, s, miss, note }); }); });
@@ -961,13 +990,13 @@
     cl.forEach(cls => {
       const its = itemsFor(cls, r); const studs = (cls.students || []).slice().sort((a, b) => a.no - b.no);
       if (!studs.length) return;
-      detail.append(h('div', { class: 'rclass' }, h('h4', { text: cls.name + (cls.teacher ? '　導師 ' + cls.teacher : '') + '　' + studs.length + ' 人' + (noteValue(cls.id, null) ? '　備註：' + noteValue(cls.id, null) : '') }),
+      detail.append(h('div', { class: 'rclass' }, h('h4', { text: cls.name + (cls.teacher ? '　導師 ' + cls.teacher : '') + '　' + studs.length + ' 人' + (skippedItems(cls, r).length ? '　本次不用繳：' + skippedItems(cls, r).map(x => x.name).join('、') : '') + (noteValue(cls.id, null) ? '　備註：' + noteValue(cls.id, null) : '') }),
         h('div', { class: 'tablebox' }, h('table', { class: 'rtable' },
           h('thead', null, groupHeaderRow(its, 2, 1), h('tr', null, h('th', { text: '座號' }), h('th', { text: '姓名' }), its.map((it, i) => h('th', { class: (it.kind === 'exam' ? 'exam' : '') + examStart(its, i), text: it.short || it.name })), h('th', { text: '備註' }))),
           h('tbody', null, studs.map(s => h('tr', null, h('td', { text: String(s.no) }), h('td', { class: 'rname', text: s.name || '' }), its.map((it, i) => h('td', { class: (isOn(cls.id, s.no, it.id) ? 'okcell' : 'nocell') + examStart(its, i), text: isOn(cls.id, s.no, it.id) ? '✓' : '✗' })), h('td', { class: 'left', text: noteValue(cls.id, s.no) }))))))));
     });
     box.append(detail);
-    box.append(h('div', { class: 'note', text: '✓ 已繳交　✗ 未繳交　— 本班無此項目。「考卷」各欄表示該科考卷已由家長簽名並繳回。' }));
+    box.append(h('div', { class: 'note', text: '✓ 已繳交　✗ 未繳交　— 本班無此項目　不用繳＝本次教務組設定不用繳交。「考卷」各欄表示該科考卷已由家長簽名並繳回。' }));
     return box;
   }
 
@@ -996,7 +1025,7 @@
       const its = itemsFor(cls, r); const set = new Set(its.map(i => i.id));
       (cls.students || []).slice().sort((a, b) => a.no - b.no).forEach(s => {
         const got = its.filter(it => isOn(cls.id, s.no, it.id)).length;
-        rows.push([cls.name, cls.teacher || '', s.no, s.name || '', ...items.map(it => !set.has(it.id) ? '不適用' : (isOn(cls.id, s.no, it.id) ? (it.kind === 'exam' ? '已繳回' : '已交') : (it.kind === 'exam' ? '未繳回' : '未交'))), got, its.length, got === its.length ? '繳齊' : '缺 ' + (its.length - got) + ' 項', noteValue(cls.id, s.no)]);
+        rows.push([cls.name, cls.teacher || '', s.no, s.name || '', ...items.map(it => !set.has(it.id) ? (classHasItem(cls, it) && skipped(cls.id, it.id) ? '本次不用繳' : '不適用') : (isOn(cls.id, s.no, it.id) ? (it.kind === 'exam' ? '已繳回' : '已交') : (it.kind === 'exam' ? '未繳回' : '未交'))), got, its.length, got === its.length ? '繳齊' : '缺 ' + (its.length - got) + ' 項', noteValue(cls.id, s.no)]);
       });
     });
     const csv = '﻿' + rows.map(row => row.map(v => { v = String(v); if (/^[=+\-@\t\r]/.test(v)) v = "'" + v; return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(',')).join('\r\n');
@@ -1020,6 +1049,7 @@
         h('td', { class: 'cname' }, h('button', { class: 'link', onclick: () => { S.selClass = cls.id; lsSet(LS.cls, cls.id); S.view = 'class'; render(); } }, cls.name), h('div', { class: 'mini', text: (cls.teacher ? '導師 ' + cls.teacher + ' · ' : '') + n + ' 人' })),
         items.map((it, i) => {
           if (!classHasItem(cls, it)) return h('td', { class: 'mini' + examStart(items, i), text: '—' });
+          if (skipped(cls.id, it.id)) return h('td', { class: 'mini skipcell' + examStart(items, i), text: '不用繳' });
           const c = countItem(cls, it); const q = n ? Math.round(c / n * 100) : 0;
           return h('td', { class: examStart(items, i).trim() || null }, h('div', { text: c + '/' + n }), h('div', { class: 'bar' + (it.kind === 'exam' ? ' exam' : '') }, h('i', { style: 'width:' + q + '%' })));
         }),
@@ -1045,7 +1075,7 @@
       h('thead', null, groupHeaderRow(items, 1, 2), h('tr', null, h('th', { style: 'text-align:left', text: '班級' }), items.map((it, i) => h('th', { class: (it.kind === 'exam' ? 'exam' : '') + examStart(items, i), text: it.short || it.name })), h('th', { text: '完成率' }), h('th', { text: '最後登記' }))),
       h('tbody', null, rows),
       h('tfoot', null, h('tr', { class: 'tfoot' }, h('td', { class: 'cname', text: '全校合計' }),
-        items.map((it, i) => { let c = 0, t = 0; cl.forEach(cls => { if (classHasItem(cls, it)) { c += countItem(cls, it); t += (cls.students || []).length; } }); const q = t ? Math.round(c / t * 100) : 0; return h('td', { class: examStart(items, i).trim() || null }, t ? [h('div', { text: q + '%' }), h('div', { class: 'mini', text: c + '/' + t })] : '—'); }),
+        items.map((it, i) => { let c = 0, t = 0; cl.forEach(cls => { if (applies(cls, it, r)) { c += countItem(cls, it); t += (cls.students || []).length; } }); const q = t ? Math.round(c / t * 100) : 0; return h('td', { class: examStart(items, i).trim() || null }, t ? [h('div', { text: q + '%' }), h('div', { class: 'mini', text: c + '/' + t })] : '—'); }),
         h('td', { class: 'pct' + (pct === 100 && total ? ' full' : ''), text: total ? pct + '%' : '—' }), h('td'))))));
     box.append(h('div', { class: 'note', text: '點班級名稱可進入該班登記；導師在自己的裝置登記後，這裡會自動更新。' }));
     return box;
@@ -1112,6 +1142,7 @@
       h('tr', { class: 'addrow' }, h('td', { colspan: 10 }, h('button', { class: 'link', onclick: () => { D.items.push({ id: uid('i'), name: '新考卷', short: '', kind: 'exam', grades: [1, 2, 3, 4, 5, 6] }); renderMain(); } }, '＋ 新增考卷項目'))));
     ip.append(h('div', { class: 'tablebox' }, h('table', { class: 'cfgtable' }, head, tbody)));
     ip.append(h('div', { class: 'note', text: '「代碼」是條碼的 2 碼科目代碼（習作 01–07、考卷 11–16），改了之後要重印標籤。' }));
+    ip.append(h('div', { class: 'banner info', text: '不用繳的習作或考卷怎麼移除？① 只是這一次、這一班不用繳：到「班級檢核」在該欄表頭按「不用繳」，隨時可恢復。② 這一次全校都不查：在上方「抽查次別」的「本次項目」取消勾選。③ 這一班整學期都沒有這項：在下方「班級」的「本班項目」取消勾選。④ 全校整學期都不查：在這裡按「移除」。' }));
     box.append(ip);
 
     /* 班級 */

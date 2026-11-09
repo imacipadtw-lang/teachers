@@ -121,7 +121,7 @@ function read_(p) {
       if (k.indexOf(prefix) !== 0) return;
       var cid = k.slice(prefix.length);
       if (who.role === 'admin' || cid === who.classId) {
-        checks[cid] = { marks: all[k].marks || {}, updatedAt: all[k].updatedAt || '', updatedBy: all[k].updatedBy || '' };
+        checks[cid] = { marks: all[k].marks || {}, skip: all[k].skip || {}, updatedAt: all[k].updatedAt || '', updatedBy: all[k].updatedBy || '' };
         if (who.role === 'admin') { checks[cid].notes = all[k].notes || {}; checks[cid].classNote = all[k].classNote || ''; } // 備註只給教務組
       }
     });
@@ -240,7 +240,7 @@ function doPost(e) {
         doc.marks = doc.marks || {};
         var logRows = [];
         (body.changes || []).forEach(function (c) {
-          var no = String(parseInt(c.no, 10)); if (!studentByNo[no] || !itemById[c.itemId]) return;
+          var no = String(parseInt(c.no, 10)); if (!studentByNo[no] || !itemById[c.itemId] || (doc.skip && doc.skip[c.itemId])) return; // 名單外、非本班項目、本次不用繳：不收
           var before = !!(doc.marks[no] && doc.marks[no][c.itemId]);
           doc.marks[no] = doc.marks[no] || {};
           if (c.val) doc.marks[no][c.itemId] = true; else delete doc.marks[no][c.itemId];
@@ -285,6 +285,23 @@ function doPost(e) {
         delPrefix_('checks:' + body.rid + ':');
         if (dr) log_([['教務組', '刪除抽查次別（含紀錄）', dr.name, '', '', '', '', '']]);
         break;
+      case 'skipItem': {
+        // 教務組：這一次抽查、這一班「不用繳」某項目（或恢復）。既有登記保留但不顯示、不計算
+        if (!admin) return json_({ ok: false, error: 'auth' });
+        var srid = String(body.rid || ''), scid = String(body.classId || ''), sitem = String(body.itemId || '');
+        var sround = rounds.filter(function (x) { return x.id === srid; })[0]; if (!sround) return json_({ ok: false, error: 'no_round' });
+        var scls = config.classes.filter(function (c) { return c.id === scid; })[0];
+        var sit = config.items.filter(function (it) { return it.id === sitem; })[0];
+        if (!scls || !sit) return json_({ ok: false, error: 'bad_request' });
+        var skey = 'checks:' + srid + ':' + scid;
+        var sdoc = all[skey] || { marks: {} };
+        sdoc.skip = sdoc.skip || {};
+        if (body.skip) sdoc.skip[sitem] = true; else delete sdoc.skip[sitem];
+        if (!Object.keys(sdoc.skip).length) delete sdoc.skip;
+        put_(skey, sdoc);
+        log_([['教務組', body.skip ? '本次不用繳' : '恢復要繳', sround.name, scls.name, '', '', sit.name, '']]);
+        break;
+      }
       case 'note': {
         // 教務組備註：每位學生一則（給主任、校長看的說明），或整班一則
         if (!admin) return json_({ ok: false, error: 'auth' });
@@ -423,13 +440,15 @@ function writeSummary_(round, config, all) {
   var stat = [['班級', '導師', '人數'].concat(items.map(function (i) { return i.name; })).concat(['完成率', '班級備註'])];
   config.classes.forEach(function (cls) {
     var doc = all['checks:' + round.id + ':' + cls.id] || { marks: {} };
-    var mine = items.filter(function (it) { return Array.isArray(cls.itemIds) ? cls.itemIds.indexOf(it.id) >= 0 : (it.grades || []).indexOf(Number(cls.grade)) >= 0; });
+    var skipSet = doc.skip || {};
+    var mine = items.filter(function (it) { return !skipSet[it.id] && (Array.isArray(cls.itemIds) ? cls.itemIds.indexOf(it.id) >= 0 : (it.grades || []).indexOf(Number(cls.grade)) >= 0); });
     var mineSet = {}; mine.forEach(function (i) { mineSet[i.id] = true; });
     var counts = {}; var got = 0;
     (cls.students || []).forEach(function (s) {
       var m = (doc.marks || {})[String(s.no)] || {};
       var g = 0;
       var cells = items.map(function (it) {
+        if (skipSet[it.id]) return '不用繳';
         if (!mineSet[it.id]) return '—';
         if (m[it.id]) { g++; counts[it.id] = (counts[it.id] || 0) + 1; return '✓'; }
         return '';
@@ -438,7 +457,7 @@ function writeSummary_(round, config, all) {
       rows.push([cls.name, cls.teacher || '', s.no, s.name || ''].concat(cells).concat([g, mine.length, g === mine.length ? '繳齊' : '缺 ' + (mine.length - g) + ' 項', (doc.notes || {})[String(s.no)] || '']));
     });
     var n = (cls.students || []).length; var total = n * mine.length;
-    stat.push([cls.name, cls.teacher || '', n].concat(items.map(function (it) { return mineSet[it.id] ? (counts[it.id] || 0) + '/' + n : '—'; })).concat([total ? Math.round(got / total * 100) + '%' : '—', doc.classNote || '']));
+    stat.push([cls.name, cls.teacher || '', n].concat(items.map(function (it) { return skipSet[it.id] ? '不用繳' : mineSet[it.id] ? (counts[it.id] || 0) + '/' + n : '—'; })).concat([total ? Math.round(got / total * 100) + '%' : '—', doc.classNote || '']));
   });
   var w = head.length;
   sh.getRange(1, 1, 1, w).setValues([['作業抽查紀錄　' + round.name + (round.due ? '　繳交截止 ' + round.due : '') + '　製表 ' + Utilities.formatDate(new Date(), 'Asia/Taipei', 'yyyy/MM/dd HH:mm')].concat(new Array(w - 1).fill(''))]);
