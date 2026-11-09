@@ -288,7 +288,7 @@ details.settings>summary span{font-size:13px;color:var(--ink-3)}
 .set-tbl input,.set-tbl select{padding:6px 8px;font-size:13.5px;min-width:92px;border-radius:8px}
 .set-tbl input.num{width:96px;text-align:right;font-variant-numeric:tabular-nums}
 .set-tbl input[type=date]{width:140px}
-@media screen{.set-tbl:has(#insTbl tbody:empty)::after,.set-tbl:has(#offTbl tbody:empty)::after,.set-tbl:has(#dedTbl tbody:empty)::after{content:"還沒有資料，按下面「＋ 新增一列」開始";display:block;padding:16px;text-align:center;color:var(--ink-3);font-size:13px;border-top:1px dashed var(--line)}}
+@media screen{.set-tbl:has(#insTbl tbody:empty)::after,.set-tbl:has(#offTbl tbody:empty)::after,.set-tbl:has(#dedTbl tbody:empty)::after{content:"還沒有資料，按下面「＋ 新增一列」開始";display:block;padding:16px;text-align:center;color:var(--ink-3);font-size:13px;border-top:1px dashed var(--line)}.notready .set-tbl:has(#insTbl tbody:empty,#offTbl tbody:empty,#dedTbl tbody:empty)::after{content:"還沒有資料（後端部署新版後才能新增）"!important}}
 .set-tbl select{min-width:120px;padding-right:30px;background-position:right 10px center;font-size:13.5px}
 .set-act{align-items:center}
 /* 報帳前檢查、簽到表核對、月結 */
@@ -2680,7 +2680,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.10s";
+const APP_VERSION = "專業版 2026.11.10t";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -3187,7 +3187,7 @@ function renderSettings(){
   (state.heli || []).forEach(t => { if(!teachers.includes(t)) teachers.push(t); });
   const heliChecks = teachers.map(t => `<label class="set-chk"><input type="checkbox" data-heli="${esc(t)}" ${(state.heli||[]).includes(t)?"checked":""}><span>${esc(t)}</span></label>`).join("");
   const open = store.get("setOpen") === "1", ready = !!(state.settings && state.settings.labels);   // 後端新版才會回 settings
-  box.innerHTML = `<details class="monthly settings" id="setDet" ${open ? "open" : ""}>
+  box.innerHTML = `<details class="monthly settings${ready ? "" : " notready"}" id="setDet" ${open ? "open" : ""}>
     <summary><h3>系統設定</h3><span>費率、合理員額名單、投保資料、假日。改了存檔就生效，網站、Excel、LINE 通知都用新的算。</span></summary>
     ${ready ? "" : `<p class="set-msg" style="margin:10px 0 0;color:var(--amber)">⚠ 後端程式還沒更新到新版（Apps Script 還沒重新部署），這裡先看不能存。部署好新版 Code.gs 後重新整理就能用。</p>`}
     <div class="set-sec" id="secRate"><h4>1. 鐘點費率</h4><div class="set-grid">${fromSel}${SET_RATE_KEYS.map(field).join("")}</div>${vers}</div>
@@ -4341,7 +4341,7 @@ function showPage(k, opt){
   { const pt = $("#pgTitle"), pp = list.find(p => p.k === k); if(pt && pp) pt.textContent = pp.t; }
   document.querySelectorAll("main [data-page]").forEach(e => e.classList.toggle("pg-off", k !== "all" && e.dataset.page !== k));
   document.querySelectorAll("#pageTabs [data-pg]").forEach(b => { const on = b.dataset.pg === k; b.setAttribute("aria-selected", on); b.tabIndex = on ? 0 : -1; });
-  { const at = document.querySelector('#pageTabs [aria-selected="true"]'); if(at && at.scrollIntoView) try{ at.scrollIntoView({inline:"center", block:"nearest"}); }catch(e){} }   // 手機：目前這頁的頁籤捲到看得到
+  { const at = document.querySelector('#pageTabs [aria-selected="true"]'); if(at && at.scrollIntoView) try{ at.scrollIntoView({inline:"nearest", block:"nearest"}); }catch(e){} }   // 手機：目前這頁的頁籤捲到看得到
   const nb = {home:"#workbench", cal:"#year", report:"#monthly", set:"set"}[k];
   document.querySelectorAll("#wbNav [data-nav]").forEach(b => b.classList.toggle("on", b.dataset.nav === nb));
   // 這一頁沒有東西可看（例如看某位老師時的儀表板）→ 說明＋回全校
