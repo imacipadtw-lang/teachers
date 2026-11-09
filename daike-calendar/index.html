@@ -1448,6 +1448,33 @@ html[data-theme=dark] .wb-todo li.ok{background:rgba(79,209,161,.10)}
   .monthly .mrow > .btn,.monthly .mrow > select{flex:1 1 100%}
 }
 @media screen and (max-width:760px){ .d.today .n::after{display:none} .d.today .n{color:var(--c-swap);font-weight:800} html:not([data-theme=dark]) .d.today .n{color:#8F5A08} }   /* 手機：今天用金框＋金色數字標示 */
+@media screen{
+  .wb-week{margin-top:14px}
+  .wb-week h3{margin:0 0 10px;font-size:15px;font-weight:800;display:flex;align-items:baseline;gap:8px}
+  .wb-week h3 small{font-size:12.5px;font-weight:500;color:var(--ink-3)}
+  .wkx-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+  .wkx{display:flex;flex-direction:column;align-items:stretch;gap:6px;text-align:left;font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px 12px;min-height:118px;cursor:pointer;transition:border-color .15s,box-shadow .15s,transform .15s}
+  .wkx:hover{border-color:var(--sky);box-shadow:0 6px 18px rgba(60,20,40,.08);transform:translateY(-1px)}
+  .wkx:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+  .wkx.today{border-color:var(--c-swap);box-shadow:inset 0 0 0 1px var(--c-swap)}
+  .wkx-h{display:flex;align-items:baseline;gap:6px}
+  .wkx-h b{font-family:var(--digits);font-size:18px;font-weight:800}
+  .wkx-h span{font-size:12.5px;color:var(--ink-3)}
+  .wkx-h i{margin-left:auto;font-style:normal;font-family:var(--digits);font-weight:800;font-size:13px;min-width:22px;height:22px;padding:0 6px;border-radius:999px;display:grid;place-items:center;background:var(--sky-soft);color:var(--sky-deep)}
+  .wkx ul{list-style:none;margin:0;padding:0;display:grid;gap:3px}
+  .wkx li{font-size:12.5px;line-height:1.4;color:var(--ink-2);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .wkx li.more{color:var(--ink-3)}
+  .wkx-none{font-size:12.5px;color:var(--ink-3)}
+  .wkx-un{font-size:12.5px;font-weight:800;color:var(--c-leave)}
+  .wkx-off{font-size:12px;font-weight:700;color:#7E4F08;background:var(--amber-soft);border-radius:6px;padding:1px 6px;align-self:flex-start}
+  html[data-theme=dark] .wkx-off{color:#F2C46B} html[data-theme=dark] .wkx-h i{color:var(--sky)} html[data-theme=dark] .wkx-un{color:#FF8DA6}
+  html[data-theme=dark] .wkx.today{border-color:#F2C46B;box-shadow:inset 0 0 0 1px #F2C46B}
+}
+@media screen and (max-width:760px){
+  .wkx-row{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(150px,46%);overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:4px}
+  .wkx{scroll-snap-align:start;min-height:108px}
+}
+@media (prefers-reduced-motion:reduce){.wkx{transition:none}.wkx:hover{transform:none}}
 </style>
 </head>
 <body>
@@ -2601,7 +2628,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.10h";
+const APP_VERSION = "專業版 2026.11.10i";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -5609,6 +5636,20 @@ function wbOpenSid(e){
   toast(`序號 ${sid}：${md(e.date)} ${(describe(e)||{}).p || ""}`);
 }
 function wbOpenDay(d){ if(state.page && state.page !== "cal" && state.page !== "all") showPage("cal"); if(!d.startsWith(state.range || d)) setRange(d.slice(0,7)); state.selected = d; renderYear(); renderPanel(d); const ag = document.getElementById("ag-" + d); if(ag && ag.offsetParent) wbGo(ag); else wbGo("#side"); }
+/* 115.11.10：工作台「本週一覽」：週一到週五每天幾筆、誰代誰、還沒安排的（紅字），點一天看明細（和 LINE 週圖卡同一份資料） */
+function wbWeekHtml(){
+  const today = ymd(new Date()), days = weekDays(today), thisWeek = today >= days[0];
+  const cell = d => {
+    const it = remindItems(d).sort((a, b) => a.p - b.p), un = state.events.filter(e => e.date === d && e.type === "leave" && !e.other).length;
+    const off = (state.off || {})[d], n = it.length + un, dt = new Date(d + "T00:00:00");
+    const lines = it.slice(0, 3).map(x => `<li>${esc(x.line)}</li>`).join("") + (it.length > 3 ? `<li class="more">＋還有 ${it.length - 3} 筆</li>` : "");
+    return `<button type="button" class="wkx${d === today ? " today" : ""}${un ? " has-un" : ""}" data-wkd="${d}" aria-label="${esc(md(d))}，${n ? `${it.length} 筆課務${un ? `，${un} 節還沒安排代課` : ""}` : "沒有課務"}，按了看明細">
+      <span class="wkx-h"><b>${dt.getMonth() + 1}/${dt.getDate()}</b><span>星期${DOW[dt.getDay()]}</span>${n ? `<i>${n}</i>` : ""}</span>
+      ${off ? `<span class="wkx-off">${esc(offLabel(off))}</span>` : ""}${un ? `<span class="wkx-un">${un} 節還沒安排代課</span>` : ""}
+      ${it.length ? `<ul>${lines}</ul>` : (un || off ? "" : `<span class="wkx-none">沒有課務</span>`)}</button>`;
+  };
+  return `<div class="wb-week"><h3>${thisWeek ? "本週" : "下週"}一覽 <small>${esc(md(days[0]))}～${esc(md(days[4]))}</small></h3><div class="wkx-row">${days.map(cell).join("")}</div></div>`;
+}
 function renderWorkbench(){
   const box = $("#workbench"); if(!box) return;
   const nav = $("#wbNav");
@@ -5644,10 +5685,11 @@ function renderWorkbench(){
         <button type="button" class="btn ghost" data-q="hr" title="上傳人事差勤資料，找出請假沒代課、代課沒請假">請假系統比對</button>
         <button type="button" class="btn ghost" data-q="reload">重新整理</button></div>
         <p class="hint">「印簽到表」「下載會計總帳」「送會計」是在這台裝置記錄的，換裝置看不到；其餘步驟依資料自動判斷。</p></div>
-    </div></section>`;
+    </div>${wbWeekHtml()}</section>`;
   if(P){ box.querySelectorAll("[data-step]").forEach(b => b.onclick = () => { const s = P.steps[+b.dataset.step]; if(s.k === "sent" && s.done && !P.closed){ if(confirm("取消「已送會計」的記錄？")) { wbFlag(ym, "sent", false); renderWorkbench(); } return; } s.act(); });
     if($("#wbNext")) $("#wbNext").onclick = () => P.cur.act(); }
   box.querySelectorAll("[data-todo]").forEach(b => b.onclick = () => todos[+b.dataset.todo].act());
+  box.querySelectorAll("[data-wkd]").forEach(b => b.onclick = () => wbOpenDay(b.dataset.wkd));
   const Q = {plan: () => openPlan(), sign: () => printHeliSign(ym), check: () => wbGo("#checkBox"), ledger: () => ledgerExcel(ym), live: () => state.liveUrl ? window.open(state.liveUrl, "_blank", "noopener") : wbGo(".live-box"), set: () => wbOpenSettings(), pw: () => WB_FUNCS.find(x => x[0] === "老師密碼")[1](), scan: async () => { await openPlan(); const f = $("#scanFile"); if(f) f.click(); }, hr: () => { wbGo("#hrBox"); setTimeout(() => { const f = $("#hrFile"); if(f) f.click(); }, 350); }, reload: () => reload()};
   box.querySelectorAll("[data-q]").forEach(b => b.onclick = () => Q[b.dataset.q]());
   $("#wbFind").onsubmit = e => { e.preventDefault(); wbFind($("#wbQ").value); };
