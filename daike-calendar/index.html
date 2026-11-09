@@ -1483,6 +1483,7 @@ html[data-theme=dark] .wb-todo li.ok{background:rgba(79,209,161,.10)}
   html[data-theme=dark] .pe-empty svg{stroke:var(--sky)}
 }
 @media screen{ .dash-zero{display:grid;place-items:center;height:120px;border:1px dashed var(--line);border-radius:10px;color:var(--ink-3);font-size:13px} }
+@media screen{ .alerts li .al-acts{grid-column:2;display:flex;gap:6px;flex-wrap:wrap} }
 </style>
 </head>
 <body>
@@ -1541,7 +1542,7 @@ html[data-theme=dark] .wb-todo li.ok{background:rgba(79,209,161,.10)}
     <div class="spacer"></div>
     <span class="updated" id="updated"></span>
     <span class="sys" id="sys" role="status" aria-live="polite" title="和雲端資料表的連線狀態"><i aria-hidden="true"></i><span id="sysTxt">連線中…</span><span class="clock" id="clock"></span></span>
-    <button class="btn ghost small" id="cmdBtn" type="button" hidden title="快速指令（Ctrl＋K）">快速指令 <kbd class="kbd-hint">Ctrl K</kbd></button>
+    <button class="btn ghost small" id="cmdBtn" type="button" hidden title="快速指令（Ctrl＋K 或 /）">快速指令 <kbd class="kbd-hint">Ctrl K</kbd></button>
     <button class="btn small" id="openPlan" type="button" hidden>＋ 排調代課</button>
     <div class="more" id="moreWrap">
       <button class="btn ghost small more-btn" id="moreBtn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="moreMenu" title="更多：深色模式、重新整理、LINE 通知、更改密碼、登出"><svg class="mi" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg><span class="mb-t">更多</span></button>
@@ -2636,7 +2637,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.10i";
+const APP_VERSION = "專業版 2026.11.10j";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -3756,7 +3757,7 @@ function evRow(e){
   const stampDone = /^已核章完成/.test(e.stamp || "");
   const stampBtn = state.role==="admin" && sid ? `<button type="button" class="fixbtn" data-stampid="${esc(e.id)}" aria-label="${stampDone ? "看紙本序號" : "核章完成，看紙本序號"}：${esc(sid)}">${stampDone ? "看序號" : "核章完成"}</button>` : "";
   const fixd = e.fix ? `<div class="fixd">✎ ${state.role==="admin" ? "已修正："+esc(e.fix.text)+(e.fix.pending && exSyncOn() ?"（Excel 還沒改）":"") : "教務組已更正這筆資料"}</div>` : "";
-  return `<div class="ev t-${e.type}${fl?" flag":""}"${sid ? ` data-sid="${esc(sid)}"` : ""}><div class="p">${sid ? `<span class="sid">序號 ${esc(sid)}</span>` : ""}<span class="k">${KIND[e.type]||""}</span>${esc(KIND[e.type] && String(d.p).startsWith(KIND[e.type] + "・") ? String(d.p).slice(KIND[e.type].length + 1) : d.p)}</div><div class="w">${esc(d.w)}</div><div class="f">${esc(d.f)}</div>${fl}${fixd}${e.stamp?`<div class="stp${e.stamp.indexOf("已核章完成")===0?"":" wait"}">${e.stamp.indexOf("已核章完成")===0?"✓ ":"⏳ "}${esc(e.stamp)}</div>`:""}${e.note?`<div class="x">備註：${esc(e.note)}</div>`:""}${repBtn}${fixBtn}${delBtn}${stampBtn}${state.role==="admin" ? `<button type="button" class="fixbtn" data-copyev aria-label="複製這筆紀錄的文字">複製</button>` : ""}</div>`;
+  return `<div class="ev t-${e.type}${fl?" flag":""}"${sid ? ` data-sid="${esc(sid)}"` : ""}><div class="p">${sid ? `<span class="sid">序號 ${esc(sid)}</span>` : ""}<span class="k">${KIND[e.type]||""}</span>${esc((p0 => sid && e.id ? p0.replace(`（${e.id}）`, "") : p0)(KIND[e.type] && String(d.p).startsWith(KIND[e.type] + "・") ? String(d.p).slice(KIND[e.type].length + 1) : String(d.p)))}</div><div class="w">${esc(d.w)}</div><div class="f">${esc(d.f)}</div>${fl}${fixd}${e.stamp?`<div class="stp${e.stamp.indexOf("已核章完成")===0?"":" wait"}">${e.stamp.indexOf("已核章完成")===0?"✓ ":"⏳ "}${esc(e.stamp)}</div>`:""}${e.note?`<div class="x">備註：${esc(e.note)}</div>`:""}${repBtn}${fixBtn}${delBtn}${stampBtn}${state.role==="admin" ? `<button type="button" class="fixbtn" data-copyev aria-label="複製這筆紀錄的文字">複製</button>` : ""}</div>`;
 }
 
 /* 月曆格子用：每一節分開寫，寫出班級、科目、誰代誰、誰領多少錢 */
@@ -3895,6 +3896,7 @@ function renderYear(){
     const date=b.dataset.date, ag=document.getElementById("ag-"+date);
     if(ag && ag.offsetParent){ ag.scrollIntoView({behavior:"smooth",block:"start"}); return; }   // 手機：捲到下方文字
     state.selected=date; renderYear(); renderPanel(date);                                         // 寬螢幕：側欄看備註
+    const pt = $("#panelTitle"); if(pt){ pt.setAttribute("tabindex", "-1"); pt.focus({preventScroll:true}); }   // 鍵盤：焦點移到明細，修改／刪除只差幾個 Tab
   });
 }
 
@@ -4288,6 +4290,7 @@ function showPage(k, opt){
   { const pt = $("#pgTitle"), pp = list.find(p => p.k === k); if(pt && pp) pt.textContent = pp.t; }
   document.querySelectorAll("main [data-page]").forEach(e => e.classList.toggle("pg-off", k !== "all" && e.dataset.page !== k));
   document.querySelectorAll("#pageTabs [data-pg]").forEach(b => { const on = b.dataset.pg === k; b.setAttribute("aria-selected", on); b.tabIndex = on ? 0 : -1; });
+  { const at = document.querySelector('#pageTabs [aria-selected="true"]'); if(at && at.scrollIntoView) try{ at.scrollIntoView({inline:"center", block:"nearest"}); }catch(e){} }   // 手機：目前這頁的頁籤捲到看得到
   const nb = {home:"#workbench", cal:"#year", report:"#monthly", set:"set"}[k];
   document.querySelectorAll("#wbNav [data-nav]").forEach(b => b.classList.toggle("on", b.dataset.nav === nb));
   // 這一頁沒有東西可看（例如看某位老師時的儀表板）→ 說明＋回全校
@@ -6058,14 +6061,20 @@ async function hrFiles(list){
 /* ---------- 管理者：資料檢查、颱風假狀態 ---------- */
 function renderAlerts(){
   const box = $("#alerts");
+  box.onclick = e => { const a = e.target.closest("[data-alsid]"), b = e.target.closest("[data-alday]");
+    if(a) wbFind(a.dataset.alsid); else if(b) wbOpenDay(b.dataset.alday); };
   if(state.role !== "admin"){ box.innerHTML = ""; return; }
   const a = state.audit || [], t = state.typhoon;
   const typh = `<p class="typh">颱風假自動檢查：${t ? esc(t.at) + "　" + (t.ok ? "正常，" : "沒有成功，") + esc(t.msg) : "還沒開始（請在資料表按「代課工具 → 開始自動處理」）"}。颱風假也可以自己寫在資料表「假日與停班停課」分頁。</p>`;
   if(!a.length){ box.innerHTML = `<div class="alerts ok"><h3>資料檢查 <span class="tag">✓ 沒有發現衝堂、重複登錄或和課表不符的調課</span></h3>${typh}</div>` + fixesCard(); return; }
   const kd = {dup:"重複", clash:"衝堂", leave:"請假", off:"假日", weekend:"日期", dow:"日期", todo:"未安排", swapchk:"課表不符"};
-  const li = i => `<li class="${i.kind}"><span class="kd">${kd[i.kind]||"提醒"}</span><span>${esc(i.msg)}</span></li>`;
+  // 115.11.10：每個問題旁邊直接有「看 序號」或「看 ○／○」按鈕，按了就到那一筆（再按修改／刪除）
+  const acts = i => { const ids = [...new Set((i.ids || []).filter(Boolean))].slice(0, 4);
+    return ids.length ? ids.map(id => `<button type="button" class="btn ghost small" data-alsid="${esc(id)}">看 ${esc(sidOf({id}) || id)}</button>`).join("")
+      : i.date ? `<button type="button" class="btn ghost small" data-alday="${esc(i.date)}">看 ${esc(md(i.date))}</button>` : ""; };
+  const li = i => `<li class="${i.kind}"><span class="kd">${kd[i.kind]||"提醒"}</span><span>${esc(i.kind === "dup" ? String(i.msg).replace(/^重複登錄[：:]\s*/, "") : i.msg)}</span>${acts(i) ? `<span class="al-acts">${acts(i)}</span>` : ""}</li>`;
   const n = a.filter(i=>i.kind==="clash"||i.kind==="leave").length, d = a.filter(i=>i.kind==="dup").length;
-  box.innerHTML = `<div class="alerts" role="alert"><h3>⚠ 資料檢查發現 ${a.length} 個問題
+  box.innerHTML = `<div class="alerts" role="region" aria-label="資料檢查"><h3>⚠ 資料檢查發現 ${a.length} 個問題
       ${n?`<span class="tag">衝堂 ${n}</span>`:""}${d?`<span class="tag">重複登錄 ${d}</span>`:""}</h3>
     <ul>${a.slice(0,6).map(li).join("")}</ul>
     ${a.length>6?`<details><summary style="font-size:13px;color:var(--ink-2);cursor:pointer;padding-top:6px">其餘 ${a.length-6} 個</summary><ul>${a.slice(6).map(li).join("")}</ul></details>`:""}
@@ -7716,6 +7725,8 @@ async function demoPost(b){
 if (DEMO) $("#demoTag").hidden = false;
 loadNames();
 resume();
+/* Mac 顯示 ⌘K */
+try{ if(/Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)){ const h = document.querySelector("#cmdBtn .kbd-hint"); if(h) h.textContent = "⌘K"; } }catch(e){}
 </script>
 </body>
 </html>
