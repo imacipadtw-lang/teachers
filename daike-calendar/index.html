@@ -2442,6 +2442,10 @@ var PAY = (function () {
 /* ---------- 呼叫後端 ---------- */
 const DEMO = location.search.includes("demo=1");          // 只有網址加 ?demo=1 才是示範模式
 /* 系統狀態燈（10/31）：最後一次和雲端連線成功／失敗、花多少時間 */
+/* 網路斷了／恢復：狀態燈立刻變；恢復後自動重新讀一次資料（只讀，不會重複存檔） */
+window.addEventListener("offline", () => { const el = document.getElementById("sys"), t = document.getElementById("sysTxt"); if(!el || !t) return;
+  el.classList.remove("ok"); el.classList.add("err"); t.textContent = "網路已中斷"; el.title = "這台裝置目前沒有網路；恢復後會自動重新讀取"; try{ toast("網路中斷了：先不要存檔，恢復後會自動重新讀取"); }catch(e){} });
+window.addEventListener("online", () => { try{ toast("網路恢復了，重新讀取資料…"); }catch(e){} if(state && state.cred && !document.getElementById("app").hidden){ const b = document.getElementById("reload"); if(b) setTimeout(() => b.click(), 800); } });
 function sysMark(ok, ms){
   const el = document.getElementById("sys"), t = document.getElementById("sysTxt"); if(!el || !t) return;
   const now = new Date(), hm = `${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
@@ -2456,7 +2460,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.09i";
+const APP_VERSION = "專業版 2026.11.09j";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
