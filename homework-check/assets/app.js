@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.10h';
+  const APP_VERSION = '2026.11.10i';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
   const LS = { admin: 'hc.admin', teacher: 'hc.teacher', api: 'hc.api', cls: 'hc.class', outbox: 'hc.outbox', theme: 'hc.theme', cache: 'hc.cache' };
   const GRADE = ['', '一', '二', '三', '四', '五', '六'];
@@ -696,7 +696,7 @@
       inner.append(h('h3', null, (it.kind === 'exam' ? '登記繳回' : '收件登記'), h('small', { text: c.name + ' · ' + it.name })));
       inner.append(h('div', { class: 'note', text: it.kind === 'exam' ? '點選已將家長簽名考卷繳回的座號；再點一次可取消。' : '依收到的習作點選座號；再點一次可取消。' }));
       inner.append(h('div', { class: 'row between' },
-        h('div', { class: 'counter' }, h('b', { text: String(got.length) }), '／' + n + ' 人' + (it.kind === 'exam' ? '已繳回' : '已交')),
+        h('div', { class: 'counter' }, h('b', { text: String(got.length) }), '／' + n + ' 人' + (it.kind === 'exam' ? '已繳回' : '已交'), h('span', { class: 'qbar' + (it.kind === 'exam' ? ' exam' : ''), role: 'progressbar', 'aria-valuemin': '0', 'aria-valuemax': String(n), 'aria-valuenow': String(got.length), 'aria-label': '已登記人數' }, h('i', { style: 'width:' + (n ? Math.round(got.length / n * 100) : 0) + '%' }))),
         h('div', { class: 'row' },
           ed ? armed(h('button', { class: 'btn small ghost' }), '全部' + (it.kind === 'exam' ? '繳回' : '已交'), '確定全部勾選？', () => { studs.forEach(s => { if (!isOn(c.id, s.no, it.id)) setMark(c.id, s.no, it.id, true, { quiet: true }); }); S.mainDirty = true; if (S.modal && S.modal.refresh) S.modal.refresh(); }) : null,
           ed ? armed(h('button', { class: 'btn small ghost' }), '全部清除', '確定全部取消？', () => { studs.forEach(s => { if (isOn(c.id, s.no, it.id)) setMark(c.id, s.no, it.id, false, { quiet: true }); }); S.mainDirty = true; if (S.modal && S.modal.refresh) S.modal.refresh(); }) : null)));
@@ -1501,8 +1501,10 @@
     const D = S.draft;
     const box = h('div', { class: 'stack' });
 
+    box.append(h('nav', { class: 'setnav', 'aria-label': '設定章節' }, [['set-rounds', '抽查次別'], ['set-items', '檢查項目'], ['set-classes', '班級與名單'], ['set-devices', '導師登入'], ['set-system', '系統']].map(([id, t]) =>
+      h('a', { href: '#' + id, class: 'chip', onclick: e => { e.preventDefault(); const el = document.getElementById(id); if (el) { el.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); el.setAttribute('tabindex', '-1'); el.focus({ preventScroll: true }); } } }, t))));
     /* 抽查次別 */
-    const rp = h('div', { class: 'panel' }, h('h2', null, '抽查次別', h('small', { text: '每次抽查建立一筆；結案後導師不能再更動' })));
+    const rp = h('div', { class: 'panel', id: 'set-rounds' }, h('h2', null, '抽查次別', h('small', { text: '每次抽查建立一筆；結案後導師不能再更動' })));
     S.rounds.forEach(r => rp.append(roundEditor(r)));
     const term = rocTerm();
     const nName = h('input', { type: 'text', class: 'grow', 'aria-label': '次別名稱', value: term.year + '學年度第' + term.sem + '學期 第' + (S.rounds.length + 1) + '次作業抽查' });
@@ -1519,7 +1521,7 @@
     box.append(rp);
 
     /* 檢查項目：表格，習作一組、考卷一組 */
-    const ip = h('div', { class: 'panel' }, h('h2', null, '檢查項目', h('small', { text: '每列一個項目；勾選預設適用的年級，個別班級可在下方「班級」再調整' })));
+    const ip = h('div', { class: 'panel', id: 'set-items' }, h('h2', null, '檢查項目', h('small', { text: '每列一個項目；勾選預設適用的年級，個別班級可在下方「班級」再調整' })));
     const itemRow = (it) => {
       const i = D.items.indexOf(it);
       return h('tr', null,
@@ -1542,7 +1544,7 @@
     box.append(ip);
 
     /* 班級 */
-    const cp = h('div', { class: 'panel' }, h('h2', null, '班級與學生名單', h('small', { text: '名單每行一位：「座號 姓名」，例如「1 王小明」；也可從 Excel 直接貼上兩欄' })));
+    const cp = h('div', { class: 'panel', id: 'set-classes' }, h('h2', null, '班級與學生名單', h('small', { text: '名單每行一位：「座號 姓名」，例如「1 王小明」；也可從 Excel 直接貼上兩欄' })));
     D.classes.forEach((c, i) => cp.append(classEditor(c, i)));
     cp.append(h('div', null, h('button', { class: 'btn ghost', onclick: () => { D.classes.push({ id: uid('c'), name: '新班級', grade: 1, teacher: '', subjectTeachers: {}, students: [] }); renderMain(); } }, '＋ 新增班級')));
     box.append(cp);
@@ -1556,7 +1558,7 @@
       h('span', { class: 'note', text: '上方各區塊修改後，按這裡一次儲存。' })));
 
     /* 導師登入狀態 */
-    const lp = h('div', { class: 'panel' }, h('h2', null, '導師登入裝置', h('small', { text: '導師在登入頁選自己的班級，第一台登入的裝置即綁定；之後該班不能再從別的裝置登入' })));
+    const lp = h('div', { class: 'panel', id: 'set-devices' }, h('h2', null, '導師登入裝置', h('small', { text: '導師在登入頁選自己的班級，第一台登入的裝置即綁定；之後該班不能再從別的裝置登入' })));
     lp.append(h('div', { class: 'note', text: '導師換手機、或誤用別人的手機登入時，在這裡「解除」後，導師再用新裝置選班級登入即可。' }));
     const nLogged = classes().filter(c => ((S.links[c.id] || {}).devices || []).length).length;
     lp.append(h('div', { class: 'claimbox' + (S.claimClosed ? ' closed' : '') },
@@ -1579,7 +1581,7 @@
     box.append(lp);
 
     /* 系統 */
-    const sp = h('div', { class: 'panel' }, h('h2', { text: '系統' }));
+    const sp = h('div', { class: 'panel', id: 'set-system' }, h('h2', { text: '系統' }));
     sp.append(h('div', { class: 'row' },
       h('button', { class: 'btn primary', onclick: () => { S.view = 'labels'; renderMain(); } }, svg('tag'), '列印習作標籤（條碼／QR Code）'),
       h('button', { class: 'btn ghost', onclick: openChangeKey }, '修改教務組密碼'),
@@ -1802,7 +1804,8 @@
       return g;
     }
     if (S.screen === 'welcome') {
-      p.append(h('div', { class: 'welcome' }, h('p', { text: '此裝置已登入為' }), h('div', { class: 'big', text: S.welcomeClass + ' 導師' }), h('p', { text: '之後直接開啟這個網頁即可，不需要再選擇或輸入任何東西；建議在手機瀏覽器選擇「加入主畫面」，像 App 一樣使用。' })),
+      const wck = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); wck.setAttribute('viewBox', '0 0 48 48'); wck.setAttribute('class', 'wcheck'); wck.setAttribute('aria-hidden', 'true'); wck.innerHTML = '<circle cx="24" cy="24" r="22"/><path d="M14 24.5l7 7 13-14"/>';
+      p.append(h('div', { class: 'welcome' }, wck, h('p', { text: '登入成功！此裝置已登入為' }), h('div', { class: 'big', text: S.welcomeClass + ' 導師' }), h('p', { text: '之後直接開啟這個網頁即可，不需要再選擇或輸入任何東西；建議在手機瀏覽器選擇「加入主畫面」，像 App 一樣使用。' })),
         h('button', { class: 'btn primary block', onclick: async () => { S.screen = 'app'; render(); startPolling(); await load({ force: true, full: true }); } }, '開始使用'));
       return g;
     }

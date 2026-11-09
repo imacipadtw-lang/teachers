@@ -669,3 +669,24 @@ table.grid tbody tr.allin:hover td, table.grid tbody tr.allin:hover td.no, table
 .gate .panel.adminp.open { align-items: stretch; background: var(--sheet); border-style: solid; padding: 18px 22px; }
 .adminlink { font-size: 14px; text-decoration: none; font-weight: 600; }
 .adminlink:hover { text-decoration: underline; }
+
+/* ---------- 細節精修 ---------- */
+input[type=checkbox], input[type=radio] { accent-color: var(--accent); }
+.panel > .pickbox, .classcard .pickbox, details.fold > .pickbox { align-self: flex-start; width: auto; }
+.setnav { display: flex; gap: 6px; flex-wrap: wrap; position: sticky; top: 0; z-index: 5; padding: 8px 0; background: color-mix(in srgb, var(--paper) 92%, transparent); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.setnav .chip { text-decoration: none; color: var(--ink); font-size: 13.5px; padding: 5px 14px; }
+.setnav .chip:hover { border-color: var(--accent); color: var(--accent); }
+.panel[id^="set-"] { scroll-margin-top: 56px; }
+.panel[id^="set-"]:focus { outline: none; }
+@media print { .setnav { display: none; } }
+.counter { flex-wrap: wrap; }
+.qbar { flex: 1 0 100%; height: 6px; border-radius: 3px; background: var(--accent-soft); overflow: hidden; margin-top: 4px; min-width: 120px; }
+.qbar i { display: block; height: 100%; background: var(--accent); border-radius: 3px; transition: width .2s; }
+.qbar.exam { background: var(--seal-soft); } .qbar.exam i { background: var(--seal); }
+.welcome { display: flex; flex-direction: column; gap: 4px; }
+.wcheck { width: 52px; height: 52px; margin: 0 0 6px; }
+.wcheck circle { fill: var(--ok-soft); stroke: var(--ok); stroke-width: 2; }
+.wcheck path { fill: none; stroke: var(--ok); stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
+.welcome .big { font-weight: 700; color: var(--ink); }
+@media (prefers-reduced-motion: no-preference) { .wcheck path { stroke-dasharray: 32; stroke-dashoffset: 32; animation: drawck .5s .15s ease-out forwards; } }
+@keyframes drawck { to { stroke-dashoffset: 0; } }
