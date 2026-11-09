@@ -1367,6 +1367,8 @@ html[data-theme=dark] .ev .fixbtn.delbtn{color:#FF8DA6}
   html:not([data-theme=dark]) .meter span{color:var(--ink-3)}
   @keyframes proRowIn{from{transform:translateY(5px)}to{transform:none}}
 }
+.wb-todo li.ok{border-left-color:var(--c-tutor);background:rgba(15,110,77,.07)}
+html[data-theme=dark] .wb-todo li.ok{background:rgba(79,209,161,.10)}
 </style>
 </head>
 <body>
@@ -4421,6 +4423,7 @@ function absToSub(i){
   const A = plan.absent, d = absDays()[i]; if(!d || !A.teacher) return;
   const x = absDayInfo(A.teacher, d, A), sub = (A.scanSubs||{})[d] || {};
   plan.sub = {leaver:A.teacher, leaveType:A.leaveType, date:d, note: A.leaveType==="其他" ? A.reason : "", rows:[], tutor:false, tutorSub:""};
+  plan.backTo = A;                                  // 115.11.10：存好這天的代課後回到這張假單，接著排下一天（不用重填老師、日期）
   plan.sub.rows = x.todo.filter(t => !t.extra).map(t => Object.assign(newSubRow(), {period:String(t.p), cls:t.cls, subject:t.subject, sub: sub[t.p] || "", auto:{subject:1}}));
   plan.kind = "sub"; plan.force = false; plan.server = null;
   plan.scan = Object.keys(sub).length ? {title:"已帶入假單上的代課老師（黃框），請核對", warn:[], photo:""} : null;
@@ -4935,8 +4938,14 @@ $("#planSave").onclick = async ()=>{
       state.meta = null; await reload(true); await openPlan();
       plan.kind = "absent"; plan.absent = keep; plan.scan = null; plan.scanKeys = null; renderPlan();
       toast(`已儲存請假（${keep.saved}）`);
+    } else if(d.ok && plan.kind==="sub" && plan.backTo){   // 從假單「排這天的代課」來的：存好回到假單
+      const keep = plan.backTo; lastSavedNote(d.ids);
+      state.meta = null; await reload(true); await openPlan();
+      plan.kind = "absent"; plan.absent = keep; plan.backTo = null; plan.sub = {leaver:"", leaveType:"公假", date:"", note:"", rows:[], tutor:false, tutorSub:""};
+      plan.scan = null; plan.scanKeys = null; renderPlan();
+      toast(`已儲存代課（${(d.ids||[]).join("、")}），回到假單，可以接著排下一天`);
     } else if(d.ok){
-      resetPlan(); state.meta = null; closePlan(); await reload(true);
+      resetPlan(); state.meta = null; closePlan(); lastSavedNote(d.ids); await reload(true);
       toast(`已儲存到雲端表格（${(d.ids||[]).join("、")}）`);
     } else if(d.blocked){                       // 伺服器用最新資料檢查到衝堂／請假（例如別人剛登記）→ 一律擋下
       state.meta = null; await openPlan();
@@ -5348,8 +5357,12 @@ function monthProgress(ym){
 }
 function wbUnassigned(ym){ setRange(ym); document.querySelector('.tab[data-view="list"]').click(); wbGo("#list"); }
 /* 現在該處理：[{text, verb, act, lv}] */
+/* 115.11.10：剛存好的序號留在工作台（要抄到紙本上），按「複製」或「知道了」才消失 */
+function lastSavedNote(ids){ ids = (ids || []).filter(Boolean); if(!ids.length) return; state.lastSaved = {ids: (state.lastSaved && Date.now() - state.lastSaved.t < 600000 ? state.lastSaved.ids : []).concat(ids).slice(-20), t: Date.now()}; }
 function wbTodos(ym, P){
   const L = [], today = ymd(new Date()), f = v => Number(v).toLocaleString("zh-TW");
+  if(state.lastSaved && state.lastSaved.ids.length){ const ids = state.lastSaved.ids.map(x => sidOf({id:x}) || x).join("、");
+    L.push({lv:"ok", text:`剛存好的序號（請寫在紙本上）：${ids}`, verb:"複製", act: () => copyText(ids).then(ok => { toast(ok ? "已複製序號" : "請手動抄下：" + ids); state.lastSaved = null; renderWorkbench(); })}); }
   if(!(state.settings && state.settings.labels)) L.push({lv:"err", text:"後端程式（Apps Script）還是舊版：系統設定、月結、會計報表（即時）都還不能用", verb:"", act:null});
   if(P.un) L.push({lv:"err", text:`${+ym.slice(5)} 月有 ${P.un} 筆請假還沒安排代課老師`, verb:"看哪幾筆", act: () => wbUnassigned(ym)});
   const a = state.audit || []; if(a.length) L.push({lv:"warn", text:`資料檢查有 ${a.length} 個問題（衝堂、重複登錄…）`, verb:"去看", act: () => wbGo("#alerts")});
