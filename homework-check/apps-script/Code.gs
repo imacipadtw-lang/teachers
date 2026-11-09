@@ -176,6 +176,7 @@ function claim_(p) {
     delete a.invite;
     put_('auth', auth);
     bump_();
+    log_([['導師（' + cls.name + '）', '綁定登入裝置', '', cls.name, '', '', '', String(p.label || '').slice(0, 30)]]);
     return json_({ ok: true, token: token, classId: cid, className: cls.name });
   } finally { lock.releaseLock(); }
 }
@@ -206,6 +207,7 @@ function doPost(e) {
     if (body.action === 'adminLogin') {
       // 教務組登入：驗證密碼後發一組登入憑證，瀏覽器只存憑證、不存密碼
       if (!isAdmin_(body.key)) return json_({ ok: false, error: 'auth' });
+      log_([['教務組', '登入', '', '', '', '', '', String(body.label || '').slice(0, 30)]]);
       return json_({ ok: true, atoken: newAdminSession_(body.label) });
     }
     if (body.action === 'adminLogout') {
@@ -229,16 +231,23 @@ function doPost(e) {
         if (round.locked && !admin) return json_({ ok: false, error: 'locked' });
         var cls = config.classes.filter(function (c) { return c.id === cid; })[0];
         if (!cls) return json_({ ok: false, error: 'bad_request' });
-        var itemIds = {}; config.items.forEach(function (it) { itemIds[it.id] = true; });
+        // 只接受「本次抽查有、且本班適用」的項目，以及名單上有的座號
+        var inRound = {}; (round.itemIds || []).forEach(function (id) { inRound[id] = true; });
+        var itemById = {}; config.items.forEach(function (it) { if (inRound[it.id] && classHasItem_(cls, it)) itemById[it.id] = it; });
+        var studentByNo = {}; (cls.students || []).forEach(function (st) { studentByNo[String(st.no)] = st; });
         var key = 'checks:' + rid + ':' + cid;
         var doc = all[key] || { marks: {} };
         doc.marks = doc.marks || {};
+        var logRows = [];
         (body.changes || []).forEach(function (c) {
-          var no = String(parseInt(c.no, 10)); if (no === 'NaN' || !itemIds[c.itemId]) return;
+          var no = String(parseInt(c.no, 10)); if (!studentByNo[no] || !itemById[c.itemId]) return;
+          var before = !!(doc.marks[no] && doc.marks[no][c.itemId]);
           doc.marks[no] = doc.marks[no] || {};
           if (c.val) doc.marks[no][c.itemId] = true; else delete doc.marks[no][c.itemId];
           if (!Object.keys(doc.marks[no]).length) delete doc.marks[no];
+          if (before !== !!c.val) { var it = itemById[c.itemId]; logRows.push([whoLabel_(who, cls), c.val ? (it.kind === 'exam' ? '已繳回' : '已交') : '取消', round.name, cls.name, Number(no), studentByNo[no].name || '', it.name, '']); }
         });
+        log_(logRows);
         doc.updatedAt = new Date().toISOString();
         doc.updatedBy = admin ? '教務組' : '導師';
         put_(key, doc);
@@ -250,12 +259,14 @@ function doPost(e) {
         if (!cfg) return json_({ ok: false, error: 'bad_request' });
         put_('config', cfg);
         ensureAuth_(cfg, all.auth);
+        log_([['教務組', '修改設定', '', '', '', '', '', cfg.items.length + ' 個項目、' + cfg.classes.length + ' 個班級']]);
         break;
       case 'addRound':
         if (!admin) return json_({ ok: false, error: 'auth' });
         r = sanitizeRound_(body.round); if (!r) return json_({ ok: false, error: 'bad_request' });
         if (rounds.some(function (x) { return x.id === r.id; })) return json_({ ok: false, error: 'bad_request' });
         rounds.push(r); put_('rounds', rounds);
+        log_([['教務組', '建立抽查次別', r.name, '', '', '', '', r.due ? '截止 ' + r.due : '']]);
         break;
       case 'updateRound':
         if (!admin) return json_({ ok: false, error: 'auth' });
@@ -263,12 +274,16 @@ function doPost(e) {
         var idx = -1; rounds.forEach(function (x, i) { if (x.id === r.id) idx = i; });
         if (idx < 0) return json_({ ok: false, error: 'no_round' });
         r.createdAt = rounds[idx].createdAt || r.createdAt;
+        var wasLocked = !!rounds[idx].locked;
         rounds[idx] = r; put_('rounds', rounds);
+        log_([['教務組', r.locked && !wasLocked ? '結案' : (!r.locked && wasLocked ? '取消結案' : '修改抽查次別'), r.name, '', '', '', '', r.due ? '截止 ' + r.due : '']]);
         break;
       case 'delRound':
         if (!admin) return json_({ ok: false, error: 'auth' });
+        var dr = rounds.filter(function (x) { return x.id === body.rid; })[0];
         put_('rounds', rounds.filter(function (x) { return x.id !== body.rid; }));
         delPrefix_('checks:' + body.rid + ':');
+        if (dr) log_([['教務組', '刪除抽查次別（含紀錄）', dr.name, '', '', '', '', '']]);
         break;
       case 'note': {
         // 教務組備註：每位學生一則（給主任、校長看的說明），或整班一則
@@ -282,12 +297,16 @@ function doPost(e) {
         if (body.no === undefined || body.no === null || body.no === '') { ndoc.classNote = text; }
         else { ndoc.notes = ndoc.notes || {}; var nno = String(parseInt(body.no, 10)); if (nno === 'NaN') return json_({ ok: false, error: 'bad_request' }); if (text) ndoc.notes[nno] = text; else delete ndoc.notes[nno]; }
         put_(nkey, ndoc);
+        var ncls = config.classes.filter(function (c) { return c.id === ncid; })[0];
+        var nst = (body.no === undefined || body.no === null || body.no === '') ? null : (ncls.students || []).filter(function (x) { return String(x.no) === String(parseInt(body.no, 10)); })[0];
+        log_([['教務組', nst ? '學生備註' : '班級備註', (rounds.filter(function (x) { return x.id === nrid; })[0] || {}).name || '', ncls.name, nst ? nst.no : '', nst ? (nst.name || '') : '', '', text || '（清除）']]);
         break;
       }
       case 'setClaim':
         // 教務組可暫停導師新登入（已登入的裝置不受影響），避免學生或他人搶先選班級登入
         if (!admin) return json_({ ok: false, error: 'auth' });
         PropertiesService.getScriptProperties().setProperty('CLAIM_CLOSED', body.closed ? '1' : '');
+        log_([['教務組', body.closed ? '暫停導師新登入' : '開放導師登入', '', '', '', '', '', '']]);
         break;
       case 'revokeDevices': {
         if (!admin) return json_({ ok: false, error: 'auth' });
@@ -295,6 +314,7 @@ function doPost(e) {
         var auth2 = all.auth || { classes: {} };
         auth2.classes[body.classId] = { devices: [] };
         put_('auth', auth2);
+        log_([['教務組', '解除導師裝置', '', config.classes.filter(function (c) { return c.id === body.classId; })[0].name, '', '', '', '']]);
         break;
       }
       case 'snapshot':
@@ -309,6 +329,7 @@ function doPost(e) {
         if (nk.length < 6) return json_({ ok: false, error: 'weak_key' });
         PropertiesService.getScriptProperties().setProperty('EDIT_KEY', nk);
         saveAdminSessions_({}); // 改密碼後，其他裝置的登入全部失效
+        log_([['教務組', '修改教務組密碼', '', '', '', '', '', '其他裝置已登出']]);
         return json_({ ok: true, version: version_(), atoken: newAdminSession_(body.label) });
       default:
         return json_({ ok: false, error: 'unknown_action' });
@@ -420,6 +441,21 @@ function writeSummary_(round, config, all) {
   sh.setFrozenRows(2);
   sh.getRange(3, 5, Math.max(1, rows.length - 1), items.length).setHorizontalAlignment('center');
   sh.autoResizeColumns(1, w);
+}
+
+/* ================= 異動紀錄（只增不改，供查核） ================= */
+var LOG_SHEET = '異動紀錄';
+function whoLabel_(who, cls) { return who.role === 'admin' ? '教務組' : '導師（' + (cls ? cls.name : who.classId) + '）'; }
+function classHasItem_(cls, it) { return Array.isArray(cls.itemIds) ? cls.itemIds.indexOf(it.id) >= 0 : (it.grades || []).map(Number).indexOf(Number(cls.grade)) >= 0; }
+// rows：[身分, 動作, 抽查次別, 班級, 座號, 姓名, 項目, 說明]；寫入失敗不影響存檔
+function log_(rows) {
+  if (!rows || !rows.length) return;
+  try {
+    var ss = ss_(); var sh = ss.getSheetByName(LOG_SHEET);
+    if (!sh) { sh = ss.insertSheet(LOG_SHEET); sh.getRange(1, 1, 1, 9).setValues([['時間', '身分', '動作', '抽查次別', '班級', '座號', '姓名', '項目', '說明']]); sh.setFrozenRows(1); }
+    var t = Utilities.formatDate(new Date(), 'Asia/Taipei', 'yyyy/MM/dd HH:mm:ss');
+    sh.getRange(sh.getLastRow() + 1, 1, rows.length, 9).setValues(rows.map(function (r) { return [t].concat(r); }));
+  } catch (err) { console.error('log_: ' + err); }
 }
 
 /* ================= 試算表存取 ================= */

@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.09c';
+  const APP_VERSION = '2026.11.09d';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
   const LS = { admin: 'hc.admin', teacher: 'hc.teacher', api: 'hc.api', cls: 'hc.class', outbox: 'hc.outbox', theme: 'hc.theme' };
   const GRADE = ['', '一', '二', '三', '四', '五', '六'];
@@ -1097,7 +1097,7 @@
       h('button', { class: 'btn ghost', onclick: openChangeKey }, '修改教務組密碼'),
       h('button', { class: 'btn ghost', onclick: async () => { if (!round()) return toast('尚未建立抽查次別'); await adminPost({ action: 'snapshot', rid: S.rid }, '已在試算表建立本次抽查的「總表」分頁'); } }, '將本次抽查寫入試算表總表'),
       h('button', { class: 'btn ghost', onclick: () => exportCSV(classes()) }, svg('down'), '匯出全校 CSV')));
-    if (S.sheetUrl) sp.append(h('div', { class: 'note' }, '資料存放在 Google 試算表：', h('a', { href: S.sheetUrl, target: '_blank', rel: 'noopener', text: '開啟試算表' }), '（請勿改動 data 分頁）'));
+    if (S.sheetUrl) sp.append(h('div', { class: 'note' }, '資料存放在 Google 試算表：', h('a', { href: S.sheetUrl, target: '_blank', rel: 'noopener', text: '開啟試算表' }), '（請勿改動 data 分頁）。「異動紀錄」分頁記錄每一次登記、取消、備註與設定變更（時間、誰、哪一班、哪位學生），可供查核。'));
     sp.append(h('div', { class: 'note', text: '後端網址：' + S.apiUrl }));
     box.append(sp);
     return box;
