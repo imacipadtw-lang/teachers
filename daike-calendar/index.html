@@ -1475,6 +1475,13 @@ html[data-theme=dark] .wb-todo li.ok{background:rgba(79,209,161,.10)}
   .wkx{scroll-snap-align:start;min-height:108px}
 }
 @media (prefers-reduced-motion:reduce){.wkx{transition:none}.wkx:hover{transform:none}}
+@media screen{
+  .pe-empty{display:flex;flex-direction:column;align-items:center;gap:6px;padding:32px 20px}
+  .pe-empty svg{width:40px;height:40px;fill:none;stroke:var(--sky-deep);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
+  .pe-empty b{color:var(--ink);font-size:15px}
+  .pe-empty span{font-size:13px;line-height:1.6;max-width:240px}
+  html[data-theme=dark] .pe-empty svg{stroke:var(--sky)}
+}
 </style>
 </head>
 <body>
@@ -1617,7 +1624,7 @@ html[data-theme=dark] .wb-todo li.ok{background:rgba(79,209,161,.10)}
       <div class="admin-box" id="adminBox"></div>
       <div class="panel">
         <h2><span id="panelTitle">點一個日期看明細</span><button class="close" id="closeSide" aria-label="關閉">×</button></h2>
-        <div class="body" id="panelBody"><div class="empty">點年曆上有框線的日子，這裡會列出那天的完整明細和備註。</div></div>
+        <div class="body" id="panelBody"><div class="empty pe-empty"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/><path d="m9 14.5 2 2 4-4"/></svg><b>選一天看明細</b><span>點年曆上有框線的日子，這裡會列出那天的完整明細和備註。</span></div></div>
         <div class="next" id="panelNext"></div>
       </div>
     </aside>
@@ -4336,7 +4343,7 @@ function renderList(){
 /* ---------- 側欄 ---------- */
 function renderPanel(date){
   const side=$("#side");
-  if(!date){ side.classList.remove("open"); $("#panelTitle").textContent="點一個日期看明細"; $("#panelBody").innerHTML=`<div class="empty">點年曆上有框線的日子，這裡會列出那天的完整明細和備註。</div>`; }
+  if(!date){ side.classList.remove("open"); $("#panelTitle").textContent="點一個日期看明細"; $("#panelBody").innerHTML=`<div class="empty pe-empty"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/><path d="m9 14.5 2 2 4-4"/></svg><b>選一天看明細</b><span>點年曆上有框線的日子，這裡會列出那天的完整明細和備註。</span></div>`; }
   else{
     const d=new Date(date+"T00:00:00"), evs=state.events.filter(e=>e.date===date && calShow(e)), oth=othersOf().filter(e=>e.date===date && calShow(e));
     $("#panelTitle").textContent=`${d.getMonth()+1} 月 ${d.getDate()} 日（${DOW[d.getDay()]}）`;
