@@ -1305,6 +1305,13 @@ html:not([data-theme=dark]) .ev.t-swap .p .k{color:#7E4F08}
 html:not([data-theme=dark]) .wb-nav button.on{color:#A3305C}
 html[data-theme=dark] .ev .fixbtn{color:var(--sky)}
 .nw{display:inline-block;white-space:nowrap}
+/* 手機：排調代課底部＝一行說明＋「取消｜儲存」並排，儲存在右邊（拇指好按） */
+@media (max-width:760px){
+  .plan-foot{padding:10px 14px calc(10px + env(safe-area-inset-bottom));gap:8px}
+  .plan-foot .plan-sum{flex:1 0 100%;min-width:0;font-size:13px}
+  .plan-foot #planCancel{flex:0 0 auto}
+  .plan-foot #planSave{flex:1 1 auto}
+}
 </style>
 </head>
 <body>
@@ -2444,7 +2451,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.09e";
+const APP_VERSION = "專業版 2026.11.09f";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
