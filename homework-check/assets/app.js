@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.10b';
+  const APP_VERSION = '2026.11.10c';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
   const LS = { admin: 'hc.admin', teacher: 'hc.teacher', api: 'hc.api', cls: 'hc.class', outbox: 'hc.outbox', theme: 'hc.theme' };
   const GRADE = ['', '一', '二', '三', '四', '五', '六'];
@@ -64,6 +64,7 @@
     list: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg>',
     lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
     scan: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg>',
+    mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>',
     xls: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>',
     tag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>'
   };
@@ -510,6 +511,7 @@
     const actions = h('div', { class: 'row' });
     if (ed) actions.append(h('button', { class: 'btn primary small', onclick: () => openScan(cls) }, svg('scan'), '掃描登記'));
     actions.append(h('button', { class: 'btn ghost small', onclick: () => openMissing([cls]) }, svg('list'), '未交名單'));
+    actions.append(h('button', { class: 'btn ghost small', onclick: () => openNotices([cls]) }, svg('mail'), '家長通知單'));
     if (admin) actions.append(
       h('button', { class: 'btn ghost small', title: '匯出本班 CSV（全校請到「全校總覽」）', onclick: () => exportCSV([cls]) }, svg('down'), '本班 CSV'),
       h('button', { class: 'btn ghost small', onclick: () => window.print() }, svg('print'), '列印'));
@@ -674,6 +676,87 @@
       inner.append(h('div', { class: 'miss', text: miss.length ? '尚未' + (it.kind === 'exam' ? '繳回' : '交') + '：' + miss.map(s => s.no + '號').join('、') : '全班皆已' + (it.kind === 'exam' ? '繳回' : '繳交') + '。' }));
       inner.append(h('div', { class: 'row', style: 'justify-content:flex-end' }, h('button', { class: 'btn primary', onclick: closeModal }, '完成')));
     });
+  }
+
+  /* ---------- 家長通知單（每位有缺交的學生一張，A4 一頁 3 或 4 張；導師只能印自己班） ---------- */
+  const NOTICE_MSG = '本校教務處進行「{次別}」，貴子弟以下項目尚未繳交。煩請協助督促孩子{截止}完成並交給導師；考卷請家長看過後簽名再繳回。謝謝您的協助與配合！';
+  function noticeData(list, r) {
+    const out = [];
+    list.forEach(cls => {
+      const its = itemsFor(cls, r);
+      (cls.students || []).slice().sort((a, b) => a.no - b.no).forEach(s => {
+        const miss = its.filter(it => !isOn(cls.id, s.no, it.id));
+        if (miss.length) out.push({ cls, s, hw: miss.filter(it => it.kind !== 'exam'), ex: miss.filter(it => it.kind === 'exam') });
+      });
+    });
+    return out;
+  }
+  function noticeText(tpl, r) {
+    const due = r.due ? '於 ' + fmtDate(r.due) + ' 前' : '盡快';
+    return String(tpl || NOTICE_MSG).replace(/\{次別\}/g, r.name).replace(/\{截止\}/g, due);
+  }
+  function noticeSlip(d, r, msg) {
+    const box = (title, cls, list, hint) => h('div', { class: 'nbox ' + cls },
+      h('div', { class: 'nboxh' }, title, hint ? h('small', { text: hint }) : null),
+      list.length ? h('ul', null, list.map(it => h('li', null, h('i', { class: 'nck', 'aria-hidden': 'true' }), it.name))) : h('div', { class: 'nnone', text: '無' }));
+    const now = new Date();
+    return h('article', { class: 'nslip' },
+      h('header', { class: 'nhead' },
+        h('div', { class: 'norg', text: [CFG.schoolName, CFG.unitName].filter(Boolean).join('　') }),
+        h('div', { class: 'ntitle', text: '作業繳交提醒' })),
+      h('div', { class: 'nwho' }, h('b', { text: d.cls.name + '　' + d.s.no + ' 號　' + (d.s.name || '') }), h('span', { text: ' 同學家長您好：' })),
+      h('p', { class: 'nmsg', text: noticeText(msg, r) }),
+      h('div', { class: 'nlists' + (d.hw.length && d.ex.length ? '' : ' one') },
+        d.hw.length ? box('習作', 'hw', d.hw) : null,
+        d.ex.length ? box('考卷', 'ex', d.ex, '請家長簽名後繳回') : null),
+      h('div', { class: 'nsign' },
+        h('span', null, '導師', d.cls.teacher ? h('b', { text: ' ' + d.cls.teacher }) : null, h('i', { class: 'nline' })),
+        h('span', null, '家長簽名', h('i', { class: 'nline' })),
+        h('span', null, '日期', h('i', { class: 'nline short' }))),
+      h('div', { class: 'nfoot', text: r.name + '　列印 ' + (now.getFullYear() - 1911) + '/' + (now.getMonth() + 1) + '/' + now.getDate() + '　｜　勾選 □ 表示已補交' }));
+  }
+  function openNotices(list0) {
+    const r = round(); if (!r) return toast('尚未建立抽查次別');
+    const admin = S.role === 'admin';
+    const list1 = admin ? list0 : classes().filter(c => c.id === S.classId); // 導師只能印自己班
+    const opt = { scope: list1.length > 1 ? 'all' : 'one', per: Number(lsGet('hc.noticePer')) === 4 ? 4 : 3, msg: lsGet('hc.noticeMsg') || NOTICE_MSG };
+    const curCls = list1.length === 1 ? list1[0] : (classes().find(c => c.id === S.selClass) || classes()[0]);
+    let sheet = null, data = [];
+    const target = () => opt.scope === 'all' && admin ? classes() : [curCls];
+    const build = () => {
+      if (sheet) sheet.remove();
+      data = noticeData(target(), r);
+      sheet = h('div', { id: 'noticeSheet', class: 'per' + opt.per, 'aria-hidden': 'true' }, data.map(d => noticeSlip(d, r, opt.msg)));
+      document.body.append(sheet); document.body.classList.add('notices-print');
+    };
+    let prevEl, countEl;
+    const refreshPrev = () => {
+      build();
+      countEl.textContent = data.length ? '共 ' + data.length + ' 張，約 ' + Math.ceil(data.length / opt.per) + ' 頁（A4，每頁 ' + opt.per + ' 張）' : '沒有需要通知的學生——' + (opt.scope === 'all' ? '全校' : curCls.name) + '都已繳齊。';
+      prevEl.replaceChildren(data.length ? noticeSlip(data[0], r, opt.msg) : h('div', { class: 'empty', text: '都繳齊了，不需要通知單 🎉' }));
+    };
+    openModal(inner => {
+      inner.classList.add('noticemode');
+      countEl = h('div', { class: 'note' }); prevEl = h('div', { class: 'nprev', 'aria-label': '第一張預覽' });
+      const ta = h('textarea', { 'aria-label': '給家長的話', rows: 3, oninput: e => { opt.msg = e.target.value; lsSet('hc.noticeMsg', opt.msg === NOTICE_MSG ? null : opt.msg); refreshPrev(); } }); ta.value = opt.msg;
+      inner.append(
+        h('h3', null, '家長通知單', h('small', { text: r.name })),
+        h('div', { class: 'note', text: '每位有缺交的學生一張，列出還沒交的習作與考卷，請家長督促並簽名。列印時請選 A4、實際大小。' }),
+        admin ? h('div', { class: 'row' }, h('span', { class: 'note', text: '範圍' }),
+          h('label', { class: 'ck' }, h('input', { type: 'radio', name: 'nscope', checked: opt.scope === 'one', onchange: () => { opt.scope = 'one'; refreshPrev(); } }), curCls.name),
+          h('label', { class: 'ck' }, h('input', { type: 'radio', name: 'nscope', checked: opt.scope === 'all', onchange: () => { opt.scope = 'all'; refreshPrev(); } }), '全校')) : null,
+        h('div', { class: 'row' }, h('span', { class: 'note', text: '每頁' }),
+          [3, 4].map(n => h('label', { class: 'ck' }, h('input', { type: 'radio', name: 'nper', checked: opt.per === n, onchange: () => { opt.per = n; lsSet('hc.noticePer', n); refreshPrev(); } }), n + ' 張'))),
+        h('div', { class: 'note', text: '給家長的話（可修改；{次別}、{截止} 會自動換成本次名稱與截止日）' }), ta,
+        h('div', null, h('button', { class: 'link', style: 'font-size:12px', onclick: () => { opt.msg = NOTICE_MSG; ta.value = NOTICE_MSG; lsSet('hc.noticeMsg', null); refreshPrev(); } }, '恢復預設文字')),
+        countEl, prevEl,
+        h('div', { class: 'row', style: 'justify-content:flex-end' },
+          h('button', { class: 'btn ghost', onclick: closeModal }, '關閉'),
+          h('button', { class: 'btn primary', onclick: () => { if (!data.length) return toast('沒有需要通知的學生'); window.print(); } }, svg('print'), '列印通知單')));
+      refreshPrev();
+    });
+    S.modal.refresh = () => { }; // 編輯文字時不要被自動同步重畫
+    S.modal.onClose = () => { if (sheet) sheet.remove(); document.body.classList.remove('notices-print'); };
   }
 
   /* ---------- 未交名單（可複製貼 LINE） ---------- */
@@ -980,7 +1063,7 @@
     const roc = (today.getFullYear() - 1911) + '年' + (today.getMonth() + 1) + '月' + today.getDate() + '日';
     box.append(h('div', { class: 'row between no-print' },
       h('div', { class: 'note', text: '這一頁就是給主管看的報告：先在「班級檢核」填好備註，再回來列印或匯出。' }),
-      h('div', { class: 'row' }, h('button', { class: 'btn primary small', onclick: () => window.print() }, svg('print'), '列印報表'), h('button', { class: 'btn small', onclick: exportXlsx }, svg('xls'), '下載 Excel 報表'), h('button', { class: 'btn ghost small', onclick: () => exportCSV(cl) }, svg('down'), 'CSV'))));
+      h('div', { class: 'row' }, h('button', { class: 'btn primary small', onclick: () => window.print() }, svg('print'), '列印報表'), h('button', { class: 'btn small', onclick: exportXlsx }, svg('xls'), '下載 Excel 報表'), h('button', { class: 'btn ghost small', onclick: () => openNotices(classes()) }, svg('mail'), '家長通知單'), h('button', { class: 'btn ghost small', onclick: () => exportCSV(cl) }, svg('down'), 'CSV'))));
     box.append(h('div', { class: 'rhead' },
       h('div', { class: 'rorg', text: (CFG.schoolName || '') + '　' + (CFG.unitName || '') }),
       h('h2', { text: r.name + '　作業抽查結果' }),

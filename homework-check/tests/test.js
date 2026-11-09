@@ -577,6 +577,47 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
   }
   await fetch(B + '__reset'); await fetch(B + '__seed');
 
+
+  console.log('28. 家長通知單');
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+  { const R = async b => (await fetch(B + 'exec', { method: 'POST', body: JSON.stringify(b) })).json();
+    const rd = await R({ action: 'read', key: 'test1234' });
+    const its1 = rd.config.items.filter(it => (it.grades || []).includes(1)).map(it => it.id);
+    await R({ action: 'marks', key: 'test1234', rid: 'r1', classId: 'g1', changes: its1.map(id => ({ no: 1, itemId: id, val: true })).concat(its1.filter(id => id !== 'math').map(id => ({ no: 2, itemId: id, val: true }))) }); // 1 號繳齊；2 號只缺數學習作
+    await R({ action: 'skipItem', key: 'test1234', rid: 'r1', classId: 'g1', itemId: 'health', skip: true });
+    ctx = await br.newContext({ viewport: { width: 1280, height: 860 } }); pg = await newPage(ctx); await adminLogin(pg, B);
+    await pg.click('button:has-text("家長通知單")'); await pg.waitForSelector('.nprev .nslip');
+    ok(/共 5 張/.test(await pg.textContent('.noticemode')), '一甲：繳齊的 1 號不印，共 5 張');
+    const slips = await pg.$$eval('#noticeSheet .nslip', a => a.map(x => x.innerText));
+    ok(slips.length === 5 && /2 號/.test(slips[0]) && /數學習作/.test(slips[0]) && !/國語習作/.test(slips[0]), '2 號那張只列「數學習作」');
+    ok(!slips.join('').includes('健康習作'), '本次不用繳的健康習作不會出現在通知單');
+    ok(slips.every(t => /家長簽名/.test(t) && /導師/.test(t)) && !/核章|承辦|會計|校長/.test(slips.join('')), '有導師與家長簽名欄、沒有核章欄');
+    await pg.fill('.noticemode textarea', '請於{截止}交回。{次別}'); await sleep(150);
+    ok(/請於盡快交回。115學年度/.test(await pg.textContent('.nprev .nmsg')), '可修改給家長的話（{截止}{次別} 自動替換）');
+    await pg.click('.noticemode button:has-text("恢復預設文字")'); await sleep(100);
+    ok(/貴子弟以下項目尚未繳交/.test(await pg.textContent('.nprev .nmsg')), '可恢復預設文字');
+    await pg.click('.noticemode label:has-text("全校")'); await sleep(200);
+    ok(/共 17 張/.test(await pg.textContent('.noticemode')), '範圍選「全校」：5＋6＋6＝17 張');
+    await pg.click('.noticemode label:has-text("4 張")'); await sleep(200);
+    ok(/約 5 頁/.test(await pg.textContent('.noticemode')) && await pg.getAttribute('#noticeSheet', 'class') === 'per4', '每頁 4 張：約 5 頁');
+    await pg.emulateMedia({ media: 'print' });
+    const pr = await pg.evaluate(() => ({ app: getComputedStyle(document.getElementById('app')).display, sheet: getComputedStyle(document.getElementById('noticeSheet')).display, modal: getComputedStyle(document.querySelector('.modal')).display, brk: getComputedStyle(document.querySelectorAll('#noticeSheet .nslip')[3]).breakAfter }));
+    ok(pr.app === 'none' && pr.modal === 'none' && pr.sheet === 'block' && pr.brk === 'page', '列印時只印通知單，每 4 張換頁');
+    await pg.emulateMedia({ media: 'screen' });
+    await pg.click('.noticemode button:has-text("關閉")'); await sleep(150);
+    ok(!(await pg.$('#noticeSheet')) && !(await pg.evaluate(() => document.body.classList.contains('notices-print'))), '關閉後移除列印內容，不影響一般列印');
+    await ctx.close();
+    const tk = await (await fetch(B + 'exec?action=claim&classId=g2&label=t')).json();
+    ctx = await br.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true }); pg = await newPage(ctx);
+    await pg.goto(B); await pg.evaluate(t => localStorage.setItem('hc.teacher', JSON.stringify({ token: t.token, classId: 'g2' })), tk); await pg.reload(); await pg.waitForSelector('table.grid');
+    await pg.click('button:has-text("家長通知單")'); await pg.waitForSelector('.nprev .nslip');
+    const ts = await pg.$$eval('#noticeSheet .nslip', a => a.map(x => x.innerText));
+    ok(ts.length === 6 && ts.every(t => /二甲/.test(t)) && !(await pg.$('.noticemode input[name="nscope"]')), '導師只能印自己班（6 張、沒有「全校」選項）');
+    ok(await pg.evaluate(() => document.documentElement.scrollWidth <= 390), '手機版對話框不會左右捲動');
+    await ctx.close();
+  }
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+
   await br.close();
   console.log('\n頁面錯誤：' + (errors.length ? errors.join(' | ') : '無'));
   console.log(`結果：${pass} 通過，${fail} 失敗`);
