@@ -2470,7 +2470,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.09p";
+const APP_VERSION = "專業版 2026.11.09q";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -3571,7 +3571,7 @@ function evRow(e){
   const stampDone = /^已核章完成/.test(e.stamp || "");
   const stampBtn = state.role==="admin" && sid ? `<button type="button" class="fixbtn" data-stampid="${esc(e.id)}" aria-label="${stampDone ? "看紙本序號" : "核章完成，看紙本序號"}：${esc(sid)}">${stampDone ? "看序號" : "核章完成"}</button>` : "";
   const fixd = e.fix ? `<div class="fixd">✎ ${state.role==="admin" ? "已修正："+esc(e.fix.text)+(e.fix.pending && exSyncOn() ?"（Excel 還沒改）":"") : "教務組已更正這筆資料"}</div>` : "";
-  return `<div class="ev t-${e.type}${fl?" flag":""}"${sid ? ` data-sid="${esc(sid)}"` : ""}><div class="p">${sid ? `<span class="sid">序號 ${esc(sid)}</span>` : ""}<span class="k">${KIND[e.type]||""}</span>${esc(d.p)}</div><div class="w">${esc(d.w)}</div><div class="f">${esc(d.f)}</div>${fl}${fixd}${e.stamp?`<div class="stp${e.stamp.indexOf("已核章完成")===0?"":" wait"}">${e.stamp.indexOf("已核章完成")===0?"✓ ":"⏳ "}${esc(e.stamp)}</div>`:""}${e.note?`<div class="x">備註：${esc(e.note)}</div>`:""}${repBtn}${fixBtn}${stampBtn}${state.role==="admin" ? `<button type="button" class="fixbtn" data-copyev aria-label="複製這筆紀錄的文字">複製</button>` : ""}</div>`;
+  return `<div class="ev t-${e.type}${fl?" flag":""}"${sid ? ` data-sid="${esc(sid)}"` : ""}><div class="p">${sid ? `<span class="sid">序號 ${esc(sid)}</span>` : ""}<span class="k">${KIND[e.type]||""}</span>${esc(KIND[e.type] && String(d.p).startsWith(KIND[e.type] + "・") ? String(d.p).slice(KIND[e.type].length + 1) : d.p)}</div><div class="w">${esc(d.w)}</div><div class="f">${esc(d.f)}</div>${fl}${fixd}${e.stamp?`<div class="stp${e.stamp.indexOf("已核章完成")===0?"":" wait"}">${e.stamp.indexOf("已核章完成")===0?"✓ ":"⏳ "}${esc(e.stamp)}</div>`:""}${e.note?`<div class="x">備註：${esc(e.note)}</div>`:""}${repBtn}${fixBtn}${stampBtn}${state.role==="admin" ? `<button type="button" class="fixbtn" data-copyev aria-label="複製這筆紀錄的文字">複製</button>` : ""}</div>`;
 }
 
 /* 月曆格子用：每一節分開寫，寫出班級、科目、誰代誰、誰領多少錢 */
