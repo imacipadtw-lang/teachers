@@ -647,10 +647,8 @@ table.grid tbody tr.allin:hover td, table.grid tbody tr.allin:hover td.no, table
   .chk { transition: background .14s, border-color .14s, box-shadow .14s; }
   .chk:not(:disabled):hover { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
   .chk.exam:not(:disabled):hover { box-shadow: 0 0 0 3px color-mix(in srgb, var(--seal) 18%, transparent); }
-  .kpi, .chartpanel, .tablebox { animation: rise .32s ease-out both; }
 }
 @keyframes chkpop { 0% { transform: scale(.8); } 60% { transform: scale(1.12); } 100% { transform: scale(1); } }
-@keyframes rise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 
 /* 空狀態插圖（翻開的作業簿；用遮罩上色，深色模式自動跟著變） */
 .empty::before { content: ""; display: block; width: 76px; height: 58px; margin: 0 auto 12px; background: var(--line-strong);
@@ -690,3 +688,7 @@ input[type=checkbox], input[type=radio] { accent-color: var(--accent); }
 .welcome .big { font-weight: 700; color: var(--ink); }
 @media (prefers-reduced-motion: no-preference) { .wcheck path { stroke-dasharray: 32; stroke-dashoffset: 32; animation: drawck .5s .15s ease-out forwards; } }
 @keyframes drawck { to { stroke-dashoffset: 0; } }
+
+/* 列印一律不要動畫（避免印到淡入途中、半透明的表格） */
+@media print { *, *::before, *::after { animation: none !important; transition: none !important; } }
+@media print { .report .hxsec { break-inside: avoid; page-break-inside: avoid; } }

@@ -722,6 +722,22 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
   }
   await fetch(B + '__reset'); await fetch(B + '__seed');
 
+
+  console.log('32. 列印時不能有半透明或動畫中的內容');
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+  ctx = await br.newContext({ viewport: { width: 1280, height: 860 } }); pg = await newPage(ctx); await adminLogin(pg, B);
+  const still = async () => pg.evaluate(() => Array.from(document.querySelectorAll('main *')).filter(e => { const cs = getComputedStyle(e); return cs.animationName !== 'none' || parseFloat(cs.opacity) < 1 && cs.display !== 'none' && !e.closest('[hidden]'); }).map(e => e.className || e.tagName).slice(0, 5));
+  for (const t of ['全校總覽', '報表']) {
+    await pg.click('nav.tabs >> text=' + t); await sleep(400);
+    const scr = await pg.evaluate(() => Array.from(document.querySelectorAll('.tablebox, .kpi, .chartpanel')).filter(e => getComputedStyle(e).animationName !== 'none').length);
+    ok(scr === 0, t + '：畫面上的表格與卡片沒有反覆播放的動畫（自動更新時不會閃）');
+    await pg.emulateMedia({ media: 'print' });
+    const bad = await still();
+    ok(bad.length === 0, t + '：列印時沒有半透明或動畫中的元素' + (bad.length ? '（' + bad.join('、') + '）' : ''));
+    await pg.emulateMedia({ media: 'screen' });
+  }
+  await ctx.close();
+
   await br.close();
   console.log('\n頁面錯誤：' + (errors.length ? errors.join(' | ') : '無'));
   console.log(`結果：${pass} 通過，${fail} 失敗`);
