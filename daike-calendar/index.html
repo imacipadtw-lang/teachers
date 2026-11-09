@@ -1318,6 +1318,7 @@ body.has-view .admin-mobile .admin-box > label,body.has-view .admin-mobile .admi
 body.has-view .admin-mobile .pw-list{margin-top:0;border-top:0;padding-top:0}
 @media (min-width:1051px){.admin-mobile .admin-box{max-width:640px}}
 .set-tbl,.scroll{position:relative}   /* 表格裡的隱藏文字（.sr）留在捲動框內，不撐寬整頁 */
+#hrTimes.bad{border-color:var(--c-leave);box-shadow:0 0 0 2px rgba(208,56,79,.18)}
 </style>
 </head>
 <body>
@@ -2085,13 +2086,21 @@ var HR = (function () {
   function addDay(ymd, n) { var p = ymd.split("-").map(Number); var d = new Date(p[0], p[1] - 1, p[2] + n); return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); }
   function md(ymd) { var p = ymd.split("-"); return (+p[1]) + "/" + (+p[2]) + "（" + dow(ymd) + "）"; }
   function rocToYmd(y, m, d) { return (+y + 1911) + "-" + ("0" + (+m)).slice(-2) + "-" + ("0" + (+d)).slice(-2); }
-  function periodTimes(str) {
-    var out = [];
-    clean(str || DEF_TIMES).split(/[,，、\s]+/).forEach(function (x, i) {
-      var m = x.match(/^(\d{1,2}):?(\d{2})-(\d{1,2}):?(\d{2})$/); if (!m) return;
-      out.push({ p: String(i + 1), from: (+m[1]) * 60 + (+m[2]), to: (+m[3]) * 60 + (+m[4]) });
+  /* 115.11.9：節次時間先整理（全形、各種破折號、～、空白都可以），每一段都要對；有一段不對就整組不用（不再默默跳號） */
+  function checkTimes(str) {
+    var t = String(str || "").normalize("NFKC").replace(/[–—－~～〜‐−]/g, "-").replace(/\s*([-:])\s*/g, "$1").trim();
+    var parts = t.split(/[,，、;；\s]+/).filter(Boolean), list = [], bad = [];
+    parts.forEach(function (x) {
+      var m = x.match(/^(\d{1,2}):?(\d{2})-(\d{1,2}):?(\d{2})$/), f = m && (+m[1]) * 60 + (+m[2]), e = m && (+m[3]) * 60 + (+m[4]);
+      if (!m || +m[2] > 59 || +m[4] > 59 || f >= e || (list.length && f < list[list.length - 1].to)) { bad.push(x); return; }
+      list.push({ p: String(list.length + 1), from: f, to: e });
     });
-    return out.length ? out : periodTimes(DEF_TIMES);
+    if (list.length > 8) bad.push("（最多 8 節）");
+    return { ok: !!list.length && !bad.length, list: list, bad: bad };
+  }
+  function periodTimes(str) {
+    var c = checkTimes(str || DEF_TIMES);
+    return c.ok ? c.list : checkTimes(DEF_TIMES).list;
   }
   /* 把貼上的文字讀成 [{who, form, kind, applied, from:{date,min}, to:{date,min}, hours, reason, ok, raw}] */
   function parse(text, teachers) {
@@ -2238,7 +2247,7 @@ var HR = (function () {
     [missing, noHr, typeDiff, okList, edge].forEach(function (L) { L.sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : key(a) < key(b) ? -1 : 1; }); });
     return { missing: missing, noHr: noHr, typeDiff: typeDiff, ok: okList, edge: edge, noName: noName, hrNames: Object.keys(hrNames), range: [minD, maxD], leaves: P.leaves.length, cancels: P.cancels.length, warn: P.warn, md: md };
   }
-  return { parse: parse, slots: slots, periodTimes: periodTimes, compare: compare, md: md, DEF_TIMES: DEF_TIMES };
+  return { parse: parse, slots: slots, periodTimes: periodTimes, checkTimes: checkTimes, compare: compare, md: md, DEF_TIMES: DEF_TIMES };
 })();
 
 var PAY = (function () {
@@ -2461,7 +2470,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.09m";
+const APP_VERSION = "專業版 2026.11.09n";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -4222,7 +4231,8 @@ function prefetchMeta(){                      // 管理者登入後在背景先�
 }
 $("#openPlan").onclick = ()=>openPlan();
 $("#planClose").onclick = closePlan; $("#planCancel").onclick = closePlan;
-document.querySelectorAll("#planModal .seg button").forEach(b=>b.onclick=()=>{ plan.kind=b.dataset.kind; plan.force=false; plan.server=null; renderPlan(); });
+document.querySelectorAll("#planModal .seg button").forEach(b=>b.onclick=()=>{ if(plan.kind !== b.dataset.kind){ plan.scan = null; plan.scanKeys = null; }   // 換分頁：上一張照片的黃框與提醒不再顯示
+  plan.kind=b.dataset.kind; plan.force=false; plan.server=null; renderPlan(); });
 
 const ctxOf = () => ({tt:state.meta.tt, tSlot:state.meta.tSlot, has:state.meta.has, ev:state.meta.ev, off:state.meta.off || state.off || {}});
 const ttAt = (date,p,cls) => date&&p&&cls ? state.meta.tt[CF.dow(date)+"|"+p+"|"+cls] : null;
@@ -4708,20 +4718,22 @@ function applyScan(d){
   const ymdOk = v => /^\d{4}-\d{2}-\d{2}$/.test(v || "") ? v : "";
   const clsOk = v => { v = String(v || "").replace(/\s/g, ""); if(CLASSES.includes(v)) return v; if(v) warn.push(`班級照片上寫「${v}」，請手動選`); return ""; };
   const pOk = v => /^[1-7]$/.test(String(v || "")) ? String(v) : "";
+  recs.forEach(r => { r.periods = Array.isArray(r.periods) ? r.periods : []; r.toPeriods = Array.isArray(r.toPeriods) ? r.toPeriods : []; });   // 辨識結果少了節次清單也不會出錯
   if(!recs.length){ plan.scan = {title:"照片裡沒有找到請假、調課或代課的資料，請手動填寫", warn:[], photo:d.photo}; plan.scanKeys = []; renderPlan(); return; }
   const absRecs = recs.filter(r => r.type === "請假");
   if(absRecs.length){                                // 假單：填「請假」；同一張上的代課安排記下來，按「排這天的代課」時帶入
-    const A = plan.absent, r0 = absRecs[0];
-    plan.kind = "absent"; A.saved = null; A.scanSubs = {};
-    A.teacher = who(r0.teacher, "請假老師：") || A.teacher;
-    if(r0.leaveType && LEAVES.includes(r0.leaveType)) A.leaveType = r0.leaveType; else if(r0.leaveType) warn.push(`假別照片上寫「${r0.leaveType}」，請手動選`);
-    A.from = ymdOk(r0.date) || A.from; const t2 = ymdOk(r0.toDate); A.to = t2 && t2 !== A.from ? t2 : "";
+    const r0 = absRecs[0];                         // 115.11.9：每次掃描都從空白表單開始，上一張單的資料不會留下來
+    const A = plan.absent = {teacher:"", leaveType:"公假", applyDate:todayYmd(), from:"", to:"", scope:"全天", periods:[], reason:"", scanSubs:{}, saved:null};
+    plan.kind = "absent";
+    A.teacher = who(r0.teacher, "請假老師：");
+    const ltOk = r0.leaveType && LEAVES.includes(r0.leaveType); if(ltOk) A.leaveType = r0.leaveType; else if(r0.leaveType) warn.push(`假別照片上寫「${r0.leaveType}」，請手動選`);
+    A.from = ymdOk(r0.date); const t2 = ymdOk(r0.toDate); A.to = t2 && t2 !== A.from ? t2 : "";
     if(!ymdOk(r0.date)) warn.push(`請假日期看不懂（照片上寫「${r0.date||"沒寫"}」），請手動填`);
     const sc = ["全天","上午","下午","節次"].includes(r0.scope) ? r0.scope : "全天";
     if(r0.scope && sc !== r0.scope) warn.push(`請假範圍照片上寫「${r0.scope}」，先填「全天」，請核對`);
     A.scope = sc; A.periods = sc === "節次" ? (r0.periods||[]).map(pOk).filter(Boolean) : [];
     if(sc === "節次" && !A.periods.length) warn.push("範圍是節次，但看不出是哪幾節，請勾選");
-    A.reason = r0.reason || A.reason;
+    A.reason = r0.reason || "";
     if(absRecs.length > 1) warn.push(`照片上還有其他請假（${absRecs.slice(1).map(r => (r.teacher||"") + " " + (r.date||"")).join("、")}），這次只填第一筆，其他請再拍一次或手動登記`);
     recs.filter(r => r.type === "代課").forEach(r => {
       const d0 = ymdOk(r.date) || A.from, o = who(r.other, "代課老師："); if(!d0 || !o) return;
@@ -4729,7 +4741,7 @@ function applyScan(d){
     });
     if(Object.keys(A.scanSubs).length) warn.push("照片上有代課安排：按該天的「排這天的代課」會一起帶入代課老師");
     absRecs.concat(recs.filter(r => r.type === "代課")).forEach(r => { if(r.unclear) warn.push("看不清楚：" + r.unclear); });
-    keys.push("a.teacher","a.leaveType","a.from","a.scope"); if(A.to) keys.push("a.to"); if(A.reason) keys.push("a.reason");
+    if(A.teacher) keys.push("a.teacher"); if(ltOk) keys.push("a.leaveType"); if(A.from) keys.push("a.from"); if(r0.scope) keys.push("a.scope"); if(A.to) keys.push("a.to"); if(A.reason) keys.push("a.reason");
     if(d.stamp) warn.push("核章：" + d.stamp);
     for(let i = warn.length - 1; i >= 0; i--) if(warn.indexOf(warn[i]) < i) warn.splice(i, 1);
     plan.scan = {title: `已依假單填好請假（黃框＝照片辨識的），共 ${absDays().length} 天，請核對後再儲存`, warn, photo: d.photo};
@@ -4738,9 +4750,9 @@ function applyScan(d){
   }
   const swaps = recs.filter(r => r.type !== "代課" && r.type !== "代導師" && (r.toDate || r.toPeriods.length)), subs = recs.filter(r => r.type === "代課" || r.type === "代導師" || (!r.toDate && !r.toPeriods.length));
   if(swaps.length >= subs.length){
-    plan.kind = "swap"; const r0 = swaps[0], S = plan.swap;
-    S.teacher = who(r0.teacher, "申請人：") || S.teacher; S.applyDate = ymdOk(r0.applyDate) || S.applyDate; S.reason = r0.reason || S.reason;
-    keys.push("s.teacher", "s.applyDate"); if(r0.reason) keys.push("s.reason");
+    plan.kind = "swap"; const r0 = swaps[0], S = plan.swap = {teacher:"", applyDate:todayYmd(), reason:"", rows:[]};
+    S.teacher = who(r0.teacher, "申請人："); S.applyDate = ymdOk(r0.applyDate) || S.applyDate; S.reason = r0.reason || "";
+    if(S.teacher) keys.push("s.teacher"); if(ymdOk(r0.applyDate)) keys.push("s.applyDate"); if(r0.reason) keys.push("s.reason");
     S.rows = [];
     swaps.forEach(r => {
       if(r.teacher && who(r.teacher, "申請人：") && who(r.teacher, "") !== S.teacher) warn.push(`照片上有不同的申請人（${r.teacher}），這張只填 ${S.teacher}；其他人請另外登記`);
@@ -4758,21 +4770,26 @@ function applyScan(d){
     if(!S.rows.length) S.rows.push(newSwapRow());
     S.rows.forEach(autoSwap);
   } else {
-    plan.kind = "sub"; const r0 = subs[0], U = plan.sub;
-    U.leaver = who(r0.teacher, "請假老師：") || U.leaver; U.date = ymdOk(r0.date) || U.date;
-    if(r0.leaveType && LEAVES.includes(r0.leaveType)) U.leaveType = r0.leaveType; else if(r0.leaveType) warn.push(`假別照片上寫「${r0.leaveType}」，請手動選`);
+    plan.kind = "sub"; const r0 = subs[0], U = plan.sub = {leaver:"", leaveType:"公假", date:"", note:"", rows:[], tutor:false, tutorSub:""};
+    U.leaver = who(r0.teacher, "請假老師："); U.date = ymdOk(r0.date);
+    const ltOk = r0.leaveType && LEAVES.includes(r0.leaveType); if(ltOk) U.leaveType = r0.leaveType; else if(r0.leaveType) warn.push(`假別照片上寫「${r0.leaveType}」，請手動選`);
     if(r0.note) U.note = r0.note;
-    keys.push("u.leaver", "u.date", "u.leaveType");
+    if(U.leaver) keys.push("u.leaver"); if(U.date) keys.push("u.date"); if(ltOk) keys.push("u.leaveType");
     U.rows = [];
     subs.forEach(r => {
-      if(r.type === "代導師"){ U.tutor = true; U.tutorSub = who(r.other, "代導師：") || U.tutorSub; keys.push("u.tutorSub"); return; }
+      if(r.type === "代導師"){ U.tutor = true; U.tutorSub = who(r.other, "代導師："); if(U.tutorSub) keys.push("u.tutorSub"); return; }
       if(r.date && ymdOk(r.date) && ymdOk(r.date) !== U.date) warn.push(`照片上還有 ${r.date} 的代課，這張只填 ${U.date}；其他天請另外登記`);
       (r.periods.length ? r.periods : [""]).forEach(p => {
-        const tc = U.leaver && U.date && pOk(p) ? (CF.busyAt(ctxOf(), U.leaver, U.date, +p, "")[0] || "").split("（")[0] : "";   // 課表上這節的班級（和「帶入這天的課」一樣）
-        const a = tc ? ttAt(U.date, pOk(p), tc) : null;
-        const row = Object.assign(newSubRow(), {period: pOk(p), cls: tc || clsOk(r.cls), subject: (a && a.subject) || r.subject || "", sub: who(r.other, "代課老師：")});
-        if(U.leaver && U.date && pOk(p) && !tc) warn.push(`課表上 ${U.leaver} ${CF.md(U.date)} 第${p}節沒有課，請核對照片`);
-        const i = U.rows.length; U.rows.push(row); ["period","cls","subject","sub"].forEach(f => { if(row[f]) keys.push(`r.${i}.${f}`); });
+        // 課表上這節的班級（和「帶入這天的課」一樣）；合班（例：四甲＋五甲一起上）每一班一列，115.11.9 起不再只留第一班
+        const busy = U.leaver && U.date && pOk(p) ? CF.busyAt(ctxOf(), U.leaver, U.date, +p, "").map(x => String(x).split("（")[0]).filter(Boolean) : [];
+        const pc = clsOk(r.cls);
+        if(pc && busy.length && !busy.includes(pc)) warn.push(`照片上第${p}節寫「${pc}」，課表上 ${U.leaver} 這節是 ${busy.join("＋")}，已依課表填，請核對`);
+        (busy.length ? busy : [pc]).forEach(tc => {
+          const a = busy.length ? ttAt(U.date, pOk(p), tc) : null;
+          const row = Object.assign(newSubRow(), {period: pOk(p), cls: tc, subject: (a && a.subject) || r.subject || "", sub: who(r.other, "代課老師：")});
+          const i = U.rows.length; U.rows.push(row); ["period","cls","subject","sub"].forEach(f => { if(row[f]) keys.push(`r.${i}.${f}`); });
+        });
+        if(U.leaver && U.date && pOk(p) && !busy.length) warn.push(`課表上 ${U.leaver} ${CF.md(U.date)} 第${p}節沒有課，請核對照片`);
       });
       if(r.unclear) warn.push("看不清楚：" + r.unclear);
     });
@@ -4852,7 +4869,7 @@ function fixCheck(){                                             // 和後端一
   } else {
     if(!c.leaver) m.push(k==="代課"?"請選請假老師":"請選請假導師"); if(c.sub && c.sub===c.leaver) m.push("請假和代課的不能是同一位老師");
     if(!c.date) m.push("請填日期"); if(k==="代課" && !c.period) m.push("請選節次");
-    if(k==="代導師" && !(+c.days > 0 && +c.days <= 10)) m.push("日數要是 0.5～10");
+    if(k==="代導師" && !(+c.days >= 0.5 && +c.days <= 10 && Number.isInteger(+c.days * 2))) m.push("日數要是 0.5～10，以半天（0.5）為單位");   // 115.11.9：0.3 天會算出 39.9 元這種金額
     if(c.leaveType==="其他" && !fxTrim(c.note)) m.push("假別選「其他」，請在備註寫明是什麼假");
   }
   ["date","fromDate","toDate"].forEach(d => { if(c[d] && c[d]!==fx.orig[d] && !inTerm(c[d])) m.push(`日期 ${md(c[d])} 不在本學期`); });
@@ -4864,7 +4881,7 @@ function fixField(k, label, t){
     + state.teachers.map(n => `<option ${n===v?"selected":""}>${esc(n)}</option>`).join("") + (v && !state.teachers.includes(v) ? `<option selected>${esc(v)}</option>` : "");
   let ctl;
   if(t==="date" || t==="date0") ctl = `<input type="date" id="${id}" data-fk="${k}" value="${esc(v)}" min="${esc(state.term.from)}" max="${esc(state.term.to)}">`;
-  else if(t==="period" || t==="period0") ctl = `<select id="${id}" data-fk="${k}">${t==="period0" || !v ? `<option value="">${t==="period0"?"（沒有）":"（請選擇）"}</option>` : ""}${[1,2,3,4,5,6,7,8].map(n => `<option ${String(n)===String(v)?"selected":""}>${n}</option>`).join("")}</select>`;
+  else if(t==="period" || t==="period0") ctl = `<select id="${id}" data-fk="${k}">${t==="period0" || !v ? `<option value="">${t==="period0"?"（沒有）":"（請選擇）"}</option>` : ""}${[1,2,3,4,5,6,7].concat(String(v)==="8" ? [8] : []).map(n => `<option ${String(n)===String(v)?"selected":""}>${n}</option>`).join("")}</select>`;
   else if(t==="who" || t==="who0") ctl = `<select id="${id}" data-fk="${k}">${names(t==="who0" || !v)}</select>`;
   else if(t==="leave"){ const L = ((state.leaveTypes && state.leaveTypes.length) ? state.leaveTypes : LEAVES).slice(); if(v && !L.includes(v)) L.push(v); if(!v) L.unshift("");
     ctl = `<select id="${id}" data-fk="${k}">${L.map(l => `<option value="${esc(l)}" ${l===v?"selected":""}>${l?esc(l):"（請選擇）"}</option>`).join("")}</select>`; }
@@ -4902,7 +4919,8 @@ function renderFix(){
   $("#fixBody").innerHTML = body; $("#fixActs").innerHTML = acts;
 }
 function openFix(key){
-  const e = state.events.find(x => { const r = fixRef(x); return r && r.key===key; });
+  const pool = isAll() ? state.events : state.events.concat(state.school || []);   // 看某位老師時，「其他老師的紀錄」也能修改（115.11.9）
+  const e = pool.find(x => { const r = fixRef(x); return r && r.key===key; });
   if(!e) return toast("找不到這筆紀錄，請重新整理");
   Object.assign(fx, {ref:fixRef(e), ev:e, orig:fixRec(e), step:"edit", op:"save", issues:[], doneText:""});
   fx.cur = Object.assign({}, fx.orig);
@@ -5282,9 +5300,10 @@ const stampDay = e => e.type==="swap" ? (e.fromDate || e.date) : e.date;
 const isStamped = e => /^已核章完成/.test(e.stamp || "");
 let sidGroup = [];
 function openSidModal(id){
-  const e0 = state.events.find(x => x.id === id); if(!e0) return;
+  const pool = isAll() ? state.events : state.events.concat(state.school || []);
+  const e0 = pool.find(x => x.id === id); if(!e0) return toast("找不到這筆紀錄，請重新整理");
   const f = stampFam(e0), who = stampOwner(e0), day = stampDay(e0), seen = new Set();
-  sidGroup = state.events.filter(x => x.id && sidOf(x) && stampFam(x)===f && stampOwner(x)===who && stampDay(x)===day)
+  sidGroup = pool.filter(x => x.id && sidOf(x) && stampFam(x)===f && stampOwner(x)===who && stampDay(x)===day)
     .filter(x => { if(seen.has(x.id)) return false; seen.add(x.id); return true; })
     .sort((a,b) => (+(a.fromPeriod||a.period)||0) - (+(b.fromPeriod||b.period)||0));
   if(!sidGroup.length) sidGroup = [e0];
@@ -5416,6 +5435,12 @@ function wbFind(q){
 /* ---------- 管理者：人事差勤系統核對（10/30） ----------
  * 把差勤系統「已批核案件」的文字貼進來 → 和本系統比對；貼過的文字留在這台裝置（localStorage），重新整理會再比一次。 */
 function hrTimes(){ return store.get(K+"hrTimes", localStorage) || HR.DEF_TIMES; }
+function hrTimesSave(){                                  // 節次時間有一段格式不對：不存、框變紅、說明這次用預設時間
+  const el = $("#hrTimes"); if(!el) return; const v = el.value.trim(), c = HR.checkTimes(v || HR.DEF_TIMES);
+  el.classList.toggle("bad", !c.ok); el.setAttribute("aria-invalid", c.ok ? "false" : "true");
+  if(!c.ok){ toast(`節次時間有看不懂的地方：${c.bad.join("、") || "空白"}。這次先用預設時間（08:40 起），請改成像 0840-0920,0930-1010 這樣`); store.del(K+"hrTimes", localStorage); return; }
+  store.set(K+"hrTimes", v, localStorage);
+}
 function hrKey(e){ return e.type==="swap" ? ["swap", e.date, e.period, e.dir==="調出" ? e.teacher : e.partner].join("|") : e.type==="tutor"||e.type==="tutorLeave" ? ["tutor", e.date, e.type==="tutor" ? e.other : e.who].join("|") : e.type==="sub"||e.type==="leave" ? ["leave", e.date, e.period, e.type==="sub" ? e.other : e.who].join("|") : ""; }
 function hrFlagOf(e){
   const h = state.hr; if(!h || state.role!=="admin") return "";
@@ -5624,7 +5649,7 @@ function renderHrBox(){
     <div class="row"><button type="button" class="btn small" id="hrUp">上傳請假系統資料</button><input type="file" id="hrFile" accept=".txt,.csv,.tsv,text/plain,text/csv,image/*,application/pdf" multiple hidden><button type="button" class="btn ghost small" id="hrGo">比對</button><button type="button" class="btn ghost small" id="hrClear">清除</button>
       <label class="hint" for="hrTimes" style="margin:0">節次時間</label><input id="hrTimes" value="${esc(hrTimes())}" aria-label="節次時間，例：0840-0920,0930-1010,…"></div>
     <p class="hint">節次時間用來把請假的「幾點到幾點」換算成第幾節（預設 08:40–09:20、09:30–10:10、10:30–11:10、11:20–12:00、13:30–14:10、14:20–15:00、15:10–15:50）；請假和某一節重疊不到半節（20 分鐘）不算。和本校作息不同就改上面那格，再按「比對」。</p>${res}</div>`;
-  $("#hrGo").onclick = () => { store.set(K+"hrTimes", $("#hrTimes").value.trim(), localStorage); const v = $("#hrText").value;
+  $("#hrGo").onclick = () => { hrTimesSave(); const v = $("#hrText").value;
     busy(true); (v.trim() ? hrRun(v) : (state.hrRecs && state.hrRecs.length ? hrRun(hrRecsToText(state.hrRecs), {noSave:true}) : Promise.resolve(toast("請先貼上或上傳請假系統資料")))).finally(() => busy(false)); };
   box.querySelectorAll("[data-hrdel]").forEach(b => b.onclick = async () => {
     const r = (state.hrRecs || [])[+b.dataset.hrdel]; if(!r) return;
@@ -5640,14 +5665,14 @@ function renderHrBox(){
     if(n){ try{ const d = await apiPost({action:"hrClear", name:state.cred.name, h:state.cred.h}); if(!d.ok) throw new Error(d.error || "清除失敗"); state.hrRecs = []; state.hrSync = null; }catch(err){ toast("清除失敗：" + err.message); return; } }
     $("#hrText").value = ""; state.hrScan = null; hrRun(""); };
   $("#hrUp").onclick = () => $("#hrFile").click();
-  $("#hrFile").onchange = e => { store.set(K+"hrTimes", $("#hrTimes").value.trim(), localStorage); hrFiles(e.target.files); };
+  $("#hrFile").onchange = e => { hrTimesSave(); hrFiles(e.target.files); };
   box.querySelectorAll(".hrfilter [data-f]").forEach(b => b.onclick = () => { state.hrFilter = b.dataset.f; renderHrBox(); });
   box.querySelectorAll("[data-hrfix]").forEach(b => b.onclick = () => hrFix(+b.dataset.hrfix));
   box.querySelectorAll("[data-hrsee]").forEach(b => b.onclick = () => hrSee(+b.dataset.hrsee));
   const dz = $("#hrDrop");
   ["dragenter","dragover"].forEach(t => dz.addEventListener(t, e => { if(e.dataTransfer && [...e.dataTransfer.types].includes("Files")){ e.preventDefault(); dz.classList.add("over"); } }));
   ["dragleave","dragend"].forEach(t => dz.addEventListener(t, () => dz.classList.remove("over")));
-  dz.addEventListener("drop", e => { if(!e.dataTransfer || !e.dataTransfer.files.length) return; e.preventDefault(); dz.classList.remove("over"); store.set(K+"hrTimes", $("#hrTimes").value.trim(), localStorage); hrFiles(e.dataTransfer.files); });
+  dz.addEventListener("drop", e => { if(!e.dataTransfer || !e.dataTransfer.files.length) return; e.preventDefault(); dz.classList.remove("over"); hrTimesSave(); hrFiles(e.dataTransfer.files); });
 }
 /* 上傳請假系統資料（10/31）：文字檔直接讀（UTF-8／UTF-16／Big5 都可以），截圖、PDF 交給辨識；讀完接在文字框後面再比對 */
 async function hrReadText(file){
