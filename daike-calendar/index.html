@@ -1482,6 +1482,7 @@ html[data-theme=dark] .wb-todo li.ok{background:rgba(79,209,161,.10)}
   .pe-empty span{font-size:13px;line-height:1.6;max-width:240px}
   html[data-theme=dark] .pe-empty svg{stroke:var(--sky)}
 }
+@media screen{ .dash-zero{display:grid;place-items:center;height:120px;border:1px dashed var(--line);border-radius:10px;color:var(--ink-3);font-size:13px} }
 </style>
 </head>
 <body>
@@ -3917,6 +3918,7 @@ function dashMonths(){
     return { ym, label: `${m+1}月`, sub: t.subN, swap: evs.filter(e => e.type === "swap" && e.dir === "調出").length, tutor: t.tutorD }; });
 }
 function dashBars(rows, key, color, sel){                       // 直條小圖（一個數列一個顏色；選到的月份實心、其他淡一點）
+  if(rows.length && rows.every(r => !r[key])) return `<div class="dash-zero">本學期目前是 0</div>`;   // 115.11.10：全部 0 時不要只畫一條空軸
   const W = 300, H = 120, top = 18, bot = 20, n = rows.length || 1, gap = 8, bw = Math.max(8, Math.min(34, (W - gap * (n + 1)) / n));
   const max = Math.max(1, ...rows.map(r => r[key])), x0 = (W - (bw * n + gap * (n - 1))) / 2;
   const hi = rows.reduce((a, r, i) => r[key] > rows[a][key] ? i : a, 0);
