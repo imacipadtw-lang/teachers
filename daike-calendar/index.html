@@ -5507,6 +5507,7 @@ function wbTodos(ym, P){
   // 明天（下一個有紀錄的日子）的課務
   const nxt = state.events.filter(e => e.date > today && describe(e)).sort((a,b) => a.date.localeCompare(b.date));
   if(nxt.length){ const d = nxt[0].date, n = nxt.filter(e => e.date === d), fl = n.filter(e => (e.flags||[]).length).length;
+    if(!fl && weekDays(today).includes(d)) return L;     // 115.11.10：本週的已經在「本週一覽」，沒有 ⚠ 就不重複列
     L.push({lv:"info", text:`${md(d)} 有 ${n.length} 筆課務${fl ? `，${fl} 筆標 ⚠` : ""}`, verb:"看明細", act: () => wbOpenDay(d)}); }
   return L;
 }
