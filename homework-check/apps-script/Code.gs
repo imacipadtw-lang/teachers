@@ -98,7 +98,7 @@ function read_(p) {
   // 快速路徑：資料沒有變動就不讀試算表（每台裝置每 45 秒問一次，大多是「沒變」）。
   // 任何寫入（含解除裝置）都會改版本號，所以被解除的裝置下一次一定走完整驗證。
   var version = version_();
-  if (p.v && String(p.v) === version) {
+  if (p.v && String(p.v) === version && !p.allRounds) {
     var cache = CacheService.getScriptCache();
     if (p.atoken) { var sess = adminSessions_()[p.atoken]; if (sess && sess.exp > Date.now()) return json_({ ok: true, unchanged: true, version: version }); }
     else if (p.token && cache.get('tok:' + p.token)) return json_({ ok: true, unchanged: true, version: version });
@@ -127,6 +127,15 @@ function read_(p) {
     });
   }
   var out = { ok: true, role: who.role, version: version, rounds: rounds, rid: rid, checks: checks };
+  if (p.allRounds && who.role === 'admin') {
+    // 教務組：一次取回所有抽查次別的登記（歷次趨勢、下載備份用）
+    var history = {};
+    Object.keys(all).forEach(function (k) {
+      var m = /^checks:([^:]+):(.+)$/.exec(k); if (!m) return;
+      (history[m[1]] = history[m[1]] || {})[m[2]] = { marks: all[k].marks || {}, skip: all[k].skip || {}, notes: all[k].notes || {}, classNote: all[k].classNote || '', updatedAt: all[k].updatedAt || '' };
+    });
+    out.history = history;
+  }
   if (who.role === 'admin') {
     out.config = config;
     var auth = all.auth || { classes: {} }; var links = {};

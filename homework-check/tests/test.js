@@ -618,6 +618,43 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
   }
   await fetch(B + '__reset'); await fetch(B + '__seed');
 
+
+  console.log('29. 歷次抽查完成率與下載備份');
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+  { const R = async b => (await fetch(B + 'exec', { method: 'POST', body: JSON.stringify(b) })).json();
+    const rd = await R({ action: 'read', key: 'test1234' }); const ids = rd.config.items.map(i => i.id);
+    await R({ action: 'marks', key: 'test1234', rid: 'r1', classId: 'g1', changes: [{ no: 1, itemId: 'chinese', val: true }] });
+    await R({ action: 'addRound', key: 'test1234', round: { id: 'r2', name: '115學年度第1學期 第2次作業抽查', due: '', itemIds: ids, locked: false, createdAt: '2099-01-01T00:00:00Z' } });
+    await R({ action: 'marks', key: 'test1234', rid: 'r2', classId: 'g1', changes: rd.config.items.filter(it => it.grades.includes(1)).map(it => ({ no: 1, itemId: it.id, val: true })) });
+    await R({ action: 'note', key: 'test1234', rid: 'r1', classId: 'g1', no: 3, text: '第一次的備註' });
+    const hr = await R({ action: 'read', key: 'test1234', allRounds: 1 });
+    ok(hr.history && hr.history.r1 && hr.history.r2 && hr.history.r1.g1.notes['3'] === '第一次的備註', '後端 allRounds 一次回傳各次別（含備註）');
+    const tk = await (await fetch(B + 'exec?action=claim&classId=g1&label=t')).json();
+    ok(!(await R({ action: 'read', token: tk.token, allRounds: 1 })).history, '導師拿不到歷次資料');
+    ctx = await br.newContext({ viewport: { width: 1280, height: 860 } }); pg = await newPage(ctx); await adminLogin(pg, B);
+    await pg.click('nav.tabs >> text=報表'); await pg.waitForSelector('.hxfig', { timeout: 15000 });
+    ok((await pg.$$('.hxchart .hxdot')).length === 2 && /第1次[\s\S]*第2次/.test(await pg.textContent('.hxtable thead')), '趨勢圖 2 個點、表頭依建立時間排序（第1次、第2次）');
+    const row1 = (await pg.locator('.hxtable tbody tr').first().innerText()).replace(/\s+/g, ' ');
+    ok(/^一甲 2% 17% ▲ 15/.test(row1), '一甲歷次完成率與變化：' + row1);
+    ok(/全校完成率趨勢/.test(await pg.getAttribute('.hxchart', 'aria-label')), '圖表有文字說明（螢幕報讀可讀）');
+    await pg.click('nav.tabs >> text=設定'); await sleep(300);
+    const [dl] = await Promise.all([pg.waitForEvent('download'), pg.click('button:has-text("下載備份")')]);
+    const bk = JSON.parse(fs.readFileSync(await dl.path(), 'utf8'));
+    ok(/^作業抽查備份_\d{7}\.json$/.test(dl.suggestedFilename()) && bk.complete === true && bk.checks.r1 && bk.checks.r2 && bk.checks.r1.g1.notes['3'] === '第一次的備註' && bk.config.classes.length === 3 && bk.rounds.length === 2, '備份含所有次別、備註、名單與設定');
+    ok(!JSON.stringify(bk).includes('test1234') && !JSON.stringify(bk).includes(tk.token), '備份不含密碼與登入憑證');
+    await ctx.close();
+  }
+  await fetch(L + '__reset'); await fetch(L + '__seed');
+  ctx = await br.newContext({ viewport: { width: 1280, height: 860 } }); pg = await newPage(ctx); await adminLogin(pg, L);
+  await pg.click('nav.tabs >> text=報表'); await pg.waitForSelector('.hxtable', { timeout: 15000 });
+  ok(/後端程式更新/.test(await pg.textContent('.hxsec')), '舊版後端：歷次只顯示本次並說明');
+  await pg.click('nav.tabs >> text=設定'); await sleep(300);
+  const [dl2] = await Promise.all([pg.waitForEvent('download'), pg.click('button:has-text("下載備份")')]);
+  const bk2 = JSON.parse(fs.readFileSync(await dl2.path(), 'utf8'));
+  ok(bk2.complete === false && bk2.checks.r1, '舊版後端：備份仍可下載（只含本次）');
+  await ctx.close();
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+
   await br.close();
   console.log('\n頁面錯誤：' + (errors.length ? errors.join(' | ') : '無'));
   console.log(`結果：${pass} 通過，${fail} 失敗`);

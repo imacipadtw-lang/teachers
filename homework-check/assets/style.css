@@ -543,3 +543,25 @@ table.grid tr.nomatch td { text-align: center; color: var(--muted); padding: 22p
   #noticeSheet.per4 .nslip:not(:last-child)::after { bottom: -2.6mm; }
   #noticeSheet.per3 .nslip:nth-child(3n)::after, #noticeSheet.per4 .nslip:nth-child(4n)::after { content: none; }
 }
+
+/* ---------- 歷次抽查完成率（趨勢） ---------- */
+.hxfig { margin: 0 0 12px; background: var(--sheet); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px 6px; }
+.hxfig figcaption { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 2px; }
+.hxchart { width: 100%; height: auto; display: block; max-height: 240px; }
+.hxgrid { stroke: var(--line); stroke-width: 1; }
+.hxgrid.base { stroke: var(--line-strong); }
+.hxax { fill: var(--muted); font-size: 11px; font-family: var(--f-body); }
+.hxarea { fill: var(--accent); opacity: .08; }
+.hxline { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.hxdot { fill: var(--accent); stroke: var(--sheet); stroke-width: 2; }
+.hxhit { fill: transparent; }
+.hxpt { cursor: default; outline: none; }
+.hxpt:hover .hxdot, .hxpt:focus .hxdot { r: 6; }
+.hxpt:focus-visible .hxhit { stroke: var(--accent); stroke-width: 2; }
+.hxlab { fill: var(--ink); font-size: 13px; font-weight: 700; font-family: var(--f-body); }
+.hxspark { width: 84px; height: 22px; vertical-align: middle; }
+.hxspark polyline { fill: none; stroke: var(--accent); stroke-width: 1.5; stroke-linejoin: round; }
+.hxspark circle { fill: var(--accent); }
+.hxdelta { font-size: 12px; color: var(--muted); margin-left: 6px; font-variant-numeric: tabular-nums; }
+@media print { .hxfig { break-inside: avoid; border-color: #999; } .hxline, .hxdot, .hxspark polyline, .hxspark circle, .hxarea { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+@media (prefers-reduced-motion: no-preference) { .hxdot { transition: r .15s; } }

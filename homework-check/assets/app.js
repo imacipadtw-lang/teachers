@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.10c';
+  const APP_VERSION = '2026.11.10d';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
   const LS = { admin: 'hc.admin', teacher: 'hc.teacher', api: 'hc.api', cls: 'hc.class', outbox: 'hc.outbox', theme: 'hc.theme' };
   const GRADE = ['', '一', '二', '三', '四', '五', '六'];
@@ -1104,6 +1104,7 @@
           h('tbody', null, studs.map(s => h('tr', null, h('td', { text: String(s.no) }), h('td', { class: 'rname', text: s.name || '' }), its.map((it, i) => h('td', { class: (isOn(cls.id, s.no, it.id) ? 'okcell' : 'nocell') + examStart(its, i), text: isOn(cls.id, s.no, it.id) ? '✓' : '✗' })), h('td', { class: 'left', text: noteValue(cls.id, s.no) }))))))));
     });
     box.append(detail);
+    box.append(historySection());
     box.append(h('div', { class: 'note', text: '✓ 已繳交　✗ 未繳交　— 本班無此項目　不用繳＝本次教務組設定不用繳交。「考卷」各欄表示該科考卷已由家長簽名並繳回。' }));
     return box;
   }
@@ -1122,6 +1123,94 @@
         h('span', { class: 'cv' }, h('b', { text: pct + '%' }), h('small', { text: ' ' + p.got + '/' + p.total }), late ? h('span', { class: 'tag seal', text: '逾期未齊' }) : (pct === 100 ? h('span', { class: 'tag ok', text: '繳齊' }) : null))));
     });
     return list;
+  }
+
+  /* ---------- 歷次抽查（趨勢）與備份：一次向後端取回所有次別的登記（教務組限定） ---------- */
+  async function fetchHistory() {
+    if (S.history && S.history.ver === S.version && S.history.ver) return S.history;
+    const r = await apiRead({ allRounds: 1, rid: S.rid || '' });
+    if (!r.ok) { if (r.error === 'auth') authLost(); throw new Error(errText(r.error)); }
+    S.history = { ver: r.version, data: r.history || null };
+    return S.history;
+  }
+  // 用某一次的登記資料算某班完成率（與 classProgress 同一套規則：本次項目 ∩ 本班項目 − 不用繳）
+  function progressIn(cls, r, doc) {
+    doc = doc || {}; const skip = doc.skip || {}, marks = doc.marks || {};
+    const ids = new Set(r.itemIds || []);
+    const its = allItems().filter(it => ids.has(it.id) && classHasItem(cls, it) && !skip[it.id]);
+    let got = 0; (cls.students || []).forEach(s => { const m = marks[String(s.no)] || {}; its.forEach(it => { if (m[it.id]) got++; }); });
+    return { got, total: (cls.students || []).length * its.length };
+  }
+  const roundShort = r => { const m = String(r.name || '').match(/第\s*(\d+)\s*次/); return m ? '第' + m[1] + '次' : String(r.name || '').slice(-6); };
+  function historySection() {
+    if (S.history && S.history.ver && S.history.ver === S.version) return renderHistory(S.history.data); // 已有就直接畫，不閃「載入中」
+    const sec = h('div', { class: 'rsec hxsec' }, h('h3', { text: '四、歷次抽查完成率' }), h('div', { class: 'note', text: '載入歷次資料中…' }));
+    fetchHistory().then(hs => { if (sec.isConnected) sec.replaceWith(renderHistory(hs.data)); }).catch(e => { if (sec.isConnected) sec.lastChild.textContent = '無法載入歷次資料：' + e.message; });
+    return sec;
+  }
+  function renderHistory(data) {
+    const cl = classes();
+    const rs = S.rounds.slice().sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)));
+    const legacy = !data;
+    if (legacy) data = { [S.rid]: S.checks }; // 後端尚未更新：只有本次
+    const rows = rs.filter(r => data[r.id] || r.id === S.rid);
+    const pctOf = (cls, r) => { const p = progressIn(cls, r, (data[r.id] || {})[cls.id]); return p.total ? p.got / p.total : null; };
+    const school = rows.map(r => { let g = 0, t = 0; cl.forEach(c => { const p = progressIn(c, r, (data[r.id] || {})[c.id]); g += p.got; t += p.total; }); return t ? g / t : null; });
+    const sec = h('div', { class: 'rsec hxsec' }, h('h3', { text: '四、歷次抽查完成率' }));
+    if (legacy) sec.append(h('div', { class: 'note', text: '後端程式更新（重新部署）後，這裡會顯示每一次抽查的完成率；目前只顯示本次。' }));
+    if (rows.length >= 2) sec.append(trendChart(rows, school));
+    else sec.append(h('div', { class: 'note', text: '目前只有 1 次抽查；建立第 2 次之後，這裡會畫出全校與各班的完成率變化。' }));
+    const pc = v => v == null ? '—' : Math.round(v * 100) + '%';
+    const tbl = h('table', { class: 'rtable hxtable' },
+      h('thead', null, h('tr', null, h('th', { text: '班級' }), rows.map(r => h('th', { title: r.name, text: roundShort(r) })), rows.length >= 2 ? h('th', { text: '變化' }) : null)),
+      h('tbody', null, cl.map(cls => { const vals = rows.map(r => pctOf(cls, r)); const last = vals[vals.length - 1], prev = vals[vals.length - 2];
+        return h('tr', null, h('td', { class: 'rname', text: cls.name }), vals.map(v => h('td', { class: v === 1 ? 'okcell' : null, text: pc(v) })),
+          rows.length >= 2 ? h('td', null, spark(vals, cls.name), h('span', { class: 'hxdelta', text: last != null && prev != null ? (Math.round((last - prev) * 100) === 0 ? '持平' : (last > prev ? '▲ ' : '▼ ') + Math.abs(Math.round((last - prev) * 100))) : '' })) : null); })),
+      h('tfoot', null, h('tr', { class: 'tfoot' }, h('td', { class: 'left', text: '全校' }), school.map(v => h('td', { text: pc(v) })), rows.length >= 2 ? h('td') : null)));
+    sec.append(h('div', { class: 'tablebox' }, tbl));
+    return sec;
+  }
+  // 全校完成率折線（單一數列：不需圖例；只標最後一點；每點 hover 顯示數值）
+  function trendChart(rows, vals) {
+    const W = 640, H = 200, L = 40, R = 56, T = 16, B = 30;
+    const x = i => L + (rows.length === 1 ? (W - L - R) / 2 : i * (W - L - R) / (rows.length - 1));
+    const y = v => T + (1 - v) * (H - T - B);
+    const NS = 'http://www.w3.org/2000/svg';
+    const el = (tag, at, txt) => { const e = document.createElementNS(NS, tag); for (const k in at) e.setAttribute(k, at[k]); if (txt != null) e.textContent = txt; return e; };
+    const svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, class: 'hxchart', role: 'img', 'aria-label': '全校完成率趨勢：' + rows.map((r, i) => roundShort(r) + ' ' + (vals[i] == null ? '無資料' : Math.round(vals[i] * 100) + '%')).join('，') });
+    [0, .25, .5, .75, 1].forEach(g => { svg.append(el('line', { x1: L, x2: W - R + 10, y1: y(g), y2: y(g), class: 'hxgrid' + (g === 0 ? ' base' : '') })); svg.append(el('text', { x: L - 8, y: y(g) + 4, class: 'hxax', 'text-anchor': 'end' }, Math.round(g * 100) + '%')); });
+    rows.forEach((r, i) => svg.append(el('text', { x: x(i), y: H - 8, class: 'hxax', 'text-anchor': 'middle' }, roundShort(r))));
+    const pts = vals.map((v, i) => v == null ? null : [x(i), y(v)]).filter(Boolean);
+    if (pts.length >= 2) {
+      svg.append(el('path', { d: 'M' + pts.map(p => p[0] + ',' + p[1]).join(' L') + ' L' + pts[pts.length - 1][0] + ',' + y(0) + ' L' + pts[0][0] + ',' + y(0) + ' Z', class: 'hxarea' }));
+      svg.append(el('path', { d: 'M' + pts.map(p => p[0] + ',' + p[1]).join(' L'), class: 'hxline' }));
+    }
+    vals.forEach((v, i) => { if (v == null) return;
+      const g = el('g', { class: 'hxpt', tabindex: '0' }); g.append(el('title', {}, rows[i].name + '：全校 ' + Math.round(v * 100) + '%'));
+      g.append(el('circle', { cx: x(i), cy: y(v), r: 11, class: 'hxhit' }), el('circle', { cx: x(i), cy: y(v), r: 4.5, class: 'hxdot' }));
+      if (i === vals.length - 1) g.append(el('text', { x: x(i) + 10, y: y(v) + 5, class: 'hxlab' }, Math.round(v * 100) + '%'));
+      svg.append(g); });
+    return h('figure', { class: 'hxfig' }, h('figcaption', { text: '全校完成率趨勢' }), svg);
+  }
+  function spark(vals, name) {
+    const W = 84, H = 22, P = 3; const pts = vals.map((v, i) => v == null ? null : [P + i * (W - 2 * P) / Math.max(1, vals.length - 1), H - P - v * (H - 2 * P)]).filter(Boolean);
+    const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); s.setAttribute('viewBox', '0 0 ' + W + ' ' + H); s.setAttribute('class', 'hxspark'); s.setAttribute('aria-hidden', 'true');
+    if (pts.length >= 2) { const p = document.createElementNS(s.namespaceURI, 'polyline'); p.setAttribute('points', pts.map(q => q.join(',')).join(' ')); s.append(p); }
+    if (pts.length) { const c = document.createElementNS(s.namespaceURI, 'circle'); const q = pts[pts.length - 1]; c.setAttribute('cx', q[0]); c.setAttribute('cy', q[1]); c.setAttribute('r', 2.6); s.append(c); }
+    return s;
+  }
+  async function downloadBackup() {
+    setSync('busy');
+    try {
+      let hs = null; try { hs = await fetchHistory(); } catch (e) { hs = null; }
+      const full = !!(hs && hs.data);
+      const pack = { app: CFG.appName, school: CFG.schoolName, appVersion: APP_VERSION, exportedAt: new Date().toISOString(), complete: full,
+        config: S.config, rounds: S.rounds, checks: full ? hs.data : { [S.rid]: S.checks } };
+      const d = new Date(); const ymd = (d.getFullYear() - 1911) + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+      downloadBlob(new Blob([JSON.stringify(pack, null, 1)], { type: 'application/json' }), '作業抽查備份_' + ymd + '.json');
+      setSync('ok');
+      toast(full ? '已下載備份（所有抽查次別）' : '已下載備份（後端更新前只含本次抽查）', 3600);
+    } catch (e) { setSync('err', e.message); toast('備份失敗：' + e.message, 3600); }
   }
 
   /* ---------- 專業 Excel 報表（.xlsx，含樣式、凍結窗格、列印設定；不用外部元件） ---------- */
@@ -1462,7 +1551,9 @@
       h('button', { class: 'btn primary', onclick: () => { S.view = 'labels'; renderMain(); } }, svg('tag'), '列印習作標籤（條碼／QR Code）'),
       h('button', { class: 'btn ghost', onclick: openChangeKey }, '修改教務組密碼'),
       h('button', { class: 'btn ghost', onclick: async () => { if (!round()) return toast('尚未建立抽查次別'); await adminPost({ action: 'snapshot', rid: S.rid }, '已在試算表建立本次抽查的「總表」分頁'); } }, '將本次抽查寫入試算表總表'),
-      h('button', { class: 'btn ghost', onclick: () => exportCSV(classes()) }, svg('down'), '匯出全校 CSV')));
+      h('button', { class: 'btn ghost', onclick: () => exportCSV(classes()) }, svg('down'), '匯出全校 CSV'),
+      h('button', { class: 'btn ghost', onclick: downloadBackup }, svg('down'), '下載備份（JSON）')));
+    sp.append(h('div', { class: 'note', text: '「下載備份」會把所有抽查次別的登記、備註、不用繳、名單與設定存成一個檔案，建議每學期末存一份在學校電腦或雲端硬碟。' }));
     if (S.sheetUrl) sp.append(h('div', { class: 'note' }, '資料存放在 Google 試算表：', h('a', { href: S.sheetUrl, target: '_blank', rel: 'noopener', text: '開啟試算表' }), '（請勿改動 data 分頁）。「異動紀錄」分頁記錄每一次登記、取消、備註與設定變更（時間、誰、哪一班、哪位學生），可供查核。'));
     sp.append(h('div', { class: 'note', text: '後端網址：' + S.apiUrl }));
     box.append(sp);
