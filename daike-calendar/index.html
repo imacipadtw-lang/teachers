@@ -1411,6 +1411,14 @@ html[data-theme=dark] .wb-todo li.ok{background:rgba(79,209,161,.10)}
   .rgrid.swap > :nth-child(4){grid-area:t} .rgrid.swap > :nth-child(5){grid-area:p}
   .rgrid.swap select{min-width:0;width:100%}
 }
+@media screen{
+  /* 工作台「現在該處理」沒有事時：置中的完成狀態 */
+  .wb-clear{display:flex;flex-direction:column;align-items:center;gap:4px;padding:22px 8px;text-align:center;color:var(--ink-2);font-weight:500}
+  .wb-clear svg{width:40px;height:40px;fill:none;stroke:var(--c-tutor);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;margin-bottom:4px}
+  .wb-clear b{color:var(--c-tutor);font-size:16px}
+  .wb-clear span{font-size:13px;color:var(--ink-3)}
+  html[data-theme=dark] .wb-clear svg{stroke:#4FD1A1} html[data-theme=dark] .wb-clear b{color:#4FD1A1}
+}
 </style>
 </head>
 <body>
@@ -5573,7 +5581,7 @@ function renderWorkbench(){
                           : `<div class="wb-next ok"><span>${roc}</span><b>${P.closed ? "已結帳 ✓" : "能判斷的步驟都完成了"}</b></div>`) : "";
   const todos = P ? wbTodos(ym, P) : [];
   const list = todos.length ? `<ul class="wb-todo">${todos.map((x, i) => `<li class="${x.lv}"><span>${esc2(x.text)}</span>${x.act ? `<button type="button" class="btn ghost small" data-todo="${i}">${esc2(x.verb)}</button>` : ""}</li>`).join("")}</ul>`
-                            : `<p class="wb-clear">目前沒有要處理的事 ✓</p>`;
+                            : `<div class="wb-clear"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m7.5 12.5 3 3 6-6.5"/></svg><b>都處理好了</b><span>目前沒有要處理的事</span></div>`;
   const teachers = state.teachers || [], months = termMonths().map(([y,m]) => `${y-1911} 年 ${m+1} 月`);
   box.innerHTML = `<section class="wb" aria-label="教務組工作台">
     <div class="wb-top">
