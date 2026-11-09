@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.09g';
+  const APP_VERSION = '2026.11.09h';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
   const LS = { admin: 'hc.admin', teacher: 'hc.teacher', api: 'hc.api', cls: 'hc.class', outbox: 'hc.outbox', theme: 'hc.theme' };
   const GRADE = ['', '一', '二', '三', '四', '五', '六'];
@@ -690,7 +690,12 @@
       if (!st) return show('err', '本班沒有 ' + p.no + ' 號', raw);
       const items = itemsFor(c);
       let it = p.itemId ? items.find(x => x.id === p.itemId) : items.find(x => x.id === sc.itemId);
-      if (p.itemId && !it) return show('err', String(p.itemId).startsWith('?') ? '沒有代碼 ' + p.itemId.slice(1) + ' 的項目' : '這個項目不在本次抽查', raw);
+      if (p.itemId && !it) {
+        if (String(p.itemId).startsWith('?')) return show('err', '沒有代碼 ' + p.itemId.slice(1) + ' 的項目', raw);
+        const anyIt = allItems().find(x => x.id === p.itemId); const rr = round();
+        const inRound = anyIt && rr && (rr.itemIds || []).includes(anyIt.id);
+        return show('err', inRound ? c.name + '沒有「' + anyIt.name + '」' : '「' + (anyIt ? anyIt.name : p.itemId) + '」不在本次抽查', inRound ? '這個項目不適用本班（可在「設定 → 班級」調整）' : raw);
+      }
       if (!it) return show('err', '請先在上方選擇要登記的項目', '這張標籤沒有科目');
       const label = st.no + '號 ' + (st.name || '') + '　' + it.name;
       if (isOn(c.id, st.no, it.id)) { show('dup', '已經登記過', label); return; }
