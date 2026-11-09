@@ -677,6 +677,14 @@ input[type=checkbox], input[type=radio] { accent-color: var(--accent); }
 .panel[id^="set-"] { scroll-margin-top: 56px; }
 .panel[id^="set-"]:focus { outline: none; }
 @media print { .setnav { display: none; } }
+/* 「截止」與日期框永遠在同一行；手機上章節捷徑排成一列可左右滑，項目勾選表的「全選／取消」換到下一行 */
+.duef { display: inline-flex; align-items: center; gap: 8px; flex: none; }
+@media screen and (max-width: 600px) {
+  .setnav { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .setnav::-webkit-scrollbar { display: none; }
+  .setnav .chip { flex: none; }
+  table.picktable th .link { display: block; margin: 2px auto 0; }
+}
 .counter { flex-wrap: wrap; }
 .qbar { flex: 1 0 100%; height: 6px; border-radius: 3px; background: var(--accent-soft); overflow: hidden; margin-top: 4px; min-width: 120px; }
 .qbar i { display: block; height: 100%; background: var(--accent); border-radius: 3px; transition: width .2s; }

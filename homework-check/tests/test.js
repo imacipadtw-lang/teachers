@@ -755,6 +755,21 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
   ok(await pg.evaluate(() => document.activeElement && document.activeElement.classList.contains('helpbtn')), 'Esc 關閉後焦點回到「使用說明」');
   await ctx.close();
 
+  console.log('34. 手機設定頁排版');
+  ctx = await br.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true }); pg = await newPage(ctx); await adminLogin(pg, B);
+  await pg.click('nav.tabs >> text=設定'); await sleep(400);
+  const lay = await pg.evaluate(() => ({
+    doc: document.documentElement.scrollWidth,
+    nav: document.querySelector('.setnav').getBoundingClientRect().height,
+    due: [...document.querySelectorAll('#set-rounds .duef')].map(d => { const a = d.children[0].getBoundingClientRect(), b = d.children[1].getBoundingClientRect(); return Math.abs((a.top + a.bottom) / 2 - (b.top + b.bottom) / 2) < 4; }),
+    pick: [...document.querySelectorAll('#set-rounds .pickbox')].map(p => p.scrollWidth <= p.clientWidth + 1)
+  }));
+  ok(lay.doc <= 390, '手機設定頁沒有左右捲動（' + lay.doc + 'px）');
+  ok(lay.nav < 60, '章節捷徑在手機排成一列（' + Math.round(lay.nav) + 'px 高）');
+  ok(lay.due.length >= 2 && lay.due.every(Boolean), '「截止」字和日期框在同一行（' + lay.due.length + ' 處）');
+  ok(lay.pick.length >= 2 && lay.pick.every(Boolean), '項目勾選表在手機上放得下，「全選／取消」不被裁切');
+  await ctx.close();
+
   await br.close();
   console.log('\n頁面錯誤：' + (errors.length ? errors.join(' | ') : '無'));
   console.log(`結果：${pass} 通過，${fail} 失敗`);

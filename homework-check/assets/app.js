@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.10m';
+  const APP_VERSION = '2026.11.10n';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
   const LS = { admin: 'hc.admin', teacher: 'hc.teacher', api: 'hc.api', cls: 'hc.class', outbox: 'hc.outbox', theme: 'hc.theme', cache: 'hc.cache' };
   const GRADE = ['', '一', '二', '三', '四', '五', '六'];
@@ -1544,7 +1544,7 @@
     const nDue = h('input', { type: 'date', 'aria-label': '繳交截止日' });
     const newPick = itemPicker(allItems(), () => true);
     rp.append(h('div', { class: 'divider' }), h('div', { class: 'note', text: '建立新的抽查次別' }),
-      h('div', { class: 'row' }, nName, h('span', { class: 'note', text: '截止' }), nDue),
+      h('div', { class: 'row' }, nName, h('span', { class: 'duef' }, h('span', { class: 'note', text: '截止' }), nDue)),
       h('div', { class: 'note', text: '本次要檢查的項目' }), newPick.el,
       h('div', null, h('button', { class: 'btn primary', onclick: async () => {
         const name = nName.value.trim(); if (!name) return toast('請填寫次別名稱');
@@ -1659,7 +1659,7 @@
     const save = h('button', { class: 'btn small primary', onclick: async () => { e.itemIds = pick.selected(); await adminPost({ action: 'updateRound', round: e }, '已更新'); S.version = null; await load({ force: true, full: true }); } }, '儲存');
     const del = armed(h('button', { class: 'btn small danger' }), '刪除', '再按一次確認刪除（紀錄一併刪除）', async () => { await adminPost({ action: 'delRound', rid: e.id }, '已刪除'); S.version = null; if (S.rid === e.id) S.rid = null; await load({ force: true, full: true }); }, 3500);
     const open = h('details', { class: 'fold' }, h('summary', { text: '本次項目（' + (e.itemIds || []).length + ' 項）' }), pick.el);
-    return h('div', { class: 'classcard' }, h('div', { class: 'row' }, name, h('span', { class: 'note', text: '截止' }), due, lock, save, del), open);
+    return h('div', { class: 'classcard' }, h('div', { class: 'row' }, name, h('span', { class: 'duef' }, h('span', { class: 'note', text: '截止' }), due), lock, save, del), open);
   }
   function classEditor(c, i) {
     const D = S.draft;
