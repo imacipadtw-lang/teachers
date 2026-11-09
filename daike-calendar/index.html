@@ -2470,7 +2470,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.09o";
+const APP_VERSION = "專業版 2026.11.09p";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -2493,7 +2493,9 @@ async function api(params){
 }
 async function apiPost(body){
   const t0 = performance.now(), slow = DEMO ? 0 : slowNote(true);
-  try{ const x = await apiPost0(body); sysMark(true, performance.now() - t0); return x; }
+  try{ const x = await apiPost0(body); sysMark(true, performance.now() - t0);
+    if(x && x.ok && body && body.action !== "lineStatus") applyData.needSchool = true;   // 存檔／刪除／修改之後，看某位老師時的全校資料也要重讀
+    return x; }
   catch(e){ sysMark(false); throw e; }
   finally{ clearTimeout(slow); }
 }
@@ -2858,8 +2860,8 @@ function applyData(d){
   state.events = (d.events||[]).filter(e=>inTerm(e.date)).sort((a,b)=>a.date.localeCompare(b.date)||(a.period||0)-(b.period||0));
   state.viewing = d.viewing || d.name;
   if(state.viewing === "__all__") state.school = state.events;                // 全校紀錄留一份：看某位老師時，年曆照樣列出全校（10/30）
-  else if(state.role === "admin" && state.cred && (!state.school || applyData.fresh)){   // 115.11.9：看某位老師時存檔／刪除後，全校那份也重讀（平常只讀一次）
-    const tok = applyData.tok = (applyData.tok || 0) + 1, fr = !!applyData.fresh;
+  else if(state.role === "admin" && state.cred && (!state.school || applyData.fresh || applyData.needSchool)){   // 115.11.9：看某位老師時存檔／刪除後，全校那份也重讀（平常只讀一次）
+    const tok = applyData.tok = (applyData.tok || 0) + 1, fr = !!(applyData.fresh || applyData.needSchool); applyData.needSchool = false;
     fetchData(state.cred.name, state.cred.h, "__all__", fr).then(x => { if(tok !== applyData.tok || isAll() || !x || !x.ok) return;
       state.school = (x.events || []).filter(e => inTerm(e.date)); renderYear(); if(state.selected) renderPanel(state.selected); }).catch(() => {});
   }
@@ -3887,7 +3889,7 @@ function weekCanvas(W){
   const c = document.createElement("canvas"), g = c.getContext("2d");
   const wrap = (txt, font, maxW) => { g.font = font; const out = []; let line = ""; for(const ch of txt){ if(g.measureText(line + ch).width > maxW && line){ out.push(line); line = ch; } else line += ch; } if(line) out.push(line); return out; };
   // 先量高度
-  const blocks = W.list.map(x => ({ x, lines: x.items.length ? x.items.map((it, i) => wrap(`${i+1}. ${it.line}`, `500 30px ${FF}`, w - pad * 2 - 30)) : [[x.off ? "（" + offLabel(x.off) + (offHalf(x.off) ? "" : "，不上課") + "）" : "（無）"]] }));
+  const blocks = W.list.map(x => ({ x, lines: x.items.length ? x.items.map((it, i) => wrap(`${i+1}. ${it.line}`, `500 30px ${FF}`, w - pad * 2 - 30)) : [[x.off ? "（" + x.off.name + (offHalf(x.off) ? "，" + x.off.scope + "停課" : "，不上課") + "）" : "（無）"]] }));
   let h = 200 + 36;
   blocks.forEach(b => { h += 58 + b.lines.reduce((a, l) => a + l.length * 44, 0) + 18; });
   h += 150;
@@ -3902,7 +3904,7 @@ function weekCanvas(W){
     const t = new Date(b.x.d + "T00:00:00");
     g.fillStyle = "#FBE5EE"; g.beginPath(); if(g.roundRect) g.roundRect(pad - 16, y - 38, w - pad * 2 + 32, 50, 12); else g.rect(pad - 16, y - 38, w - pad * 2 + 32, 50); g.fill();
     g.fillStyle = "#7A2147"; g.font = `800 32px ${FF}`; g.fillText(`${t.getMonth()+1}/${t.getDate()}（${DOW[t.getDay()]}）`, pad, y);
-    if(b.x.off){ g.font = `600 26px ${FF}`; g.fillStyle = "#9A6200"; g.fillText(b.x.off.name, pad + 210, y); }
+    if(b.x.off){ g.font = `600 26px ${FF}`; g.fillStyle = "#9A6200"; g.fillText(offLabel(b.x.off), pad + 210, y); }
     y += 58;
     g.font = `500 30px ${FF}`;
     b.lines.forEach(ls => ls.forEach((l, k) => { g.fillStyle = b.x.items.length ? "#3B1E2B" : "#8F6878"; g.fillText(l, pad + (k ? 30 : 0), y); y += 44; }));
@@ -4278,16 +4280,20 @@ function autoSub(r){
 }
 /* 合班（同一節同時上兩班以上，課表上有「低年級／中年級／高年級」那一格）只能登一筆、班級填學段，否則衝堂、金額也會錯
  * （和「資料檢查」dupslot 規則、請假比對的「登記代課」同一套；115.11.9） */
-function combCls(date, p, classes){
+const SEG_CLS = {低年級:["一甲","二甲"], 中年級:["三甲","四甲"], 高年級:["五甲","六甲"]};
+function combCls(date, p, classes, who){
   if(!classes || classes.length < 2 || !state.meta) return classes || [];
-  const w = CF.dow(date), g = ["低年級","中年級","高年級"].find(n => state.meta.tt[w + "|" + p + "|" + n]);
+  const w = CF.dow(date), g = Object.keys(SEG_CLS).find(n => {            // 這幾班都屬於同一個學段，而且課表那一格真的是這位老師的課
+    const x = state.meta.tt[w + "|" + p + "|" + n];
+    return x && classes.every(c => SEG_CLS[n].includes(c)) && (!who || (x.teachers || []).includes(who));
+  });
   return g ? [g] : classes;
 }
 function fillDay(){                          // 把請假老師那天課表上的課帶進來（已經登記代課的、已調走的不帶，另外告訴您）
   const L = plan.sub.leaver, d = plan.sub.date; if(!L||!d) return;
   const ctx = ctxOf(), dw = CF.dow(d), rows = [], done = [], moved = [];
   for(let p=1;p<=7;p++){
-    const raw = state.meta.tSlot[dw+"|"+p+"|"+L] || [], merged = combCls(d, p, raw);
+    const raw = state.meta.tSlot[dw+"|"+p+"|"+L] || [], merged = combCls(d, p, raw, L);
     merged.forEach(cls => {
       const inC = c => c === cls || (merged.length === 1 && raw.length > 1 && raw.includes(c));
       const sw = ctx.ev.find(e => e.type==="swap" && e.date===d && String(e.period)===String(p) && inC(e.cls) && (e.dir==="調出" ? e.teacher : e.partner)===L && (e.dir==="調出" ? e.partner : e.teacher)!==L);
@@ -4312,10 +4318,13 @@ function absDayInfo(T, d, A){
     if(!CF.covers(A, p)) continue;
     const o = CF.offOf(ctx, d, p);
     const tt = state.meta.tSlot[dw+"|"+p+"|"+T] || [], busy = CF.busyAt(ctx, T, d, p, "");
-    tt.forEach(c => {
-      const a = ttAt(d, String(p), c), subj = a ? a.subject : "";
+    // 合班（課表上有學段那一格）當成一節：排代課時一列、班級填學段；用學段登記的代課也算已安排（115.11.9）
+    const merged = combCls(d, String(p), tt, T), seg = merged.length === 1 && tt.length > 1 ? merged[0] : "";
+    (seg ? [seg] : tt).forEach(c => {
+      const a = ttAt(d, String(p), c) || (seg ? ttAt(d, String(p), tt[0]) : null), subj = a ? a.subject : "";
       if(o){ off.push({p, cls:c, subject:subj, how:o.name}); return; }
-      if(busy.includes(c+"（課表上的課）")){ todo.push({p, cls:c, subject:subj}); return; }
+      const segDone = seg && ctx.ev.some(e => e.type==="leave" && e.who===T && e.date===d && String(e.period)===String(p) && e.other && (e.cls===seg || tt.includes(e.cls)));
+      if(!segDone && (seg ? tt : [c]).some(m => busy.includes(m+"（課表上的課）"))){ todo.push({p, cls:c, subject:subj}); return; }
       const lv = ctx.ev.find(e => e.type==="leave" && e.who===T && e.date===d && String(e.period)===String(p) && e.other);
       const sw = ctx.ev.find(e => e.type==="swap" && e.date===d && String(e.period)===String(p) && ((e.dir==="調出" && e.teacher===T) || (e.dir==="調入" && e.partner===T)));
       done.push({p, cls:c, subject:subj, how: lv ? `由 ${lv.other} 代課` : sw ? `已調課（${sw.id}）` : "已安排"});
@@ -4796,7 +4805,7 @@ function applyScan(d){
       (r.periods.length ? r.periods : [""]).forEach(p => {
         // 課表上這節的班級（和「帶入這天的課」一樣）；合班（例：四甲＋五甲一起上）每一班一列，115.11.9 起不再只留第一班
         const busy0 = U.leaver && U.date && pOk(p) ? CF.busyAt(ctxOf(), U.leaver, U.date, +p, "").map(x => String(x).split("（")[0]).filter(Boolean) : [];
-        const busy = combCls(U.date, pOk(p), busy0);
+        const busy = combCls(U.date, pOk(p), busy0, U.leaver);
         const pc = clsOk(r.cls);
         if(pc && busy.length && !busy.includes(pc) && !busy0.includes(pc)) warn.push(`照片上第${p}節寫「${pc}」，課表上 ${U.leaver} 這節是 ${busy.join("＋")}，已依課表填，請核對`);
         (busy.length ? busy : [pc]).forEach(tc => {
@@ -5529,7 +5538,7 @@ async function hrFix(i){
     plan.kind = "sub"; Object.assign(plan.sub, {leaver: x.who, date: x.date, leaveType: L.t, note: L.note});
     const w = DOW[new Date(x.date + "T00:00:00").getDay()];
     plan.sub.rows = R.missing.filter(y => y.who === x.who && y.date === x.date && !y.tutor).map(y => {
-      const cs = String(y.cls).split("、"), g = cs.length > 1 ? ["低年級","中年級","高年級"].find(n => state.meta && state.meta.tt[w + "|" + y.p + "|" + n]) : "";
+      const cs = String(y.cls).split("、"), mg = cs.length > 1 ? combCls(x.date, String(y.p), cs, x.who) : cs, g = cs.length > 1 && mg.length === 1 ? mg[0] : "";
       return Object.assign(newSubRow(), {period: String(y.p), cls: g || cs[0], subject: y.subject || ""}); });
   }
   plan.force = false; plan.server = null; renderPlan();
@@ -6309,7 +6318,7 @@ function cloudWin(){
   try{ const w = window.open("", "_blank"); if(w){ w.document.title = "產生中…"; w.document.body.innerHTML = '<p style="font:17px/1.6 -apple-system,\'PingFang TC\',\'Microsoft JhengHei\',sans-serif;padding:28px;color:#1F3A52">正在產生雲端試算表，約 5～15 秒，請稍候…</p>'; } return w; }
   catch(e){ return null; }
 }
-function cloudFail(win, msg){ try{ if(win && !win.closed) win.close(); }catch(e){} toast(msg); }
+function cloudFail(win, msg){ try{ if(win && !win.closed) win.close(); }catch(e){} if(msg) toast(msg); }   // 空白訊息不蓋掉前面已顯示的原因
 /* 列印放大（10/26 教務組：印出來字太小）：所有字 +2 級（最小 12）；欄寬不夠就加寬、自動換行的格子重算列高；
    多出來的寬度從最寬的說明欄扣回去，整張總寬度不變 → 縮放到一頁寬時，印出來的字真的變大 */
 function bigPrint(wb){
