@@ -1419,6 +1419,34 @@ html[data-theme=dark] .wb-todo li.ok{background:rgba(79,209,161,.10)}
   .wb-clear span{font-size:13px;color:var(--ink-3)}
   html[data-theme=dark] .wb-clear svg{stroke:#4FD1A1} html[data-theme=dark] .wb-clear b{color:#4FD1A1}
 }
+/* ===== 115.11.10 設計精修第 3 輪（設計審查 12 項；只影響螢幕） ===== */
+@media screen and (max-width:760px){
+  .d .addp{top:auto;bottom:2px;right:2px;width:18px;height:18px;font-size:12px;opacity:.85}   /* 手機：「＋」移到右下角，不再蓋住日期 */
+  .pagetabs{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 32px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 32px),transparent)}   /* 頁籤可以往右滑的暗示 */
+}
+@media screen and (hover:hover) and (min-width:761px){
+  .d .addp{opacity:0;transition:opacity .12s}
+  .d:hover .addp,.d:focus-within .addp{opacity:1}   /* 桌機：滑過格子才出現「＋」，月曆比較乾淨 */
+}
+@media screen{
+  html[data-theme=dark] .notice:not(.line){color:var(--sky)}
+  html:not([data-theme=dark]) .notice:not(.line){color:#9E2459}
+  html body .monthly,html body details.monthly.settings{border-left:1px solid var(--line)}   /* 一般卡片不用彩色左邊線（只留給警示） */
+  .tools .btn{border-radius:10px}
+  .monthly .btn{padding:8px 14px;font-size:14px}
+  .monthly select{padding-top:7px;padding-bottom:7px;font-size:14px}
+  .monthly > h3,.hrbox > h3,.alerts h3,.fixes h3,.dash > summary h3{font-size:17px;font-weight:800;letter-spacing:.01em}
+  .set-sec{padding-top:16px;margin-top:20px}
+  .set-sec h4{font-size:16px;font-weight:800;margin-bottom:12px}
+  .set-f small{font-size:12px;font-weight:400;line-height:1.5}
+  .hrbox .row input{height:36px;padding:0 12px;border-radius:10px;font-size:13.5px;flex:1 1 460px;width:auto;min-width:0}
+  .wb,.board,.dash,.monthly,.alerts,.fixes,.hrbox,.subnav{border-radius:16px}
+  .dash > summary:focus-visible{border-radius:16px}
+  html:not([data-theme=dark]) body{background-image:radial-gradient(rgba(184,51,106,.045) 1px,transparent 1.4px),radial-gradient(1100px 560px at 50% -12%,#FFD3E3 0%,transparent 62%)}
+}
+@media screen and (max-width:600px){
+  .monthly .mrow > .btn,.monthly .mrow > select{flex:1 1 100%}
+}
 </style>
 </head>
 <body>
@@ -1536,7 +1564,7 @@ html[data-theme=dark] .wb-todo li.ok{background:rgba(79,209,161,.10)}
           <select id="rangeSel" aria-label="月份（整頁跟著切換）"></select>
           <button class="btn ghost small" id="dlExcel" type="button">下載 Excel</button>
           <button class="btn ghost small" id="printTable" type="button">列印表格</button>
-          <button class="btn small" id="openSign" type="button" hidden>每月簽收單</button>
+          <button class="btn small ghost" id="openSign" type="button" hidden>每月簽收單</button>
           <button class="btn ghost small" id="printCal" type="button">列印年曆</button>
         </div>
       </div>
@@ -2572,7 +2600,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.10e";
+const APP_VERSION = "專業版 2026.11.10f";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -6183,7 +6211,7 @@ function renderMonthly(){
     <p>選月份後按按鈕，會打開列印畫面；要存檔就在列印畫面選「另存為 PDF」。老師簽收單印出來請老師核對、簽名；月報表送出納、會計。</p>
     <div class="mrow"><select id="mSel" aria-label="月份">${months.map(v => `<option value="${v}" ${v===pick?"selected":""}>${+v.slice(0,4)-1911} 年 ${+v.slice(5)} 月</option>`).join("")}</select>
       <button class="btn" type="button" id="mSign">老師簽收單（列印／PDF）</button>
-      <button class="btn" type="button" id="mAcct">出納會計月報表（列印／PDF）</button>
+      <button class="btn ghost" type="button" id="mAcct">出納會計月報表（列印／PDF）</button>
       <button class="btn ghost" type="button" id="mAcctX">出納會計試算表（雲端）</button>
       <button class="btn ghost" type="button" id="mExcel">本月明細試算表（雲端）</button></div>
     <div class="steps"><span><b>1</b>月底印簽收單</span><span><b>2</b>請老師核對、簽名</span><span><b>3</b>有錯就在網站按「修改」，再印一次</span><span><b>4</b>印月報表送出納、會計</span></div>
