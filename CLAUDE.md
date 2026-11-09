@@ -93,7 +93,10 @@
 ## 著作權與防盜用（115.11.9 管理者要求）
 - 倉庫根目錄 `LICENSE`：保留一切權利，禁止重製、修改、於其他網域架設、提供 AI 使用。README 開頭有聲明。
 - `daike-calendar/index.html` 開頭：著作權註解、`robots` noindex/noai meta、**網址鎖**（只在 `https://imacipadtw-lang.github.io/teachers/daike-calendar/` 與 localhost／127.0.0.1 執行，其他網域或存成檔案打開只顯示著作權聲明，`window.__DENY` 讓主程式不執行）。改網址（例如自訂網域）時要一起改這裡，否則網站會鎖住自己。
-- 程式碼放在公開倉庫就能被看到；要真正不讓人拿到原始碼，需把倉庫改成私人（GitHub Pages 用私人倉庫要付費方案，例如 GitHub Pro），由管理者決定。
+- 「先登入才給程式」（115.11.9 管理者決定，**進行中**）：公開網址只放登入頁 `daike-calendar/loader.html`（將取代 index.html）；完整程式搬到**私人倉庫**（預定 `imacipadtw-lang/daike-src`）；獨立的 Apps Script「程式伺服器」（`daike-calendar/server/程式伺服器.gs`）收到姓名＋密碼雜湊 → 問原本後端 `action=data`（只有 admin／acct 可以）→ 用 GitHub 細粒度權杖（只讀那個私人倉庫）讀程式 → 連同資料回給登入頁，登入頁 `document.write` 換成完整系統（cred、data 先放進 sessionStorage，系統的 `resume()` 直接接手）。登入頁程式全包在 IIFE 裡，避免和系統的全域名稱衝突。
+  - 管理者要做：建私人倉庫、建權杖、建程式伺服器專案並設定 MAIN_API／GH_TOKEN／GH_REPO、部署成「所有人」後把網址給 Claude。
+  - Claude 要做：把完整程式推到私人倉庫、`loader.html` 填 CODE_API 後取代 `index.html`、公開倉庫拿掉完整程式、冒煙測試改在私人倉庫跑。
+  - 公開倉庫的舊版本（git 歷史）仍看得到舊程式；要清掉得改寫歷史（會影響其他子專案與其他工作階段），須管理者另外明確同意。
 
 ## 前端外觀（10/31 專業版）
 - 粉色為預設；`html[data-theme=dark]` 是深色科技模式（只在 @media screen）。新增 CSS 一律用顏色變數（--surface、--ink…），寫死白底時要在深色區塊補一條。

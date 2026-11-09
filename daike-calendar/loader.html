@@ -1,0 +1,129 @@
+<!doctype html>
+<!--
+  著作權所有 (c) 2025-2026 imacipadtw-lang，保留一切權利。All rights reserved.
+  本頁只有登入畫面；網站程式在登入成功後才由伺服器提供。未經書面授權，禁止重製、修改、轉載、
+  於其他網域架設，或提供給任何 AI／大型語言模型用於訓練、分析、改寫或仿製。詳見倉庫 LICENSE。
+-->
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex, noai, noimageai">
+<meta name="copyright" content="(c) 2025-2026 imacipadtw-lang. All rights reserved.">
+<title>土城國小 代課・調課（教務組專用）</title>
+<meta name="theme-color" content="#FDEBF2">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="代調課">
+<script>/* 防盜用：只能在官方網址執行（本機測試除外） */
+(function(){var h=location.hostname,ok=location.protocol==="https:"&&h==="imacipadtw-lang.github.io"&&/^\/teachers\/daike-calendar\//.test(location.pathname)||/^(localhost|127\.0\.0\.1)$/.test(h);
+if(!ok){window.__DENY=1;document.write('</head><body><p style="font:16px/1.7 sans-serif;max-width:560px;margin:15vh auto;padding:0 20px">此網站受著作權保護，只能在官方網址使用。<br>未經授權禁止複製、修改、轉載、於其他網域架設或提供 AI 使用。</p></body>');try{window.stop()}catch(e){}}})();</script>
+<style>
+:root{--bg:#FDEBF2;--card:#fff;--ink:#3B1E2B;--ink2:#6B4656;--ink3:#7A5566;--line:#F2C9D8;--pri:#B8336A;--pri2:#9E2A5A;--err:#B4233C}
+@media (prefers-color-scheme:dark){:root{--bg:#070D1A;--card:#0F1830;--ink:#E8EEF8;--ink2:#AAB8D0;--ink3:#93A3BF;--line:#26365A;--pri:#C42F69;--pri2:#A8285A;--err:#FF8DA6}}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font:16px/1.6 "Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;display:flex;flex-direction:column;align-items:center}
+.top{width:100%;text-align:center;font-size:13px;color:var(--ink2);padding:8px 16px;border-bottom:1px solid var(--line)}
+.top b{color:var(--pri)}
+main{width:100%;max-width:440px;padding:9vh 16px 24px}
+h1{font-size:26px;margin:0 0 6px;text-align:center;line-height:1.35}
+h1 span{display:inline-block;white-space:nowrap}
+.lead{text-align:center;color:var(--ink2);margin:0 0 22px;font-size:15px}
+form{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 12px 40px rgba(60,20,40,.08)}
+label{display:block;font-weight:700;font-size:14px;margin:0 0 6px}
+select,input{width:100%;font:inherit;font-size:16px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);margin-bottom:14px}
+select:focus-visible,input:focus-visible,button:focus-visible{outline:3px solid var(--pri);outline-offset:2px}
+.pw{position:relative}.pw input{padding-right:64px}
+.eye{position:absolute;right:6px;top:6px;border:0;background:none;color:var(--ink2);font:inherit;font-size:14px;padding:6px 8px;cursor:pointer}
+.go{width:100%;border:0;border-radius:12px;background:var(--pri);color:#fff;font:inherit;font-weight:800;font-size:17px;padding:12px;cursor:pointer}
+.go:hover{background:var(--pri2)}.go[disabled]{opacity:.6;cursor:progress}
+.err{color:var(--err);font-size:14px;min-height:1.6em;margin:10px 0 0}
+.wait{display:none;text-align:center;color:var(--ink2);margin-top:28px}
+.wait i{display:inline-block;width:18px;height:18px;border:3px solid var(--line);border-top-color:var(--pri);border-radius:50%;animation:sp 1s linear infinite;vertical-align:-3px;margin-right:8px}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.wait i{animation:none}}
+.foot{margin-top:auto;padding:18px 16px 24px;font-size:12.5px;color:var(--ink3);text-align:center;max-width:560px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+</style>
+</head>
+<body>
+<p class="top"><b>教務組專用版</b>：只有教務組與會計帳號能登入</p>
+<main>
+  <h1><span>代課・調課・請假</span>　<span>核對系統</span></h1>
+  <p class="lead">南投縣草屯鎮土城國民小學</p>
+  <form id="f" autocomplete="off">
+    <label for="name">姓名</label>
+    <select id="name" required><option value="">名單讀取中…</option></select>
+    <label for="pw">密碼</label>
+    <div class="pw"><input id="pw" type="password" required autocomplete="current-password"><button type="button" class="eye" id="eye" aria-label="顯示密碼">顯示</button></div>
+    <button class="go" id="go" type="submit">登入</button>
+    <p class="err" id="err" role="alert"></p>
+  </form>
+  <p class="wait" id="wait" role="status"><i aria-hidden="true"></i><span id="waitTxt">登入中，正在載入系統…</span></p>
+</main>
+<p class="foot">© 2025-2026 著作權所有。本系統程式只在登入後提供，未經授權禁止複製、修改、轉載或提供 AI 使用。</p>
+<script>
+(function(){                                   /* 全部包在這裡面：換成完整系統後，名稱不會和系統程式撞在一起 */
+if(window.__DENY) return;
+/* 兩個網址都不是祕密：MAIN_API＝原本的後端（只拿姓名名單）；CODE_API＝程式伺服器（密碼對了才給程式） */
+const MAIN_API = "https://script.google.com/macros/s/AKfycbzisdYRum0RmT_SHZtqr5eb2DLH1p1WP3jYQhmnVUdWhM11xoJswJ6osldrcWg7bgRomg/exec";
+const CODE_API = "";   /* 部署好程式伺服器後填入（/exec 結尾） */
+const $ = s => document.querySelector(s);
+const ss = { get:k=>{try{return sessionStorage.getItem(k)}catch(e){return null}}, set:(k,v)=>{try{sessionStorage.setItem(k,v)}catch(e){}}, del:k=>{try{sessionStorage.removeItem(k)}catch(e){}} };
+const ls = { get:k=>{try{return localStorage.getItem(k)}catch(e){return null}}, set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}} };
+async function sha256(s){ const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)); return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join(""); }
+function waiting(on, txt){ $("#f").style.display = on ? "none" : ""; $("#wait").style.display = on ? "block" : "none"; if(txt) $("#waitTxt").textContent = txt; }
+
+/* 名單：先用上次存的，再向後端更新（和原本網站同一個暫存） */
+function fillNames(names){
+  const sel = $("#name"), last = ls.get("lastName");
+  sel.innerHTML = `<option value="">請選擇您的名字</option>` + names.map(n => `<option${n===last?" selected":""}></option>`).join("");
+  [...sel.options].slice(1).forEach((o, i) => { o.textContent = names[i]; o.value = names[i]; });
+  if(last && names.includes(last)) $("#pw").focus();
+}
+(async () => {
+  let cached = null; try{ cached = JSON.parse(ls.get("names") || "null"); }catch(e){}
+  if(Array.isArray(cached) && cached.length) fillNames(cached);
+  try{ const r = await fetch(MAIN_API + "?action=names&_=" + Date.now(), {redirect:"follow"}); const d = await r.json();
+       if(d.ok && Array.isArray(d.names)){ if(JSON.stringify(d.names) !== JSON.stringify(cached)) fillNames(d.names); ls.set("names", JSON.stringify(d.names)); } }
+  catch(e){ if(!cached) $("#name").innerHTML = `<option value="">名單讀取失敗，請重新整理</option>`; }
+})();
+
+/* 向程式伺服器要程式：密碼對才會給；拿到後整頁換成完整系統（資料一起帶進去，不用再等一次） */
+async function getApp(name, h){
+  if(!CODE_API) throw new Error("系統設定還沒完成（程式伺服器網址）");
+  let r;
+  for(let i = 0; ; i++){
+    try{ r = await fetch(CODE_API, {method:"POST", body: JSON.stringify({action:"app", name, h})}); break; }
+    catch(e){ if(i >= 1) throw new Error("網路連不上，請確認網路後再試"); await new Promise(o => setTimeout(o, 1500)); }
+  }
+  if(!r.ok) throw new Error("伺服器暫時沒有回應（" + r.status + "），請稍後再試");
+  const d = await r.json();
+  if(!d.ok) throw new Error(d.error || "姓名或密碼不正確");
+  ss.set("cred", JSON.stringify({name, h}));
+  try{ ss.set("data", JSON.stringify(d.data)); }catch(e){}
+  ls.set("lastName", name);
+  document.open(); document.write(d.code); document.close();
+}
+$("#eye").onclick = () => { const i = $("#pw"), s = i.type === "password"; i.type = s ? "text" : "password"; $("#eye").textContent = s ? "隱藏" : "顯示"; $("#eye").setAttribute("aria-label", s ? "隱藏密碼" : "顯示密碼"); };
+$("#f").addEventListener("submit", async e => {
+  e.preventDefault(); $("#err").textContent = "";
+  const name = $("#name").value.trim(), pw = $("#pw").value;
+  if(!name){ $("#err").textContent = "請先選擇您的名字"; return; }
+  waiting(true, "登入中，正在載入系統…");
+  try{ await getApp(name, await sha256(name + ":" + pw)); }
+  catch(err){ waiting(false); $("#err").textContent = err.message; $("#pw").select(); }
+});
+/* 同一個分頁重新整理：已登入就直接再載入（關掉瀏覽器就要重新登入） */
+(async () => {
+  let c = null; try{ c = JSON.parse(ss.get("cred") || "null"); }catch(e){}
+  if(!c || !c.name || !c.h) return;
+  waiting(true, "載入中…");
+  try{ await getApp(c.name, c.h); }catch(err){ ss.del("cred"); waiting(false); $("#err").textContent = err.message; }
+})();
+})();
+</script>
+</body>
+</html>
