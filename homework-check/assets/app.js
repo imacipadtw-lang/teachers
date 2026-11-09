@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.09a';
+  const APP_VERSION = '2026.11.09b';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
   const LS = { admin: 'hc.admin', teacher: 'hc.teacher', api: 'hc.api', cls: 'hc.class', outbox: 'hc.outbox', theme: 'hc.theme' };
   const GRADE = ['', '一', '二', '三', '四', '五', '六'];
@@ -98,7 +98,24 @@
     if (typeof navigator !== 'undefined' && navigator.onLine === false) return '網路連不上，請確認網路後再試';
     return '連不到資料表。請教務組確認 Apps Script 的部署：「誰可以存取」要選「所有人」，而且網址是「網頁應用程式網址」（結尾 /exec）；改完要「管理部署作業 → 編輯 → 新版本 → 部署」。';
   }
-  function authParams() { return S.role === 'admin' && S.key ? { key: S.key } : (S.token ? { token: S.token } : {}); }
+  function authParams() {
+    if (S.role === 'admin') { if (S.atoken) return { atoken: S.atoken }; if (S.key) return { key: S.key }; }
+    return S.token ? { token: S.token } : {};
+  }
+  // 教務組登入：向後端換一組登入憑證，瀏覽器只存憑證、不存密碼；後端是舊版時才退回記住密碼
+  async function adminSignIn(key) {
+    const r = await apiPost({ action: 'adminLogin', key, label: deviceLabel() });
+    if (r.ok && r.atoken) { S.atoken = r.atoken; S.key = null; lsSet(LS.admin, { atoken: r.atoken }); return { ok: true }; }
+    if (r.error !== 'unknown_action') return r;
+    const v = await apiRead({ key }); // 舊版後端
+    if (v.ok && v.role === 'admin') { S.atoken = null; S.key = key; lsSet(LS.admin, { key }); return { ok: true }; }
+    return v;
+  }
+  function adminSignOut() {
+    const t = S.atoken;
+    if (t) apiPost({ action: 'adminLogout', atoken: t }).catch(() => { });
+    lsSet(LS.admin, null); S.key = null; S.atoken = null;
+  }
   async function apiGet(params) {
     if (!S.apiUrl) throw new Error('尚未設定資料表網址');
     const u = new URL(S.apiUrl);
@@ -201,7 +218,7 @@
   function authLost() {
     S.pending.clear(); S.outbox.clear(); lsSet(LS.outbox, null);
     if (S.role === 'teacher') { lsSet(LS.teacher, null); S.token = null; S.screen = 'auth-lost'; }
-    else { lsSet(LS.admin, null); S.key = null; S.screen = 'login'; S.gateMsg = '登入已失效，請重新輸入密碼。'; }
+    else { lsSet(LS.admin, null); S.key = null; S.atoken = null; S.screen = 'login'; S.gateMsg = '登入已失效，請重新輸入密碼。'; }
     render();
   }
 
@@ -424,7 +441,7 @@
     const curName = (THEMES.find(t => t[0] === cur) || THEMES[0])[1];
     f.append(h('button', { class: 'link', 'aria-label': '切換外觀，目前為' + curName, onclick: () => { const i = THEMES.findIndex(t => t[0] === (lsGet(LS.theme) || 'auto')); const next = THEMES[(i + 1) % THEMES.length]; lsSet(LS.theme, next[0] === 'auto' ? null : next[0]); applyTheme(); toast('外觀：' + next[1] + (next[0] === 'auto' ? '（跟隨系統）' : '')); const of = document.querySelector('footer.foot'); if (of) { of.replaceWith(renderFoot()); const nb = document.querySelector('footer.foot .themebtn'); if (nb) nb.focus(); } }, class: 'link themebtn' }, '外觀：' + curName));
     if (S.role === 'teacher') f.append(armed(h('button', { class: 'link' }), '在此裝置登出', '再按一次確認登出（之後需請教務組解除才能重新登入）', () => { lsSet(LS.teacher, null); S.token = null; S.screen = 'login'; S.gateMsg = '已在此裝置登出。'; render(); }, 4000));
-    else f.append(h('button', { class: 'link', onclick: () => { lsSet(LS.admin, null); S.key = null; S.screen = 'login'; S.gateMsg = ''; render(); } }, '登出'));
+    else f.append(h('button', { class: 'link', onclick: () => { adminSignOut(); S.screen = 'login'; S.gateMsg = ''; render(); } }, '登出'));
     return f;
   }
 
@@ -1194,7 +1211,9 @@
       inner.append(h('h3', { text: '修改教務組密碼' }), h('div', { class: 'note', text: '修改後，其他已登入的裝置需重新輸入新密碼。' }), a, b,
         h('div', { class: 'row' }, h('button', { class: 'btn primary', onclick: async () => {
           if (a.value.length < 6) return toast('密碼至少 6 個字'); if (a.value !== b.value) return toast('兩次輸入不一致');
-          await adminPost({ action: 'changeKey', newKey: a.value }, '密碼已更新'); S.key = a.value; lsSet(LS.admin, { key: S.key }); closeModal();
+          const r = await adminPost({ action: 'changeKey', newKey: a.value, label: deviceLabel() }, '密碼已更新，其他裝置需重新登入');
+          if (r.atoken) { S.atoken = r.atoken; S.key = null; lsSet(LS.admin, { atoken: r.atoken }); } else { S.key = a.value; lsSet(LS.admin, { key: S.key }); }
+          closeModal();
         } }, '確定修改'), h('button', { class: 'btn ghost', onclick: closeModal }, '取消')));
     });
   }
@@ -1252,8 +1271,8 @@
         const k = inp.value.trim(); if (!k) return;
         abtn.disabled = true; amsg.textContent = '登入中…'; amsg.className = 'note';
         try {
-          const r = await apiRead({ key: k });
-          if (r.ok && r.role === 'admin') { S.key = k; S.role = 'admin'; lsSet(LS.admin, { key: k }); S.screen = 'app'; S.view = 'class'; S.gateMsg = ''; render(); startPolling(); await load({ force: true, full: true }); return; }
+          const r = await adminSignIn(k);
+          if (r.ok) { S.role = 'admin'; S.screen = 'app'; S.view = 'class'; S.gateMsg = ''; render(); startPolling(); await load({ force: true, full: true }); return; }
           amsg.textContent = r.error === 'auth' ? '密碼不正確。' : (r.error === 'too_many' ? errText('too_many') : '登入失敗：' + errText(r.error)); amsg.className = 'note err';
         } catch (e) { amsg.textContent = e.message; amsg.className = 'note err'; }
         abtn.disabled = false;
@@ -1272,7 +1291,7 @@
         try {
           const r = await apiPost({ action: 'init', newKey: a.value });
           if (!r.ok) { msg.className = 'note err'; msg.textContent = r.error === 'already_initialized' ? '已經設定過了，請直接以教務組密碼登入。' : '設定失敗：' + errText(r.error); btn.disabled = false; if (r.error === 'already_initialized') setTimeout(() => { S.screen = 'login'; render(); }, 1500); return; }
-          S.key = a.value; S.role = 'admin'; lsSet(LS.admin, { key: a.value }); S.screen = 'app'; S.view = 'settings'; S.gateMsg = ''; render(); startPolling(); await load({ force: true, full: true });
+          await adminSignIn(a.value); S.role = 'admin'; S.screen = 'app'; S.view = 'settings'; S.gateMsg = ''; render(); startPolling(); await load({ force: true, full: true });
           toast('設定完成。請先填導師姓名與學生名單。', 4000);
         } catch (e) { msg.textContent = e.message; msg.className = 'note err'; btn.disabled = false; }
       };
@@ -1301,7 +1320,12 @@
     if (!S.apiUrl) { S.screen = 'setup'; render(); return; }
     S.screen = 'boot'; render();
     if (teacher && teacher.token) { S.token = teacher.token; S.classId = teacher.classId; S.role = 'teacher'; S.screen = 'app'; render(); startPolling(); await load({ force: true, full: true }); return; }
-    if (admin && admin.key) { S.key = admin.key; S.role = 'admin'; S.screen = 'app'; S.view = 'class'; render(); startPolling(); await load({ force: true, full: true }); return; }
+    if (admin && (admin.atoken || admin.key)) {
+      S.atoken = admin.atoken || null; S.key = admin.atoken ? null : admin.key; S.role = 'admin'; S.screen = 'app'; S.view = 'class'; render(); startPolling(); await load({ force: true, full: true });
+      // 舊版本記住的是密碼：換成登入憑證後刪掉密碼（後端尚未更新時維持原狀）
+      if (S.key && S.screen === 'app') { try { const r = await apiPost({ action: 'adminLogin', key: S.key, label: deviceLabel() }); if (r.ok && r.atoken) { S.atoken = r.atoken; S.key = null; lsSet(LS.admin, { atoken: r.atoken }); } } catch (e) { } }
+      return;
+    }
     S.screen = 'login'; render();
   }
   boot();

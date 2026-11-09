@@ -34,7 +34,22 @@ function setupData_() {
 }
 function initialized_() { return !!PropertiesService.getScriptProperties().getProperty('EDIT_KEY'); }
 function showKey() { Logger.log('教務組密碼：' + PropertiesService.getScriptProperties().getProperty('EDIT_KEY')); }
-function resetKey() { var k = rand_(8); PropertiesService.getScriptProperties().setProperty('EDIT_KEY', k); CacheService.getScriptCache().remove('admin_fail'); Logger.log('新的教務組密碼：' + k); }
+function resetKey() { var k = rand_(8); PropertiesService.getScriptProperties().setProperty('EDIT_KEY', k); CacheService.getScriptCache().remove('admin_fail'); saveAdminSessions_({}); Logger.log('新的教務組密碼：' + k); }
+// 教務組登入憑證：存在指令碼屬性 ADMIN_SESSIONS，180 天到期，最多保留 30 組（最新的）
+var SESSION_DAYS = 180, SESSION_MAX = 30;
+function adminSessions_() { try { return JSON.parse(PropertiesService.getScriptProperties().getProperty('ADMIN_SESSIONS') || '{}') || {}; } catch (e) { return {}; } }
+function saveAdminSessions_(m) {
+  var now = Date.now();
+  var keys = Object.keys(m).filter(function (k) { return m[k] && m[k].exp > now; }).sort(function (a, b) { return m[b].at - m[a].at; }).slice(0, SESSION_MAX);
+  var out = {}; keys.forEach(function (k) { out[k] = m[k]; });
+  PropertiesService.getScriptProperties().setProperty('ADMIN_SESSIONS', JSON.stringify(out));
+}
+function newAdminSession_(label) {
+  var m = adminSessions_(); var t = 'a' + Utilities.getUuid().replace(/-/g, '') + rand_(8);
+  m[t] = { at: Date.now(), exp: Date.now() + SESSION_DAYS * 86400000, label: String(label || '').slice(0, 30) };
+  saveAdminSessions_(m); return t;
+}
+function logoutAllAdmins() { saveAdminSessions_({}); Logger.log('已登出所有教務組裝置'); }
 function unlockAdmin() { CacheService.getScriptCache().remove('admin_fail'); Logger.log('已解除教務組登入暫停'); }
 
 function termName_() {
@@ -177,6 +192,15 @@ function doPost(e) {
     }
     if (!initialized_()) return json_({ ok: false, error: 'not_initialized' });
     if (body.key && adminLocked_()) return json_({ ok: false, error: 'too_many' });
+    if (body.action === 'adminLogin') {
+      // 教務組登入：驗證密碼後發一組登入憑證，瀏覽器只存憑證、不存密碼
+      if (!isAdmin_(body.key)) return json_({ ok: false, error: 'auth' });
+      return json_({ ok: true, atoken: newAdminSession_(body.label) });
+    }
+    if (body.action === 'adminLogout') {
+      var ss0 = adminSessions_(); if (body.atoken && ss0[body.atoken]) { delete ss0[body.atoken]; saveAdminSessions_(ss0); }
+      return json_({ ok: true });
+    }
     var all = readAll_();
     var who = whoIs_(body, all);
     if (!who) return json_({ ok: false, error: 'auth' });
@@ -268,7 +292,8 @@ function doPost(e) {
         var nk = String(body.newKey || '');
         if (nk.length < 6) return json_({ ok: false, error: 'weak_key' });
         PropertiesService.getScriptProperties().setProperty('EDIT_KEY', nk);
-        return json_({ ok: true, version: version_() });
+        saveAdminSessions_({}); // 改密碼後，其他裝置的登入全部失效
+        return json_({ ok: true, version: version_(), atoken: newAdminSession_(body.label) });
       default:
         return json_({ ok: false, error: 'unknown_action' });
     }
@@ -293,6 +318,7 @@ function isAdmin_(key) {
   return ok;
 }
 function whoIs_(p, all) {
+  if (p.atoken) { var sess = adminSessions_()[p.atoken]; if (sess && sess.exp > Date.now()) return { role: 'admin' }; }
   if (isAdmin_(p.key)) return { role: 'admin' };
   if (!p.token) return null;
   var auth = all.auth || { classes: {} };
