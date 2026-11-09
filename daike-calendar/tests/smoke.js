@@ -64,6 +64,22 @@ async function login(p){
     ok(await p.evaluate(() => !planDirty()), '空白的排調代課不算草稿');
     await p.evaluate(() => { plan.swap.teacher = '甲老師'; }); ok(await p.evaluate(() => planDirty()), '填了資料算草稿（關分頁會先問）');
     await p.evaluate(() => { resetPlan(); closePlan(); });
+    // 115.11.10 新功能：每筆刪除鈕、不出現復原、假單排代課存好回到假單、剛存好的序號、自動帶入、Ctrl＋Enter
+    ok(await p.evaluate(() => { showPage('cal'); const c = document.querySelector('#year .d.has .dhit'); if(c) c.click(); return document.querySelectorAll('[data-evdel]').length > 0; }), '紀錄有「刪除」鈕');
+    ok(await p.evaluate(() => { offerUndo('測試', 'U-1'); return document.getElementById('undoBar').hidden; }), '不再出現「復原」鍵');
+    const back = await p.evaluate(async () => {
+      await openPlan('2026-11-16'); plan.kind = 'absent'; Object.assign(plan.absent, {teacher:'丁老師', from:'2026-11-16', to:'2026-11-17', leaveType:'公假', saved:'假-測試'});
+      renderPlan(); absToSub(0); plan.sub.rows.forEach(r => r.sub = '王教務'); refreshPlan(); await new Promise(r => setTimeout(r, 200));
+      const can = !document.getElementById('planSave').disabled; document.getElementById('planSave').click(); await new Promise(r => setTimeout(r, 2500));
+      return {can, kind: plan && plan.kind, teacher: plan && plan.absent.teacher, strip: !!(state.lastSaved && state.lastSaved.ids.length)}; });
+    ok(back.can && back.kind === 'absent' && back.teacher === '丁老師', '假單「排這天的代課」存好後回到同一張假單');
+    ok(back.strip, '剛存好的序號記在工作台');
+    const auto = await p.evaluate(async () => { resetPlan(); plan.kind = 'sub'; renderPlan(); await ensureMeta();
+      const sel = document.querySelector('#planBody [data-k="u.leaver"]'); sel.value = '丁老師'; sel.dispatchEvent(new Event('change', {bubbles:true}));
+      const d = document.querySelector('#planBody [data-k="u.date"]'); d.value = '2026-11-17'; d.dispatchEvent(new Event('change', {bubbles:true}));
+      await new Promise(r => setTimeout(r, 200)); return plan.sub.rows.length; });
+    ok(auto > 0, '選好請假老師和日期自動帶入那天的課');
+    await p.evaluate(() => { resetPlan(); closePlan(); state.lastSaved = null; try{ localStorage.removeItem('planKind'); }catch(e){} });
     // 列印
     for (const fn of ['printSign', 'printAcct']) {
       await p.evaluate(async fn => { document.getElementById('printArea').innerHTML = ''; await window[fn](document.getElementById('mSel') ? document.getElementById('mSel').value : state.range); }, fn);
