@@ -2444,7 +2444,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.09d";
+const APP_VERSION = "專業版 2026.11.09e";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -5705,7 +5705,7 @@ const whoLabel = () => isAll() ? "全校" : `${state.viewing} 老師`;
 async function loadExcelJS(){
   if(window.ExcelJS) return;
   await new Promise((res, rej) => { const s = document.createElement("script");
-    s.src = "https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"; s.onload = res; s.onerror = () => rej(new Error("Excel 元件下載失敗，請確認網路後再試")); document.head.appendChild(s); });
+    s.src = "vendor/exceljs-4.4.0.min.js";   /* 115.11.9 改放本倉庫（npm 官方檔，MIT）：不靠 CDN，學校網路擋 CDN 也能下載 Excel */ s.onload = res; s.onerror = () => rej(new Error("Excel 元件下載失敗，請確認網路後再試")); document.head.appendChild(s); });
 }
 $("#dlExcel").onclick = async () => {
   const r = $("#rangeSel").value, evs = state.events.filter(e => inRange(e, r)), rows = tableRows(evs);
