@@ -2601,7 +2601,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.10g";
+const APP_VERSION = "專業版 2026.11.10h";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -4757,6 +4757,14 @@ function renderPlan(){
     }
   }
   $("#planBody").innerHTML = html;
+  // 115.11.10 無障礙：欄位沒有連到標籤的，用旁邊的標籤文字當名稱（螢幕閱讀器才念得出「節次」「代課老師」…）
+  $("#planBody").querySelectorAll("select, input:not([type=checkbox]):not([type=hidden]), textarea").forEach(el => {
+    if(el.getAttribute("aria-label") || el.id || el.closest("label")) return;
+    const box = el.parentElement && el.parentElement.closest("div"), lb = box && box.querySelector(":scope > label");
+    const row = el.closest(".rowc"), rh = row && row.querySelector(".rhead b");
+    const name = (lb && lb.textContent.replace(/（.*$/, "").trim()) || el.getAttribute("placeholder") || "";
+    if(name) el.setAttribute("aria-label", (rh ? rh.textContent.trim() + " " : "") + name);
+  });
   if(plan.scanKeys) plan.scanKeys.forEach(k => { const el = document.querySelector(`#planBody [data-k="${k}"]`); if(el) el.classList.add("scanned"); });
   refreshPlan();
   if(focusKey){ const el = document.querySelector(`#planBody [data-k="${focusKey}"]`); if(el) el.focus(); }
