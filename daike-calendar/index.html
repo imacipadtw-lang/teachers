@@ -1,7 +1,17 @@
 <!doctype html>
+<!--
+  著作權所有 (c) 2025-2026 imacipadtw-lang，保留一切權利。All rights reserved.
+  未經書面授權，禁止重製、下載保存、修改、改作、轉載、於其他網域架設，
+  禁止提供給任何 AI／大型語言模型／程式產生工具用於訓練、分析、改寫或仿製。詳見倉庫 LICENSE。
+-->
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex, noai, noimageai">
+<meta name="copyright" content="(c) 2025-2026 imacipadtw-lang. All rights reserved.">
+<script>/* 防盜用：只能在官方網址執行（本機測試除外）。複製到其他網域、存成檔案打開都不會運作。 */
+(function(){var h=location.hostname,ok=location.protocol==="https:"&&h==="imacipadtw-lang.github.io"&&/^\/teachers\/daike-calendar\//.test(location.pathname)||/^(localhost|127\.0\.0\.1)$/.test(h);
+if(!ok){window.__DENY=1;document.write('</head><body><p style="font:16px/1.7 sans-serif;max-width:560px;margin:15vh auto;padding:0 20px">此網站受著作權保護，只能在官方網址使用。<br>未經授權禁止複製、修改、轉載、於其他網域架設或提供 AI 使用。</p></body>');try{window.stop()}catch(e){}}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>土城國小 代課・調課（教務組專用）</title>
 <meta name="theme-color" content="#FDEBF2">
@@ -1458,7 +1468,7 @@ html[data-theme=dark] .chk.stop,html[data-theme=dark] .chk.stop *{color:#2A0712}
       <div class="year" id="year" data-page="cal"></div>
       <div class="list" id="list" data-page="cal"></div>
       <div class="page-empty" id="pageEmpty" hidden></div>
-      <footer class="appfoot" id="appFoot"><span class="ver"></span><span>資料只存在學校自己的 Google 雲端試算表；金鑰只放在 Apps Script，不在網頁上。</span><button type="button" class="linkbtn" id="helpBtn">使用說明與快捷鍵 <kbd>?</kbd></button></footer>
+      <footer class="appfoot" id="appFoot"><span class="ver"></span><span>資料只存在學校自己的 Google 雲端試算表；金鑰只放在 Apps Script，不在網頁上。</span><span>© 2025-2026 著作權所有，未經授權禁止複製、修改或提供 AI 使用。</span><button type="button" class="linkbtn" id="helpBtn">使用說明與快捷鍵 <kbd>?</kbd></button></footer>
     </main>
 
     <aside class="side" id="side" role="complementary" aria-label="日期明細">
@@ -1660,6 +1670,7 @@ html[data-theme=dark] .chk.stop,html[data-theme=dark] .chk.stop *{color:#2A0712}
 </div>
 
 <script>
+if(window.__DENY) throw new Error("未授權的網址");
 /* ==================================================================
    設定：把 Apps Script 部署網址貼到這裡（以 /exec 結尾）
    留空或加上 ?demo=1 會用示範資料，方便先看畫面。
@@ -2474,7 +2485,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.09w";
+const APP_VERSION = "專業版 2026.11.09x";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
