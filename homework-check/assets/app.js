@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.10a';
+  const APP_VERSION = '2026.11.10b';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
   const LS = { admin: 'hc.admin', teacher: 'hc.teacher', api: 'hc.api', cls: 'hc.class', outbox: 'hc.outbox', theme: 'hc.theme' };
   const GRADE = ['', '一', '二', '三', '四', '五', '六'];
@@ -64,6 +64,7 @@
     list: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg>',
     lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>',
     scan: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg>',
+    xls: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>',
     tag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>'
   };
   const svg = name => { const s = document.createElement('span'); s.innerHTML = ICON[name]; s.style.display = 'inline-flex'; return s.firstChild; };
@@ -979,7 +980,7 @@
     const roc = (today.getFullYear() - 1911) + '年' + (today.getMonth() + 1) + '月' + today.getDate() + '日';
     box.append(h('div', { class: 'row between no-print' },
       h('div', { class: 'note', text: '這一頁就是給主管看的報告：先在「班級檢核」填好備註，再回來列印或匯出。' }),
-      h('div', { class: 'row' }, h('button', { class: 'btn primary small', onclick: () => window.print() }, svg('print'), '列印報表'), h('button', { class: 'btn ghost small', onclick: () => exportCSV(cl) }, svg('down'), '匯出 CSV'))));
+      h('div', { class: 'row' }, h('button', { class: 'btn primary small', onclick: () => window.print() }, svg('print'), '列印報表'), h('button', { class: 'btn small', onclick: exportXlsx }, svg('xls'), '下載 Excel 報表'), h('button', { class: 'btn ghost small', onclick: () => exportCSV(cl) }, svg('down'), 'CSV'))));
     box.append(h('div', { class: 'rhead' },
       h('div', { class: 'rorg', text: (CFG.schoolName || '') + '　' + (CFG.unitName || '') }),
       h('h2', { text: r.name + '　作業抽查結果' }),
@@ -1040,6 +1041,171 @@
     return list;
   }
 
+  /* ---------- 專業 Excel 報表（.xlsx，含樣式、凍結窗格、列印設定；不用外部元件） ---------- */
+  // 樣式編號（對應 XLSX_STYLES 的 cellXfs 順序）
+  const XS = { title: 1, sub: 2, head: 3, gHw: 4, gEx: 5, iHw: 6, iEx: 7, txt: 8, ctr: 9, ok: 10, no: 11, skip: 12, na: 13, pct: 14, pctFull: 15, totL: 16, totC: 17, totPct: 18, kpiL: 19, kpiV: 20, wrap: 21, kpiPct: 22, name: 23 };
+  const XLSX_STYLES = (() => {
+    const F = 'Microsoft JhengHei';
+    const font = (o) => '<font>' + (o.b ? '<b/>' : '') + (o.i ? '<i/>' : '') + '<sz val="' + (o.sz || 11) + '"/><color rgb="FF' + (o.c || '1F2A40') + '"/><name val="' + F + '"/><family val="2"/></font>';
+    const fonts = [font({}), font({ b: 1, sz: 16 }), font({ sz: 10, c: '68705F' }), font({ b: 1, c: 'FFFFFF' }), font({ b: 1, c: '2653A3' }), font({ b: 1, c: 'B3362C' }), font({ b: 1, c: '2A7246' }), font({ i: 1, sz: 10, c: '7A7A7A' }), font({ c: 'A6A6A6' }), font({ b: 1 }), font({ b: 1, sz: 15 })];
+    const fill = c => '<fill><patternFill patternType="solid"><fgColor rgb="FF' + c + '"/><bgColor indexed="64"/></patternFill></fill>';
+    const fills = ['<fill><patternFill patternType="none"/></fill>', '<fill><patternFill patternType="gray125"/></fill>', fill('1F2A40'), fill('2653A3'), fill('B3362C'), fill('E8EDF7'), fill('F9E9E6'), fill('E1F1E6'), fill('FDF1EF'), fill('F2F2F2'), fill('F6F0D9'), fill('FFFDF6')];
+    const borders = ['<border><left/><right/><top/><bottom/><diagonal/></border>', '<border>' + ['left', 'right', 'top', 'bottom'].map(s => '<' + s + ' style="thin"><color rgb="FFD9D2B6"/></' + s + '>').join('') + '<diagonal/></border>'];
+    // [fontId, fillId, borderId, numFmtId, 水平對齊, 換行]
+    const xf = ([fo, fi, bo, nf, ha, wr]) => '<xf numFmtId="' + nf + '" fontId="' + fo + '" fillId="' + fi + '" borderId="' + bo + '" xfId="0" applyFont="1" applyFill="1" applyBorder="1"' + (nf ? ' applyNumberFormat="1"' : '') + ' applyAlignment="1"><alignment vertical="center"' + (ha ? ' horizontal="' + ha + '"' : '') + (wr ? ' wrapText="1"' : '') + '/></xf>';
+    const xfs = [[0, 0, 0, 0, '', 0], [1, 0, 0, 0, 'left', 0], [2, 0, 0, 0, 'left', 0], [3, 2, 1, 0, 'center', 1], [3, 3, 1, 0, 'center', 0], [3, 4, 1, 0, 'center', 0], [4, 5, 1, 0, 'center', 1], [5, 6, 1, 0, 'center', 1],
+      [0, 11, 1, 0, 'left', 0], [0, 11, 1, 0, 'center', 0], [6, 7, 1, 0, 'center', 0], [5, 8, 1, 0, 'center', 0], [7, 9, 1, 0, 'center', 0], [8, 11, 1, 0, 'center', 0], [0, 11, 1, 9, 'center', 0], [6, 7, 1, 9, 'center', 0],
+      [9, 10, 1, 0, 'left', 0], [9, 10, 1, 0, 'center', 0], [9, 10, 1, 9, 'center', 0], [2, 0, 0, 0, 'left', 0], [10, 0, 0, 0, 'left', 0], [0, 11, 1, 0, 'left', 1], [10, 0, 0, 9, 'left', 0], [9, 11, 1, 0, 'left', 0]];
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+      + '<fonts count="' + fonts.length + '">' + fonts.join('') + '</fonts><fills count="' + fills.length + '">' + fills.join('') + '</fills><borders count="' + borders.length + '">' + borders.join('') + '</borders>'
+      + '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="' + xfs.length + '">' + xfs.map(xf).join('') + '</cellXfs>'
+      + '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+  })();
+  const xEsc = v => String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '');
+  const xCol = i => { let s = ''; i++; while (i > 0) { const m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = Math.floor((i - 1) / 26); } return s; };
+  const xWidth = v => { let w = 0; for (const ch of String(v == null ? '' : v)) w += /[⺀-￿]/.test(ch) ? 2.1 : 1.1; return w; };
+  // sheets: [{ name, rows: [[{ v, s, n }|null]], merges: ['A1:F1'], freeze: { row, col }, landscape, titleRows: [r1, r2], widths: { colIndex: w }, heights: { rowIndex: h } }]
+  function xlsxBook(sheets) {
+    const X = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+    const files = {};
+    const defNames = [];
+    sheets.forEach((sh, si) => {
+      const ncol = Math.max(1, ...sh.rows.map(r => r.length));
+      const widths = Array.from({ length: ncol }, (_, ci) => {
+        if (sh.widths && sh.widths[ci]) return sh.widths[ci];
+        let w = 6; sh.rows.forEach((r, ri) => { const c = r[ci]; if (c && c.v != null && !(sh.skipWidthRows || []).includes(ri)) w = Math.max(w, xWidth(c.n ? '100%' : c.v) + 2); });
+        return Math.min(48, w);
+      });
+      let x = X + '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+        + '<sheetPr><pageSetUpPr fitToPage="1"/></sheetPr>';
+      const fz = sh.freeze;
+      x += '<sheetViews><sheetView workbookViewId="0"' + (si === 0 ? ' tabSelected="1"' : '') + ' zoomScale="100">'
+        + (fz ? '<pane' + (fz.col ? ' xSplit="' + fz.col + '"' : '') + ' ySplit="' + fz.row + '" topLeftCell="' + xCol(fz.col || 0) + (fz.row + 1) + '" activePane="' + (fz.col ? 'bottomRight' : 'bottomLeft') + '" state="frozen"/>' : '')
+        + '</sheetView></sheetViews><sheetFormatPr defaultRowHeight="20"/>';
+      x += '<cols>' + widths.map((w, i) => '<col min="' + (i + 1) + '" max="' + (i + 1) + '" width="' + w.toFixed(1) + '" customWidth="1"/>').join('') + '</cols><sheetData>';
+      const WRAPS = new Set([XS.wrap, XS.head, XS.iHw, XS.iEx]);
+      sh.rows.forEach((r, ri) => {
+        let lines = 1; r.forEach((c, ci) => { if (c && c.v != null && WRAPS.has(c.s)) lines = Math.max(lines, Math.ceil(xWidth(c.v) / Math.max(1, widths[ci] - 1.2))); });
+        const ht = Math.max((sh.heights || {})[ri] || 0, lines > 1 ? Math.round(lines * 15.5 + 6) : 0) || null;
+        x += '<row r="' + (ri + 1) + '"' + (ht ? ' ht="' + ht + '" customHeight="1"' : '') + '>';
+        r.forEach((c, ci) => {
+          if (!c) return;
+          const ref = xCol(ci) + (ri + 1); const st = c.s ? ' s="' + c.s + '"' : '';
+          if (c.v == null || c.v === '') x += '<c r="' + ref + '"' + st + '/>';
+          else if (c.n && isFinite(c.v)) x += '<c r="' + ref + '"' + st + '><v>' + Number(c.v) + '</v></c>';
+          else x += '<c r="' + ref + '"' + st + ' t="inlineStr"><is><t xml:space="preserve">' + xEsc(c.v) + '</t></is></c>';
+        });
+        x += '</row>';
+      });
+      x += '</sheetData>';
+      if (sh.merges && sh.merges.length) x += '<mergeCells count="' + sh.merges.length + '">' + sh.merges.map(m => '<mergeCell ref="' + m + '"/>').join('') + '</mergeCells>';
+      x += '<pageMargins left="0.4" right="0.4" top="0.55" bottom="0.55" header="0.25" footer="0.25"/>'
+        + '<pageSetup paperSize="9" orientation="' + (sh.landscape ? 'landscape' : 'portrait') + '" fitToWidth="1" fitToHeight="0"/>'
+        + '<headerFooter><oddFooter>' + xEsc('&L' + (sh.footer || '') + '&R第 &P 頁，共 &N 頁') + '</oddFooter></headerFooter></worksheet>';
+      files['xl/worksheets/sheet' + (si + 1) + '.xml'] = x;
+      if (sh.titleRows) defNames.push('<definedName name="_xlnm.Print_Titles" localSheetId="' + si + '">\'' + sh.name.replace(/'/g, "''") + '\'!$' + sh.titleRows[0] + ':$' + sh.titleRows[1] + '</definedName>');
+    });
+    files['[Content_Types].xml'] = X + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'
+      + sheets.map((_, i) => '<Override PartName="/xl/worksheets/sheet' + (i + 1) + '.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>').join('') + '</Types>';
+    files['_rels/.rels'] = X + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>';
+    files['xl/workbook.xml'] = X + '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView activeTab="0"/></bookViews><sheets>'
+      + sheets.map((sh, i) => '<sheet name="' + xEsc(sh.name) + '" sheetId="' + (i + 1) + '" r:id="rId' + (i + 1) + '"/>').join('') + '</sheets>'
+      + (defNames.length ? '<definedNames>' + defNames.join('') + '</definedNames>' : '') + '</workbook>';
+    files['xl/_rels/workbook.xml.rels'] = X + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+      + sheets.map((_, i) => '<Relationship Id="rId' + (i + 1) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet' + (i + 1) + '.xml"/>').join('')
+      + '<Relationship Id="rId' + (sheets.length + 1) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>';
+    files['xl/styles.xml'] = XLSX_STYLES;
+    return zipStore(files);
+  }
+  // 工作表名稱：最多 31 字、不可含 []:*?/\、不可重複
+  function xSheetName(name, used) { let n = String(name || '工作表').replace(/[\[\]:*?\/\\]/g, ' ').trim().slice(0, 31) || '工作表'; let k = n, i = 2; while (used.has(k)) k = n.slice(0, 28) + '(' + (i++) + ')'; used.add(k); return k; }
+
+  // 報表內容與網站「報表」頁同一套（只顯示、不另算規則）
+  function reportWorkbook(r) {
+    const cl = classes(); const items = roundItems(r);
+    const C = (v, s) => ({ v, s }); const N = (v, s) => ({ v, s, n: true });
+    const now = new Date();
+    const stamp = (now.getFullYear() - 1911) + '/' + (now.getMonth() + 1) + '/' + now.getDate() + ' ' + fmtTime(now);
+    const org = [CFG.schoolName, CFG.unitName].filter(Boolean).join('　');
+    const meta = '繳交截止：' + (r.due ? fmtDate(r.due) : '未設定') + '　　狀態：' + (r.locked ? '已結案' : '進行中') + '　　製表：' + stamp;
+    const used = new Set(); const sheets = [];
+    const hwN = items.filter(it => it.kind !== 'exam').length, exN = items.length - hwN;
+    // 一、全校摘要
+    {
+      const head = ['班級', '導師', '人數'];
+      const ncol = head.length + items.length + 2;
+      const rows = [[C(org + '　' + r.name + '　作業抽查結果', XS.title)], [C(meta, XS.sub)], []];
+      let got = 0, total = 0, full = 0;
+      const body = cl.map(cls => {
+        const n = (cls.students || []).length; const p = classProgress(cls, r); got += p.got; total += p.total;
+        const pct = p.total ? p.got / p.total : null; if (p.total && p.got === p.total) full++;
+        return [C(cls.name, XS.name), C(cls.teacher || '', XS.txt), N(n, XS.ctr)].concat(items.map(it => !classHasItem(cls, it) ? C('—', XS.na) : skipped(cls.id, it.id) ? C('不用繳', XS.skip) : C(countItem(cls, it) + '/' + n, countItem(cls, it) === n && n ? XS.ok : XS.ctr)))
+          .concat([pct == null ? C('—', XS.na) : N(Math.round(pct * 1000) / 1000, pct === 1 ? XS.pctFull : XS.pct), C(noteValue(cls.id, null), XS.wrap)]);
+      });
+      rows.push([C('全校完成率', XS.kpiL), null, C('已交／應交', XS.kpiL), null, C('全班繳齊', XS.kpiL)]);
+      rows.push([N(total ? Math.round(got / total * 1000) / 1000 : 0, XS.kpiPct), null, C(got + ' / ' + total, XS.kpiV), null, C(full + ' / ' + cl.length + ' 班', XS.kpiV)]);
+      rows.push([]);
+      const g = rows.length; // 分組表頭列（0 起算）
+      const grp = [C('', XS.head), C('', XS.head), C('', XS.head)]; for (let i = 0; i < hwN; i++) grp.push(C(i === 0 ? '習作' : '', XS.gHw)); for (let i = 0; i < exN; i++) grp.push(C(i === 0 ? '考卷（家長簽名繳回）' : '', XS.gEx)); grp.push(C('', XS.head), C('', XS.head));
+      rows.push(grp);
+      rows.push(head.map(t => C(t, XS.head)).concat(items.map(it => C(it.short || it.name, it.kind === 'exam' ? XS.iEx : XS.iHw))).concat([C('完成率', XS.head), C('班級備註', XS.head)]));
+      body.forEach(b => rows.push(b));
+      rows.push([C('全校', XS.totL), C('', XS.totL), N(cl.reduce((a, c) => a + (c.students || []).length, 0), XS.totC)].concat(items.map(it => { let c = 0, t = 0; cl.forEach(cls => { if (applies(cls, it, r)) { c += countItem(cls, it); t += (cls.students || []).length; } }); return C(t ? c + '/' + t : '—', XS.totC); }))
+        .concat([N(total ? Math.round(got / total * 1000) / 1000 : 0, XS.totPct), C('', XS.totC)]));
+      const L = xCol(ncol - 1);
+      const merges = ['A1:' + L + '1', 'A2:' + L + '2', 'A' + (g + 1) + ':C' + (g + 1), xCol(ncol - 2) + (g + 1) + ':' + xCol(ncol - 1) + (g + 1)];
+      if (hwN > 1) merges.push(xCol(3) + (g + 1) + ':' + xCol(2 + hwN) + (g + 1));
+      if (exN > 1) merges.push(xCol(3 + hwN) + (g + 1) + ':' + xCol(2 + hwN + exN) + (g + 1));
+      merges.push('A4:B4', 'C4:D4', 'E4:F4', 'A5:B5', 'C5:D5', 'E5:F5');
+      const widths = { 0: 8, 1: 10, 2: 6 }; items.forEach((_, i) => { widths[3 + i] = 7.5; }); widths[ncol - 2] = 8; widths[ncol - 1] = 28;
+      sheets.push({ name: xSheetName('全校摘要', used), rows, merges, freeze: { row: g + 2, col: 1 }, landscape: true, titleRows: [g + 1, g + 2], widths, heights: { 0: 30, 1: 18, 4: 26, [g + 1]: 30 }, footer: org + '　' + r.name });
+    }
+    // 二、未繳交與備註
+    {
+      const rows = [[C('未繳交與備註', XS.title)], [C(org + '　' + r.name + '　　' + meta, XS.sub)], [], ['班級', '座號', '姓名', '缺交', '未繳交項目', '備註'].map(t => C(t, XS.head))];
+      let cnt = 0;
+      cl.forEach(cls => { const its = itemsFor(cls, r); (cls.students || []).slice().sort((a, b) => a.no - b.no).forEach(s => { const miss = its.filter(it => !isOn(cls.id, s.no, it.id)); const note = noteValue(cls.id, s.no); if (!miss.length && !note) return; cnt++;
+        const mh = miss.filter(it => it.kind !== 'exam').map(it => it.short || it.name), me = miss.filter(it => it.kind === 'exam').map(it => it.short || it.name);
+        const txt = [mh.length ? '習作：' + mh.join('、') : '', me.length ? '考卷：' + me.join('、') + '（家長簽名）' : ''].filter(Boolean).join('｜');
+        rows.push([C(cls.name, XS.name), N(s.no, XS.ctr), C(s.name || '', XS.txt), N(miss.length, miss.length ? XS.no : XS.ok), C(txt || '—', miss.length ? XS.wrap : XS.na), C(note, XS.wrap)]); }); });
+      if (!cnt) rows.push([C('全校皆已繳交，沒有備註。', XS.txt), C('', XS.txt), C('', XS.txt), C('', XS.txt), C('', XS.txt), C('', XS.txt)]);
+      sheets.push({ name: xSheetName('未繳交與備註', used), rows, merges: ['A1:F1', 'A2:F2'].concat(cnt ? [] : ['A5:F5']), freeze: { row: 4, col: 0 }, titleRows: [4, 4], widths: { 0: 8, 1: 6, 2: 10, 3: 6, 4: 52, 5: 30 }, heights: { 0: 30, 3: 24 }, footer: org + '　' + r.name });
+    }
+    // 三、各班明細（一班一張）
+    cl.forEach(cls => {
+      const its = itemsFor(cls, r); const studs = (cls.students || []).slice().sort((a, b) => a.no - b.no);
+      const skips = skippedItems(cls, r);
+      const hw = its.filter(it => it.kind !== 'exam').length, ex = its.length - hw;
+      const ncol = 2 + its.length + 4;
+      const rows = [[C(cls.name + '　作業抽查明細', XS.title)], [C((cls.teacher ? '導師 ' + cls.teacher + '　' : '') + studs.length + ' 人　' + r.name + (skips.length ? '　本次不用繳：' + skips.map(x => x.name).join('、') : '') + (noteValue(cls.id, null) ? '　班級備註：' + noteValue(cls.id, null) : ''), XS.sub)], []];
+      const grp = [C('', XS.head), C('', XS.head)]; for (let i = 0; i < hw; i++) grp.push(C(i === 0 ? '習作' : '', XS.gHw)); for (let i = 0; i < ex; i++) grp.push(C(i === 0 ? '考卷（家長簽名）' : '', XS.gEx)); grp.push(C('', XS.head), C('', XS.head), C('', XS.head), C('', XS.head));
+      rows.push(grp);
+      rows.push([C('座號', XS.head), C('姓名', XS.head)].concat(its.map(it => C(it.short || it.name, it.kind === 'exam' ? XS.iEx : XS.iHw))).concat(['已交', '應交', '狀態', '備註'].map(t => C(t, XS.head))));
+      studs.forEach(s => {
+        const g = its.filter(it => isOn(cls.id, s.no, it.id)).length;
+        rows.push([N(s.no, XS.ctr), C(s.name || '', XS.name)].concat(its.map(it => isOn(cls.id, s.no, it.id) ? C('✓', XS.ok) : C('✗', XS.no)))
+          .concat([N(g, XS.ctr), N(its.length, XS.ctr), C(g === its.length ? '繳齊' : '缺 ' + (its.length - g) + ' 項', g === its.length ? XS.ok : XS.ctr), C(noteValue(cls.id, s.no), XS.wrap)]));
+      });
+      if (studs.length) rows.push([C('已交人數', XS.totL), C('', XS.totL)].concat(its.map(it => C(countItem(cls, it) + '/' + studs.length, XS.totC))).concat([C('', XS.totC), C('', XS.totC), C(studs.filter(s => its.every(it => isOn(cls.id, s.no, it.id))).length + ' 人繳齊', XS.totC), C('', XS.totC)]));
+      const L = xCol(ncol - 1);
+      const merges = ['A1:' + L + '1', 'A2:' + L + '2', 'A4:B4', xCol(ncol - 4) + '4:' + L + '4'];
+      if (hw > 1) merges.push(xCol(2) + '4:' + xCol(1 + hw) + '4');
+      if (ex > 1) merges.push(xCol(2 + hw) + '4:' + xCol(1 + hw + ex) + '4');
+      const widths = { 0: 6, 1: 11 }; its.forEach((_, i) => { widths[2 + i] = 7; }); widths[ncol - 4] = 6; widths[ncol - 3] = 6; widths[ncol - 2] = 9; widths[ncol - 1] = 28;
+      sheets.push({ name: xSheetName(cls.name, used), rows, merges, freeze: { row: 5, col: 2 }, titleRows: [4, 5], widths, heights: { 0: 30, 4: 30 }, footer: org + '　' + r.name + '　' + cls.name });
+    });
+    return xlsxBook(sheets);
+  }
+  function exportXlsx() {
+    const r = round(); if (!r) return toast('尚未建立抽查次別');
+    try {
+      const blob = reportWorkbook(r);
+      const d = new Date(); const ymd = (d.getFullYear() - 1911) + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+      downloadBlob(blob, '作業抽查報表_' + r.name.replace(/[\\/:*?"<>|\s]+/g, '_') + '_' + ymd + '.xlsx');
+      toast('已下載 Excel 報表（全校摘要、未繳交與備註、各班明細）');
+    } catch (e) { toast('Excel 產生失敗：' + e.message, 3600); }
+  }
+
   /* ---------- 匯出 CSV ---------- */
   function exportCSV(list) {
     const r = round(); if (!r) return;
@@ -1090,7 +1256,8 @@
         h('div', { class: 'stat' + (notLogged.length ? ' warnstat' : '') }, '導師已登入', h('b', { text: (cl.length - notLogged.length) + ' / ' + cl.length + ' 班' }))),
       h('div', { class: 'row' },
         h('button', { class: 'btn ghost small', onclick: () => openMissing(cl) }, svg('list'), '全校未交名單'),
-        h('button', { class: 'btn ghost small', onclick: () => exportCSV(cl) }, svg('down'), '匯出 CSV'),
+        h('button', { class: 'btn small', onclick: exportXlsx }, svg('xls'), 'Excel 報表'),
+        h('button', { class: 'btn ghost small', onclick: () => exportCSV(cl) }, svg('down'), 'CSV'),
         h('button', { class: 'btn ghost small', onclick: () => window.print() }, svg('print'), '列印'))));
     box.append(h('div', { class: 'print-meta', text: (CFG.schoolName || '') + '　' + r.name + '　全校總覽　列印時間 ' + new Date().toLocaleString('zh-TW') }));
     if (notLogged.length) box.append(h('div', { class: 'banner warn no-print' }, h('span', { text: '尚未登入的班級：' + notLogged.map(c => c.name + (c.teacher ? '（' + c.teacher + '）' : '')).join('、') + '。這些班級的導師還不能登記，請提醒導師開啟網址、選擇自己的班級登入' + (S.claimClosed ? '（目前「暫停新的導師登入」中，需先到設定取消勾選）' : '') + '。' })));

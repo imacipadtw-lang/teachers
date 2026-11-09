@@ -539,6 +539,44 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
   }
   await fetch(B + '__reset'); await fetch(B + '__seed');
 
+
+  console.log('27. 專業 Excel 報表（.xlsx）');
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+  { const R = async b => (await fetch(B + 'exec', { method: 'POST', body: JSON.stringify(b) })).json();
+    // 解開本網站產生的 xlsx（未壓縮的 zip）
+    const unzip = buf => { const out = {}; let i = 0; while (i + 30 < buf.length && buf.readUInt32LE(i) === 0x04034b50) { const sz = buf.readUInt32LE(i + 18), nl = buf.readUInt16LE(i + 26), el = buf.readUInt16LE(i + 28); const name = buf.slice(i + 30, i + 30 + nl).toString('utf8'); out[name] = buf.slice(i + 30 + nl + el, i + 30 + nl + el + sz).toString('utf8'); i += 30 + nl + el + sz; } return out; };
+    await R({ action: 'marks', key: 'test1234', rid: 'r1', classId: 'g1', changes: [{ no: 1, itemId: 'chinese', val: true }, { no: 1, itemId: 'exam_math', val: true }] });
+    await R({ action: 'skipItem', key: 'test1234', rid: 'r1', classId: 'g2', itemId: 'math', skip: true });
+    await R({ action: 'note', key: 'test1234', rid: 'r1', classId: 'g1', no: 2, text: '=HYPERLINK("x")' });
+    ctx = await br.newContext({ viewport: { width: 1280, height: 860 } }); pg = await newPage(ctx); await adminLogin(pg, B);
+    await pg.click('nav.tabs >> text=報表'); await sleep(400);
+    const [dl] = await Promise.all([pg.waitForEvent('download'), pg.click('button:has-text("下載 Excel 報表")')]);
+    ok(/^作業抽查報表_.+_\d{7}\.xlsx$/.test(dl.suggestedFilename()), '檔名：' + dl.suggestedFilename());
+    const xpath = await dl.path(); const z = unzip(fs.readFileSync(xpath));
+    ok(z['xl/styles.xml'] && z['xl/workbook.xml'] && z['[Content_Types].xml'].includes('styles+xml'), '含樣式表（styles.xml）與正確的內容類型');
+    const names = [...z['xl/workbook.xml'].matchAll(/<sheet name="([^"]+)"/g)].map(m => m[1]);
+    ok(names.join(',') === '全校摘要,未繳交與備註,一甲,二甲,三甲', '工作表：' + names.join('、'));
+    const s1 = z['xl/worksheets/sheet1.xml'], s2 = z['xl/worksheets/sheet2.xml'], s3 = z['xl/worksheets/sheet3.xml'], s4 = z['xl/worksheets/sheet4.xml'];
+    ok(s1.includes('全校完成率') && s1.includes('orientation="landscape"') && s1.includes('state="frozen"') && s1.includes('<mergeCell '), '全校摘要：KPI、橫向、凍結窗格、合併儲存格');
+    ok(z['xl/workbook.xml'].includes('_xlnm.Print_Titles'), '列印時每頁重複表頭');
+    ok(s4.includes('>不用繳<') || s1.includes('>不用繳<'), '「不用繳」寫入 Excel');
+    ok(s3.includes('>✓<') && s3.includes('>✗<') && s3.includes('state="frozen"'), '各班明細：✓／✗、凍結座號與姓名欄');
+    ok(s2.includes('=HYPERLINK') && !/<f>/.test(s2) && s2.includes('t="inlineStr"'), '以「=」開頭的備註存成文字，不會變成公式');
+    ok(!/製表員|承辦人|會計主任|核章/.test(Object.values(z).join('')), '沒有核章欄（依主計室規定）');
+    try {
+      const xcopy = require('path').join(require('os').tmpdir(), 'hc-test-' + Date.now() + '.xlsx'); fs.copyFileSync(xpath, xcopy);
+      const py = require('child_process').spawnSync('python3', ['-c', 'import sys,openpyxl; wb=openpyxl.load_workbook(sys.argv[1]); print(len(wb.sheetnames), wb["全校摘要"].freeze_panes, wb["全校摘要"]["A1"].font.b)', xcopy], { encoding: 'utf8' });
+      fs.unlinkSync(xcopy);
+      if (py.status === 0) ok(/^5 [A-Z]+\d+ True/.test(py.stdout.trim()), 'openpyxl 可正常開啟（' + py.stdout.trim() + '）');
+      else console.log('  （略過 openpyxl 檢查：' + (py.stderr || '').split('\n').filter(Boolean).pop() + '）');
+    } catch (e) { console.log('  （略過 openpyxl 檢查）'); }
+    await pg.click('nav.tabs >> text=全校總覽'); await sleep(300);
+    const [dl2] = await Promise.all([pg.waitForEvent('download'), pg.click('button:has-text("Excel 報表")')]);
+    ok(/\.xlsx$/.test(dl2.suggestedFilename()), '全校總覽也能下載 Excel 報表');
+    await ctx.close();
+  }
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+
   await br.close();
   console.log('\n頁面錯誤：' + (errors.length ? errors.join(' | ') : '無'));
   console.log(`結果：${pass} 通過，${fail} 失敗`);
