@@ -1369,6 +1369,10 @@ html[data-theme=dark] .ev .fixbtn.delbtn{color:#FF8DA6}
 }
 .wb-todo li.ok{border-left-color:var(--c-tutor);background:rgba(15,110,77,.07)}
 html[data-theme=dark] .wb-todo li.ok{background:rgba(79,209,161,.10)}
+.chk.flash{animation:chkFlash 1.6s ease}
+@keyframes chkFlash{0%,40%{box-shadow:0 0 0 4px var(--sky)}100%{box-shadow:0 0 0 0 transparent}}
+@media (prefers-reduced-motion:reduce){.chk.flash{animation:none;outline:3px solid var(--sky)}}
+.plan-sum .sumfee{color:var(--ink-2);font-size:13px}
 </style>
 </head>
 <body>
@@ -1611,6 +1615,7 @@ html[data-theme=dark] .wb-todo li.ok{background:rgba(79,209,161,.10)}
           <tr><td><kbd>1</kbd>～<kbd>8</kbd></td><td>切換上方頁籤（工作台、年曆、請假比對、檢查、報表、儀表板、設定、全部）</td></tr>
           <tr><td><kbd>?</kbd></td><td>這個說明</td></tr>
           <tr><td><kbd>Esc</kbd></td><td>關閉視窗</td></tr>
+          <tr><td><kbd>Ctrl</kbd>＋<kbd>Enter</kbd>（Mac 用 <kbd>⌘</kbd>）</td><td>排調代課：儲存到雲端表格</td></tr>
         </tbody></table>
         <p class="hint">在輸入框裡打字時，單鍵快捷鍵不會作用。</p>
       </section>
@@ -4282,7 +4287,7 @@ function planDirty(){
 }
 window.addEventListener("beforeunload", e => { if(planDirty()){ e.preventDefault(); e.returnValue = ""; } });
 function resetPlan(date){
-  plan = { kind:"swap", force:false, server:null, scan:null, scanKeys:null,
+  plan = { kind:(() => { try{ const k = localStorage.getItem("planKind"); return ["swap","sub","absent","tutor"].includes(k) ? k : "swap"; }catch(e){ return "swap"; } })(), force:false, server:null, scan:null, scanKeys:null,
     swap:{teacher:"", applyDate:todayYmd(), reason:"", rows:[Object.assign(newSwapRow(), date?{fromDate:date}:{})]},
     sub:{leaver:"", leaveType:"公假", date:date||"", note:"", rows:[], tutor:false, tutorSub:""},
     absent:{teacher:"", leaveType:"公假", applyDate:todayYmd(), from:date||"", to:"", scope:"全天", periods:[], reason:"", scanSubs:{}, saved:null},
@@ -4310,7 +4315,7 @@ function prefetchMeta(){                      // 管理者登入後在背景先�
 $("#openPlan").onclick = ()=>openPlan();
 $("#planClose").onclick = closePlan; $("#planCancel").onclick = closePlan;
 document.querySelectorAll("#planModal .seg button").forEach(b=>b.onclick=()=>{ if(plan.kind !== b.dataset.kind){ plan.scan = null; plan.scanKeys = null; }   // 換分頁：上一張照片的黃框與提醒不再顯示
-  plan.kind=b.dataset.kind; plan.force=false; plan.server=null; renderPlan(); });
+  plan.kind=b.dataset.kind; plan.force=false; plan.server=null; try{ localStorage.setItem("planKind", plan.kind); }catch(e){} renderPlan(); });   // 下次打開停在上次用的分頁
 
 const ctxOf = () => ({tt:state.meta.tt, tSlot:state.meta.tSlot, has:state.meta.has, ev:state.meta.ev, off:state.meta.off || state.off || {}});
 const ttAt = (date,p,cls) => date&&p&&cls ? state.meta.tt[CF.dow(date)+"|"+p+"|"+cls] : null;
@@ -4746,6 +4751,11 @@ function refreshPlan(){
   const anyMissing = (form.swaps||[]).some(r=>missingOf("swap",r).length) || (form.subs||[]).some(r=>missingOf("sub",r).length) || (form.tutors||[]).some(r=>missingOf("tutor",r).length) || (form.absents||[]).some(r=>missingOf("absent",r).length) || (plan.kind==="absent" && !rowsN && plan.absent.from ? true : false);
   const anyOut = (form.swaps||[]).some(r=>termOf("swap",r).length) || (form.subs||[]).some(r=>termOf("sub",r).length) || (form.tutors||[]).some(r=>termOf("tutor",r).length) || (form.absents||[]).some(r=>termOf("absent",r).length);
   $("#planSum").innerHTML = !rowsN ? "還沒有資料" : hardN ? `<span style="color:var(--rose);font-weight:800">⛔ 有 ${hardN} 列衝堂或請假，不能儲存，請改選老師</span>` : anyMissing ? `還有欄位沒填完` : anyOut ? `<span style="color:var(--rose);font-weight:700">⚠ 有日期不在本學期（${esc(termText())}）</span>` : all ? `<span style="color:var(--rose);font-weight:700">⚠ 有 ${all} 列需要確認</span>` : (plan.kind==="absent" || plan.kind==="tutor" ? `<span style="color:var(--sage);font-weight:700">✓ 共 ${rowsN} 天，可以登記</span>` : `<span style="color:var(--sage);font-weight:700">✓ 共 ${rowsN} 列，沒有衝堂、沒有請假</span>`);
+  { const bad = document.querySelector("#planBody .chk.stop, #planBody .chk.bad, #planBody .chk.wait");   // 115.11.10：有問題時可以一鍵捲到那一列
+    if(bad && rowsN){ const host = bad.closest("[data-chk]"), n = host ? (+String(host.dataset.chk).split(".").pop() + 1) : 0;
+      $("#planSum").insertAdjacentHTML("beforeend", ` <button type="button" class="linkbtn" id="planJump">看${n ? `第 ${n} 列` : "哪裡"}</button>`);
+      $("#planJump").onclick = () => { bad.scrollIntoView({behavior:"smooth", block:"center"}); bad.classList.add("flash"); setTimeout(() => bad.classList.remove("flash"), 1600); }; }
+    const fee = $("#planFee"); if(!bad && rowsN && fee && fee.textContent.trim() && plan.kind === "sub") $("#planSum").insertAdjacentHTML("beforeend", `<span class="sumfee">　${esc(fee.textContent.trim())}</span>`); }
   $("#planSave").textContent = plan.force ? "仍要儲存（我已確認提醒）" : "儲存到雲端表格";
   $("#planSave").disabled = !rowsN || anyMissing || anyOut || hardN > 0;
   if(plan.kind==="absent" && plan.absent.saved){
@@ -4788,6 +4798,7 @@ $("#planBody").addEventListener("change", e=>{
     showBlock(added);
     return;
   }
+  if((k==="u.leaver" || k==="u.date") && plan.sub.leaver && plan.sub.date && !plan.sub.rows.length && state.meta) fillDay();   // 115.11.10：選好老師和日期就自動帶入那天的課
   if(k==="u.leaver" || k==="u.tutor" || k==="u.date" || k.indexOf("a.")===0 || (k.indexOf("t.")===0 && k!=="t.note")) renderPlan();   // 會改變版面的才整個重畫
   else refreshPlan();
 });
@@ -4961,6 +4972,7 @@ $("#planSave").onclick = async ()=>{
 document.addEventListener("keydown", e=>{
   if(e.key==="Escape" && !$("#blockModal").hidden){ closeBlock(); return; }
   if(e.key==="Escape" && !$("#planModal").hidden) closePlan();
+  if((e.ctrlKey || e.metaKey) && e.key==="Enter" && !$("#planModal").hidden && !$("#planSave").disabled){ e.preventDefault(); $("#planSave").click(); }   // Ctrl／⌘＋Enter 儲存
 });
 
 /* ================================================================
