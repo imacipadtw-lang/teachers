@@ -1,0 +1,372 @@
+// 作業抽查紀錄 自動測試（請用 ./run.sh 執行；需要 Node 18+ 與 Playwright）
+const { chromium } = require('playwright');
+const fs = require('fs');
+const H = __dirname;
+const OFF = H + '/OFFLINE';
+let pass = 0, fail = 0;
+const ok = (c, msg) => { if (c) { pass++; console.log('  ✓ ' + msg); } else { fail++; console.log('  ✗ ' + msg); } };
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+async function adminLogin(pg, base) {
+  await pg.goto(base); await pg.waitForSelector('text=教務組登入');
+  await pg.click('text=教務組登入'); await pg.fill('input[type=password]', 'test1234'); await pg.keyboard.press('Enter');
+  await pg.waitForSelector('table.grid');
+}
+const marks = async (base) => { const r = await (await fetch(base + 'exec', { method: 'POST', body: JSON.stringify({ action: 'read', key: 'test1234' }) })).json(); return r.checks; };
+const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')).json()).checks;
+
+(async () => {
+  const br = await chromium.launch();
+  const errors = [];
+  const newPage = async (ctx) => { const p = await ctx.newPage(); p.on('pageerror', e => errors.push(e.message)); await p.route(/fonts\.(googleapis|gstatic)\.com/, r => r.abort()); return p; };
+  const B = 'http://localhost:8787/';
+  try { fs.unlinkSync(OFF); } catch (e) { }
+
+  console.log('1. 教務組登入與登記（密碼不進網址）');
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+  let ctx = await br.newContext({ viewport: { width: 1280, height: 860 } }); let pg = await newPage(ctx);
+  await adminLogin(pg, B);
+  await pg.locator('table.grid button.chk').nth(0).click(); await pg.locator('table.grid button.chk').nth(1).click();
+  await sleep(1500);
+  let m = await marks(B);
+  ok(m.g1 && m.g1.marks['1'] && m.g1.marks['1'].chinese && m.g1.marks['1'].math, '兩格登記已寫入資料表');
+  const log = await (await fetch(B + '__log')).json();
+  ok(!log.some(x => x.m === 'GET' && /key=|token=/.test(x.url)), '沒有任何 GET 網址帶密碼或 token（共 ' + log.length + ' 次請求）');
+
+  console.log('2. 斷線時登記不遺失，恢復後自動補送');
+  fs.writeFileSync(OFF, '1');
+  await pg.locator('table.grid button.chk').nth(2).click(); await pg.locator('table.grid button.chk').nth(3).click();
+  await sleep(8000); // apiPost 內建重試約 3.6 秒
+  const syncTxt = await pg.textContent('#sync');
+  ok(/2 筆待送出/.test(syncTxt), '同步列顯示「2 筆待送出」：' + syncTxt.trim());
+  const saved = await pg.evaluate(() => JSON.parse(localStorage.getItem('hc.outbox') || 'null'));
+  ok(saved && saved.list.length === 2, '待送出的 2 筆已存在本機');
+  ok(await pg.locator('table.grid button.chk').nth(2).getAttribute('aria-checked') === 'true', '斷線時畫面仍保持已勾選（不會被還原）');
+  fs.unlinkSync(OFF);
+  await sleep(9000); // 第一次重試約 5 秒後
+  m = await marks(B);
+  ok(m.g1.marks['1'].english && m.g1.marks['1'].life, '恢復連線後自動補送成功');
+  ok(await pg.evaluate(() => localStorage.getItem('hc.outbox')) === null, '補送後本機暫存已清除');
+  ok(!/待送出/.test(await pg.textContent('#sync')), '同步列恢復正常');
+
+  console.log('3. 斷線時關掉網頁，下次開啟自動補送');
+  fs.writeFileSync(OFF, '1');
+  await pg.locator('table.grid button.chk').nth(4).click(); await sleep(6000);
+  ok(await pg.evaluate(() => JSON.parse(localStorage.getItem('hc.outbox')).list.length) === 1, '已暫存 1 筆');
+  fs.unlinkSync(OFF);
+  pg.on('dialog', d => d.accept());
+  await pg.reload(); await pg.waitForSelector('table.grid'); await sleep(2500);
+  m = await marks(B);
+  ok(m.g1.marks['1'].health, '重新開啟後補送成功');
+  ok(await pg.evaluate(() => localStorage.getItem('hc.outbox')) === null, '本機暫存已清除');
+
+  console.log('4. 對話框鍵盤操作');
+  const opener = pg.locator('button:has-text("未交名單")');
+  await opener.click(); await sleep(150);
+  for (let i = 0; i < 8; i++) await pg.keyboard.press('Tab');
+  ok(await pg.evaluate(() => !!document.activeElement.closest('.modal')), 'Tab 8 次後焦點仍在對話框內');
+  ok(await pg.evaluate(() => { const d = document.querySelector('[role=dialog]'); const t = document.getElementById(d.getAttribute('aria-labelledby')); return t && t.textContent.includes('未交名單'); }), '對話框有標題（aria-labelledby）');
+  await pg.keyboard.press('Escape'); await sleep(100);
+  ok(await pg.evaluate(() => !document.querySelector('.modal') && document.activeElement.textContent.includes('未交名單')), 'Esc 關閉後焦點回到「未交名單」按鈕');
+
+  console.log('5. 分頁方向鍵');
+  await pg.focus('nav.tabs button[aria-selected=true]'); await pg.keyboard.press('ArrowRight'); await sleep(200);
+  ok(await pg.evaluate(() => document.activeElement.dataset.view === 'overview' && !!document.querySelector('table.ov')), '→ 鍵切到「全校總覽」');
+  ok(await pg.locator('table.ov tfoot td', { hasText: '全校合計' }).count() === 1, '總覽有「全校合計」列');
+  await pg.keyboard.press('End'); await sleep(200);
+  ok(await pg.evaluate(() => document.activeElement.dataset.view === 'settings'), 'End 鍵切到「設定」');
+
+  console.log('6. 設定檢查：條碼代碼／班序重複會擋下');
+  await pg.locator('table.cfgtable input[aria-label=條碼代碼]').nth(1).fill('01');
+  await pg.click('text=儲存項目與班級設定'); await sleep(300);
+  ok(/條碼代碼都是 01/.test(await pg.textContent('.toast')), '代碼重複被擋下：' + (await pg.textContent('.toast')));
+  await pg.click('text=放棄修改'); await sleep(200);
+  await pg.locator('details.classfold > summary').nth(1).click();
+  await pg.locator('input[aria-label=班序]').nth(1).fill('1');
+  await pg.locator('select[aria-label=年級]').nth(1).selectOption('1');
+  await pg.click('text=儲存項目與班級設定'); await sleep(300);
+  ok(/年級與班序相同/.test(await pg.textContent('.toast')), '班序重複被擋下：' + (await pg.textContent('.toast')));
+  await pg.click('text=放棄修改'); await sleep(200);
+  await pg.click('text=儲存項目與班級設定'); await sleep(1500);
+  ok(/已儲存/.test(await pg.textContent('.toast') || ''), '正常設定仍可儲存');
+
+  console.log('7. CSV 不會被 Excel 當成公式');
+  await pg.click('nav.tabs >> text=班級檢核'); await pg.waitForSelector('table.grid');
+  await pg.locator('.noteinput').nth(1).fill('=HYPERLINK("http://x")'); await sleep(1800);
+  const [dl] = await Promise.all([pg.waitForEvent('download'), pg.click('button:has-text("本班 CSV")')]);
+  const csv = fs.readFileSync(await dl.path(), 'utf8');
+  ok(csv.includes(`"'=HYPERLINK(""http://x"")"`), 'CSV 中備註前面加了單引號');
+  ok(csv.split('\r\n').length === 7, '「本班 CSV」只匯出本班（6 人＋表頭）');
+
+  console.log('8. 外觀切換與列印');
+  await pg.click('footer .themebtn'); await sleep(100); await pg.click('footer .themebtn'); await sleep(100);
+  ok(await pg.evaluate(() => document.documentElement.dataset.theme === 'dark' && getComputedStyle(document.body).backgroundColor === 'rgb(17, 23, 34)'), '可切換為深色');
+  await pg.emulateMedia({ media: 'print' });
+  ok(await pg.evaluate(() => getComputedStyle(document.querySelector('.tablebox')).backgroundColor) !== 'rgb(25, 33, 49)', '深色模式下列印仍是白底');
+  await pg.emulateMedia({ media: 'screen' });
+  await pg.click('footer .themebtn'); await sleep(100);
+  await ctx.close();
+  const ctxD = await br.newContext({ colorScheme: 'dark' }); const pd = await newPage(ctxD); await pd.goto(B); await sleep(500);
+  ok(await pd.evaluate(() => getComputedStyle(document.body).backgroundColor === 'rgb(17, 23, 34)'), '系統為深色時自動深色');
+  await ctxD.close();
+
+  console.log('9. 導師（手機）');
+  ctx = await br.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true }); pg = await newPage(ctx);
+  await pg.goto(B); await pg.waitForSelector('#whoSel:not([disabled])');
+  await pg.selectOption('#whoSel', 'g2'); await pg.click('.gate .btn.primary.block'); await pg.click('text=開始使用'); await pg.waitForSelector('table.grid');
+  await pg.locator('table.grid button.chk').nth(0).tap(); await sleep(1500);
+  m = await marks(B);
+  ok(m.g2 && m.g2.marks['1'] && m.g2.marks['1'].chinese, '導師登記成功（POST 讀取＋token）');
+  ok(!(await pg.$('nav.tabs')), '導師看不到教務組分頁');
+  ok(await pg.evaluate(() => document.documentElement.scrollWidth <= 390), '手機版沒有水平捲動');
+  await ctx.close();
+
+  console.log('10. 密碼猜測防護');
+  let last;
+  for (let i = 0; i < 20; i++) last = await (await fetch(B + 'exec', { method: 'POST', body: JSON.stringify({ action: 'read', key: 'wrong' + i }) })).json();
+  ok(last.error === 'auth', '前 20 次回「密碼錯誤」');
+  last = await (await fetch(B + 'exec', { method: 'POST', body: JSON.stringify({ action: 'read', key: 'test1234' }) })).json();
+  ok(last.error === 'too_many', '之後連正確密碼也暫停（too_many）');
+  last = await (await fetch(B + 'exec', { method: 'POST', body: JSON.stringify({ action: 'marks', key: 'test1234', rid: 'r1', classId: 'g1', changes: [] }) })).json();
+  ok(last.error === 'too_many', '暫停期間寫入也被擋');
+  ctx = await br.newContext(); pg = await newPage(ctx); await pg.goto(B); await pg.click('text=教務組登入'); await pg.fill('input[type=password]', 'test1234'); await pg.keyboard.press('Enter'); await sleep(800);
+  ok(/錯誤次數過多/.test(await pg.textContent('.gate')), '登入頁顯示中文說明');
+  await ctx.close();
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+
+  console.log('11. 新前端＋舊版後端（尚未重新部署時）仍可用');
+  const L = 'http://localhost:8788/';
+  await fetch(L + '__reset'); await fetch(L + '__seed');
+  ctx = await br.newContext({ viewport: { width: 1280, height: 860 } }); pg = await newPage(ctx);
+  await adminLogin(pg, L);
+  await pg.locator('table.grid button.chk').nth(0).click(); await sleep(1500);
+  m = await marksGet(L);
+  ok(m.g1 && m.g1.marks['1'] && m.g1.marks['1'].chinese, '舊版後端：自動改用 GET 讀取，登記成功');
+  await ctx.close();
+
+
+  console.log('12. 教務組登入憑證（瀏覽器不存密碼）');
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+  ctx = await br.newContext({ viewport: { width: 1280, height: 860 } }); pg = await newPage(ctx);
+  await adminLogin(pg, B);
+  let st = await pg.evaluate(() => JSON.parse(localStorage.getItem('hc.admin')));
+  ok(st && st.atoken && !st.key, '本機只存登入憑證，沒有密碼');
+  ok(!JSON.stringify(await pg.evaluate(() => Object.assign({}, localStorage))).includes('test1234'), '整個 localStorage 都找不到密碼');
+  const tok = st.atoken;
+  await pg.reload(); await pg.waitForSelector('table.grid');
+  ok(true, '重新開啟仍維持登入');
+  await pg.locator('table.grid button.chk').nth(0).click(); await sleep(1500);
+  ok((await marks(B)).g1.marks['1'].chinese, '用憑證登記成功');
+  await pg.click('footer button:has-text("登出")'); await sleep(800);
+  let rr = await (await fetch(B + 'exec', { method: 'POST', body: JSON.stringify({ action: 'read', atoken: tok }) })).json();
+  ok(rr.error === 'auth', '登出後該憑證立即失效');
+  // 舊版本記住密碼的裝置：自動換成憑證
+  await pg.evaluate(() => localStorage.setItem('hc.admin', JSON.stringify({ key: 'test1234' })));
+  await pg.reload(); await pg.waitForSelector('table.grid'); await sleep(1200);
+  st = await pg.evaluate(() => JSON.parse(localStorage.getItem('hc.admin')));
+  ok(st && st.atoken && !st.key, '舊版存的密碼自動換成憑證並刪除');
+  // 改密碼：其他裝置失效、本機繼續可用
+  const other = await (await fetch(B + 'exec', { method: 'POST', body: JSON.stringify({ action: 'adminLogin', key: 'test1234' }) })).json();
+  await pg.click('nav.tabs >> text=設定'); await pg.click('text=修改教務組密碼');
+  await pg.fill('input[placeholder^="新密碼"]', 'newpass99'); await pg.fill('input[placeholder="再輸入一次"]', 'newpass99'); await pg.click('text=確定修改'); await sleep(1200);
+  rr = await (await fetch(B + 'exec', { method: 'POST', body: JSON.stringify({ action: 'read', atoken: other.atoken }) })).json();
+  ok(rr.error === 'auth', '改密碼後其他裝置的憑證失效');
+  await pg.reload(); await pg.waitForSelector('nav.tabs'); 
+  ok(true, '改密碼的這台裝置仍維持登入');
+  rr = await (await fetch(B + 'exec', { method: 'POST', body: JSON.stringify({ action: 'adminLogin', key: 'newpass99' }) })).json();
+  ok(rr.ok && rr.atoken, '新密碼可登入');
+  await ctx.close();
+  // 舊版後端：退回記住密碼，仍可登入
+  await fetch(L + '__reset'); await fetch(L + '__seed');
+  ctx = await br.newContext(); pg = await newPage(ctx); await adminLogin(pg, L);
+  st = await pg.evaluate(() => JSON.parse(localStorage.getItem('hc.admin')));
+  ok(st && st.key === 'test1234', '舊版後端：退回原本方式，照常登入');
+  await ctx.close();
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+
+
+  console.log('13. 輪詢快速路徑（資料沒變不讀試算表）');
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+  const P = async b => (await fetch(B + 'exec', { method: 'POST', body: JSON.stringify(b) })).json();
+  const cl = await (await fetch(B + 'exec?action=claim&classId=g1&label=t')).json();
+  let full = await P({ action: 'read', token: cl.token });
+  ok(full.ok && full.classId === 'g1', '導師完整讀取成功');
+  let r0 = +(await (await fetch(B + '__reads')).text());
+  let u = await P({ action: 'read', token: cl.token, v: full.version });
+  let r1 = +(await (await fetch(B + '__reads')).text());
+  ok(u.unchanged && r1 === r0, '導師輪詢：回「沒變」且沒有讀試算表');
+  const al = await P({ action: 'adminLogin', key: 'test1234' });
+  const af = await P({ action: 'read', atoken: al.atoken });
+  r0 = +(await (await fetch(B + '__reads')).text());
+  u = await P({ action: 'read', atoken: al.atoken, v: af.version });
+  r1 = +(await (await fetch(B + '__reads')).text());
+  ok(u.unchanged && r1 === r0, '教務組輪詢：回「沒變」且沒有讀試算表');
+  u = await P({ action: 'read', token: 'fake-token', v: af.version });
+  ok(u.error === 'auth', '假 token 帶正確版本號也拿不到「沒變」，一樣被擋');
+  await P({ action: 'revokeDevices', atoken: al.atoken, classId: 'g1' });
+  u = await P({ action: 'read', token: cl.token, v: full.version });
+  ok(u.error === 'auth', '解除裝置後，該導師下一次輪詢立刻失效');
+
+  console.log('14. 暫停導師新登入');
+  await P({ action: 'setClaim', atoken: al.atoken, closed: true });
+  let cls = await (await fetch(B + 'exec?action=classes')).json();
+  ok(cls.closed === true, '班級清單回報「暫停中」');
+  let c2 = await (await fetch(B + 'exec?action=claim&classId=g2&label=t')).json();
+  ok(c2.error === 'closed', '暫停時無法綁定新裝置');
+  ctx = await br.newContext(); pg = await newPage(ctx); await pg.goto(B); await sleep(800);
+  ok(/暫停新的導師登入|暫停新的裝置登入/.test(await pg.textContent('.gate')) && await pg.isDisabled('.gate .btn.primary.block'), '登入頁顯示暫停說明、登入鈕停用');
+  await ctx.close();
+  ctx = await br.newContext({ viewport: { width: 1280, height: 860 } }); pg = await newPage(ctx); await adminLogin(pg, B);
+  await pg.click('nav.tabs >> text=設定'); await sleep(300);
+  ok(await pg.isChecked('.claimbox input'), '設定頁勾選狀態正確');
+  await pg.click('.claimbox input'); await sleep(1500);
+  cls = await (await fetch(B + 'exec?action=classes')).json();
+  ok(!cls.closed, '在設定頁取消勾選後恢復開放');
+  c2 = await (await fetch(B + 'exec?action=claim&classId=g2&label=t')).json();
+  ok(c2.ok, '恢復後可正常登入');
+  await ctx.close();
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+
+
+  console.log('15. 異動紀錄與寫入檢查');
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+  const Q = async b => (await fetch(B + 'exec', { method: 'POST', body: JSON.stringify(b) })).json();
+  const tc = await (await fetch(B + 'exec?action=claim&classId=g2&label=iPhone')).json();
+  await Q({ action: 'marks', token: tc.token, rid: 'r1', classId: 'g2', changes: [{ no: 3, itemId: 'math', val: true }, { no: 3, itemId: 'exam_math', val: true }] });
+  const ad = await Q({ action: 'adminLogin', key: 'test1234', label: 'Mac 電腦' });
+  await Q({ action: 'marks', atoken: ad.atoken, rid: 'r1', classId: 'g2', changes: [{ no: 3, itemId: 'math', val: false }, { no: 3, itemId: 'exam_math', val: true }] });
+  let rows = await (await fetch(B + '__sheet?name=' + encodeURIComponent('異動紀錄'))).json();
+  const txt = JSON.stringify(rows);
+  ok(rows && rows[0][2] === '動作', '試算表自動建立「異動紀錄」分頁');
+  ok(txt.includes('"導師（二甲）","已交","115') && txt.includes('"陳大同","數學習作"'), '記錄導師登記（誰、哪班、座號姓名、項目）');
+  ok(txt.includes('"導師（二甲）","已繳回"'), '考卷記為「已繳回」');
+  ok(txt.includes('"教務組","取消"'), '記錄教務組取消');
+  ok(rows.filter(r => r[2] === '已繳回').length === 1, '重複設成一樣的狀態不會多記一筆');
+  ok(txt.includes('"導師（二甲）","綁定登入裝置"') && txt.includes('"教務組","登入"'), '記錄導師綁定與教務組登入');
+  // 不合法的寫入
+  await Q({ action: 'marks', atoken: ad.atoken, rid: 'r1', classId: 'g1', changes: [{ no: 1, itemId: 'social', val: true }, { no: 99, itemId: 'math', val: true }, { no: 2, itemId: 'math', val: true }] });
+  const ck = (await Q({ action: 'read', atoken: ad.atoken })).checks.g1.marks;
+  ok(!(ck['1'] && ck['1'].social), '一年級沒有社會習作：拒絕寫入');
+  ok(!ck['99'], '名單上沒有的座號：拒絕寫入');
+  ok(ck['2'] && ck['2'].math, '同一批中合法的仍正常寫入');
+  await Q({ action: 'note', atoken: ad.atoken, rid: 'r1', classId: 'g2', no: 3, text: '未訂正' });
+  rows = await (await fetch(B + '__sheet?name=' + encodeURIComponent('異動紀錄'))).json();
+  ok(JSON.stringify(rows).includes('"學生備註","115'), '備註也記錄');
+  ok(!JSON.stringify(rows).includes('test1234'), '紀錄中沒有密碼');
+  await fetch(B + '__breaklog');
+  const okSave = await Q({ action: 'marks', atoken: ad.atoken, rid: 'r1', classId: 'g1', changes: [{ no: 4, itemId: 'math', val: true }] });
+  ok(okSave.ok && (await Q({ action: 'read', atoken: ad.atoken })).checks.g1.marks['4'].math, '紀錄寫入失敗時，登記仍成功儲存');
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+
+
+  console.log('16. 備註斷線不遺失');
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+  ctx = await br.newContext({ viewport: { width: 1280, height: 860 } }); pg = await newPage(ctx);
+  await adminLogin(pg, B);
+  fs.writeFileSync(OFF, '1');
+  await pg.locator('.noteinput').nth(2).fill('家長未簽名'); await sleep(9000);
+  ok(/1 筆待送出/.test(await pg.textContent('#sync')), '斷線時顯示備註待送出');
+  ok(await pg.inputValue('.noteinput >> nth=2') === '家長未簽名', '輸入框內容保留');
+  fs.unlinkSync(OFF);
+  await sleep(12000);
+  let nt = (await (await fetch(B + 'exec', { method: 'POST', body: JSON.stringify({ action: 'read', key: 'test1234' }) })).json()).checks.g1.notes;
+  ok(nt && nt['2'] === '家長未簽名', '恢復連線後備註自動補送成功');
+  ok(!/待送出/.test(await pg.textContent('#sync')), '同步列恢復正常');
+  await ctx.close();
+
+  console.log('17. 字型伺服器卡住也不擋畫面');
+  ctx = await br.newContext(); pg = await ctx.newPage(); pg.on('pageerror', e => errors.push(e.message));
+  await pg.route(/fonts\.(googleapis|gstatic)\.com/, () => { /* 永遠不回應 */ });
+  const t0 = Date.now(); await pg.goto(B, { waitUntil: 'commit' }); await pg.waitForSelector('text=教務組登入', { timeout: 15000 });
+  const dt = Date.now() - t0;
+  ok(dt < 3000, '登入頁 ' + dt + ' ms 就出現（字型請求卡住中）');
+  await ctx.close();
+
+
+  console.log('18. 掃描登記（模擬條碼掃描器輸入）');
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+  ctx = await br.newContext({ viewport: { width: 1280, height: 860 } }); pg = await newPage(ctx);
+  await adminLogin(pg, B);
+  await pg.click('button:has-text("掃描登記")'); await pg.waitForSelector('#scanInput');
+  const scan = async code => { await pg.fill('#scanInput', code); await pg.press('#scanInput', 'Enter'); await sleep(250); return (await pg.textContent('.scanstatus .big')).trim(); };
+  ok(await scan('1010102') === '已登記', '1010102（一甲 1 號數學習作）→ 已登記');
+  ok(await scan('1010102') === '已經登記過', '同一本再掃 → 已經登記過（不會取消）');
+  ok(await scan('1010312') === '已登記', '1010312（一甲 3 號數學考卷）→ 已登記');
+  ok(/本班沒有 9 號/.test(await scan('1010902')), '座號不存在 → 提示');
+  ok(/看不懂/.test(await scan('abc')), '亂碼 → 看不懂這個條碼');
+  await sleep(1500);
+  let mk = (await (await fetch(B + 'exec', { method: 'POST', body: JSON.stringify({ action: 'read', key: 'test1234' }) })).json()).checks.g1.marks;
+  ok(mk['1'].math && mk['3'].exam_math, '掃描結果已寫入資料表');
+  // 教務組掃到別班 → 自動切換到該班
+  ok(await scan('2010202') === '已登記' && /二甲/.test(await pg.textContent('.scanmode h3')), '教務組掃到二甲的標籤 → 自動切到二甲並登記');
+  ok(/二甲沒有「社會習作」/.test(await scan('2010205')), '二年級沒有社會習作 → 說明「二甲沒有社會習作」');
+  await ctx.close();
+  const tok2 = await (await fetch(B + 'exec?action=claim&classId=g1&label=t')).json();
+  ctx = await br.newContext({ viewport: { width: 1280, height: 860 } }); pg = await newPage(ctx);
+  await pg.goto(B); await pg.evaluate(t => localStorage.setItem('hc.teacher', JSON.stringify({ token: t.token, classId: 'g1' })), tok2);
+  await pg.reload(); await pg.waitForSelector('table.grid'); await pg.click('button:has-text("掃描登記")'); await pg.waitForSelector('#scanInput');
+  ok(/不是本班/.test(await scan('2010202')), '導師掃到別班 → 擋下「這不是本班的習作」');
+  await ctx.close();
+
+
+  console.log('19. 只更新一格的結果與整張重畫完全一致');
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+  const snap = () => pg.evaluate(() => { const t = document.querySelector('table.grid'); return JSON.stringify({ txt: t.innerText, on: Array.from(t.querySelectorAll('button.chk')).map(b => b.getAttribute('aria-checked') + b.getAttribute('aria-label')), allin: Array.from(t.querySelectorAll('tr.allin')).length, ring: document.querySelector('.classhead .ring').innerText }); });
+  for (const who of ['admin', 'teacher']) {
+    ctx = await br.newContext({ viewport: { width: 1280, height: 860 } }); pg = await newPage(ctx);
+    if (who === 'admin') await adminLogin(pg, B);
+    else { const tk = await (await fetch(B + 'exec?action=claim&classId=g2&label=t')).json(); await pg.goto(B); await pg.evaluate(t => localStorage.setItem('hc.teacher', JSON.stringify({ token: t.token, classId: 'g2' })), tk); await pg.reload(); await pg.waitForSelector('table.grid'); }
+    const nb = await pg.locator('table.grid button.chk').count();
+    // 把第 1 位學生全部勾滿（觸發「齊」）、再勾幾格、取消一格
+    const perRow = nb / 6;
+    for (let i = 0; i < perRow; i++) await pg.locator('table.grid button.chk').nth(i).click();
+    for (const i of [perRow + 1, perRow * 3 + 2, perRow * 3 + 2, perRow * 5]) await pg.locator('table.grid button.chk').nth(i).click();
+    const patched = await snap();
+    await pg.evaluate(() => { document.querySelector('#sync .link').click(); }); // 重新整理 → 整張重畫
+    await sleep(2500);
+    const full = await snap();
+    ok(patched === full, (who === 'admin' ? '教務組' : '導師') + '：逐格更新與整張重畫結果相同');
+    ok(/齊/.test(await pg.locator('table.grid tbody tr').first().innerText()) || (await pg.locator('tr.allin').count()) === 1, (who === 'admin' ? '教務組' : '導師') + '：勾滿一列即顯示「齊」');
+    await ctx.close();
+  }
+
+
+  console.log('20. 收件模式：關閉後背後表格正確');
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+  ctx = await br.newContext({ viewport: { width: 1280, height: 860 } }); pg = await newPage(ctx);
+  await adminLogin(pg, B);
+  await pg.click('thead .link >> nth=1'); await pg.waitForSelector('.tiles');
+  await pg.locator('.tiles .tile').nth(0).click(); await pg.locator('.tiles .tile').nth(2).click(); await pg.locator('.tiles .tile').nth(4).click(); await pg.locator('.tiles .tile').nth(4).click();
+  ok((await pg.textContent('.modal .counter')).includes('2'), '對話框計數即時更新（2 人）');
+  await pg.click('.modal button:has-text("完成")'); await sleep(300);
+  const p1 = await snap();
+  ok(/2\/6/.test(await pg.locator('thead .cnt[data-item="math"]').innerText()), '關閉後表頭人數為 2/6');
+  await sleep(1500); await pg.evaluate(() => document.querySelector('#sync .link').click()); await sleep(2500);
+  ok(p1 === await snap(), '與重新整理後的整張表一致');
+  await ctx.close();
+
+
+  console.log('21. 寫入試算表總表（留檔）');
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+  { const R = async b => (await fetch(B + 'exec', { method: 'POST', body: JSON.stringify(b) })).json();
+    const a = await R({ action: 'adminLogin', key: 'test1234' });
+    await R({ action: 'marks', atoken: a.atoken, rid: 'r1', classId: 'g1', changes: [{ no: 1, itemId: 'chinese', val: true }, { no: 1, itemId: 'exam_math', val: true }] });
+    await R({ action: 'note', atoken: a.atoken, rid: 'r1', classId: 'g1', no: 1, text: '補交' });
+    await R({ action: 'note', atoken: a.atoken, rid: 'r1', classId: 'g1', text: '全班延後' });
+    const sn = await R({ action: 'snapshot', atoken: a.atoken, rid: 'r1' });
+    ok(sn.ok, 'snapshot 成功');
+    const rd = await R({ action: 'read', atoken: a.atoken });
+    const name = ('總表 ' + rd.rounds[0].name);
+    const rows = await (await fetch(B + '__sheet?name=' + encodeURIComponent(name))).json();
+    const flat = JSON.stringify(rows);
+    ok(rows && rows[1][0] === '班級' && rows[1].includes('國語習作') && rows[1].includes('數學考卷'), '總表表頭含習作與考卷');
+    const r1 = rows.find(r => r[0] === '一甲' && r[2] === 1);
+    ok(r1 && r1.includes('✓') && r1[r1.length - 1] === '補交', '一甲 1 號：已交打 ✓、備註「補交」');
+    ok(flat.includes('全班延後') && flat.includes('各班統計'), '各班統計含班級備註');
+  }
+
+  await br.close();
+  console.log('\n頁面錯誤：' + (errors.length ? errors.join(' | ') : '無'));
+  console.log(`結果：${pass} 通過，${fail} 失敗`);
+  process.exit(fail || errors.length ? 1 : 0);
+})().catch(e => { console.error(e); process.exit(2); });
