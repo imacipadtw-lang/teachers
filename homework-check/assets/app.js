@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.09l';
+  const APP_VERSION = '2026.11.09m';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
   const LS = { admin: 'hc.admin', teacher: 'hc.teacher', api: 'hc.api', cls: 'hc.class', outbox: 'hc.outbox', theme: 'hc.theme' };
   const GRADE = ['', '一', '二', '三', '四', '五', '六'];
@@ -1127,8 +1127,21 @@
     const nLogged = classes().filter(c => ((S.links[c.id] || {}).devices || []).length).length;
     lp.append(h('div', { class: 'claimbox' + (S.claimClosed ? ' closed' : '') },
       h('label', { class: 'ck' }, h('input', { type: 'checkbox', checked: S.claimClosed, onchange: async e => { const v = e.target.checked; e.target.disabled = true; try { await adminPost({ action: 'setClaim', closed: v }, v ? '已暫停新的導師登入' : '已開放導師登入'); S.version = null; await load({ force: true }); renderMain(); } catch (err) { e.target.checked = !v; e.target.disabled = false; } } }), '暫停新的導師登入'),
-      h('span', { class: 'note', text: '已登入 ' + nLogged + ' / ' + classes().length + ' 班。全部導師都登入後建議勾選，避免學生或他人在登入頁搶先選班級；已登入的裝置不受影響。要讓導師換新裝置時，先「解除」再暫時取消勾選。' })));
+      h('span', { class: 'note', text: '已登入 ' + nLogged + ' / ' + classes().length + ' 班。全部導師都登入後建議勾選，避免學生或他人在登入頁搶先選班級；已登入的裝置不受影響。導師要換新裝置時，按該班「解除」即可重新登入，不必取消勾選。' })));
     classes().forEach(cls => lp.append(deviceEditor(cls)));
+    // 全部重新來過：所有班級解除，導師全部重新選班級登入
+    lp.append(h('div', { class: 'row resetall' },
+      armed(h('button', { class: 'btn small danger' }), '全部班級解除，讓導師重新登入', '再按一次確認：所有導師都要重新登入', async () => {
+        try {
+          const r = await apiPost({ action: 'revokeAll' });
+          if (r.ok) toast('已全部解除，所有導師可以重新選班級登入');
+          else if (r.error === 'unknown_action') { for (const c of classes()) await adminPost({ action: 'revokeDevices', classId: c.id }); toast('已全部解除，所有導師可以重新選班級登入'); } // 後端尚未更新
+          else if (r.error === 'auth') return authLost();
+          else throw new Error(errText(r.error));
+        } catch (e) { toast('操作失敗：' + e.message, 3600); }
+        S.version = null; await load({ force: true }); renderMain();
+      }, 4000),
+      h('span', { class: 'note', text: '例如新學年、換導師或想全部重來時使用。按下後所有已登入的導師裝置都會登出，導師打開網址重新選自己的班級即可；也會自動取消「暫停新的導師登入」。登記紀錄不受影響。' })));
     box.append(lp);
 
     /* 系統 */
@@ -1238,7 +1251,7 @@
       : h('span', { class: 'tag', text: '尚未登入' });
     return h('div', { class: 'classcard' }, h('div', { class: 'row between' },
       h('div', { class: 'row' }, h('b', { text: cls.name }), cls.teacher ? h('span', { class: 'note', text: '導師 ' + cls.teacher }) : h('span', { class: 'note warn', text: '未填導師姓名' }), status),
-      dev ? armed(h('button', { class: 'btn small danger' }), '解除', '再按一次確認解除', async () => { await adminPost({ action: 'revokeDevices', classId: cls.id }, cls.name + ' 已解除，導師可重新登入'); S.version = null; await load({ force: true }); renderMain(); }) : null));
+      dev ? armed(h('button', { class: 'btn small danger' }), '解除', '再按一次確認解除', async () => { await adminPost({ action: 'revokeDevices', classId: cls.id }, cls.name + ' 已解除，導師可以用新裝置重新登入（暫停新登入時也可以）'); S.version = null; await load({ force: true }); renderMain(); }) : null));
   }
   async function adminPost(body, okMsg) {
     setSync('busy');
@@ -1300,8 +1313,9 @@
         sel.replaceChildren(h('option', { value: '', text: '請選擇班級／導師' }));
         if (!r.ok && r.error === 'not_initialized') { S.screen = 'init'; render(); return; }
         if (!r.ok || !r.classes || !r.classes.length) { sel.append(h('option', { value: '', text: '尚未建立班級，請洽教務組' })); return; }
-        if (r.closed) { sel.replaceChildren(h('option', { value: '', text: '目前暫停新的導師登入' })); btn.disabled = true; msg.textContent = '教務組目前暫停新的裝置登入。若您是導師、需要登入，請洽教務組開放。'; msg.className = 'note'; return; }
-        r.classes.forEach(c => sel.append(h('option', { value: c.id, text: c.name + (c.teacher ? '　' + c.teacher : '') + (c.claimed ? '（已登入）' : ''), disabled: !!c.claimed })));
+        // 暫停新登入時，只有教務組剛「解除」的班級可以重新登入
+        if (r.closed && !r.classes.some(c => c.reopen && !c.claimed)) { sel.replaceChildren(h('option', { value: '', text: '目前暫停新的導師登入' })); btn.disabled = true; msg.textContent = '教務組目前暫停新的裝置登入。若您是導師、需要登入，請洽教務組在「設定」按「解除」。'; msg.className = 'note'; return; }
+        r.classes.forEach(c => { const blocked = c.claimed || (r.closed && !c.reopen); sel.append(h('option', { value: c.id, text: c.name + (c.teacher ? '　' + c.teacher : '') + (c.claimed ? '（已登入）' : blocked ? '（暫停登入）' : ''), disabled: blocked })); });
         sel.disabled = false;
       }).catch(e => {                                   // 導師頁不顯示技術錯誤；原因（例如部署權限）只給教務組看
         sel.replaceChildren(h('option', { value: '', text: '目前無法載入班級，請稍後再試' }));

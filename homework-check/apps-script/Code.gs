@@ -152,7 +152,7 @@ function classList_() {
   var auth = all.auth || { classes: {} };
   var list = ((all.config || {}).classes || []).map(function (c) {
     var a = auth.classes[c.id] || {};
-    return { id: c.id, name: c.name, teacher: c.teacher || '', claimed: !!(a.devices && a.devices.length) };
+    return { id: c.id, name: c.name, teacher: c.teacher || '', claimed: !!(a.devices && a.devices.length), reopen: !!a.reopen };
   });
   return json_({ ok: true, classes: list, closed: claimClosed_() });
 }
@@ -161,7 +161,6 @@ function classList_() {
 function claim_(p) {
   var cid = String(p.classId || '').trim();
   if (!cid) return json_({ ok: false, error: 'invalid' });
-  if (claimClosed_()) return json_({ ok: false, error: 'closed' });
   var lock = LockService.getScriptLock();
   if (!lock.tryLock(20000)) return json_({ ok: false, error: 'busy' });
   try {
@@ -171,9 +170,10 @@ function claim_(p) {
     var auth = all.auth || { classes: {} };
     var a = auth.classes[cid] || (auth.classes[cid] = { devices: [] });
     if (a.devices && a.devices.length) return json_({ ok: false, error: 'claimed' });
+    if (claimClosed_() && !a.reopen) return json_({ ok: false, error: 'closed' }); // 暫停新登入中，只有教務組剛解除的班級可以重新登入
     var token = Utilities.getUuid() + rand_(6);
     a.devices = [{ token: token, label: String(p.label || '').slice(0, 40), claimedAt: new Date().toISOString() }];
-    delete a.invite;
+    delete a.invite; delete a.reopen;
     put_('auth', auth);
     bump_();
     log_([['導師（' + cls.name + '）', '綁定登入裝置', '', cls.name, '', '', '', String(p.label || '').slice(0, 30)]]);
@@ -308,11 +308,21 @@ function doPost(e) {
         PropertiesService.getScriptProperties().setProperty('CLAIM_CLOSED', body.closed ? '1' : '');
         log_([['教務組', body.closed ? '暫停導師新登入' : '開放導師登入', '', '', '', '', '', '']]);
         break;
+      case 'revokeAll': {
+        // 全部重新來過：解除所有班級的登入裝置，並開放導師重新登入
+        if (!admin) return json_({ ok: false, error: 'auth' });
+        var auth3 = { classes: {} };
+        config.classes.forEach(function (c) { auth3.classes[c.id] = { devices: [], reopen: true }; });
+        put_('auth', auth3);
+        PropertiesService.getScriptProperties().setProperty('CLAIM_CLOSED', '');
+        log_([['教務組', '全部班級解除登入（導師重新登入）', '', '', '', '', '', config.classes.length + ' 班']]);
+        break;
+      }
       case 'revokeDevices': {
         if (!admin) return json_({ ok: false, error: 'auth' });
         if (!config.classes.some(function (c) { return c.id === body.classId; })) return json_({ ok: false, error: 'bad_request' });
         var auth2 = all.auth || { classes: {} };
-        auth2.classes[body.classId] = { devices: [] };
+        auth2.classes[body.classId] = { devices: [], reopen: true }; // 解除後該班可重新登入一次（即使目前暫停新登入）
         put_('auth', auth2);
         log_([['教務組', '解除導師裝置', '', config.classes.filter(function (c) { return c.id === body.classId; })[0].name, '', '', '', '']]);
         break;

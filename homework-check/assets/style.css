@@ -467,3 +467,6 @@ nav.tabs button:focus-visible { outline-offset: -3px; }
 }
 
 .stat.warnstat b { color: var(--warn); }
+
+.resetall { border-top: 1px solid var(--line); padding-top: 12px; }
+.resetall .note { flex: 1 1 280px; }

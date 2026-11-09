@@ -216,7 +216,9 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
   let c2 = await (await fetch(B + 'exec?action=claim&classId=g2&label=t')).json();
   ok(c2.error === 'closed', '暫停時無法綁定新裝置');
   ctx = await br.newContext(); pg = await newPage(ctx); await pg.goto(B); await sleep(800);
-  ok(/暫停新的導師登入|暫停新的裝置登入/.test(await pg.textContent('.gate')) && await pg.isDisabled('.gate .btn.primary.block'), '登入頁顯示暫停說明、登入鈕停用');
+  { await pg.waitForSelector('#whoSel option[value="g2"]', { state: 'attached' }); const os = await pg.$$eval('#whoSel option', o => o.map(x => ({ v: x.value, d: x.disabled, t: x.textContent })));
+    ok(os.find(o => o.v === 'g2' && o.d && /暫停登入/.test(o.t)) && os.find(o => o.v === 'g1' && !o.d), '登入頁：沒被解除的班級顯示（暫停登入）不能選；剛解除的一甲可選'); }
+  await pg.evaluate(() => 0);
   await ctx.close();
   ctx = await br.newContext({ viewport: { width: 1280, height: 860 } }); pg = await newPage(ctx); await adminLogin(pg, B);
   await pg.click('nav.tabs >> text=設定'); await sleep(300);
@@ -376,6 +378,54 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
   ok(/導師已登入\s*1 \/ 3 班/.test(await pg.textContent('.stats')), '統計顯示「導師已登入 1 / 3 班」');
   const bn = await pg.textContent('.banner.warn');
   ok(/二甲（測試2）/.test(bn) && /三甲（測試3）/.test(bn) && !/一甲/.test(bn), '提醒列出尚未登入的二甲、三甲（含導師姓名）');
+  await ctx.close();
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+
+
+  console.log('23. 教務組讓導師重新登入');
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+  { const R = async b => (await fetch(B + 'exec', { method: 'POST', body: JSON.stringify(b) })).json();
+    const G = async q => (await fetch(B + 'exec?' + q)).json();
+    const a = await R({ action: 'adminLogin', key: 'test1234' });
+    const t1 = await G('action=claim&classId=g1&label=old'); const t2 = await G('action=claim&classId=g2&label=old');
+    await R({ action: 'marks', token: t1.token, rid: 'r1', classId: 'g1', changes: [{ no: 1, itemId: 'math', val: true }] });
+    await R({ action: 'setClaim', atoken: a.atoken, closed: true });
+    // 單班解除：暫停中也能重新登入
+    await R({ action: 'revokeDevices', atoken: a.atoken, classId: 'g1' });
+    let cl = await G('action=classes');
+    ok(cl.closed && cl.classes.find(c => c.id === 'g1').reopen, '一甲解除後標示可重新登入（仍在暫停中）');
+    ok((await G('action=claim&classId=g3&label=x')).error === 'closed', '暫停中：沒被解除的三甲仍不能登入');
+    ctx = await br.newContext(); pg = await newPage(ctx); await pg.goto(B); await pg.waitForSelector('#whoSel:not([disabled])');
+    const opts = await pg.$$eval('#whoSel option', os => os.map(o => ({ v: o.value, d: o.disabled, t: o.textContent })));
+    ok(opts.find(o => o.v === 'g1' && !o.d) && opts.find(o => o.v === 'g3' && o.d && /暫停登入/.test(o.t)), '登入頁：一甲可選、三甲顯示（暫停登入）');
+    await pg.selectOption('#whoSel', 'g1'); await pg.click('.gate .btn.primary.block'); await pg.waitForSelector('text=開始使用');
+    ok(true, '一甲導師用新裝置重新登入成功');
+    await ctx.close();
+    ok((await R({ action: 'read', token: t1.token })).error === 'auth', '一甲舊裝置已失效');
+    cl = await G('action=classes');
+    ok(!cl.classes.find(c => c.id === 'g1').reopen, '重新登入後不再保留「可重新登入」');
+    // 全部解除
+    ctx = await br.newContext({ viewport: { width: 1280, height: 860 } }); pg = await newPage(ctx); await adminLogin(pg, B);
+    await pg.click('nav.tabs >> text=設定'); await sleep(300);
+    const rb = pg.locator('button:has-text("全部班級解除")'); await rb.click(); await sleep(150); await pg.locator('.resetall button').click(); await sleep(1800);
+    cl = await G('action=classes');
+    ok(cl.classes.every(c => !c.claimed) && !cl.closed, '全部解除：所有班級都未登入、自動取消暫停');
+    ok((await R({ action: 'read', token: t2.token })).error === 'auth', '原本登入的二甲裝置已失效');
+    ok((await G('action=claim&classId=g3&label=n')).ok, '導師可以重新選班級登入');
+    const mk = (await R({ action: 'read', atoken: a.atoken })).checks.g1.marks;
+    ok(mk['1'] && mk['1'].math, '登記紀錄不受影響');
+    const lg = JSON.stringify(await (await fetch(B + '__sheet?name=' + encodeURIComponent('異動紀錄'))).json());
+    ok(lg.includes('全部班級解除登入'), '異動紀錄有記錄「全部班級解除」');
+    await ctx.close();
+  }
+  // 舊版後端：全部解除改為逐班解除
+  await fetch(L + '__reset'); await fetch(L + '__seed');
+  await fetch(L + 'exec?action=claim&classId=g1&label=o'); await fetch(L + 'exec?action=claim&classId=g2&label=o');
+  ctx = await br.newContext({ viewport: { width: 1280, height: 860 } }); pg = await newPage(ctx); await adminLogin(pg, L);
+  await pg.click('nav.tabs >> text=設定'); await sleep(300);
+  await pg.locator('.resetall button').click(); await sleep(150); await pg.locator('.resetall button').click(); await sleep(2500);
+  const lc = await (await fetch(L + 'exec?action=classes')).json();
+  ok(lc.classes.every(c => !c.claimed), '舊版後端：全部解除仍有效（逐班解除）');
   await ctx.close();
   await fetch(B + '__reset'); await fetch(B + '__seed');
 
