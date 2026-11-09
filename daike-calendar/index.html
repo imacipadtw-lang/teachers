@@ -2680,7 +2680,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.10v";
+const APP_VERSION = "專業版 2026.11.10w";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -5672,7 +5672,9 @@ document.addEventListener("click", async ev => {
   const e = pool.find(x => { const r = fixRef(x); return r && r.key === b.dataset.evdel; }); if(!e) return toast("找不到這筆紀錄，請重新整理");
   const ref = fixRef(e), d = describe(e) || {p:"", w:""}, sid = sidOf(e) || e.id;
   const money = e.type === "swap" ? "" : e.type === "tutor" || e.type === "tutorLeave" ? "（代導費不再計算）" : "（代課費不再計算）";
-  if(!confirm(`刪除這筆${KIND[e.type] || "紀錄"}${money}？\n${sid}　${md(e.date)} ${d.p}\n${d.w}\n\n刪除後不留資料、不能還原；紙本單據請一併作廢。`)) return;
+  const pair = e.type === "swap" ? [...new Set(pool.filter(x => x.type === "swap" && fixRef(x) && fixRef(x).key === ref.key).map(x => x.date))].sort() : [];
+  const both = pair.length > 1 ? `\n（這張調課單的 ${pair.map(md).join(" 和 ")} 兩天會一起刪除）` : "";
+  if(!confirm(`刪除這筆${KIND[e.type] || "紀錄"}${money}？\n${sid}　${md(e.date)} ${d.p}\n${d.w}${both}\n\n刪除後不留資料、不能還原；紙本單據請一併作廢。`)) return;
   busy(true);
   try{ await fixSend("delete", ref); toast(`已刪除 ${sid}`); state.meta = null; await reload(true, true); }
   catch(err){ toast("刪除失敗：" + err.message); }
