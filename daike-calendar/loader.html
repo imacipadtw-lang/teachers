@@ -24,20 +24,28 @@ if(!ok){window.__DENY=1;document.write('</head><body><p style="font:16px/1.7 san
 :root{--bg:#FDEBF2;--card:#fff;--ink:#3B1E2B;--ink2:#6B4656;--ink3:#7A5566;--line:#F2C9D8;--pri:#B8336A;--pri2:#9E2A5A;--err:#B4233C}
 @media (prefers-color-scheme:dark){:root{--bg:#070D1A;--card:#0F1830;--ink:#E8EEF8;--ink2:#AAB8D0;--ink3:#93A3BF;--line:#26365A;--pri:#C42F69;--pri2:#A8285A;--err:#FF8DA6}}
 *{box-sizing:border-box}
-body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font:16px/1.6 "Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;display:flex;flex-direction:column;align-items:center}
+body{margin:0;min-height:100vh;background:radial-gradient(1200px 520px at 50% -120px,rgba(255,111,174,.20),transparent 70%),radial-gradient(rgba(184,51,106,.10) 1px,transparent 1.2px) 0 0/22px 22px,var(--bg);color:var(--ink);font:16px/1.6 "Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;display:flex;flex-direction:column;align-items:center}
 .top{width:100%;text-align:center;font-size:13px;color:var(--ink2);padding:8px 16px;border-bottom:1px solid var(--line)}
 .top b{color:var(--pri)}
 main{width:100%;max-width:440px;padding:9vh 16px 24px}
-h1{font-size:26px;margin:0 0 6px;text-align:center;line-height:1.35}
+.mark{display:block;width:44px;height:44px;margin:0 auto 14px;position:relative}
+.mark i{position:absolute;width:17px;height:17px;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,.12)}
+.mark i:nth-child(1){left:13.5px;top:0;background:#2C74B8}.mark i:nth-child(2){right:0;top:13.5px;background:#A86B0C}
+.mark i:nth-child(3){left:13.5px;bottom:0;background:#D0384F}.mark i:nth-child(4){left:0;top:13.5px;background:#0F6E4D}
+h1{font-size:28px;margin:0 0 6px;text-align:center;line-height:1.35;letter-spacing:.02em}
 h1 span{display:inline-block;white-space:nowrap}
 .lead{text-align:center;color:var(--ink2);margin:0 0 22px;font-size:15px}
-form{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 12px 40px rgba(60,20,40,.08)}
+form{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px 22px 18px;box-shadow:0 1px 2px rgba(60,20,40,.05),0 24px 60px rgba(60,20,40,.12)}
+form select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+.secure{display:flex;align-items:center;justify-content:center;gap:6px;margin:12px 0 0;font-size:12.5px;color:var(--ink3)}
+.secure svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2}
 label{display:block;font-weight:700;font-size:14px;margin:0 0 6px}
 select,input{width:100%;font:inherit;font-size:16px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);margin-bottom:14px}
 select:focus-visible,input:focus-visible,button:focus-visible{outline:3px solid var(--pri);outline-offset:2px}
 .pw{position:relative}.pw input{padding-right:64px}
 .eye{position:absolute;right:6px;top:6px;border:0;background:none;color:var(--ink2);font:inherit;font-size:14px;padding:6px 8px;cursor:pointer}
-.go{width:100%;border:0;border-radius:12px;background:var(--pri);color:#fff;font:inherit;font-weight:800;font-size:17px;padding:12px;cursor:pointer}
+.go{width:100%;border:0;border-radius:12px;background:linear-gradient(180deg,var(--pri),var(--pri2));color:#fff;font:inherit;font-weight:800;font-size:17px;padding:13px;cursor:pointer;box-shadow:0 6px 16px rgba(184,51,106,.28);transition:transform .12s,box-shadow .12s}
+.go:active{transform:translateY(1px);box-shadow:0 3px 10px rgba(184,51,106,.25)}
 .go:hover{background:var(--pri2)}.go[disabled]{opacity:.6;cursor:progress}
 .err{color:var(--err);font-size:14px;min-height:1.6em;margin:10px 0 0}
 .wait{display:none;text-align:center;color:var(--ink2);margin-top:28px}
@@ -51,6 +59,7 @@ select:focus-visible,input:focus-visible,button:focus-visible{outline:3px solid 
 <body>
 <p class="top"><b>教務組專用版</b>：只有教務組與會計帳號能登入</p>
 <main>
+  <span class="mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
   <h1><span>代課・調課・請假</span>　<span>核對系統</span></h1>
   <p class="lead">南投縣草屯鎮土城國民小學</p>
   <form id="f" autocomplete="off">
@@ -60,6 +69,7 @@ select:focus-visible,input:focus-visible,button:focus-visible{outline:3px solid 
     <div class="pw"><input id="pw" type="password" required autocomplete="current-password"><button type="button" class="eye" id="eye" aria-label="顯示密碼">顯示</button></div>
     <button class="go" id="go" type="submit">登入</button>
     <p class="err" id="err" role="alert"></p>
+    <p class="secure"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>密碼加密後才送出；系統程式登入後才載入</p>
   </form>
   <p class="wait" id="wait" role="status"><i aria-hidden="true"></i><span id="waitTxt">登入中，正在載入系統…</span></p>
 </main>
