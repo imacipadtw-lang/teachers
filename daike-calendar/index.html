@@ -2443,7 +2443,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.09b";
+const APP_VERSION = "專業版 2026.11.09c";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -5813,7 +5813,7 @@ async function printSign(r){
     <table><thead><tr><th style="width:5%">序</th><th style="width:12%">教師</th><th>代課節數</th><th>代課費</th><th>代導師日數</th><th>代導費</th><th>合計（元）</th><th style="width:16%">簽收（簽名）</th><th style="width:11%">日期</th></tr></thead><tbody>
     ${totals.map(([n,s],i) => `<tr style="height:34px"><td>${i+1}</td><td>${esc(n)}</td><td>${s.n} 節</td><td class="r">${s.fee.toLocaleString("zh-TW")}</td><td>${s.d ? s.d + " 日" : "—"}</td><td class="r">${s.tfee ? s.tfee.toLocaleString("zh-TW") : "—"}</td><td class="r"><b>${(s.fee+s.tfee).toLocaleString("zh-TW")}</b></td><td></td><td></td></tr>`).join("")}
     <tr class="tot"><td colspan="2">合計</td><td>${G.n} 節</td><td class="r">${G.fee.toLocaleString("zh-TW")}</td><td>${G.d} 日</td><td class="r">${G.tfee.toLocaleString("zh-TW")}</td><td class="r">${(G.fee+G.tfee).toLocaleString("zh-TW")}</td><td colspan="2" class="l">新臺幣${bigNum(G.fee+G.tfee)}</td></tr></tbody></table>
-    <p class="note">說明：1. 每節 ${RATE_SUB} 元；合班每節 ${RATE_COMB} 元（${RATE_SUB}×1.5＝${RATE_SUB*1.5} 進位），但代的是協同老師的課仍是 ${RATE_SUB} 元；代導師每日 ${RATE_TUTOR} 元。2. 重複登錄只算一次；颱風假、國定假日當天的紀錄，以及由其他經費支應（例如本土語直播共學）的紀錄，不列入本表${voids ? `（本月有 ${voids} 筆不計費，明細見各人頁面）` : ""}。${flags ? `3. 本月有 ${flags} 筆標「⚠」需確認（例如衝堂），請教務組確認後再送出。` : ""} 4. 各人代課明細附於後頁，請老師核對後簽名。${heliN ? `5. 代合理員額教師（${esc((state.heli||[]).join("、"))}）的課 ${heliN} 節屬合理員額經費，不列入本表，請代課老師在「合理員額簽到表」簽名。` : ""}</p>
+    <p class="note">說明：1. 每節 ${RATE_SUB} 元；合班每節 ${RATE_COMB} 元（${RATE_SUB}×1.5＝${RATE_SUB*1.5} 進位），但代的是協同老師的課仍是 ${RATE_SUB} 元；代導師每日 ${RATE_TUTOR} 元。2. 重複登錄只算一次；颱風假、國定假日當天的紀錄，以及由其他經費支應（例如本土語直播共學）的紀錄，不列入本表${voids ? `（本月有 ${voids} 筆不計費，明細見各人頁面）` : ""}。${[flags ? `本月有 ${flags} 筆標「⚠」需確認（例如衝堂），請教務組確認後再送出。` : "", "各人代課明細附於後頁，請老師核對後簽名。", heliN ? `代合理員額教師（${esc((state.heli||[]).join("、"))}）的課 ${heliN} 節屬合理員額經費，不列入本表，請代課老師在「合理員額簽到表」簽名。` : ""].filter(Boolean).map((t, i) => `${i + 3}. ${t}`).join(" ")}</p>
     </div>`;   /* 10/31 主計提醒：自製表格不放核章欄（查核時空白核章欄會有問題） */
   names.forEach(n => {
     const list = by[n].sort((a,b) => a.date.localeCompare(b.date) || (+a.period||0) - (+b.period||0)), s = sum(list);
