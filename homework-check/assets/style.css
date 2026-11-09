@@ -460,3 +460,8 @@ nav.tabs button:focus-visible { outline-offset: -3px; }
   table.ov th, table.ov td { padding: 3px 4px; font-size: 9.5pt; min-width: 0; }
   table.ov .bar { display: none; }
 }
+@media print {
+  input.noteinput, input[type=text].noteinput { border: 0 !important; padding: 0 !important; background: transparent !important; box-shadow: none !important; outline: none !important; width: 100%; color: #000; }
+  input.noteinput::placeholder { color: transparent !important; }
+  .stack > .note, .classhead + .print-meta + .note { display: none; }
+}
