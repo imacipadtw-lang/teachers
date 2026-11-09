@@ -2461,7 +2461,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.09l";
+const APP_VERSION = "專業版 2026.11.09m";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -2668,12 +2668,12 @@ $("#loginForm").addEventListener("submit", async e=>{
     else if(e.key === "Tab") close();
   });
 })();
-$("#logout").onclick = ()=>{ store.del("cred"); store.del(K+"data"); location.reload(); };
+$("#logout").onclick = ()=>{ if(planDirty() && !confirm("排調代課還有沒存的資料，確定要登出？（沒存的會不見）")) return; plan = null; store.del("cred"); store.del(K+"data"); location.reload(); };
 $("#reload").onclick = ()=>reload(false, true);                       // 按「重新整理」：一定從試算表重讀
 async function reload(silent, fresh){
   if(!state.cred) return;
   busy(true);
-  try{ const d = await fetchData(state.cred.name, state.cred.h, state.viewing, fresh); if(d.ok){ applyData(d); if(!silent) toast("已更新到最新資料"); } else throw new Error(d.error); }
+  try{ const d = await fetchData(state.cred.name, state.cred.h, state.viewing, fresh); if(d.ok){ applyData.fresh = !!fresh; try{ applyData(d); } finally{ applyData.fresh = false; } if(!silent) toast("已更新到最新資料"); } else throw new Error(d.error); }
   catch(e){ toast("更新失敗："+e.message); }
   finally{ busy(false); }
 }
@@ -2701,6 +2701,7 @@ async function openLine(){
     state.line = d.line; lineUI.list = d.list || null;
   }catch(ex){ lineUI.err = ex.message; }
   renderLine();
+  if(lineUI.teach && Date.now() < lineUI.teach.until && !lineUI.timer) lineTeachPoll();
 }
 function closeLine(){ lineStop(); $("#lineModal").hidden = true; }
 function fmtCode(c){ return c ? c.slice(0,3)+" "+c.slice(3) : ""; }
@@ -2784,6 +2785,11 @@ async function lineTeachCode(forName){
     const d = await apiPost({action:"lineCode", name:state.cred.name, h:state.cred.h, forName});
     if(!d.ok) throw new Error(d.error || "取不到綁定碼");
     lineUI.teach = { name: forName, code: d.code, until: Date.now() + (d.minutes||10)*60000 };
+    lineTeachPoll();
+  }catch(ex){ lineUI.err = ex.message; }
+  finally{ busy(false); renderLine(); }
+}
+function lineTeachPoll(){                         // 關掉再打開 LINE 視窗時也會接著倒數、接著確認有沒有綁定成功
     lineStop();
     let n = 0;
     lineUI.timer = setInterval(async ()=>{
@@ -2791,10 +2797,8 @@ async function lineTeachCode(forName){
       renderLine();
       if(++n % (n <= 120 ? 4 : 10)) return;
       try{ const s = await apiPost({action:"lineStatus", name:state.cred.name, h:state.cred.h});
-        if(s.ok && s.list){ lineUI.list = s.list; const me = s.list.find(x=>x.name===lineUI.teach.name); if(me && me.bound){ toast(`${lineUI.teach.name} 老師綁定成功！`); lineStop(); lineUI.teach = null; renderLine(); } } }catch(e){}
+        if(s.ok && s.list && lineUI.teach){ lineUI.list = s.list; const me = s.list.find(x=>x.name===lineUI.teach.name); if(me && me.bound){ toast(`${lineUI.teach.name} 老師綁定成功！`); lineStop(); lineUI.teach = null; renderLine(); } } }catch(e){}
     }, 1000);
-  }catch(ex){ lineUI.err = ex.message; }
-  finally{ busy(false); renderLine(); }
 }
 $("#openLine").onclick = openLine; $("#openLine2").onclick = openLine;
 $("#lineNoticeX").onclick = ()=>{ $("#lineNotice").hidden = true; store.set("lineNoticeOff","1",localStorage); };
@@ -2842,9 +2846,9 @@ function applyData(d){
   state.events = (d.events||[]).filter(e=>inTerm(e.date)).sort((a,b)=>a.date.localeCompare(b.date)||(a.period||0)-(b.period||0));
   state.viewing = d.viewing || d.name;
   if(state.viewing === "__all__") state.school = state.events;                // 全校紀錄留一份：看某位老師時，年曆照樣列出全校（10/30）
-  else if(state.role === "admin" && state.cred){                               // 115.11.9：看某位老師時存檔／刪除後，全校那份也在背景重讀，不再顯示舊的
-    const tok = applyData.tok = (applyData.tok || 0) + 1;
-    fetchData(state.cred.name, state.cred.h, "__all__", true).then(x => { if(tok !== applyData.tok || isAll() || !x || !x.ok) return;
+  else if(state.role === "admin" && state.cred && (!state.school || applyData.fresh)){   // 115.11.9：看某位老師時存檔／刪除後，全校那份也重讀（平常只讀一次）
+    const tok = applyData.tok = (applyData.tok || 0) + 1, fr = !!applyData.fresh;
+    fetchData(state.cred.name, state.cred.h, "__all__", fr).then(x => { if(tok !== applyData.tok || isAll() || !x || !x.ok) return;
       state.school = (x.events || []).filter(e => inTerm(e.date)); renderYear(); if(state.selected) renderPanel(state.selected); }).catch(() => {});
   }
   const label = state.viewing==="__all__" ? "全校總覽" : state.viewing+" 老師";
@@ -2979,7 +2983,7 @@ function renderSettings(){
   const dedRow = (d = {}) => {
     const tr = document.createElement("tr"), names = teachers.slice(); if(d.name && !names.includes(d.name)) names.unshift(d.name);
     const ms = months.slice(); if(d.ym && !ms.includes(d.ym)) ms.unshift(d.ym);
-    tr.innerHTML = `<td><select data-c="月份">${ms.map(m => `<option value="${m}" ${m===(d.ym || state.range || "")?"selected":""}>${+m.slice(0,4)-1911} 年 ${+m.slice(5)} 月</option>`).join("")}</select></td>
+    tr.innerHTML = `<td><select data-c="月份">${ms.map(m => `<option value="${m}" ${m===(d.ym || state.range || (months.includes(ymd(new Date()).slice(0,7)) ? ymd(new Date()).slice(0,7) : "")) ?"selected":""}>${+m.slice(0,4)-1911} 年 ${+m.slice(5)} 月</option>`).join("")}</select></td>
       <td><select data-c="姓名"><option value=""></option>${names.map(n => `<option ${n===d.name?"selected":""}>${esc(n)}</option>`).join("")}</select></td>
       <td><input data-c="項目" list="dedItems" value="${esc(d.item || "")}" placeholder="例：所得稅"></td>
       <td><input data-c="金額" inputmode="numeric" class="num" value="${d.amount ?? ""}" placeholder="例：500"></td>
@@ -3413,7 +3417,9 @@ function renderChecks(ym){
     if(blocking.length && !closed) return toast("還有問題要先處理");
     if(errs.length && !confirm(`還有 ${errs.length} 項紅字（含已結帳數字不同）。確定要用現在的數字重新結帳？`)) return;
     if(warns.length && !confirm(`有 ${warns.length} 項提醒：\n${warns.map(w => "・" + w.text).join("\n")}\n\n確定要結帳？`)) return;
-    const note = prompt(closed ? "重新結帳的原因（會記在月結紀錄）：" : "備註（可空白）：", "") ; if(note === null) return;
+    let note = prompt(closed ? "重新結帳的原因（會記在月結紀錄，必填）：" : "備註（可空白）：", "") ; if(note === null) return;
+    while(closed && !String(note).trim()){ note = prompt("重新結帳一定要寫原因（例：11/20 補登代課 2 節）：", ""); if(note === null) return; }   // 115.11.9：重新結帳必填原因
+    note = String(note).trim();
     const snap = monthSnapshot(ym);
     $("#chkClose").disabled = true; $("#chkMsg").textContent = "產生會計總帳 Excel 並歸檔中…";
     try{
@@ -3682,6 +3688,8 @@ function renderYear(){
   $("#year").querySelectorAll(".d.canadd").forEach(b=>b.onclick=e=>{ if(!e.target.closest(".addp")) planFromCal(b.dataset.date); });   // 沒有紀錄的平日：點格子就補登
   $("#year").querySelectorAll(".addp").forEach(a=>{ a.onclick=e=>{ e.stopPropagation(); planFromCal(a.dataset.plan); };
     a.onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); e.stopPropagation(); planFromCal(a.dataset.plan); } }; });
+  $("#year").querySelectorAll(".d.has").forEach(c => { const h = c.querySelector(".dhit"), t = [...new Set([...c.querySelectorAll(".cell-ev[title]")].map(e => e.title).filter(Boolean))];
+    if(h && t.length) h.title = t.join("\n"); });                     // 滑鼠移上去照樣看得到「⚠ 衝堂」等提醒（整格蓋了一顆透明按鈕）
   $("#year").querySelectorAll(".d.has").forEach(b=>b.onclick=()=>{
     const date=b.dataset.date, ag=document.getElementById("ag-"+date);
     if(ag && ag.offsetParent){ ag.scrollIntoView({behavior:"smooth",block:"start"}); return; }   // 手機：捲到下方文字
@@ -4183,7 +4191,7 @@ function planDirty(){
   if(!plan) return false;
   const w = plan.swap || {}, b = plan.sub || {}, a = plan.absent || {}, t = plan.tutor || {};
   return !!(plan.scan || w.teacher || w.reason || (w.rows || []).some(r => r.cls || r.fromPeriod || r.toDate || r.toPeriod || r.partner)
-    || b.leaver || (b.rows || []).length || a.teacher || a.reason || t.leaver || t.sub);
+    || b.leaver || (b.rows || []).length || (!a.saved && (a.teacher || a.reason)) || t.leaver || t.sub);
 }
 window.addEventListener("beforeunload", e => { if(planDirty()){ e.preventDefault(); e.returnValue = ""; } });
 function resetPlan(date){
@@ -4386,10 +4394,10 @@ function missingOf(kind, r){
   else if(kind==="sub"){ if(!r.leaver) m.push("請假老師"); if(!r.date) m.push("日期"); if(!r.period) m.push("節次"); if(!r.cls) m.push("班級"); if(!r.sub) m.push("代課老師");
     if(r.sub && r.sub===r.leaver) m.push("（代課老師不能是請假老師本人）");
     if(r.leaveType==="其他" && !String(r.note||"").trim()) m.push("備註（假別選「其他」要寫明是什麼假）"); }
-  else if(kind==="absent"){ if(plan.absent.over) m.push(`（一次最多 31 個上課日：請先登記到 ${CF.md(plan.absent.from && absDays().slice(-1)[0] || "")}，再從 ${CF.md(plan.absent.over)} 起另外登記）`); if(!r.teacher) m.push("請假老師"); if(!r.date) m.push("日期"); if(!r.leaveType) m.push("假別");
+  else if(kind==="absent"){ if(plan.absent.over && r.date === absDays()[0]) m.push(`（一次最多 31 個上課日：請先登記到 ${CF.md(plan.absent.from && absDays().slice(-1)[0] || "")}，再從 ${CF.md(plan.absent.over)} 起另外登記）`); if(!r.teacher) m.push("請假老師"); if(!r.date) m.push("日期"); if(!r.leaveType) m.push("假別");
     if(r.scope==="節次" && !(r.periods||[]).length) m.push("節次（範圍選「節次」要勾選）");
     if(r.leaveType==="其他" && !String(r.reason||"").trim()) m.push("事由（假別選「其他」要寫明是什麼假）"); }
-  else { if(plan.tutor.over) m.push(`（一次最多 31 個上課日：請先登記到 ${CF.md(tutDays().slice(-1)[0] || "")}，再從 ${CF.md(plan.tutor.over)} 起另外登記）`); if(!r.leaver) m.push("請假導師"); else if(!r.cls) m.push("（" + r.leaver + "不是導師，請改選）"); if(!r.date) m.push("日期"); if(!r.sub) m.push("代導師");
+  else { if(plan.tutor.over && r.date === tutDays()[0]) m.push(`（一次最多 31 個上課日：請先登記到 ${CF.md(tutDays().slice(-1)[0] || "")}，再從 ${CF.md(plan.tutor.over)} 起另外登記）`); if(!r.leaver) m.push("請假導師"); else if(!r.cls) m.push("（" + r.leaver + "不是導師，請改選）"); if(!r.date) m.push("日期"); if(!r.sub) m.push("代導師");
     if(r.sub && r.sub===r.leaver) m.push("（代導師不能是請假導師本人）");
     if(r.leaveType==="其他" && !String(r.note||"").trim()) m.push("備註（假別選「其他」要寫明是什麼假）"); }
   return m;
@@ -4783,7 +4791,7 @@ $("#planSave").onclick = async ()=>{
   try{
     const d = await apiPost(Object.assign({action:"save", name:state.cred.name, h:state.cred.h, force:plan.force}, form));
     if(d.ok && plan.kind==="absent"){               // 請假存好後留在這個畫面，接著排代課
-      const keep = plan.absent; keep.saved = (d.ids||[]).join("、");
+      const keep = plan.absent; keep.saved = (d.ids||[]).join("、") || "已存檔";
       state.meta = null; await reload(true); await openPlan();
       plan.kind = "absent"; plan.absent = keep; plan.scan = null; plan.scanKeys = null; renderPlan();
       toast(`已儲存請假（${keep.saved}）`);
@@ -5130,9 +5138,10 @@ function renderBoard(){
 function renderSummary(){
   applySettingsAt(state.range || ymd(new Date()).slice(0,7));
   const N = state.viewing, t = tally(state.events.filter(e => inRange(e, state.range || ""))), R = state.range ? `${+state.range.slice(5,7)} 月` : "本學期";
+  const hN = isAll() ? state.events.filter(e => inRange(e, state.range || "") && isHeliSub(e)).length : 0;   // 115.11.9：只加說明，金額不變
   const m = (k, n, unit, sub) => `<div class="meter"><div class="k">${esc(R + " " + k)}</div><b data-n="${n}" data-u="${esc(unit)}"></b><span>${esc(sub)}</span></div>`;
   $("#summary").innerHTML = isAll()
-    ? m("全校代課", t.subN, "節", `代課費 ${yuan(t.subFee)}`) + m("全校代導師", t.tutorD, "日", `代導費 ${yuan(t.tutorFee)}`)
+    ? m("全校代課", t.subN, "節", `代課費 ${yuan(t.subFee)}${hN ? `（含代合理員額教師課 ${hN} 節，這幾節實發依合理員額報表進位計算）` : ""}`) + m("全校代導師", t.tutorD, "日", `代導費 ${yuan(t.tutorFee)}`)
       + m("合計要發", t.subFee+t.tutorFee, "元", "代課費＋代導費") + m("還沒安排代課", t.unN, "筆", "請假但代課老師空白")
     : (() => { const D = heliMineName() && state.meta ? heliMineData(state.range || ymd(new Date()).slice(0,7)) : null;
         return D ? m(`${N}合理員額鐘點費`, D.t.amt, "元", `${D.t.pay} 節 × ${RATE_SUB}（${R}）`) + m(`${N}代別人上課`, t.subN, "節", `另領代課費 ${yuan(t.subFee)}`)
