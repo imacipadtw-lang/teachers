@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.09d';
+  const APP_VERSION = '2026.11.09e';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
   const LS = { admin: 'hc.admin', teacher: 'hc.teacher', api: 'hc.api', cls: 'hc.class', outbox: 'hc.outbox', theme: 'hc.theme' };
   const GRADE = ['', '一', '二', '三', '四', '五', '六'];
@@ -237,7 +237,8 @@
     if (!(opts && opts.quiet)) renderSoft();
   }
   // 待送出的登記存在這台裝置；網路斷線或關掉網頁也不會遺失，下次開啟（同一身分）自動補送
-  function outboxCount() { let n = 0; S.outbox.forEach(b => { n += b.size; }); return n; }
+  function outboxCount() { let n = 0; S.outbox.forEach(b => { n += b.size; }); S.pendingNotes.forEach(p => { if (p.retry) n++; }); return n; }
+  function notesUnsent() { let n = 0; S.pendingNotes.forEach(p => { if (!p.ackAt) n++; }); return n; }
   function outboxOwner() { return S.role === 'teacher' ? 't:' + S.classId : S.role === 'admin' ? 'a' : ''; }
   function saveOutbox() {
     const list = []; S.outbox.forEach((box, boxKey) => { const [rid, cid] = boxKey.split('|'); box.forEach(c => list.push({ rid, cid, no: c.no, itemId: c.itemId, val: c.val })); });
@@ -298,7 +299,7 @@
       else setTimeout(() => load({ force: true }), 250);
     }
   }
-  window.addEventListener('beforeunload', e => { if (outboxCount() || S.flushing) { e.preventDefault(); e.returnValue = ''; } });
+  window.addEventListener('beforeunload', e => { if (outboxCount() || S.flushing || notesUnsent()) { e.preventDefault(); e.returnValue = ''; } });
 
   /* ---------- 資料工具 ---------- */
   const round = () => S.rounds.find(r => r.id === S.rid) || null;
@@ -364,15 +365,20 @@
     const key = rid + '|' + cid + '|' + (no == null ? '' : no);
     S.pendingNotes.set(key, { text, ackAt: null });
     clearTimeout(S.noteTimers[key]);
-    S.noteTimers[key] = setTimeout(async () => {
+    const send = async (attempt) => {
+      const mine = S.pendingNotes.get(key); if (!mine || mine.text !== text) return; // 之後又改過，交給新的那次送
       setSync('busy');
-      try {
-        const r = await apiPost({ action: 'note', rid, classId: cid, no: no == null ? '' : no, text });
-        if (!r.ok) { if (r.error === 'auth') return authLost(); throw new Error(errText(r.error)); }
-        const p = S.pendingNotes.get(key); if (p) p.ackAt = Date.now();
-        S.version = null; setSync('ok');
-      } catch (e) { S.pendingNotes.delete(key); setSync('err', e.message); toast('備註儲存失敗：' + e.message, 3200); }
-    }, 700);
+      let r = null, err = null;
+      try { r = await apiPost({ action: 'note', rid, classId: cid, no: no == null ? '' : no, text }); } catch (e) { err = e; }
+      if (r && r.ok) { const p = S.pendingNotes.get(key); if (p && p.text === text) { p.ackAt = Date.now(); p.retry = false; } S.version = null; setSync('ok'); return; }
+      if (err || (r && r.error === 'busy')) { // 斷線：保留備註，稍後自動重送
+        const p = S.pendingNotes.get(key); if (p && p.text === text) p.retry = true;
+        setSync('err', '網路不穩'); S.noteTimers[key] = setTimeout(() => send(attempt + 1), Math.min(60000, 5000 * Math.pow(2, attempt))); return;
+      }
+      if (r.error === 'auth') return authLost();
+      S.pendingNotes.delete(key); setSync('err', errText(r.error)); toast('備註儲存失敗：' + errText(r.error), 3200);
+    };
+    S.noteTimers[key] = setTimeout(() => send(0), 700);
   }
   function noteInput(cid, no, placeholder) {
     const inp = h('input', { type: 'text', class: 'noteinput', value: noteValue(cid, no), placeholder: placeholder || '備註', maxlength: '200', 'aria-label': placeholder || '備註',
