@@ -1304,6 +1304,7 @@ html:not([data-theme=dark]) .ev .p .k{color:#1F5C96}
 html:not([data-theme=dark]) .ev.t-swap .p .k{color:#7E4F08}
 html:not([data-theme=dark]) .wb-nav button.on{color:#A3305C}
 html[data-theme=dark] .ev .fixbtn{color:var(--sky)}
+.nw{display:inline-block;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -1317,7 +1318,7 @@ html[data-theme=dark] .ev .fixbtn{color:var(--sky)}
     <span class="term">南投縣草屯鎮土城國民小學　115 學年度上學期</span>
   </nav>
   <div class="lcenter">
-    <h1>代課・調課・請假　核對系統</h1>
+    <h1><span class="nw">代課・調課・請假</span>　<span class="nw">核對系統</span></h1>
     <p class="lead">教務組專用：紙本登錄、課務查詢、代課鐘點費核對。</p>
     <form class="login-card" id="loginForm" autocomplete="off">
       <p class="demo-tag" id="demoTag" hidden>示範模式：資料是假的，密碼一律 demo</p>
@@ -2443,7 +2444,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.09c";
+const APP_VERSION = "專業版 2026.11.09d";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -2868,6 +2869,7 @@ function renderAdmin(){
     vt.hidden = false; document.body.classList.add("has-view"); }
   document.querySelectorAll(".viewAs").forEach(sel=>sel.onchange = async e=>{
     state.viewing = e.target.value || "__all__";
+    if(e.target.id === "viewAsTop") e.target.blur();            // 換完老師馬上可以用數字鍵切頁
     busy(true);
     try{ const d = await fetchData(state.cred.name, state.cred.h, state.viewing); if(d.ok) applyData(d); }
     finally{ busy(false); }
