@@ -2680,7 +2680,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.10w";
+const APP_VERSION = "專業版 2026.11.10x";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -3662,7 +3662,8 @@ function renderChecks(ym){
   if(!RO && $("#hrReset")) $("#hrReset").onclick = () => { if(!confirm("把這個月的勞健保數字全部改回系統預填？（還沒按儲存前都可以再改）")) return; const o = hrInsOf(ym); Object.keys(o).forEach(n => delete o[n]); store.set("hrIns", JSON.stringify(state.hrIns)); renderChecks(ym); };
   if(!RO) box.querySelectorAll("[data-hr]").forEach(inp => { inp.onchange = () => { const v = inp.value.replace(/,/g,"").trim(); if(v && !/^\d+$/.test(v)){ toast("保費請填整數"); inp.value = ""; } const [n, k] = inp.dataset.hr.split("|"); saveHrIns(ym, n, k, inp.value.replace(/,/g,"").trim()); const open = $("#checkBox .hr-det").open; renderChecks(ym); if($("#checkBox .hr-det")) $("#checkBox .hr-det").open = open; }; });
   if(!RO) box.querySelectorAll("[data-si]").forEach(inp => { inp.onchange = () => { const v = inp.value.replace(/,/g,"").trim(); if(v && !/^\d+(\.5)?$/.test(v)){ toast("簽到表節數請填整數或 .5"); inp.value = ""; } saveSignin(ym, inp.dataset.si, inp.value.trim()); renderChecks(ym); }; });
-  $("#chkRun").onclick = () => renderChecks(ym);
+  $("#chkRun").onclick = () => { renderChecks(ym); const t = new Date().toLocaleTimeString("zh-TW", {hour:"2-digit", minute:"2-digit", second:"2-digit", hour12:false}), n = reportChecks(ym).filter(x => x.lv === "err" && x.k !== "closed").length;
+    const r = $("#chkRun"); if(r){ r.textContent = `已重新檢查 ${t}`; r.focus(); } toast(n ? `已重新檢查：還有 ${n} 項要處理` : "已重新檢查：沒有要處理的紅字"); };
   if($("#chkClose")) $("#chkClose").onclick = async () => {
     const warns = C.filter(x => x.lv === "warn");
     if(blocking.length && !closed) return toast("還有問題要先處理");
