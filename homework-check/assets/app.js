@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.09o';
+  const APP_VERSION = '2026.11.10a';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
   const LS = { admin: 'hc.admin', teacher: 'hc.teacher', api: 'hc.api', cls: 'hc.class', outbox: 'hc.outbox', theme: 'hc.theme' };
   const GRADE = ['', '一', '二', '三', '四', '五', '六'];
@@ -18,7 +18,8 @@
     screen: 'boot', gateMsg: '', welcomeClass: '',
     view: 'class', selClass: null, draft: null,
     pending: new Map(), outbox: new Map(), flushTimer: null, flushing: false, pendingNotes: new Map(), noteTimers: {},
-    modal: null, justStamped: null, narrow: false, openClass: null
+    modal: null, justStamped: null, narrow: false, openClass: null,
+    filter: { q: '', onlyMissing: false, cid: null } // 班級檢核：搜尋座號／姓名、只看未繳齊
   };
   /* ---------- 外觀（自動跟隨系統／淺色／深色） ---------- */
   const THEMES = [['auto', '自動'], ['light', '淺色'], ['dark', '深色']];
@@ -559,16 +560,39 @@
         items.map((it, i) => h('td', { class: 'cell' + examStart(items, i) }, toggleBtn(cls, s, it, ed))),
         admin ? h('td', { class: 'st', text: miss === 0 ? '全部繳齊' : '缺 ' + miss + ' 項' }) : null, admin ? h('td', { class: 'notecol' }, noteInput(cls.id, s.no, '例如：未訂正、補交、家長未簽名')) : null);
     });
-    const table = h('table', { class: 'grid', 'data-cid': cls.id }, h('thead', null, groupHeaderRow(items, 2, admin ? 2 : 0), thead), h('tbody', null, rows));
+    const ncol = 2 + items.length + (admin ? 2 : 0);
+    const nomatch = h('tr', { class: 'nomatch', hidden: true }, h('td', { colspan: ncol, text: '沒有符合的學生' }));
+    const table = h('table', { class: 'grid', 'data-cid': cls.id }, h('thead', null, groupHeaderRow(items, 2, admin ? 2 : 0), thead), h('tbody', null, rows, nomatch));
     const allIn = studs.filter(s => items.every(it => isOn(cls.id, s.no, it.id))).length;
     table.append(h('tfoot', null, h('tr', { class: 'tfoot' }, h('td', { colspan: 2, class: 'flabel', text: admin ? '已交人數' : '已交（' + allIn + ' 人繳齊）' }), items.map((it, i) => h('td', { class: examStart(items, i).trim() || null, 'data-item': it.id, text: countItem(cls, it) + ' / ' + n })), admin ? h('td', { class: 'allincnt', text: allIn + ' 人繳齊' }) : null, admin ? h('td') : null)));
     const legend = h('div', { class: 'legend' },
       h('span', null, h('i', { style: 'background:var(--accent)' }), '習作已交'),
       h('span', null, h('i', { style: 'background:var(--seal)' }), '考卷已由家長簽名並繳回'),
       h('span', null, h('i', { style: 'background:var(--sheet);border:1.5px solid var(--line-strong)' }), '尚未繳交'));
+    // 篩選：只隱藏列，不重畫表格（打字時即時、不影響人數統計）
+    if (S.filter.cid !== cls.id) { S.filter.q = ''; S.filter.cid = cls.id; }
+    const fcount = h('span', { class: 'note fcount', 'aria-live': 'polite' });
+    const applyFilter = () => {
+      const q = S.filter.q.trim(); const num = /^\d+$/.test(q) ? parseInt(q, 10) : null;
+      let shown = 0;
+      studs.forEach((s, i) => {
+        const hit = !q || (num !== null ? s.no === num : (s.name || '').includes(q));
+        const show = hit && (!S.filter.onlyMissing || items.some(it => !isOn(cls.id, s.no, it.id)));
+        rows[i].hidden = !show; if (show) shown++;
+      });
+      nomatch.hidden = shown > 0;
+      fcount.textContent = q || S.filter.onlyMissing ? '符合 ' + shown + ' / ' + n + ' 人' : '';
+      chip.setAttribute('aria-pressed', String(S.filter.onlyMissing));
+    };
+    const search = h('input', { type: 'search', class: 'searchbox', placeholder: '搜尋座號或姓名', 'aria-label': '搜尋座號或姓名', value: S.filter.q, autocomplete: 'off', enterkeyhint: 'search',
+      oninput: e => { S.filter.q = e.target.value; applyFilter(); },
+      onkeydown: e => { if (e.key === 'Escape' && search.value) { e.preventDefault(); e.stopPropagation(); search.value = ''; S.filter.q = ''; applyFilter(); } } });
+    const chip = h('button', { type: 'button', class: 'chip filterchip', 'aria-pressed': String(S.filter.onlyMissing), onclick: () => { S.filter.onlyMissing = !S.filter.onlyMissing; applyFilter(); } }, '只看未繳齊');
+    const tools = h('div', { class: 'gridtools no-print', role: 'search', 'aria-label': '篩選學生' }, search, chip, fcount);
+    applyFilter();
     const out = h('div', { class: 'stack' });
     if (admin) out.append(h('div', { class: 'row' }, h('span', { class: 'note', text: '本班備註' }), h('div', { class: 'grow' }, noteInput(cls.id, null, '整班的說明，例如：11/10 全班補交完成'))));
-    out.append(h('div', { class: 'tablebox' }, table), legend);
+    out.append(tools, h('div', { class: 'tablebox' }, table), legend);
     return out;
   }
 

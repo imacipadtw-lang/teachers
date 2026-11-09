@@ -94,7 +94,7 @@ a { color: var(--accent); }
 .tag.lock { color: var(--muted); background: var(--sheet-2); }
 
 /* ---------- 控制項 ---------- */
-select, input[type=text], input[type=password], input[type=date], input[type=number], input[type=url], textarea {
+select, input[type=text], input[type=search], input[type=password], input[type=date], input[type=number], input[type=url], textarea {
   background: var(--sheet); border: 1px solid var(--line-strong); border-radius: 7px; padding: 8px 11px; min-width: 0; max-width: 100%;
 }
 textarea { line-height: 1.6; resize: vertical; }
@@ -480,3 +480,15 @@ nav.tabs button:focus-visible { outline-offset: -3px; }
 .skipbtn { color: var(--muted); }
 td.skipcell { color: var(--muted); font-size: 12px; }
 @media print { .skiptag .link { display: none; } }
+
+/* ---------- 班級檢核：搜尋與只看未繳齊 ---------- */
+.gridtools { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; }
+.gridtools .searchbox { flex: 0 1 220px; min-width: 150px; padding: 7px 12px 7px 32px; border-radius: 999px; -webkit-appearance: none; appearance: none;
+  background: var(--sheet) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2368705f' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") no-repeat 11px center / 15px; }
+.gridtools .filterchip { padding: 6px 14px; }
+.gridtools .fcount { font-variant-numeric: tabular-nums; }
+table.grid tr.nomatch td { text-align: center; color: var(--muted); padding: 22px 10px; }
+@media (max-width: 719px) { .gridtools .searchbox { flex: 1 1 160px; } }
+@media print { table.grid tbody tr[data-no][hidden] { display: table-row !important; } table.grid tr.nomatch { display: none !important; } }
+.gridtools .searchbox:focus { border-color: var(--accent); outline: 2px solid color-mix(in srgb, var(--accent) 35%, transparent); outline-offset: 1px; }
+.gridtools .searchbox::-webkit-search-cancel-button { cursor: pointer; }

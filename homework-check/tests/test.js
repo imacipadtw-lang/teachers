@@ -502,6 +502,43 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
   await ctx.close();
   await fetch(B + '__reset'); await fetch(B + '__seed');
 
+
+  console.log('26. 班級檢核：搜尋座號／姓名、只看未繳齊');
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+  { const R = async b => (await fetch(B + 'exec', { method: 'POST', body: JSON.stringify(b) })).json();
+    const rd0 = await R({ action: 'read', key: 'test1234' });
+    const g1 = rd0.config.classes.find(c => c.id === 'g1'); const its = rd0.config.items.filter(it => (it.grades || []).includes(1)).map(it => it.id);
+    await R({ action: 'marks', key: 'test1234', rid: 'r1', classId: 'g1', changes: its.map(id => ({ no: 1, itemId: id, val: true })) }); // 1 號全部繳齊
+    ctx = await br.newContext({ viewport: { width: 1280, height: 860 } }); pg = await newPage(ctx); await adminLogin(pg, B);
+    const vis = () => pg.$$eval('table.grid tbody tr[data-no]', trs => trs.filter(t => !t.hidden).map(t => t.dataset.no).join(','));
+    await pg.fill('.searchbox', '3'); await sleep(100);
+    ok(await vis() === '3' && /符合 1 \/ 6 人/.test(await pg.textContent('.fcount')), '輸入「3」只顯示 3 號（座號完全相符）、顯示「符合 1 / 6 人」');
+    await pg.fill('.searchbox', '李'); await sleep(100);
+    ok(await vis() === '2', '輸入「李」只顯示李小華');
+    await pg.fill('.searchbox', 'zzz'); await sleep(100);
+    ok(await vis() === '' && await pg.isVisible('tr.nomatch'), '找不到時顯示「沒有符合的學生」');
+    await pg.press('.searchbox', 'Escape'); await sleep(100);
+    ok(await vis() === '1,2,3,4,5,6' && await pg.inputValue('.searchbox') === '', 'Esc 清除搜尋，全部顯示');
+    await pg.click('.filterchip'); await sleep(100);
+    ok(await vis() === '2,3,4,5,6' && await pg.getAttribute('.filterchip', 'aria-pressed') === 'true', '「只看未繳齊」隱藏已繳齊的 1 號');
+    ok((await pg.textContent('thead .cnt[data-item="chinese"]')).trim() === '1/6', '篩選不影響表頭人數（仍是全班 1/6）');
+    await pg.locator('table.grid button.chk[data-no="2"][data-item="chinese"]').click(); await sleep(200);
+    ok((await vis()).startsWith('2'), '篩選中勾選，列不會突然消失');
+    await pg.emulateMedia({ media: 'print' });
+    ok(await pg.$$eval('table.grid tbody tr[data-no]', trs => trs.every(t => getComputedStyle(t).display !== 'none')), '列印時仍印出全班');
+    await pg.emulateMedia({ media: 'screen' });
+    await pg.locator('.chip:has-text("二甲")').click(); await sleep(300);
+    ok(await pg.getAttribute('.filterchip', 'aria-pressed') === 'true' && await pg.inputValue('.searchbox') === '', '切換班級：搜尋字清空、「只看未繳齊」保留');
+    await ctx.close();
+    const tk = await (await fetch(B + 'exec?action=claim&classId=g1&label=t')).json();
+    ctx = await br.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true }); pg = await newPage(ctx);
+    await pg.goto(B); await pg.evaluate(t => localStorage.setItem('hc.teacher', JSON.stringify({ token: t.token, classId: 'g1' })), tk); await pg.reload(); await pg.waitForSelector('table.grid');
+    await pg.fill('.searchbox', '5'); await sleep(100);
+    ok(await pg.$$eval('table.grid tbody tr[data-no]', trs => trs.filter(t => !t.hidden).length) === 1 && await pg.evaluate(() => document.documentElement.scrollWidth <= 390), '導師手機版也能搜尋，畫面不會左右捲動');
+    await ctx.close();
+  }
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+
   await br.close();
   console.log('\n頁面錯誤：' + (errors.length ? errors.join(' | ') : '無'));
   console.log(`結果：${pass} 通過，${fail} 失敗`);
