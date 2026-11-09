@@ -571,3 +571,101 @@ table.grid tr.nomatch td { text-align: center; color: var(--muted); padding: 22p
 .tag.lock { display: inline-flex; align-items: center; gap: 3px; }
 th.name, td.name { max-width: 11em; white-space: normal; overflow-wrap: anywhere; line-height: 1.35; }
 @media (max-width: 719px) { th.name, td.name { max-width: 6.5em; font-size: 13.5px; } }
+
+/* ==========================================================================
+   視覺精修（115.11.10）：品牌標誌、登入歡迎頁、KPI 儀表板、表格細節、微互動、空狀態
+   ========================================================================== */
+/* 標誌 */
+.emblem { flex: none; display: block; }
+.emblem .eb-bg { fill: var(--accent); }
+.emblem .eb-fg { fill: none; stroke: var(--accent-ink); stroke-width: 2.2; stroke-linejoin: round; stroke-linecap: round; }
+.emblem .eb-ck { fill: none; stroke: #ffd36b; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+:root[data-theme="dark"] .emblem .eb-ck { stroke: #8a5a00; }
+@media screen and (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .emblem .eb-ck { stroke: #8a5a00; } }
+.brandrow { display: flex; align-items: center; gap: 12px; }
+.brandrow .emblem { filter: drop-shadow(0 2px 4px color-mix(in srgb, var(--accent) 30%, transparent)); }
+@media (max-width: 719px) { .brandrow .emblem { width: 34px !important; height: 34px !important; } }
+@media print { .emblem { display: none !important; } }
+
+/* 登入頁：作業簿橫線紙＋柔光 */
+body.gatebg {
+  background:
+    radial-gradient(900px 440px at 50% -40px, var(--glow, rgba(255, 255, 255, .85)), transparent 72%),
+    repeating-linear-gradient(to bottom, transparent 0 31px, color-mix(in srgb, var(--accent) 6%, transparent) 31px 32px),
+    var(--paper);
+  background-attachment: fixed;
+}
+.gate { margin-top: 5vh; gap: 18px; }
+.gatebrand { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; margin-bottom: 4px; }
+.gatebrand .emblem { margin-bottom: 8px; filter: drop-shadow(0 6px 14px color-mix(in srgb, var(--accent) 35%, transparent)); }
+.gatebrand .org { font-size: 12.5px; letter-spacing: .16em; color: var(--muted); }
+.gatebrand h1 { font-family: var(--f-display); font-size: 32px; letter-spacing: .14em; margin: 2px 0 0; color: var(--ink); }
+.gatebrand .gtag { margin: 2px 0 0; font-size: 13.5px; color: var(--muted); letter-spacing: .04em; }
+.gate .panel { border-radius: 16px; padding: 24px 26px; box-shadow: 0 1px 2px rgba(40, 35, 20, .06), 0 12px 32px -8px rgba(40, 35, 20, .18); border-color: color-mix(in srgb, var(--line) 70%, transparent); }
+.gate .panel h2 { font-size: 21px; }
+.gsteps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.gsteps li { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; font-size: 12.5px; color: var(--muted); background: var(--sheet-2); border-radius: 10px; padding: 10px 6px 8px; line-height: 1.35; }
+.gsteps b { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--accent-ink); font-size: 13px; }
+.glabel { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: -4px; }
+.gate select { padding: 11px 12px; font-size: 16px; }
+.gate .btn.primary.block { padding: 12px 14px; font-size: 16px; font-weight: 600; letter-spacing: .1em; border-radius: 10px; box-shadow: 0 4px 12px -4px color-mix(in srgb, var(--accent) 60%, transparent); }
+.gsmall { font-size: 12.5px !important; }
+.gatefoot { text-align: center; font-size: 12px; color: var(--muted); margin-top: 18px; }
+@media (max-width: 719px) { .gatebrand h1 { font-size: 27px; } .gate .panel { padding: 20px 18px; } }
+
+/* 全校總覽：KPI 卡 */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(168px, 1fr)); gap: 12px; }
+.kpi { background: var(--sheet); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 2px rgba(40, 35, 20, .05); position: relative; overflow: hidden; min-width: 0; }
+.kpi::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--line-strong); }
+.kpi.main::before { background: var(--accent); }
+.kpi.good::before { background: var(--ok); }
+.kpi.warn::before { background: var(--warn); }
+.kpi.late::before { background: var(--seal); }
+.kpi .kbody { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.kpi .k { font-size: 12.5px; color: var(--muted); letter-spacing: .06em; }
+.kpi .v { font-size: 26px; font-weight: 700; line-height: 1.2; font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; }
+.kpi .v small { font-size: 14px; color: var(--muted); font-weight: 600; }
+.kpi .s { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kpi.main .v { font-size: 32px; }
+.kpi.good .v { color: var(--ok); }
+.kpi.warn .v { color: var(--warn); }
+.kpi.late .v { color: var(--seal); }
+.kpi .ring { width: 58px; height: 58px; }
+.kpi .ring svg { width: 58px; height: 58px; }
+.kpi .ring span { font-size: 0; }
+@media (max-width: 719px) { .kpis { grid-template-columns: 1fr 1fr; gap: 8px; } .kpi { padding: 12px; gap: 8px; } .kpi.main { grid-column: 1 / -1; } .kpi .v { font-size: 22px; } .kpi.main .v { font-size: 28px; } }
+@media print { .kpi { box-shadow: none; border-color: #999; break-inside: avoid; } .kpi::before { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+
+/* 表格：全部繳齊的列淡綠底 */
+table.grid tbody tr.allin td, table.grid tbody tr.allin td.no, table.grid tbody tr.allin td.name { background: color-mix(in srgb, var(--ok-soft) 60%, var(--sheet)); }
+table.grid tbody tr:hover td, table.grid tbody tr:hover td.no, table.grid tbody tr:hover td.name { background: var(--sheet-2); }
+table.grid tbody tr.allin:hover td, table.grid tbody tr.allin:hover td.no, table.grid tbody tr.allin:hover td.name { background: var(--ok-soft); }
+
+/* 勾選微互動（只在使用者沒有要求減少動態時） */
+@media (prefers-reduced-motion: no-preference) {
+  .chk.justset { animation: chkpop .28s cubic-bezier(.3, 1.6, .5, 1); }
+  .chk { transition: background .14s, border-color .14s, box-shadow .14s; }
+  .chk:not(:disabled):hover { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
+  .chk.exam:not(:disabled):hover { box-shadow: 0 0 0 3px color-mix(in srgb, var(--seal) 18%, transparent); }
+  .kpi, .chartpanel, .tablebox { animation: rise .32s ease-out both; }
+}
+@keyframes chkpop { 0% { transform: scale(.8); } 60% { transform: scale(1.12); } 100% { transform: scale(1); } }
+@keyframes rise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+/* 空狀態插圖（翻開的作業簿；用遮罩上色，深色模式自動跟著變） */
+.empty::before { content: ""; display: block; width: 76px; height: 58px; margin: 0 auto 12px; background: var(--line-strong);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 76 58' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M38 12c-7.5-5.5-18-6.5-30-4.5v40c12-2 22.5-1 30 4.5 7.5-5.5 18-6.5 30-4.5v-40c-12-2-22.5-1-30 4.5z'/%3E%3Cpath d='M38 12v40'/%3E%3Cpath d='M15 21h15M15 29h15M15 37h10'/%3E%3Cpath d='M46 29l5 5 10-12'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 76 58' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M38 12c-7.5-5.5-18-6.5-30-4.5v40c12-2 22.5-1 30 4.5 7.5-5.5 18-6.5 30-4.5v-40c-12-2-22.5-1-30 4.5z'/%3E%3Cpath d='M38 12v40'/%3E%3Cpath d='M15 21h15M15 29h15M15 37h10'/%3E%3Cpath d='M46 29l5 5 10-12'/%3E%3C/svg%3E") center / contain no-repeat; }
+.empty { padding: 32px 20px 28px; line-height: 1.7; }
+.nprev .empty::before { display: none; }
+
+/* 卡片與面板的一致陰影、標題字距 */
+.panel, .chartpanel { box-shadow: 0 1px 2px rgba(40, 35, 20, .04); }
+.masthead h1 { letter-spacing: .12em; }
+
+:root[data-theme="dark"] { --glow: color-mix(in srgb, #8db0f2 16%, transparent); }
+@media screen and (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --glow: color-mix(in srgb, #8db0f2 16%, transparent); } }
+.gate .panel.adminp { padding: 12px 18px; box-shadow: none; background: transparent; border: 1px dashed var(--line-strong); align-items: center; }
+.gate .panel.adminp.open { align-items: stretch; background: var(--sheet); border-style: solid; padding: 18px 22px; }
+.adminlink { font-size: 14px; text-decoration: none; font-weight: 600; }
+.adminlink:hover { text-decoration: underline; }

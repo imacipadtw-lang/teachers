@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.10e';
+  const APP_VERSION = '2026.11.10f';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
   const LS = { admin: 'hc.admin', teacher: 'hc.teacher', api: 'hc.api', cls: 'hc.class', outbox: 'hc.outbox', theme: 'hc.theme' };
   const GRADE = ['', '一', '二', '三', '四', '五', '六'];
@@ -68,6 +68,13 @@
     xls: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>',
     tag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>'
   };
+  // 網站標誌：藍底圓角方塊＋白色翻開的作業簿與勾（裝飾用，aria-hidden，列印不印，避免被誤認為印章）
+  function emblem(size) {
+    const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    s.setAttribute('viewBox', '0 0 48 48'); s.setAttribute('class', 'emblem'); s.setAttribute('aria-hidden', 'true'); s.style.width = s.style.height = (size || 40) + 'px';
+    s.innerHTML = '<rect x="2" y="2" width="44" height="44" rx="11" class="eb-bg"/><path class="eb-fg" d="M24 15.5c-3.6-2.6-8.6-3.1-13.5-2v20.2c4.9-1.1 9.9-.6 13.5 2 3.6-2.6 8.6-3.1 13.5-2V13.5c-4.9-1.1-9.9-.6-13.5 2z"/><path class="eb-fg" d="M24 15.5v20.2"/><path class="eb-ck" d="M28.6 25.6l2.6 2.6 5-6"/>';
+    return s;
+  }
   const svg = name => { const s = document.createElement('span'); s.innerHTML = ICON[name]; s.style.display = 'inline-flex'; return s.firstChild; };
   function toast(msg, ms) {
     document.querySelectorAll('.toast').forEach(t => t.remove());
@@ -357,7 +364,8 @@
   function render() {
     const app = $('#app');
     app.replaceChildren();
-    if (S.screen !== 'app') { app.append(renderGate()); return; }
+    document.body.classList.toggle('gatebg', S.screen !== 'app');
+    if (S.screen !== 'app') { app.append(renderGate(), h('footer', { class: 'gatefoot', text: CFG.appName + '　版本 ' + APP_VERSION })); return; }
     app.append(renderMasthead(), renderRoundbar(), S.role === 'admin' ? renderTabs() : '', h('main', { id: 'main', tabindex: '-1' }), renderFoot());
     renderMain();
   }
@@ -451,7 +459,7 @@
     else { const c = classes().find(x => x.id === S.classId); who.append(h('b', { text: c ? c.name : '' }), c && c.teacher ? '導師 ' + c.teacher : '導師'); }
     who.append(renderSync());
     return h('header', { id: 'masthead', class: 'masthead' },
-      h('div', null, h('div', { class: 'org', text: [CFG.schoolName, CFG.unitName].filter(Boolean).join('　') }), h('h1', { text: CFG.appName })),
+      h('div', { class: 'brandrow' }, emblem(42), h('div', null, h('div', { class: 'org', text: [CFG.schoolName, CFG.unitName].filter(Boolean).join('　') }), h('h1', { text: CFG.appName }))),
       who);
   }
   function renderRoundbar() {
@@ -611,6 +619,7 @@
       const btn = table.querySelector('button.chk[data-no="' + no + '"][data-item="' + itemId + '"]'); if (!btn) return false;
       const on = isOn(cid, no, itemId);
       btn.setAttribute('aria-checked', String(on));
+      btn.classList.remove('justset'); void btn.offsetWidth; btn.classList.add('justset');
       btn.setAttribute('aria-label', s.no + '號 ' + (s.name || '') + ' ' + it.name + (on ? (it.kind === 'exam' ? '（已繳回）' : '（已交）') : '（未交）'));
       const items = itemsFor(cls); const studs = cls.students || []; const n = studs.length;
       const tr = table.querySelector('tbody tr[data-no="' + no + '"]');
@@ -1423,12 +1432,16 @@
     });
     const pct = total ? Math.round(got / total * 100) : 0;
     const notLogged = cl.filter(c => !((S.links[c.id] || {}).devices || []).length);
-    box.append(h('div', { class: 'row between' },
-      h('div', { class: 'stats' },
-        h('div', { class: 'stat' + (pct === 100 && total ? ' ok' : '') }, '全校完成率', h('b', { text: pct + '%' })),
-        h('div', { class: 'stat' }, '已交／應交', h('b', { text: got + ' / ' + total })),
-        h('div', { class: 'stat' }, '全班繳齊', h('b', { text: full + ' / ' + cl.length + ' 班' })),
-        h('div', { class: 'stat' + (notLogged.length ? ' warnstat' : '') }, '導師已登入', h('b', { text: (cl.length - notLogged.length) + ' / ' + cl.length + ' 班' }))),
+    const dn = daysUntil(r.due);
+    const dueKpi = dn === null ? { v: '未設定', s: '可在「設定 → 抽查次別」填寫', c: '' } : dn > 0 ? { v: '還有 ' + dn + ' 天', s: '截止 ' + fmtDate(r.due), c: dn <= 2 ? ' warn' : '' } : dn === 0 ? { v: '今天截止', s: fmtDate(r.due), c: ' warn' } : { v: '已逾期 ' + (-dn) + ' 天', s: '截止 ' + fmtDate(r.due), c: ' late' };
+    const kpi = (cls, k, v, sub, extra) => h('div', { class: 'kpi' + cls }, extra || null, h('div', { class: 'kbody' }, h('div', { class: 'k', text: k }), h('div', { class: 'v' }, v), sub ? h('div', { class: 's', text: sub }) : null));
+    box.append(h('div', { class: 'stats kpis' },
+      kpi(' main' + (pct === 100 && total ? ' good' : ''), '全校完成率', pct + '%', r.locked ? '本次已結案' : '即時更新', ring(pct)),
+      kpi('', '已交／應交', [String(got), h('small', { text: ' / ' + total })], '項次（學生 × 項目）'),
+      kpi(full === cl.length && cl.length ? ' good' : '', '全班繳齊', [String(full), h('small', { text: ' / ' + cl.length + ' 班' })], full ? '' : '還沒有班級全部繳齊'),
+      kpi(notLogged.length ? ' warn' : ' good', '導師已登入', [String(cl.length - notLogged.length), h('small', { text: ' / ' + cl.length + ' 班' })], notLogged.length ? notLogged.length + ' 班還沒登入' : '全部導師都已登入'),
+      kpi(dueKpi.c, '繳交截止', dueKpi.v, dueKpi.s)));
+    box.append(h('div', { class: 'row between' }, h('span'),
       h('div', { class: 'row' },
         h('button', { class: 'btn ghost small', onclick: () => openMissing(cl) }, svg('list'), '全校未交名單'),
         h('button', { class: 'btn small', onclick: exportXlsx }, svg('xls'), 'Excel 報表'),
@@ -1685,7 +1698,7 @@
   /* ---------- 登入／綁定畫面 ---------- */
   function renderGate() {
     const g = h('main', { class: 'gate' });
-    g.append(h('div', null, h('div', { class: 'org', style: 'font-size:12px;letter-spacing:.14em;color:var(--muted)', text: [CFG.schoolName, CFG.unitName].filter(Boolean).join('　') }), h('h1', { style: 'font-family:var(--f-display);font-size:26px;letter-spacing:.08em;margin:2px 0 0', text: CFG.appName })));
+    g.append(h('div', { class: 'gatebrand' }, emblem(64), h('div', { class: 'org', text: [CFG.schoolName, CFG.unitName].filter(Boolean).join('　') }), h('h1', { text: CFG.appName }), h('p', { class: 'gtag', text: '習作與家長簽名考卷繳交情形・全校即時同步' })));
     const p = h('div', { class: 'panel' });
     g.append(p);
     if (S.screen === 'boot') { p.append(h('h2', { text: '載入中…' }), h('p', { text: '正在連線到資料表，請稍候。' })); return g; }
@@ -1715,7 +1728,10 @@
       };
       const btn = h('button', { class: 'btn primary block', onclick: go }, '登入');
       const retryBtn = h('button', { class: 'btn ghost block', hidden: true, onclick: () => loadClasses() }, '重新載入班級');
-      p.append(h('h2', { text: '導師登入' }), h('p', { text: '請選擇自己的班級。只有第一次登入的那一台手機或電腦會被綁定，之後開啟網頁直接進入，不需要密碼。如果換了手機、或需要重新登入，請跟教務組聯繫。' }), sel, btn, retryBtn, msg);
+      p.append(h('h2', { text: '導師登入' }),
+        h('ol', { class: 'gsteps', 'aria-label': '登入步驟' }, h('li', null, h('b', { text: '1' }), '選自己的班級'), h('li', null, h('b', { text: '2' }), '按「登入」'), h('li', null, h('b', { text: '3' }), '之後免密碼直接進入')),
+        h('label', { class: 'glabel', for: 'whoSel', text: '我的班級' }), sel, btn, retryBtn, msg,
+        h('p', { class: 'gsmall', text: '只有第一次登入的那一台手機或電腦會被綁定。換手機或需要重新登入，請洽教務組。' }));
       const loadClasses = () => { sel.disabled = true; retryBtn.hidden = true; sel.replaceChildren(h('option', { value: '', text: '載入班級中…' })); msg.textContent = ''; msg.className = 'note';
       apiGet({ action: 'classes' }).then(r => {
         sel.replaceChildren(h('option', { value: '', text: '請選擇班級／導師' }));
@@ -1732,7 +1748,7 @@
       }); };
       loadClasses();
       // 教務組
-      const ap = h('div', { class: 'panel' });
+      const ap = h('div', { class: 'panel adminp' });
       const inp = h('input', { type: 'password', placeholder: '教務組密碼', autocomplete: 'current-password', hidden: true, onkeydown: e => { if (e.key === 'Enter') goAdmin(); } });
       const amsg = h('p', { class: 'note', text: '' });
       const abtn = h('button', { class: 'btn ghost block', hidden: true, onclick: () => goAdmin() }, '以教務組身分登入');
@@ -1746,7 +1762,7 @@
         } catch (e) { amsg.textContent = e.message; amsg.className = 'note err'; }
         abtn.disabled = false;
       };
-      ap.append(h('button', { class: 'link', style: 'font-size:13px;align-self:flex-start', onclick: () => { inp.hidden = false; abtn.hidden = false; inp.focus(); if (S.gateErr) { amsg.textContent = '教務組請看：' + S.gateErr; amsg.className = 'note err'; } } }, '教務組登入'), inp, abtn, amsg);
+      ap.append(h('button', { class: 'link adminlink', onclick: () => { ap.classList.add('open'); inp.hidden = false; abtn.hidden = false; inp.focus(); if (S.gateErr) { amsg.textContent = '教務組請看：' + S.gateErr; amsg.className = 'note err'; } } }, '教務組登入 →'), inp, abtn, amsg);
       g.append(ap);
       return g;
     }
