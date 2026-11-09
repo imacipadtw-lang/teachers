@@ -579,7 +579,7 @@ main{container-type:inline-size}
 .view-note .btn{margin-left:auto}
 .cell-ev.other{opacity:.5}
 .ev-other{opacity:.72}
-.ev-other button{display:none}
+body:not(.has-view) .ev-other button{display:none}   /* 管理者看某位老師時，其他老師的紀錄也能修改、核章（115.11.9） */
 .ev-other-h{margin:10px 16px 2px;font-size:13px;font-weight:700;color:var(--ink-3)}
 @media print{.view-note{display:none!important}}
 /* 年曆／清單四種顯示：全部／只看代課（含請假）／只看調課／只看代導師（10/30；11/3 加代導師） */
@@ -1319,6 +1319,9 @@ body.has-view .admin-mobile .pw-list{margin-top:0;border-top:0;padding-top:0}
 @media (min-width:1051px){.admin-mobile .admin-box{max-width:640px}}
 .set-tbl,.scroll{position:relative}   /* 表格裡的隱藏文字（.sr）留在捲動框內，不撐寬整頁 */
 #hrTimes.bad{border-color:var(--c-leave);box-shadow:0 0 0 2px rgba(208,56,79,.18)}
+html[data-theme=dark] :is(.rowc .rhead b,.addrow,.fix-diff td.new){color:var(--sky)}
+body.has-view .ev-other{opacity:1}   /* 管理者：其他老師的紀錄可以操作，不再淡化（對比） */
+html[data-theme=dark] .chk.stop,html[data-theme=dark] .chk.stop *{color:#2A0712}
 </style>
 </head>
 <body>
@@ -2470,7 +2473,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.09q";
+const APP_VERSION = "專業版 2026.11.09r";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -3998,6 +4001,7 @@ document.addEventListener("keydown", e => {
   const t = e.target, typing = t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable);
   if(typing || e.ctrlKey || e.metaKey || e.altKey) return;
   if(document.querySelector(".modal:not([hidden])")) return;                 // 有視窗開著就不搶按鍵
+  if(!$("#moreMenu").hidden) return;                                           // 「更多」選單開著也不搶
   const k = e.key.toLowerCase();
   if(k === "?"){ e.preventDefault(); helpOpen(); return; }
   if(/^[1-8]$/.test(k)){ const p = pagesFor()[+k - 1]; if(p){ e.preventDefault(); showPage(p.k); } return; }
@@ -4367,7 +4371,7 @@ $("#planBody").addEventListener("change", e=>{
 document.addEventListener("click", async e => {
   const b = e.target.closest("[data-absdel]"); if(!b) return;
   e.stopPropagation();
-  const id = b.dataset.absdel, ev = state.events.find(x => x.type==="absent" && x.id===id);
+  const id = b.dataset.absdel, ev = (isAll() ? state.events : state.events.concat(state.school || [])).find(x => x.type==="absent" && x.id===id);
   if(!confirm(`刪除這筆請假？\n${id}　${ev ? ev.who + " " + md(ev.date) + "（" + CF.absText(ev) + "）" : ""}\n（刪除後不留資料、不能還原）`)) return;
   busy(true);
   try{ const d = await apiPost({action:"absentDel", name:state.cred.name, h:state.cred.h, ids:[id]}); if(!d.ok) throw new Error(d.error==="不支援的動作" ? OLD_BACKEND_MSG : (d.error||"刪除失敗")); toast("已刪除 " + id); state.meta = null; await reload(true, true); }
@@ -5459,10 +5463,11 @@ function wbFind(q){
 /* ---------- 管理者：人事差勤系統核對（10/30） ----------
  * 把差勤系統「已批核案件」的文字貼進來 → 和本系統比對；貼過的文字留在這台裝置（localStorage），重新整理會再比一次。 */
 function hrTimes(){ return store.get(K+"hrTimes", localStorage) || HR.DEF_TIMES; }
-function hrTimesSave(){                                  // 節次時間有一段格式不對：不存、框變紅、說明這次用預設時間
+function hrTimesSave(){                                  // 節次時間有一段格式不對：不存（沿用上次存好的）、框留著您打的字並變紅
   const el = $("#hrTimes"); if(!el) return; const v = el.value.trim(), c = HR.checkTimes(v || HR.DEF_TIMES);
-  el.classList.toggle("bad", !c.ok); el.setAttribute("aria-invalid", c.ok ? "false" : "true");
-  if(!c.ok){ toast(`節次時間有看不懂的地方：${c.bad.join("、") || "空白"}。這次先用預設時間（08:40 起），請改成像 0840-0920,0930-1010 這樣`); store.del(K+"hrTimes", localStorage); return; }
+  if(!c.ok){ hrTimesSave.draft = v; el.classList.add("bad"); el.setAttribute("aria-invalid", "true");
+    toast(`節次時間有看不懂的地方：${c.bad.join("、") || "空白"}。這次先用上次存好的時間（第 1 節 ${(t => String(Math.floor(t/60)).padStart(2,"0") + ":" + String(t%60).padStart(2,"0"))(HR.periodTimes(hrTimes())[0].from)} 起），請改成像 0840-0920,0930-1010 這樣`); return; }
+  hrTimesSave.draft = null; el.classList.remove("bad"); el.setAttribute("aria-invalid", "false");
   store.set(K+"hrTimes", v, localStorage);
 }
 function hrKey(e){ return e.type==="swap" ? ["swap", e.date, e.period, e.dir==="調出" ? e.teacher : e.partner].join("|") : e.type==="tutor"||e.type==="tutorLeave" ? ["tutor", e.date, e.type==="tutor" ? e.other : e.who].join("|") : e.type==="sub"||e.type==="leave" ? ["leave", e.date, e.period, e.type==="sub" ? e.other : e.who].join("|") : ""; }
@@ -5671,7 +5676,7 @@ function renderHrBox(){
     ${sync}${cloudList}
     <div class="hrdrop" id="hrDrop"><textarea id="hrText" placeholder="${cloudN != null ? "把請假系統「已批核案件」新的文字貼在這裡（只要貼新的；之前的已存在雲端）。也可以把檔案拖進來" : "申請人　表單　申請時間　摘要　批核結果…（可以把檔案拖進來）"}">${esc(text)}</textarea><div class="dz">放開就上傳比對</div></div>
     <div class="row"><button type="button" class="btn small" id="hrUp">上傳請假系統資料</button><input type="file" id="hrFile" accept=".txt,.csv,.tsv,text/plain,text/csv,image/*,application/pdf" multiple hidden><button type="button" class="btn ghost small" id="hrGo">比對</button><button type="button" class="btn ghost small" id="hrClear">清除</button>
-      <label class="hint" for="hrTimes" style="margin:0">節次時間</label><input id="hrTimes" value="${esc(hrTimes())}" aria-label="節次時間，例：0840-0920,0930-1010,…"></div>
+      <label class="hint" for="hrTimes" style="margin:0">節次時間</label><input id="hrTimes" value="${esc(hrTimesSave.draft != null ? hrTimesSave.draft : hrTimes())}"${hrTimesSave.draft != null ? ' class="bad" aria-invalid="true"' : ""} aria-label="節次時間，例：0840-0920,0930-1010,…"></div>
     <p class="hint">節次時間用來把請假的「幾點到幾點」換算成第幾節（預設 08:40–09:20、09:30–10:10、10:30–11:10、11:20–12:00、13:30–14:10、14:20–15:00、15:10–15:50）；請假和某一節重疊不到半節（20 分鐘）不算。和本校作息不同就改上面那格，再按「比對」。</p>${res}</div>`;
   $("#hrGo").onclick = () => { hrTimesSave(); const v = $("#hrText").value;
     busy(true); (v.trim() ? hrRun(v) : (state.hrRecs && state.hrRecs.length ? hrRun(hrRecsToText(state.hrRecs), {noSave:true}) : Promise.resolve(toast("請先貼上或上傳請假系統資料")))).finally(() => busy(false)); };
