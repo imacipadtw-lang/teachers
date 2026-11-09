@@ -565,3 +565,9 @@ table.grid tr.nomatch td { text-align: center; color: var(--muted); padding: 22p
 .hxdelta { font-size: 12px; color: var(--muted); margin-left: 6px; font-variant-numeric: tabular-nums; }
 @media print { .hxfig { break-inside: avoid; border-color: #999; } .hxline, .hxdot, .hxspark polyline, .hxspark circle, .hxarea { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
 @media (prefers-reduced-motion: no-preference) { .hxdot { transition: r .15s; } }
+
+/* ---------- 邊界情況修正 ---------- */
+.tag svg { width: 12px; height: 12px; vertical-align: -1.5px; margin-right: 2px; } /* 「已結案」鎖頭原本沒有尺寸，會變成大圖示 */
+.tag.lock { display: inline-flex; align-items: center; gap: 3px; }
+th.name, td.name { max-width: 11em; white-space: normal; overflow-wrap: anywhere; line-height: 1.35; }
+@media (max-width: 719px) { th.name, td.name { max-width: 6.5em; font-size: 13.5px; } }

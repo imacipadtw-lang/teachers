@@ -655,6 +655,40 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
   await ctx.close();
   await fetch(B + '__reset'); await fetch(B + '__seed');
 
+
+  console.log('30. 邊界情況');
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+  { const R = async b => (await fetch(B + 'exec', { method: 'POST', body: JSON.stringify(b) })).json();
+    const rd = await R({ action: 'read', key: 'test1234' }); const cfg = rd.config; const ids = cfg.items.map(i => i.id);
+    cfg.classes[1].students = []; cfg.classes[2].students[1].name = 'Christopher Alexander Montgomery';
+    await R({ action: 'saveConfig', key: 'test1234', config: cfg });
+    await R({ action: 'addRound', key: 'test1234', round: { id: 'r2', name: '空白次別', due: '', itemIds: [], locked: false, createdAt: '2099-01-01T00:00:00Z' } });
+    await R({ action: 'addRound', key: 'test1234', round: { id: 'r3', name: '已結案次別', due: '2026-10-01', itemIds: ids, locked: true, createdAt: '2099-02-01T00:00:00Z' } });
+    ctx = await br.newContext({ viewport: { width: 1280, height: 860 } }); pg = await newPage(ctx); await adminLogin(pg, B);
+    const lockSize = await pg.$eval('.tag.lock svg', e => { const b = e.getBoundingClientRect(); return Math.max(b.width, b.height); });
+    ok(lockSize <= 14, '「已結案」鎖頭圖示大小正常（' + Math.round(lockSize) + 'px）');
+    ok(/本次抽查已結案：導師不能再更動，教務組仍可更正/.test(await pg.textContent('main')), '教務組看已結案次別：顯示「導師不能再更動，教務組仍可更正」');
+    await pg.selectOption('#roundSel', 'r2'); await sleep(900);
+    await pg.click('nav.tabs >> text=全校總覽'); await sleep(300);
+    ok(/還沒有勾選任何項目/.test(await pg.textContent('.chartpanel')), '沒有項目的次別：總覽說明「還沒有勾選任何項目」');
+    await pg.click('nav.tabs >> text=報表'); await sleep(300);
+    const [dl] = await Promise.all([pg.waitForEvent('download'), pg.click('button:has-text("下載 Excel 報表")')]);
+    ok(fs.statSync(await dl.path()).size > 1000, '沒有項目的次別仍可下載 Excel');
+    await pg.click('nav.tabs >> text=班級檢核'); await pg.locator('.chip', { hasText: '二甲' }).click(); await sleep(200);
+    ok(/還沒有學生名單|沒有適用於本班的項目/.test(await pg.textContent('main')), '0 人的班級：顯示提示而不是空白表格');
+    await ctx.close();
+    const tk = await (await fetch(B + 'exec?action=claim&classId=g3&label=t')).json();
+    ctx = await br.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true }); pg = await newPage(ctx);
+    await pg.goto(B); await pg.evaluate(t => localStorage.setItem('hc.teacher', JSON.stringify({ token: t.token, classId: 'g3' })), tk);
+    await pg.goto('about:blank'); await pg.goto(B + '#s=3010102'); await pg.waitForSelector('.toast', { timeout: 10000 });
+    ok(/已結案，無法登記/.test(await pg.textContent('.toast')), '結案次別用手機相機掃 QR：提示「已結案，無法登記」');
+    await pg.waitForSelector('table.grid');
+    const nameW = await pg.$eval('table.grid tbody tr[data-no="2"] td.name', e => e.getBoundingClientRect().width);
+    ok(nameW < 120 && await pg.evaluate(() => document.documentElement.scrollWidth <= 390), '超長姓名在手機上換行，不撐開畫面（姓名欄 ' + Math.round(nameW) + 'px）');
+    await ctx.close();
+  }
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+
   await br.close();
   console.log('\n頁面錯誤：' + (errors.length ? errors.join(' | ') : '無'));
   console.log(`結果：${pass} 通過，${fail} 失敗`);

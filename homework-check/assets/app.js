@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.10d';
+  const APP_VERSION = '2026.11.10e';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
   const LS = { admin: 'hc.admin', teacher: 'hc.teacher', api: 'hc.api', cls: 'hc.class', outbox: 'hc.outbox', theme: 'hc.theme' };
   const GRADE = ['', '一', '二', '三', '四', '五', '六'];
@@ -190,7 +190,8 @@
       if (S.role === 'teacher') S.selClass = S.classId;
       if (!S.restored) { S.restored = true; restoreOutbox(); applyServer(r.checks || {}, startedAt); }
       if (opts.full) render(); else renderSoft();
-      if (S.pendingScan && opts.full) { const code = S.pendingScan; S.pendingScan = null; const p = parseScan(code); const c = p && classes().find(x => x.id === p.classId); if (c && canEditClass(c.id)) { if (S.role === 'admin') { S.selClass = c.id; renderMain(); } openScan(c); setTimeout(() => S.scan && S.scan.feed(code), 300); } }
+      if (S.pendingScan && opts.full) { const code = S.pendingScan; S.pendingScan = null; const p = parseScan(code); const c = p && classes().find(x => x.id === p.classId); if (c && canEditClass(c.id)) { if (S.role === 'admin') { S.selClass = c.id; renderMain(); } openScan(c); setTimeout(() => S.scan && S.scan.feed(code), 300); }
+        else { const rr = round(); toast(!p ? '看不懂這個條碼' : !c ? '找不到這個班級（編號 ' + code.replace(/^HW\./, '') + '）' : rr && rr.locked ? '本次抽查已結案，無法登記；如需更正請洽教務組。' : S.role === 'teacher' && c.id !== S.classId ? '這不是本班的習作，無法登記。' : '目前無法登記。', 4200); } }
     } catch (e) {
       setSync('err', e.message);
       if (opts.full) { S.screen = 'error'; S.gateMsg = e.message; render(); }
@@ -527,6 +528,7 @@
     if (!n) { box.append(h('div', { class: 'empty', text: admin ? '這個班級還沒有學生名單，請到「設定」貼上名單。' : '這個班級還沒有學生名單，請洽教務組。' })); return box; }
 
     if (!ed) box.append(h('div', { class: 'banner info', text: r && r.locked && S.role === 'teacher' ? '本次抽查已結案，紀錄僅供查看；如需更正請洽教務組。' : '目前為查看模式。' }));
+    else if (r && r.locked && admin) box.append(h('div', { class: 'banner warn', text: '本次抽查已結案：導師不能再更動，教務組仍可更正（每次更正都會記在試算表的「異動紀錄」）。' }));
     else box.append(h('div', { class: 'note', text: '收到該生的習作或家長簽名考卷，就點一下對應的格子；再點一次可取消。畫面會自動儲存。' }));
 
     box.append(renderTable(cls, items, studs, ed, admin));
@@ -1122,6 +1124,7 @@
         h('span', { class: 'track', 'aria-hidden': 'true' }, h('i', { style: 'width:' + pct + '%' })),
         h('span', { class: 'cv' }, h('b', { text: pct + '%' }), h('small', { text: ' ' + p.got + '/' + p.total }), late ? h('span', { class: 'tag seal', text: '逾期未齊' }) : (pct === 100 ? h('span', { class: 'tag ok', text: '繳齊' }) : null))));
     });
+    if (!list.children.length) return h('div', { class: 'note', text: !(r && (r.itemIds || []).length) ? '這次抽查還沒有勾選任何項目——請到「設定 → 抽查次別」勾選本次要檢查的習作與考卷。' : '目前沒有可計算的班級（班級沒有學生名單，或項目都設為不用繳）。' });
     return list;
   }
 
