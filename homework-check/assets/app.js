@@ -4,9 +4,9 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.10g';
+  const APP_VERSION = '2026.11.10h';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
-  const LS = { admin: 'hc.admin', teacher: 'hc.teacher', api: 'hc.api', cls: 'hc.class', outbox: 'hc.outbox', theme: 'hc.theme' };
+  const LS = { admin: 'hc.admin', teacher: 'hc.teacher', api: 'hc.api', cls: 'hc.class', outbox: 'hc.outbox', theme: 'hc.theme', cache: 'hc.cache' };
   const GRADE = ['', '一', '二', '三', '四', '五', '六'];
   const WD = '日一二三四五六';
 
@@ -131,7 +131,7 @@
   function adminSignOut() {
     const t = S.atoken;
     if (t) apiPost({ action: 'adminLogout', atoken: t }).catch(() => { });
-    lsSet(LS.admin, null); S.key = null; S.atoken = null;
+    lsSet(LS.admin, null); S.key = null; S.atoken = null; clearCache();
   }
   async function apiGet(params) {
     if (!S.apiUrl) throw new Error('尚未設定資料表網址');
@@ -193,17 +193,34 @@
       if (r.role === 'teacher') S.classId = r.classId;
       S.rid = r.rid || null; S.loadedRid = S.rid;
       applyServer(r.checks || {}, startedAt);
-      S.lastSync = new Date(); setSync('ok');
+      S.lastSync = new Date(); S.fromCache = false; setSync('ok');
+      saveCache(r);
       if (S.role === 'teacher') S.selClass = S.classId;
       if (!S.restored) { S.restored = true; restoreOutbox(); applyServer(r.checks || {}, startedAt); }
       if (opts.full) render(); else renderSoft();
-      if (S.pendingScan && opts.full) { const code = S.pendingScan; S.pendingScan = null; const p = parseScan(code); const c = p && classes().find(x => x.id === p.classId); if (c && canEditClass(c.id)) { if (S.role === 'admin') { S.selClass = c.id; renderMain(); } openScan(c); setTimeout(() => S.scan && S.scan.feed(code), 300); }
+      if (S.pendingScan) { const code = S.pendingScan; S.pendingScan = null; const p = parseScan(code); const c = p && classes().find(x => x.id === p.classId); if (c && canEditClass(c.id)) { if (S.role === 'admin') { S.selClass = c.id; renderMain(); } openScan(c); setTimeout(() => S.scan && S.scan.feed(code), 300); }
         else { const rr = round(); toast(!p ? '看不懂這個條碼' : !c ? '找不到這個班級（編號 ' + code.replace(/^HW\./, '') + '）' : rr && rr.locked ? '本次抽查已結案，無法登記；如需更正請洽教務組。' : S.role === 'teacher' && c.id !== S.classId ? '這不是本班的標籤，無法登記。' : '目前無法登記。', 4200); } }
     } catch (e) {
       setSync('err', e.message);
       if (opts.full) { S.screen = 'error'; S.gateMsg = e.message; render(); }
     }
   }
+  // 上次的資料存在這台裝置：開網頁先顯示（不用等 Google），再於背景更新；斷線時也能看、能登記
+  function saveCache(r) {
+    try { const c = Object.assign({}, r); delete c.history; delete c.unchanged; lsSet(LS.cache, { owner: outboxOwner(), at: Date.now(), r: c }); } catch (e) { }
+  }
+  function showCached() {
+    const c = lsGet(LS.cache);
+    if (!c || !c.r || c.owner !== outboxOwner()) return false;
+    const r = c.r;
+    S.role = r.role; S.config = r.config || { items: [], classes: [] }; S.rounds = r.rounds || []; S.links = r.links || {}; S.claimClosed = !!r.claimClosed; S.sheetUrl = r.sheetUrl || '';
+    if (r.role === 'teacher') { S.classId = r.classId; S.selClass = r.classId; }
+    S.rid = r.rid || null; S.loadedRid = S.rid; S.version = null;
+    applyServer(r.checks || {}, 0);
+    S.lastSync = new Date(c.at); S.fromCache = true;
+    return true;
+  }
+  function clearCache() { lsSet(LS.cache, null); }
   function applyServer(checks, startedAt) {
     const next = {};
     Object.keys(checks).forEach(cid => { next[cid] = { marks: Object.assign({}, checks[cid].marks || {}), skip: Object.assign({}, checks[cid].skip || {}), notes: Object.assign({}, checks[cid].notes || {}), classNote: checks[cid].classNote || '', updatedAt: checks[cid].updatedAt || '', updatedBy: checks[cid].updatedBy || '' }; });
@@ -234,7 +251,7 @@
   });
   window.addEventListener('online', () => { if (S.screen !== 'app') return; if (outboxCount()) { retryDelay = 0; flush(); } else load(); });
   function authLost() {
-    S.pending.clear(); S.outbox.clear(); lsSet(LS.outbox, null);
+    S.pending.clear(); S.outbox.clear(); lsSet(LS.outbox, null); clearCache();
     if (S.role === 'teacher') { lsSet(LS.teacher, null); S.token = null; S.screen = 'auth-lost'; }
     else { lsSet(LS.admin, null); S.key = null; S.atoken = null; S.screen = 'login'; S.gateMsg = '登入已失效，請重新輸入密碼。'; }
     render();
@@ -446,7 +463,7 @@
   function renderSync() {
     const el = h('span', { id: 'sync', class: 'sync ' + (S.sync === 'ok' ? '' : S.sync) }, h('i', { class: 'dot' }));
     const waiting = outboxCount();
-    if (S.sync === 'busy') el.append('同步中…');
+    if (S.sync === 'busy') el.append(S.fromCache ? '顯示上次的資料，更新中…' : '同步中…');
     else if (S.sync === 'err') el.append('無法連線' + (S.lastSync ? '，顯示 ' + fmtTime(S.lastSync) + ' 的資料' : ''));
     else el.append('已同步 ' + fmtTime(S.lastSync));
     if (waiting) { el.classList.add('err'); el.append(h('b', { class: 'waiting', text: '　' + waiting + ' 筆待送出，連線後自動補送' })); }
@@ -490,7 +507,7 @@
     const cur = lsGet(LS.theme) || 'auto';
     const curName = (THEMES.find(t => t[0] === cur) || THEMES[0])[1];
     f.append(h('button', { class: 'link', 'aria-label': '切換外觀，目前為' + curName, onclick: () => { const i = THEMES.findIndex(t => t[0] === (lsGet(LS.theme) || 'auto')); const next = THEMES[(i + 1) % THEMES.length]; lsSet(LS.theme, next[0] === 'auto' ? null : next[0]); applyTheme(); toast('外觀：' + next[1] + (next[0] === 'auto' ? '（跟隨系統）' : '')); const of = document.querySelector('footer.foot'); if (of) { of.replaceWith(renderFoot()); const nb = document.querySelector('footer.foot .themebtn'); if (nb) nb.focus(); } }, class: 'link themebtn' }, '外觀：' + curName));
-    if (S.role === 'teacher') f.append(armed(h('button', { class: 'link' }), '在此裝置登出', '再按一次確認登出（之後需請教務組解除才能重新登入）', () => { lsSet(LS.teacher, null); S.token = null; S.screen = 'login'; S.gateMsg = '已在此裝置登出。'; render(); }, 4000));
+    if (S.role === 'teacher') f.append(armed(h('button', { class: 'link' }), '在此裝置登出', '再按一次確認登出（之後需請教務組解除才能重新登入）', () => { lsSet(LS.teacher, null); clearCache(); S.token = null; S.screen = 'login'; S.gateMsg = '已在此裝置登出。'; render(); }, 4000));
     else f.append(h('button', { class: 'link', onclick: () => { adminSignOut(); S.screen = 'login'; S.gateMsg = ''; render(); } }, '登出'));
     return f;
   }
@@ -1797,6 +1814,7 @@
   /* ---------- 啟動 ---------- */
   async function boot() {
     applyTheme();
+    if ('serviceWorker' in navigator && window.isSecureContext) navigator.serviceWorker.register('sw.js').catch(() => { });
     const hash = new URLSearchParams(location.hash.replace(/^#/, ''));
     S.apiUrl = (CFG.apiUrl || '').trim() || hash.get('api') || lsGet(LS.api) || '';
     if (hash.get('api') && !CFG.apiUrl) lsSet(LS.api, hash.get('api'));
@@ -1804,9 +1822,9 @@
     if (hash.get('s')) { S.pendingScan = 'HW.' + hash.get('s').replace(/^HW\./, ''); history.replaceState(null, '', location.pathname + location.search); }
     if (!S.apiUrl) { S.screen = 'setup'; render(); return; }
     S.screen = 'boot'; render();
-    if (teacher && teacher.token) { S.token = teacher.token; S.classId = teacher.classId; S.role = 'teacher'; S.screen = 'app'; render(); startPolling(); await load({ force: true, full: true }); return; }
+    if (teacher && teacher.token) { S.token = teacher.token; S.classId = teacher.classId; S.role = 'teacher'; const cached = showCached(); S.screen = 'app'; render(); startPolling(); await load({ force: true, full: !cached }); return; }
     if (admin && (admin.atoken || admin.key)) {
-      S.atoken = admin.atoken || null; S.key = admin.atoken ? null : admin.key; S.role = 'admin'; S.screen = 'app'; S.view = 'class'; render(); startPolling(); await load({ force: true, full: true });
+      S.atoken = admin.atoken || null; S.key = admin.atoken ? null : admin.key; S.role = 'admin'; const cached = showCached(); S.screen = 'app'; S.view = 'class'; render(); startPolling(); await load({ force: true, full: !cached });
       // 舊版本記住的是密碼：換成登入憑證後刪掉密碼（後端尚未更新時維持原狀）
       if (S.key && S.screen === 'app') { try { const r = await apiPost({ action: 'adminLogin', key: S.key, label: deviceLabel() }); if (r.ok && r.atoken) { S.atoken = r.atoken; S.key = null; lsSet(LS.admin, { atoken: r.atoken }); } } catch (e) { } }
       return;

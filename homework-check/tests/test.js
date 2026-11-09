@@ -689,6 +689,39 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
   }
   await fetch(B + '__reset'); await fetch(B + '__seed');
 
+
+  console.log('31. 離線也能開啟與登記（本機快取＋離線外殼）');
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+  { const R = async b => (await fetch(B + 'exec', { method: 'POST', body: JSON.stringify(b) })).json();
+    const tk = await (await fetch(B + 'exec?action=claim&classId=g1&label=t')).json();
+    ctx = await br.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true }); pg = await newPage(ctx);
+    await pg.goto(B); await pg.evaluate(t => localStorage.setItem('hc.teacher', JSON.stringify({ token: t.token, classId: 'g1' })), tk);
+    await pg.reload(); await pg.waitForSelector('table.grid'); await sleep(1500);
+    ok(await pg.evaluate(async () => { const r = await navigator.serviceWorker.ready; return !!r.active; }), '離線外殼（Service Worker）已啟用');
+    await pg.reload(); await pg.waitForSelector('table.grid'); await sleep(800); // 讓外殼接管並快取檔案
+    ok(await pg.evaluate(() => !!JSON.parse(localStorage.getItem('hc.cache') || 'null')), '上次的資料已存在這台裝置');
+    // 模擬 Google 很慢：開網頁應立刻看到上次的表格
+    await fetch(B + '__hang');
+    const t0 = Date.now(); await pg.reload(); await pg.waitForSelector('table.grid', { timeout: 8000 }); const dt = Date.now() - t0;
+    ok(dt < 4000 && /顯示上次的資料/.test(await pg.textContent('#sync')), 'Google 沒回應時 ' + dt + ' ms 就顯示上次的表格（同步列註明「顯示上次的資料」）');
+    await fetch(B + '__unhang');
+    await pg.waitForFunction(() => /已同步/.test(document.querySelector('#sync').textContent), null, { timeout: 15000 });
+    ok(true, 'Google 恢復後自動更新為最新');
+    // 完全斷網：重新開啟網頁仍可使用、可登記
+    await ctx.setOffline(true);
+    await pg.reload(); await pg.waitForSelector('table.grid', { timeout: 10000 });
+    ok(!(await pg.$('.gate')), '完全斷網：網頁仍能開啟並顯示本班表格');
+    await pg.locator('table.grid button.chk[data-no="4"][data-item="math"]').tap(); await sleep(9000);
+    ok(/1 筆待送出/.test(await pg.textContent('#sync')), '斷網時登記先存在本機（1 筆待送出）');
+    await ctx.setOffline(false); await sleep(12000);
+    const mk = (await R({ action: 'read', key: 'test1234' })).checks.g1.marks;
+    ok(mk['4'] && mk['4'].math, '恢復連線後自動補送成功');
+    await pg.click('footer button:has-text("在此裝置登出")'); await sleep(100); await pg.click('footer button:has-text("再按一次")'); await sleep(300);
+    ok(await pg.evaluate(() => localStorage.getItem('hc.cache') === null), '登出時清除本機資料');
+    await ctx.close();
+  }
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+
   await br.close();
   console.log('\n頁面錯誤：' + (errors.length ? errors.join(' | ') : '無'));
   console.log(`結果：${pass} 通過，${fail} 失敗`);
