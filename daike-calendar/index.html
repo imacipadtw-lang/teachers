@@ -2470,7 +2470,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.09n";
+const APP_VERSION = "專業版 2026.11.09o";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -2596,6 +2596,9 @@ async function loadNames(){
 }
 
 /* 公開週表：週一到週五固定五欄；週末有課務才多一欄。老資料（上次存的）先畫，等新的回來再換 */
+/* 半天的停課（例：颱風假下午）要寫出範圍，不要看起來像整天放假（115.11.9） */
+const offHalf = o => !!(o && o.scope && o.scope !== "全天");
+const offLabel = o => o ? (offHalf(o) ? `${o.name}（${o.scope}停課）` : o.name) : "";
 function renderPubWeek(week, stale){
   const box = $("#pubWeek"); if (!box) return;
   if (!Array.isArray(week) || !week.length){ box.hidden = true; return; }
@@ -2967,7 +2970,7 @@ function renderSettings(){
     <div class="set-sec"><h4>4. 投保資料（資料表「保險設定」分頁）<small>每人一列。每月投保日數留空＝整月 30 天；填了加保／退保日期才會按天數比例算</small></h4>
       <div class="set-tbl" tabindex="0" aria-label="表格（可左右捲動）"><table id="insTbl"><thead><tr>${INS_COLS.map(c => `<th>${c[1]}</th>`).join("")}<th><span class="sr">操作</span></th></tr></thead><tbody></tbody></table></div>
       <div class="mrow set-act"><button class="btn ghost small" type="button" id="insAdd">＋ 新增一列</button><button class="btn" type="button" id="insSave">儲存投保資料</button><span class="set-msg" id="insMsg"></span></div></div>
-    <div class="set-sec"><h4>5. 假日與停班停課（資料表「假日與停班停課」分頁）<small>國定假日、補假、颱風假；要取消某天的假就選「照常上課」。合理員額教師假日照計、照給薪</small></h4>
+    <div class="set-sec"><h4>5. 假日與停班停課（資料表「假日與停班停課」分頁）<small>國定假日、補假、颱風假；要取消某天的假就選「照常上課」。合理員額教師：國定假日、颱風假照計照給；補假和其他停課不計</small></h4>
       <div class="set-tbl" tabindex="0" aria-label="表格（可左右捲動）"><table id="offTbl"><thead><tr><th>日期</th><th>名稱</th><th>類型</th><th>範圍</th><th>備註</th><th>來源</th><th><span class="sr">操作</span></th></tr></thead><tbody></tbody></table></div>
       <div class="mrow set-act"><button class="btn ghost small" type="button" id="offAdd">＋ 新增一列</button><button class="btn" type="button" id="offSave">儲存假日</button><span class="set-msg" id="offMsg"></span></div></div>
     <div class="set-sec"><h4>6. 扣款調整（資料表「扣款調整」分頁）<small>出納、會計要多扣或少扣的項目：所得稅、補充保費、代扣款、退還（負數）…。網站、清冊、Excel 的「其他扣款」和實領都會跟著算</small></h4>
@@ -3026,6 +3029,8 @@ function renderSettings(){
     for(const k of SET_RATE_KEYS.concat(SET_INS_KEYS)){
       const raw = box.querySelector(`[data-k="${k}"]`).value.replace(/,/g,"").trim();
       if(!/^\d+(\.\d+)?$/.test(raw)) return $("#setMsg").textContent = `✘ ${SET_LABEL[k]}：請填數字`;
+      if(/^RATE_|INS_MINWAGE|INS_TAXFREE/.test(k) && !(+raw > 0)) return $("#setMsg").textContent = `✘ ${SET_LABEL[k]}：不能是 0`;   // 115.11.9：0 會讓網站改用 405、雲端卻存 0，兩邊對不上
+      if(/（%）$/.test(SET_LABEL[k]) && +raw > 100) return $("#setMsg").textContent = `✘ ${SET_LABEL[k]}：百分比不能超過 100`;
       if(String(+raw) !== String(+val(k))) values[fromD ? `${k}@${fromD}` : k] = +raw;
     }
     const acct = box.querySelector('[data-k="ACCT_USERS"]').value.split(/[、,，\s]+/).map(x => x.trim()).filter(Boolean).join("、");
@@ -3339,7 +3344,7 @@ function reportChecks(ym, evs){
   hrInsChecks(ym, H).forEach(x => C.push(x));                        // 人事給的保費數字逐項審核
   // 假日
   const hol = Object.keys(state.off || {}).filter(d => d.startsWith(ym)).sort();
-  if(hol.length) add("info", "off", `本月假日／停班停課 ${hol.length} 天：${hol.map(d => fmtMD(d) + " " + state.off[d].name + (state.off[d].scope !== "全天" ? "（" + state.off[d].scope + "）" : "")).join("、")}（合理員額照計照給，校內代課當天不計）`);
+  if(hol.length) add("info", "off", `本月假日／停班停課 ${hol.length} 天：${hol.map(d => fmtMD(d) + " " + state.off[d].name + (state.off[d].scope !== "全天" ? "（" + state.off[d].scope + "）" : "")).join("、")}（合理員額：國定假日、颱風假照計照給，補假和其他停課不計；校內代課當天不計）`);
   else add("warn", "off", "本月沒有登記任何假日；如果有國定假日或颱風假，請到「系統設定 → 假日」補上，否則合理員額假日照給會算不到");
   // 三方核對
   const okAll = A.total === A.byTeacher && A.total === A.recSum && A.total === A.byLeave;
@@ -3864,7 +3869,7 @@ function weekData(anchor){
   const days = weekDays(anchor), roc = s => { const t = new Date(s + "T00:00:00"); return `${t.getFullYear()-1911}年${t.getMonth()+1}月${t.getDate()}日`; };
   const list = days.map(d => ({ d, items: remindItems(d), off: (state.off || {})[d] }));
   const text = `【本週調代課提醒】${roc(days[0])}～${(+days[4].slice(5,7))}月${+days[4].slice(8)}日\n`
-    + list.map(x => `\n${md(x.d)}` + (x.off ? `　${x.off.name}` : "") + "\n" + (x.items.length ? x.items.map((it, i) => `${i+1}. ${it.line}`).join("\n") : "（無）")).join("\n")
+    + list.map(x => `\n${md(x.d)}` + (x.off ? `　${offLabel(x.off)}` : "") + "\n" + (x.items.length ? x.items.map((it, i) => `${i+1}. ${it.line}`).join("\n") : "（無）")).join("\n")
     + `\n\n請相關老師留意，謝謝。\n教務組 敬啟`;
   const d0 = new Date(days[0] + "T00:00:00"), d4 = new Date(days[4] + "T00:00:00");
   return { days, list, text, n: list.reduce((a, x) => a + x.items.length, 0), title: "本週調代課提醒",
@@ -3882,7 +3887,7 @@ function weekCanvas(W){
   const c = document.createElement("canvas"), g = c.getContext("2d");
   const wrap = (txt, font, maxW) => { g.font = font; const out = []; let line = ""; for(const ch of txt){ if(g.measureText(line + ch).width > maxW && line){ out.push(line); line = ch; } else line += ch; } if(line) out.push(line); return out; };
   // 先量高度
-  const blocks = W.list.map(x => ({ x, lines: x.items.length ? x.items.map((it, i) => wrap(`${i+1}. ${it.line}`, `500 30px ${FF}`, w - pad * 2 - 30)) : [[x.off ? "（" + x.off.name + "，不上課）" : "（無）"]] }));
+  const blocks = W.list.map(x => ({ x, lines: x.items.length ? x.items.map((it, i) => wrap(`${i+1}. ${it.line}`, `500 30px ${FF}`, w - pad * 2 - 30)) : [[x.off ? "（" + offLabel(x.off) + (offHalf(x.off) ? "" : "，不上課") + "）" : "（無）"]] }));
   let h = 200 + 36;
   blocks.forEach(b => { h += 58 + b.lines.reduce((a, l) => a + l.length * 44, 0) + 18; });
   h += 150;
@@ -4271,16 +4276,25 @@ function autoSub(r){
   if(!r.cls && L && d && r.period){ const c = state.meta.tSlot[CF.dow(d)+"|"+r.period+"|"+L]||[]; if(c.length===1){ r.cls=c[0]; r.auto.cls=1; } }
   const a = ttAt(d,r.period,r.cls); if(a && (!r.subject || r.auto.subject)){ r.subject=a.subject; r.auto.subject=1; }
 }
+/* 合班（同一節同時上兩班以上，課表上有「低年級／中年級／高年級」那一格）只能登一筆、班級填學段，否則衝堂、金額也會錯
+ * （和「資料檢查」dupslot 規則、請假比對的「登記代課」同一套；115.11.9） */
+function combCls(date, p, classes){
+  if(!classes || classes.length < 2 || !state.meta) return classes || [];
+  const w = CF.dow(date), g = ["低年級","中年級","高年級"].find(n => state.meta.tt[w + "|" + p + "|" + n]);
+  return g ? [g] : classes;
+}
 function fillDay(){                          // 把請假老師那天課表上的課帶進來（已經登記代課的、已調走的不帶，另外告訴您）
   const L = plan.sub.leaver, d = plan.sub.date; if(!L||!d) return;
   const ctx = ctxOf(), dw = CF.dow(d), rows = [], done = [], moved = [];
   for(let p=1;p<=7;p++){
-    (state.meta.tSlot[dw+"|"+p+"|"+L] || []).forEach(cls => {
-      const sw = ctx.ev.find(e => e.type==="swap" && e.date===d && String(e.period)===String(p) && e.cls===cls && (e.dir==="調出" ? e.teacher : e.partner)===L && (e.dir==="調出" ? e.partner : e.teacher)!==L);
+    const raw = state.meta.tSlot[dw+"|"+p+"|"+L] || [], merged = combCls(d, p, raw);
+    merged.forEach(cls => {
+      const inC = c => c === cls || (merged.length === 1 && raw.length > 1 && raw.includes(c));
+      const sw = ctx.ev.find(e => e.type==="swap" && e.date===d && String(e.period)===String(p) && inC(e.cls) && (e.dir==="調出" ? e.teacher : e.partner)===L && (e.dir==="調出" ? e.partner : e.teacher)!==L);
       if(sw){ moved.push(`第${p}節 ${cls}（${sw.id||"調課"}）`); return; }
-      const lv = ctx.ev.find(e => e.type==="leave" && e.who===L && e.date===d && String(e.period)===String(p) && (!e.cls || e.cls===cls));
+      const lv = ctx.ev.find(e => e.type==="leave" && e.who===L && e.date===d && String(e.period)===String(p) && (!e.cls || inC(e.cls)));
       if(lv){ done.push(`第${p}節 ${cls}${lv.other ? "由 " + lv.other + " 代" : ""}${lv.id ? "（" + lv.id + "）" : ""}`); return; }
-      const a = ttAt(d,p,cls);
+      const a = ttAt(d,p,cls) || (cls !== raw[0] ? ttAt(d,p,raw[0]) : null);
       rows.push(Object.assign(newSubRow(), {period:String(p), cls, subject:a?a.subject:"", auto:{subject:1}}));
     });
   }
@@ -4781,11 +4795,12 @@ function applyScan(d){
       if(r.date && ymdOk(r.date) && ymdOk(r.date) !== U.date) warn.push(`照片上還有 ${r.date} 的代課，這張只填 ${U.date}；其他天請另外登記`);
       (r.periods.length ? r.periods : [""]).forEach(p => {
         // 課表上這節的班級（和「帶入這天的課」一樣）；合班（例：四甲＋五甲一起上）每一班一列，115.11.9 起不再只留第一班
-        const busy = U.leaver && U.date && pOk(p) ? CF.busyAt(ctxOf(), U.leaver, U.date, +p, "").map(x => String(x).split("（")[0]).filter(Boolean) : [];
+        const busy0 = U.leaver && U.date && pOk(p) ? CF.busyAt(ctxOf(), U.leaver, U.date, +p, "").map(x => String(x).split("（")[0]).filter(Boolean) : [];
+        const busy = combCls(U.date, pOk(p), busy0);
         const pc = clsOk(r.cls);
-        if(pc && busy.length && !busy.includes(pc)) warn.push(`照片上第${p}節寫「${pc}」，課表上 ${U.leaver} 這節是 ${busy.join("＋")}，已依課表填，請核對`);
+        if(pc && busy.length && !busy.includes(pc) && !busy0.includes(pc)) warn.push(`照片上第${p}節寫「${pc}」，課表上 ${U.leaver} 這節是 ${busy.join("＋")}，已依課表填，請核對`);
         (busy.length ? busy : [pc]).forEach(tc => {
-          const a = busy.length ? ttAt(U.date, pOk(p), tc) : null;
+          const a = busy.length ? (ttAt(U.date, pOk(p), tc) || ttAt(U.date, pOk(p), busy0[0])) : null;
           const row = Object.assign(newSubRow(), {period: pOk(p), cls: tc, subject: (a && a.subject) || r.subject || "", sub: who(r.other, "代課老師：")});
           const i = U.rows.length; U.rows.push(row); ["period","cls","subject","sub"].forEach(f => { if(row[f]) keys.push(`r.${i}.${f}`); });
         });
@@ -6245,8 +6260,8 @@ function printHeliMine(r){
     <div class="meta"><span>上課 ${t.n1 + t.n15} 節（合班 ${t.n15} 節算 1.5）＝${unitsText(t.units)} 節，進位 ${t.pay} 節</span><span>列印日期：${printedAt()}</span></div>
     <table><thead><tr><th>序</th><th>日期</th><th>星期</th><th>節次</th><th>班級</th><th>科目</th><th>節數</th><th>計入</th><th style="width:30%">說明</th></tr></thead>
     <tbody>${rows}<tr class="tot"><td colspan="7">合計</td><td class="r">${unitsText(t.units)}</td><td class="l">進位 ${t.pay} 節 × ${RATE_SUB} ＝ ${f(t.amt)} 元</td></tr></tbody></table>
-    <table style="margin-top:10px"><thead><tr><th>鐘點費</th><th>勞保自付</th><th>健保自付</th><th>補充保費</th><th>所得稅</th><th>扣款合計</th><th>實領</th></tr></thead>
-    <tbody><tr class="tot"><td class="r">${f(t.amt)}</td><td class="r">${f(ic.empLabor)}</td><td class="r">${f(ic.empNhi)}</td><td class="r">${f(ic.supp)}</td><td class="r">${f(ic.tax)}</td><td class="r">${f(ic.empTotal)}</td><td class="r"><b>${f(t.amt - ic.empTotal)}</b></td></tr></tbody></table>
+    <table style="margin-top:10px"><thead><tr><th>鐘點費</th><th>勞保自付</th><th>健保自付</th><th>補充保費</th><th>所得稅</th>${mineDed ? "<th>扣款調整</th>" : ""}<th>扣款合計</th><th>實領</th></tr></thead>
+    <tbody><tr class="tot"><td class="r">${f(t.amt)}</td><td class="r">${f(ic.empLabor)}</td><td class="r">${f(ic.empNhi)}</td><td class="r">${f(ic.supp)}</td><td class="r">${f(ic.tax)}</td>${mineDed ? `<td class="r">${f(mineDed)}</td>` : ""}<td class="r">${f(ic.empTotal + mineDed)}</td><td class="r"><b>${f(t.amt - ic.empTotal - mineDed)}</b></td></tr></tbody></table>
     <p class="note" style="white-space:pre-line">${esc(calc.join("\n"))}</p>
     <p class="note">本表依課表、假日、請假代課、調課紀錄自動計算，金額與教務組送會計室之印領清冊相同；如有不符請於簽名前告知教務組。</p>
     <div class="sign"><div>教師簽名：</div><div>日期：　　　年　　　月　　　日</div></div></div>`;
