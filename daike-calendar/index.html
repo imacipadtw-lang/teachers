@@ -1305,7 +1305,7 @@ html:not([data-theme=dark]) .ev .p .k{color:#1F5C96}
 html:not([data-theme=dark]) .ev.t-swap .p .k{color:#7E4F08}
 html:not([data-theme=dark]) .wb-nav button.on{color:#A3305C}
 html[data-theme=dark] .ev .fixbtn{color:var(--sky)}
-.nw{display:inline-block;white-space:nowrap}
+.h1seg{display:inline-block;white-space:nowrap}
 /* 手機：排調代課底部＝一行說明＋「取消｜儲存」並排，儲存在右邊（拇指好按） */
 @media (max-width:760px){
   .plan-foot{padding:10px 14px calc(10px + env(safe-area-inset-bottom));gap:8px}
@@ -1317,6 +1317,7 @@ html[data-theme=dark] .ev .fixbtn{color:var(--sky)}
 body.has-view .admin-mobile .admin-box > label,body.has-view .admin-mobile .admin-box > .viewAs,body.has-view .admin-mobile .admin-box > .pw-tip{display:none}
 body.has-view .admin-mobile .pw-list{margin-top:0;border-top:0;padding-top:0}
 @media (min-width:1051px){.admin-mobile .admin-box{max-width:640px}}
+.set-tbl,.scroll{position:relative}   /* 表格裡的隱藏文字（.sr）留在捲動框內，不撐寬整頁 */
 </style>
 </head>
 <body>
@@ -1330,7 +1331,7 @@ body.has-view .admin-mobile .pw-list{margin-top:0;border-top:0;padding-top:0}
     <span class="term">南投縣草屯鎮土城國民小學　115 學年度上學期</span>
   </nav>
   <div class="lcenter">
-    <h1><span class="nw">代課・調課・請假</span>　<span class="nw">核對系統</span></h1>
+    <h1><span class="h1seg">代課・調課・請假</span>　<span class="h1seg">核對系統</span></h1>
     <p class="lead">教務組專用：紙本登錄、課務查詢、代課鐘點費核對。</p>
     <form class="login-card" id="loginForm" autocomplete="off">
       <p class="demo-tag" id="demoTag" hidden>示範模式：資料是假的，密碼一律 demo</p>
@@ -2460,7 +2461,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.09k";
+const APP_VERSION = "專業版 2026.11.09l";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -2841,6 +2842,11 @@ function applyData(d){
   state.events = (d.events||[]).filter(e=>inTerm(e.date)).sort((a,b)=>a.date.localeCompare(b.date)||(a.period||0)-(b.period||0));
   state.viewing = d.viewing || d.name;
   if(state.viewing === "__all__") state.school = state.events;                // 全校紀錄留一份：看某位老師時，年曆照樣列出全校（10/30）
+  else if(state.role === "admin" && state.cred){                               // 115.11.9：看某位老師時存檔／刪除後，全校那份也在背景重讀，不再顯示舊的
+    const tok = applyData.tok = (applyData.tok || 0) + 1;
+    fetchData(state.cred.name, state.cred.h, "__all__", true).then(x => { if(tok !== applyData.tok || isAll() || !x || !x.ok) return;
+      state.school = (x.events || []).filter(e => inTerm(e.date)); renderYear(); if(state.selected) renderPanel(state.selected); }).catch(() => {});
+  }
   const label = state.viewing==="__all__" ? "全校總覽" : state.viewing+" 老師";
   $("#login").style.display="none"; $("#app").style.display="block";
   $("#who").innerHTML = `${esc(label)}${state.role==="admin"?"<small>教務組管理者</small>":state.role==="acct"?"<small>會計（唯讀）</small>":""}`;
@@ -2894,7 +2900,6 @@ function renderAdmin(){
     busy(true);
     try{ const d = await fetchData(state.cred.name, state.cred.h, state.viewing); if(d.ok) applyData(d); }
     finally{ busy(false); }
-    if(!isAll() && !state.school) allEvents().then(ev => { state.school = ev; renderYear(); if(state.selected) renderPanel(state.selected); }).catch(() => {});
   });
   document.querySelectorAll("[data-reset]").forEach(b=>b.onclick = async ()=>{
     const t = b.dataset.reset;
@@ -3662,7 +3667,7 @@ function renderYear(){
       const short = x => { const per = (x.p.match(/第(\d)節/)||[])[1] || "", kind = /^調課/.test(x.p) ? "調" : /^請假/.test(x.p) ? "假" : /導師/.test(x.p) ? "導" : ""; return `<span class="cp">${esc(kind + per || "·")}</span><span class="cw">${esc(x.w.replace(/\s+/g, ""))}</span>`; };
       const MAXL = 99, all = ents.map(x => ({h: short(x), fl: x.fl, o: false})).concat(oth.map(x => ({h: short(x), o: true})));
       const evHtml = all.slice(0, MAXL).map(x => `<div class="cell-ev${x.o ? " other" : ""}${x.fl ? " flag" : ""}" title="${esc(x.fl || "")}">${x.h}</div>`).join("")
-        + `<div class="cell-ev more" data-total="${all.length}"${all.length > MAXL ? "" : " hidden"}>＋還有 ${all.length - MAXL} 筆</div>`;
+        + `<div class="cell-ev more" data-total="${all.length}"${all.length > MAXL ? "" : " hidden"}>${all.length > MAXL ? `＋還有 ${all.length - MAXL} 筆` : ""}</div>`;
       cells += `<div class="d${has?" has":""}${canAdd&&!has?" canadd":""}${off?" off":""}${flagged?" flag":""}${key===today?" today":""}${dow===0||dow===6?" we":""}${key===state.selected?" sel":""}" data-date="${key}"${off?` title="${esc(offTxt)}"`:""}>${has?`<button type="button" class="dhit" aria-label="${m+1}月${d}日，${ents.length} 則紀錄${flagged?"，有需要確認的紀錄":""}，按了看明細"></button>`:""}<span class="n">${d}</span>${canAdd?`<span class="addp" role="button" tabindex="0" data-plan="${key}" title="補登這天的調代課" aria-label="補登 ${m+1}月${d}日的調代課">＋</span>`:""}${off?`<span class="offl">${esc(offTxt)}</span>`:""}${flagged?`<span class="mk">⚠</span>`:""}${evHtml}</div>`;
       if(has || (off && dow!==0 && dow!==6)){
         agenda += `<div class="ag-day" id="ag-${key}"><div class="ag-date">${m+1}/${d}<small>星期${DOW[dow]}</small></div><div>${off?`<div class="ag-off">${esc(offTxt)}${off.kind==="颱風假"?"：停止上課":"：放假"}</div>`:""}${(byDate[key]||[]).map(e=>evRow(e)).join("")}${otherBy[key] ? `<div class="ev-other">${asSchool(() => otherBy[key].map(e=>evRow(e)).join(""))}</div>` : ""}</div></div>`;
@@ -4333,17 +4338,26 @@ const OLD_BACKEND_MSG = "雲端程式還沒更新到新版（v27），請假暫�
 function absDays(){
   const A = plan.absent, from = A.from, to = A.to && A.to >= A.from ? A.to : A.from, out = [];
   if(!from) return out;
-  for(let d = new Date(from+"T12:00:00"); out.length < 31; d.setDate(d.getDate()+1)){
+  let d = new Date(from+"T12:00:00");
+  for(; out.length < 31; d.setDate(d.getDate()+1)){
     const y = ymd(d); if(y > to) break;
     if(d.getDay()!==0 && d.getDay()!==6) out.push(y);
   }
+  plan.absent.over = dayCapOver(d, to);
   return out;
+}
+/* 一次最多 31 個上課日：超過的不能默默截掉（後面幾天的代導費會漏發），要擋下來請分段登記 */
+function dayCapOver(d, to){
+  for(let k = 0; k < 7; k++, d.setDate(d.getDate()+1)){ const y = ymd(d); if(y > to) return ""; if(d.getDay()!==0 && d.getDay()!==6) return y; }
+  return "";
 }
 /* 代導師的每一天（週六、週日不列；最多 31 天） */
 function tutDays(){
   const T = plan.tutor, to = T.to && T.to >= T.from ? T.to : T.from, out = [];
   if(!T.from) return out;
-  for(let d = new Date(T.from+"T12:00:00"); out.length < 31; d.setDate(d.getDate()+1)){ const y = ymd(d); if(y > to) break; if(d.getDay()!==0 && d.getDay()!==6) out.push(y); }
+  let d = new Date(T.from+"T12:00:00");
+  for(; out.length < 31; d.setDate(d.getDate()+1)){ const y = ymd(d); if(y > to) break; if(d.getDay()!==0 && d.getDay()!==6) out.push(y); }
+  plan.tutor.over = dayCapOver(d, to);
   return out;
 }
 function formData(){
@@ -4367,14 +4381,15 @@ function formData(){
 function missingOf(kind, r){
   const m=[];
   if(kind==="swap"){ if(!plan.swap.teacher) m.push("申請人"); if(!r.cls) m.push("班級"); if(!r.fromDate) m.push("原日期"); if(!r.fromPeriod) m.push("原節次");
-    if(!r.toDate) m.push("調整後日期"); if(!r.toPeriod) m.push("調整後節次"); if(!r.partner) m.push("調(代)課教師"); }
+    if(!r.toDate) m.push("調整後日期"); if(!r.toPeriod) m.push("調整後節次"); if(!r.partner) m.push("調(代)課教師");
+    if(r.fromDate && r.fromDate===r.toDate && r.fromPeriod && String(r.fromPeriod)===String(r.toPeriod)) m.push("（原節次和調整後是同一天同一節，等於沒有調，請改調整後節次）"); }
   else if(kind==="sub"){ if(!r.leaver) m.push("請假老師"); if(!r.date) m.push("日期"); if(!r.period) m.push("節次"); if(!r.cls) m.push("班級"); if(!r.sub) m.push("代課老師");
     if(r.sub && r.sub===r.leaver) m.push("（代課老師不能是請假老師本人）");
     if(r.leaveType==="其他" && !String(r.note||"").trim()) m.push("備註（假別選「其他」要寫明是什麼假）"); }
-  else if(kind==="absent"){ if(!r.teacher) m.push("請假老師"); if(!r.date) m.push("日期"); if(!r.leaveType) m.push("假別");
+  else if(kind==="absent"){ if(plan.absent.over) m.push(`（一次最多 31 個上課日：請先登記到 ${CF.md(plan.absent.from && absDays().slice(-1)[0] || "")}，再從 ${CF.md(plan.absent.over)} 起另外登記）`); if(!r.teacher) m.push("請假老師"); if(!r.date) m.push("日期"); if(!r.leaveType) m.push("假別");
     if(r.scope==="節次" && !(r.periods||[]).length) m.push("節次（範圍選「節次」要勾選）");
     if(r.leaveType==="其他" && !String(r.reason||"").trim()) m.push("事由（假別選「其他」要寫明是什麼假）"); }
-  else { if(!r.leaver) m.push("請假導師"); else if(!r.cls) m.push("（" + r.leaver + "不是導師，請改選）"); if(!r.date) m.push("日期"); if(!r.sub) m.push("代導師");
+  else { if(plan.tutor.over) m.push(`（一次最多 31 個上課日：請先登記到 ${CF.md(tutDays().slice(-1)[0] || "")}，再從 ${CF.md(plan.tutor.over)} 起另外登記）`); if(!r.leaver) m.push("請假導師"); else if(!r.cls) m.push("（" + r.leaver + "不是導師，請改選）"); if(!r.date) m.push("日期"); if(!r.sub) m.push("代導師");
     if(r.sub && r.sub===r.leaver) m.push("（代導師不能是請假導師本人）");
     if(r.leaveType==="其他" && !String(r.note||"").trim()) m.push("備註（假別選「其他」要寫明是什麼假）"); }
   return m;
@@ -4823,7 +4838,7 @@ function fixShow(k, v){ v = fxTrim(v); if(!v) return "（空白）"; if(/^(date|
 function fixCheck(){                                             // 和後端一樣的基本檢查（後端還會再檢查一次）
   const c = fx.cur, k = fx.ref.kind, m = [];
   if(k==="調課"){
-    if(!c.teacher) m.push("請選申請人"); if(!c.partner) m.push("請選調(代)課教師"); if(c.teacher && c.teacher===c.partner) m.push("申請人和調(代)課教師不能是同一人");
+    if(!c.teacher) m.push("請選申請人"); if(!c.partner) m.push("請選調(代)課教師"); if(c.teacher && c.teacher===c.partner && fxTrim(c.fromDate)===fxTrim(c.toDate) && fxTrim(c.fromPeriod)===fxTrim(c.toPeriod)) m.push("同一位老師、同一節調來調去等於沒有調，請改節次或刪除這筆");   // 115.11.9：自己兩節對調（例：國語和數學對調）可以修改
     if(!c.fromDate) m.push("請填原日期"); if(!c.fromPeriod) m.push("請選原節次");
     if(c.toDate && !c.toPeriod) m.push("請選調整後節次"); if(!c.toDate && c.toPeriod) m.push("有調整後節次就要填調整後日期");
   } else {
@@ -5361,7 +5376,8 @@ function renderWorkbench(){
 }
 /* 找：老師 → 切到那位老師；日期 → 打開那天；月份 → 切月份；功能 → 跳過去 */
 function wbFind(q){
-  q = String(q || "").trim(); if(!q) return;
+  // 全形字（中文輸入法常打出「調－１１５１１００１」）、各種破折號、「序號：」字頭都先轉成標準寫法
+  q = String(q || "").normalize("NFKC").replace(/[－—–‐‑−]/g, "-").replace(/^序號\s*[:：]?\s*/, "").trim(); if(!q) return;
   if(/\d/.test(q) && !/[\/月日]/.test(q)){                       // 序號：調-11511001、代-11511001、假-11511001、導-11511001、A11501025
     const k = sidKey(q.replace(/^序號/, "")), seen = new Set();
     let hit = state.events.filter(e => sidOf(e) && sidKey(sidOf(e)) === k);
@@ -5560,7 +5576,7 @@ function renderHrBox(){
   const recSort = (state.hrRecs || []).map((r, i) => ({r, i})).sort((a, b) => String(a.r.from).localeCompare(String(b.r.from)) || a.r.who.localeCompare(b.r.who, "zh-Hant"));
   const cloudList = cloudN ? `<details class="hrcloud"><summary>雲端存的人事資料（${cloudN} 筆）：可以逐筆檢查、刪掉錯的</summary>
       <table><thead><tr><th>申請人</th><th>表單</th><th>期間</th><th>時數</th><th>結果</th><th>申請時間</th><th><span class="sr">操作</span></th></tr></thead><tbody>
-      ${recSort.map(({r, i}) => `<tr${/^[\u4e00-\u9fff]{2,4}$/.test(r.who) ? "" : ' class="bad"'}><td>${esc(r.who)}</td><td>${esc(r.form)}</td><td>${esc(r.from)} ～ ${esc(String(r.to).slice(String(r.to).indexOf(" ") + 1))}</td><td>${esc(r.hours)}</td><td>${esc(r.result)}</td><td>${esc(r.applied)}</td><td><button type="button" class="btn ghost small" data-hrdel="${i}">刪除</button></td></tr>`).join("")}</tbody></table></details>` : "";
+      ${recSort.map(({r, i}) => `<tr${/^[\u4e00-\u9fff]{2,4}$/.test(r.who) ? "" : ' class="bad"'}><td>${esc(r.who)}</td><td>${esc(r.form)}</td><td>${esc(r.from)} ～ ${esc(String(r.to).split(" ")[0] === String(r.from).split(" ")[0] ? String(r.to).slice(String(r.to).indexOf(" ") + 1) : String(r.to))}</td><td>${esc(r.hours)}</td><td>${esc(r.result)}</td><td>${esc(r.applied)}</td><td><button type="button" class="btn ghost small" data-hrdel="${i}">刪除</button></td></tr>`).join("")}</tbody></table></details>` : "";
   const per = x => x.p==="導" ? "代導師" : `第${x.p}節`;
   const li = (x, extra) => `<li><b>${esc(x.who)}</b>　${esc(md(x.date))}　${extra}</li>`;
   const F = state.hrFilter || "all";
@@ -5698,6 +5714,7 @@ function setRange(r, from){
   const m = $("#mSel");
   if(m && state.range && m.value !== state.range && from !== "mSel"){ m.value = state.range; renderAcct(state.range); renderHeli(state.range); }
   renderYear(); renderList(); renderSummary(); renderHeliMine(); renderDash();
+  try{ renderWorkbench(); }catch(e){ console.error(e); }          // 工作台的「看的是 ○月」、報帳進度跟著換月
   const nm = $("#rangeNote"); if(nm) nm.textContent = state.range ? `目前顯示 ${rangeLabel(state.range)}；要看整學期請選「整學期」。` : "";
 }
 $("#rangeSel").addEventListener("change", () => setRange($("#rangeSel").value, "rangeSel"));
