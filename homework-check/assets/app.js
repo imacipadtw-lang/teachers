@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.10f';
+  const APP_VERSION = '2026.11.10g';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
   const LS = { admin: 'hc.admin', teacher: 'hc.teacher', api: 'hc.api', cls: 'hc.class', outbox: 'hc.outbox', theme: 'hc.theme' };
   const GRADE = ['', '一', '二', '三', '四', '五', '六'];
@@ -156,7 +156,7 @@
       try { r = await fetchT(S.apiUrl, { method: 'POST', body: payload, headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow' }); } catch (e) { if (i >= 2) throw new Error(e && e.name === 'AbortError' ? timeoutMsg(3) : netErr()); }
       if (r && r.ok) return parseJson(r);
       if (r && !(r.status === 404 || r.status === 429 || r.status >= 500)) throw new Error('連不到資料表（' + r.status + '）');
-      if (i >= 2) throw new Error('Google 暫時沒有回應');
+      if (i >= 2) throw new Error('Google 暫時沒有回應，已自動重試 3 次，請稍後再試');
       await new Promise(ok => setTimeout(ok, 1200 * (i + 1)));
     }
   }
@@ -198,7 +198,7 @@
       if (!S.restored) { S.restored = true; restoreOutbox(); applyServer(r.checks || {}, startedAt); }
       if (opts.full) render(); else renderSoft();
       if (S.pendingScan && opts.full) { const code = S.pendingScan; S.pendingScan = null; const p = parseScan(code); const c = p && classes().find(x => x.id === p.classId); if (c && canEditClass(c.id)) { if (S.role === 'admin') { S.selClass = c.id; renderMain(); } openScan(c); setTimeout(() => S.scan && S.scan.feed(code), 300); }
-        else { const rr = round(); toast(!p ? '看不懂這個條碼' : !c ? '找不到這個班級（編號 ' + code.replace(/^HW\./, '') + '）' : rr && rr.locked ? '本次抽查已結案，無法登記；如需更正請洽教務組。' : S.role === 'teacher' && c.id !== S.classId ? '這不是本班的習作，無法登記。' : '目前無法登記。', 4200); } }
+        else { const rr = round(); toast(!p ? '看不懂這個條碼' : !c ? '找不到這個班級（編號 ' + code.replace(/^HW\./, '') + '）' : rr && rr.locked ? '本次抽查已結案，無法登記；如需更正請洽教務組。' : S.role === 'teacher' && c.id !== S.classId ? '這不是本班的標籤，無法登記。' : '目前無法登記。', 4200); } }
     } catch (e) {
       setSync('err', e.message);
       if (opts.full) { S.screen = 'error'; S.gateMsg = e.message; render(); }
@@ -864,7 +864,7 @@
       if (p.classId !== c.id) {
         const other = classes().find(x => x.id === p.classId);
         if (S.role === 'admin' && other) { closeScan(); S.selClass = other.id; lsSet(LS.cls, other.id); renderMain(); openScan(other); setTimeout(() => S.scan && S.scan.feed(raw), 50); return; }
-        return show('err', S.role === 'teacher' ? '這不是本班的習作' : (other ? '這是 ' + other.name + ' 的，不是本班' : '找不到這個班級（編號 ' + (p.code || raw) + '）'), raw);
+        return show('err', S.role === 'teacher' ? '這不是本班的標籤' : (other ? '這是 ' + other.name + ' 的，不是本班' : '找不到這個班級（編號 ' + (p.code || raw) + '）'), raw);
       }
       const st = (c.students || []).find(x => x.no === p.no);
       if (!st) return show('err', '本班沒有 ' + p.no + ' 號', raw);
@@ -1103,7 +1103,7 @@
       missing.length ? h('div', { class: 'tablebox' }, h('table', { class: 'rtable' },
         h('thead', null, h('tr', null, h('th', { text: '班級' }), h('th', { text: '座號' }), h('th', { text: '姓名' }), h('th', { text: '未繳交項目' }), h('th', { text: '備註' }))),
         h('tbody', null, missing.map(m => h('tr', null, h('td', { text: m.cls.name }), h('td', { text: String(m.s.no) }), h('td', { text: m.s.name || '' }), h('td', { class: 'left', text: m.miss.map(it => it.kind === 'exam' ? it.name + '（未繳回）' : it.name).join('、') || '—' }), h('td', { class: 'left', text: m.note }))))))
-        : h('div', { class: 'note', text: '全校皆已繳交，無備註。' })));
+        : h('div', { class: 'note', text: '全校皆已繳交，沒有備註。' })));
     // 各班明細
     const detail = h('div', { class: 'rsec' }, h('h3', { text: '三、各班明細' }));
     cl.forEach(cls => {
@@ -1743,7 +1743,7 @@
         sel.disabled = false;
       }).catch(e => {                                   // 導師頁不顯示技術錯誤；原因（例如部署權限）只給教務組看
         sel.replaceChildren(h('option', { value: '', text: '目前無法載入班級，請稍後再試' }));
-        msg.textContent = '目前連不到資料表，請稍後按「重新載入班級」。只有第一次登入的那一台手機或電腦會被綁定；如果需要重新登入，請跟教務組聯繫。'; msg.className = 'note';
+        msg.textContent = '目前連不到資料表，請稍後按「重新載入班級」。'; msg.className = 'note';
         S.gateErr = e.message; retryBtn.hidden = false;
       }); };
       loadClasses();
