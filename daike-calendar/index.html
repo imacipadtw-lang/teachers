@@ -1512,8 +1512,14 @@ html[data-theme=dark] .wb-todo li.ok{background:rgba(79,209,161,.10)}
   html[data-theme=dark] .wkx.today{border-color:#F2C46B;box-shadow:inset 0 0 0 1px #F2C46B}
 }
 @media screen and (max-width:760px){
-  .wkx-row{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(150px,46%);overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:4px}
-  .wkx{scroll-snap-align:start;min-height:108px}
+  /* 115.11.10：手機本週一覽放在問候語下面、直排，一眼看完五天，不用左右滑 */
+  .wb{display:flex;flex-direction:column}
+  .wb>.wb-top{order:0}.wb>.wb-week{order:1;margin:4px 0 14px}.wb>.wb-grid{order:2}
+  .wkx-row{grid-template-columns:1fr;gap:6px}
+  .wkx{display:grid;grid-template-columns:64px minmax(0,1fr);column-gap:10px;row-gap:2px;align-items:start;padding:9px 12px;min-height:0}
+  .wkx>*{grid-column:2}.wkx>.wkx-h{grid-column:1;grid-row:1 / span 3;flex-direction:column;align-items:flex-start;gap:0}
+  .wkx-h i{margin:4px 0 0}
+  .wkx-none{align-self:center}
 }
 @media (prefers-reduced-motion:reduce){.wkx{transition:none}.wkx:hover{transform:none}}
 @media screen{
@@ -2682,7 +2688,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.10zb";
+const APP_VERSION = "專業版 2026.11.10zc";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
