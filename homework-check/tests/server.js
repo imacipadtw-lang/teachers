@@ -82,7 +82,7 @@ http.createServer((req, res) => {
     }); return;
   }
   let p = u.pathname.replace(/^\/+/, ''); if (!p || p.endsWith('/')) p += 'index.html';
-  if (p === 'config.js') { res.setHeader('Content-Type', TYPES['.js']); res.end(fs.readFileSync(path.join(ROOT, 'config.js'), 'utf8').replace(/apiUrl:\s*"[^"]*"/, 'apiUrl: "http://localhost:' + PORT + '/exec"').replace(/pollSeconds:\s*\d+/, 'pollSeconds: 45, timeoutMs: 1500')); return; }
+  if (p === 'config.js') { res.setHeader('Content-Type', TYPES['.js']); res.end(fs.readFileSync(path.join(ROOT, 'config.js'), 'utf8').replace(/apiUrl:\s*"[^"]*"/, 'apiUrl: "http://localhost:' + PORT + '/exec"').replace(/pollSeconds:\s*\d+/, 'pollSeconds: 45, timeoutMs: 1500').replace(/teacherLogin:\s*(true|false)/, 'teacherLogin: true')); return; }
   const f = path.join(ROOT, p);
   if (!f.startsWith(ROOT) || !fs.existsSync(f)) { res.statusCode = 404; res.end('nf'); return; }
   res.setHeader('Content-Type', TYPES[path.extname(f)] || 'application/octet-stream'); res.end(fs.readFileSync(f));

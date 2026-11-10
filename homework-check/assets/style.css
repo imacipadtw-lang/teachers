@@ -710,20 +710,28 @@ input[type=checkbox], input[type=radio] { accent-color: var(--accent); }
 .gatefoot .helpbtn { font-size: 13.5px; }
 footer.foot .helpbtn { font-size: 12px; }
 
-/* ---------- 儲存列（班級檢核表下方，捲動時貼在畫面底部）---------- */
+/* ---------- 習作／考卷下拉選單、自動儲存狀態、未完成原因 ---------- */
 @media screen {
-  .savebar { position: sticky; bottom: 0; z-index: 6; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
-    padding: 10px 12px 10px 16px; padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)); background: var(--sheet); border: 1px solid var(--line-strong); border-radius: var(--radius); box-shadow: var(--shadow); }
-  .savebar .sb-msg { font-size: 14px; color: var(--muted); min-width: 0; flex: 1 1 12em; }
-  .savebar[data-state="ok"] .sb-msg { color: var(--ok); font-weight: 500; }
-  .savebar[data-state="busy"] .sb-msg { color: var(--warn); }
-  .savebar[data-state="err"] .sb-msg { color: var(--seal); font-weight: 500; }
-  .savebar .sb-btn { min-width: 120px; min-height: 44px; font-size: 15px; }
-  .savebar .sb-btn svg { width: 18px; height: 18px; }
+  .subjpicks { display: flex; flex-wrap: wrap; gap: 10px 14px; padding: 12px 14px; background: var(--sheet); border: 1px solid var(--line); border-radius: var(--radius); }
+  .subjpick { display: flex; align-items: center; gap: 10px; flex: 1 1 240px; min-width: 0; margin: 0; }
+  .subjpick .subjlbl { font-weight: 700; font-size: 15px; white-space: nowrap; padding-left: 10px; border-left: 4px solid var(--accent); color: var(--accent); }
+  .subjpick.exam .subjlbl { border-left-color: var(--seal); color: var(--seal); }
+  .subjpick select { flex: 1 1 auto; min-width: 0; min-height: 44px; font-size: 16px; font-weight: 500; }
+  .subjpick.hw select { border-color: var(--accent); }
+  .subjpick.exam select { border-color: var(--seal); }
+  .savestate { margin-left: auto; font-size: 13px; color: var(--muted); white-space: nowrap; }
+  .savestate[data-state="ok"] { color: var(--ok); }
+  .savestate[data-state="busy"] { color: var(--warn); }
+  .savestate[data-state="err"] { color: var(--seal); font-weight: 500; white-space: normal; }
+  .reasoncell { display: flex; gap: 6px; align-items: center; min-width: 300px; }
+  .reasoncell .reasonsel { flex: 0 0 auto; width: 9.5em; min-height: 36px; padding: 4px 8px; font-size: 14px; }
+  .reasoncell input { flex: 1 1 auto; min-width: 0; }
+  .gradefix { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+  .gradefix > div { flex: 1 1 320px; }
   .empty.noitems b { display: block; color: var(--ink); font-size: 15px; margin-bottom: 4px; }
-  @media (max-width: 600px) { .savebar .sb-btn { flex: 1 1 100%; } }
-  /* 有儲存列時，提示訊息往上移，不蓋住「儲存」按鈕 */
-  body:has(#savebar) .toast { bottom: calc(86px + env(safe-area-inset-bottom, 0px)); }
-  @media (max-width: 600px) { body:has(#savebar) .toast { bottom: calc(120px + env(safe-area-inset-bottom, 0px)); } }
+  @media (max-width: 600px) { .subjpick { flex-basis: 100%; flex-direction: column; align-items: stretch; gap: 6px; } .subjpick select { width: 100%; } .savestate { margin-left: 0; flex-basis: 100%; } }
 }
-@media print { .savebar { display: none !important; } }
+.rreasons { margin: 4px 0 10px; font-size: 14px; line-height: 1.7; }
+.rreasons b { margin-right: 4px; }
+.rtable td.rreason.none { color: var(--muted); }
+@media print { .subjpicks, .savestate { display: none !important; } .rreasons { font-size: 10pt; } }

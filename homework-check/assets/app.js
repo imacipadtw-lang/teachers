@@ -4,9 +4,11 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.10o';
+  const APP_VERSION = '2026.11.10p';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
-  const LS = { admin: 'hc.admin', teacher: 'hc.teacher', api: 'hc.api', cls: 'hc.class', outbox: 'hc.outbox', theme: 'hc.theme', cache: 'hc.cache' };
+  // 115.11.10 管理者決定：全部由教務組登入操作，導師不用登入（config.js teacherLogin: true 才開放導師登入）
+  const TEACHERS_ON = (window.HC_CONFIG || {}).teacherLogin === true;
+  const LS = { admin: 'hc.admin', teacher: 'hc.teacher', api: 'hc.api', cls: 'hc.class', outbox: 'hc.outbox', theme: 'hc.theme', cache: 'hc.cache', subj: 'hc.subj' };
   const GRADE = ['', '一', '二', '三', '四', '五', '六'];
   const WD = '日一二三四五六';
 
@@ -295,42 +297,17 @@
     toast('發現上次尚未送出的 ' + saved.list.length + ' 筆登記，正在補送…', 3200);
     clearTimeout(S.flushTimer); S.flushTimer = setTimeout(flush, 300);
   }
-  /* ---------- 儲存列：勾好後按「儲存」立刻送出並確認；忘了按也會自動儲存（不會遺失） ---------- */
+  /* ---------- 自動儲存狀態（班級檢核表上方）：點格子就自動儲存，不用按儲存 ---------- */
   function unsavedCount() { let n = 0; S.outbox.forEach(b => { n += b.size; }); return n + notesUnsent(); }
-  function saveBar() {
-    const el = h('div', { id: 'savebar', class: 'savebar' },
-      h('span', { class: 'sb-msg', role: 'status', 'aria-live': 'polite' }),
-      h('button', { type: 'button', class: 'btn primary sb-btn', onclick: () => saveNow() }, svg('save'), '儲存'));
-    paintSaveBar(el); return el;
-  }
   function paintSaveBar(el) {
-    el = el || document.getElementById('savebar'); if (!el) return;
-    const n = unsavedCount(); let st = 'ok', text;
-    if (S.saving || S.flushing) { st = 'busy'; text = '儲存中…'; }
-    else if (n && S.sync === 'err') { st = 'err'; text = '網路不穩：' + n + ' 筆先存在這台裝置，連線後會自動送出'; }
-    else if (n) { st = 'busy'; text = '有 ' + n + ' 筆還沒儲存'; }
-    else if (S.lastSavedAt) text = '✓ 已儲存（' + fmtTime(S.lastSavedAt) + '）';
-    else { st = 'idle'; text = '勾好後按「儲存」；忘了按也會自動儲存'; }
+    el = el || document.getElementById('savestate'); if (!el) return;
+    const n = unsavedCount(); let st = 'idle', text;
+    if (n && S.sync === 'err' && !S.flushing) { st = 'err'; text = '網路不穩：' + n + ' 筆先存在這台裝置，連線後自動送出'; }
+    else if (S.flushing || n) { st = 'busy'; text = '儲存中…'; }
+    else if (S.lastSavedAt) { st = 'ok'; text = '✓ 已自動儲存（' + fmtTime(S.lastSavedAt) + '）'; }
+    else text = '點格子就會自動儲存';
     el.dataset.state = st;
-    const m = el.querySelector('.sb-msg'); if (m && m.textContent !== text) m.textContent = text;
-    const b = el.querySelector('.sb-btn'); if (b) b.disabled = !!S.saving;
-  }
-  async function saveNow() {
-    if (S.saving) return;
-    S.saving = true; paintSaveBar();
-    const t0 = Date.now(); let had = unsavedCount() > 0 || S.flushing;
-    try {
-      clearTimeout(S.flushTimer); clearTimeout(retryTimer); retryDelay = 0;
-      while (Date.now() - t0 < 30000) {
-        if (!S.flushing && S.outbox.size) { await flush(); if (S.outbox.size && S.sync === 'err') break; continue; }
-        if (!S.flushing && !S.outbox.size && !notesUnsent()) break;
-        await new Promise(res => setTimeout(res, 150));
-      }
-    } finally { S.saving = false; }
-    const n = unsavedCount();
-    if (n) toast('網路不穩，' + n + ' 筆先存在這台裝置，連線後會自動送出；關掉網頁也不會遺失。', 4200);
-    else { if (!S.lastSavedAt) S.lastSavedAt = new Date(); toast(had ? '已儲存 ✓' : '已儲存 ✓（全部都已存到資料表）'); }
-    paintSaveBar();
+    if (el.textContent !== text) el.textContent = text;
   }
   let retryTimer = null, retryDelay = 0;
   function scheduleRetry() {
@@ -487,6 +464,29 @@
       onkeydown: e => { if (e.key === 'Enter') e.target.blur(); } });
     return inp;
   }
+  /* ---------- 未完成原因：存在每位學生的備註，格式「〔未寫完〕補充說明」（舊版後端也能存）；報表另列原因與統計 ---------- */
+  const REASONS = ['未寫完', '忘了帶', '遺失', '未訂正', '家長未簽名', '請假／缺席', '新轉入（尚未發）', '其他'];
+  function splitNote(t) { t = t || ''; const m = /^〔([^〕]{1,12})〕\s*/.exec(t); return m ? { reason: m[1], text: t.slice(m[0].length) } : { reason: '', text: t }; }
+  function joinNote(reason, text) { text = String(text || '').trim(); return reason ? '〔' + reason + '〕' + text : text; }
+  function noteShow(t) { const n = splitNote(t); return n.reason ? n.reason + (n.text ? '：' + n.text : '') : n.text; }
+  function reasonCell(cid, no, sname) {
+    const cur = splitNote(noteValue(cid, no));
+    const save = () => setNote(cid, no, joinNote(sel.value, inp.value));
+    const blur = () => { if (S.rerenderAfterBlur) { S.rerenderAfterBlur = false; setTimeout(() => renderSoft(), 50); } };
+    const opts = REASONS.concat(cur.reason && !REASONS.includes(cur.reason) ? [cur.reason] : []);
+    const sel = h('select', { class: 'reasonsel noteinput', 'aria-label': (sname || no + '號') + ' 未完成原因', onchange: save, onblur: blur },
+      [h('option', { value: '', text: '選原因…', selected: !cur.reason })].concat(opts.map(x => h('option', { value: x, text: x, selected: x === cur.reason }))));
+    const inp = h('input', { type: 'text', class: 'noteinput', value: cur.text, placeholder: '補充說明（可不填）', maxlength: '180', 'aria-label': (sname || no + '號') + ' 補充說明', oninput: save, onblur: blur, onkeydown: e => { if (e.key === 'Enter') e.target.blur(); } });
+    return h('div', { class: 'reasoncell' }, sel, inp);
+  }
+  // 全校（或指定班級）有缺交的學生裡，各原因人數
+  function reasonStats(cl, r) {
+    const cnt = new Map(); let miss = 0, none = 0;
+    cl.forEach(cls => { const its = itemsFor(cls, r); (cls.students || []).forEach(s => { if (!its.some(it => !isOn(cls.id, s.no, it.id))) return; miss++; const rs = splitNote(noteValue(cls.id, s.no)).reason; if (!rs) { none++; return; } cnt.set(rs, (cnt.get(rs) || 0) + 1); }); });
+    const order = REASONS.filter(x => cnt.has(x)).concat(Array.from(cnt.keys()).filter(x => !REASONS.includes(x)));
+    return { miss, none, list: order.map(k => [k, cnt.get(k)]) };
+  }
+  function reasonStatsText(st) { return st.list.map(([k, n]) => k + ' ' + n + ' 人').concat(st.none ? ['尚未填原因 ' + st.none + ' 人'] : []).join('、'); }
   function renderMain() {
     const m = $('#main'); if (!m) return;
     document.body.classList.toggle('labels-view', S.role === 'admin' && S.view === 'labels');
@@ -544,16 +544,20 @@
   /* ---------- 使用說明（網站內，依身分顯示） ---------- */
   function openHelp() {
     const admin = S.role === 'admin' && S.screen === 'app';
-    const sec = (title, items) => h('section', { class: 'hsec' }, h('h4', { text: title }), h('ul', { class: 'hlist' }, items.map(t => h('li', null, Array.isArray(t) ? [h('b', { text: t[0] }), t[1]] : t))));
+    const sec = (title, items) => h('section', { class: 'hsec' }, h('h4', { text: title }), h('ul', { class: 'hlist' }, items.filter(Boolean).map(t => h('li', null, Array.isArray(t) ? [h('b', { text: t[0] }), t[1]] : t))));
     openModal(inner => {
       inner.classList.add('helpdlg');
       inner.append(h('h3', null, '使用說明', h('small', { text: admin ? '教務組' : '導師' })));
-      if (S.screen !== 'app') inner.append(sec('第一次使用', [
+      if (S.screen !== 'app' && !TEACHERS_ON) inner.append(sec('第一次使用', [
+        ['教務組登入：', '輸入教務組密碼登入。這台電腦會被記住，之後打開網頁就直接進入；用完可按頁尾「登出」。'],
+        ['導師不用登入：', '全部由教務組登記：選科目、勾選學生有沒有繳交、填未完成原因，再到「報表」列印或下載給校長。'],
+        ['像 App 一樣用：', '手機瀏覽器選「加入主畫面」，桌面就會有「作業抽查」圖示。']]));
+      else if (S.screen !== 'app') inner.append(sec('第一次使用', [
         ['選班級登入：', '在登入頁選自己的班級，按「登入」。這台手機或電腦會被記住，之後打開網頁就直接進入，不用密碼。'],
         ['一個班一台裝置：', '換手機或登錯班，請教務組在「設定」按「解除」，再用新裝置登入。'],
         ['像 App 一樣用：', '手機瀏覽器選「加入主畫面」，桌面就會有「作業抽查」圖示。']]));
       inner.append(sec('收作業時', [
-        ['點格子登記：', '收到習作點藍色格；家長簽名的考卷繳回點紅色格。再點一次可取消。勾好後按表格下方的「儲存」（忘了按也會自動儲存）。'],
+        ['點格子登記：', '收到習作點藍色格；家長簽名的考卷繳回點紅色格。再點一次可取消；會自動儲存，不用按儲存。表格上方的「習作」「考卷」選單可以只看一個科目。'],
         ['一次收一整疊：', '在表頭按「收件」，依本子上的座號一個一個點，比找格子快。'],
         ['有貼標籤：', '按「掃描登記」，用手機相機或條碼掃描器掃，掃到就登記；同一本重複掃不會取消。'],
         ['找學生：', '表格上方輸入座號或姓名；按「只看未繳齊」只列出還沒交齊的學生。']]));
@@ -564,7 +568,8 @@
         ['不用繳：', '這一次、這一班有些習作或考卷不用交，在「班級檢核」該欄表頭按「不用繳」，隨時可「恢復」。'],
         ['全校總覽與報表：', '看各班完成率、截止倒數；「報表」可列印或下載 Excel 給主任、校長，也有歷次抽查的趨勢。'],
         ['結案：', '抽查結束到「設定 → 抽查次別」勾「結案」，導師就不能再改；教務組仍可更正。'],
-        ['導師登入：', '「設定 → 導師登入裝置」可解除單班、全部重新登入，或暫停新的導師登入。'],
+        ['未完成原因：', '表格最右邊每位學生可選原因（未寫完、忘了帶、遺失、未訂正、家長未簽名…）並補充說明；「報表」會列出原因與各原因人數，給校長看。'],
+        TEACHERS_ON ? ['導師登入：', '「設定 → 導師登入裝置」可解除單班、全部重新登入，或暫停新的導師登入。'] : null,
         ['查核與備份：', '試算表「異動紀錄」記下每一次登記與變更；「設定 → 系統」可下載備份。']]));
       inner.append(sec('網路不穩時', [
         ['照常登記：', '右上角會顯示「N 筆待送出」，網路恢復後自動補送；就算關掉網頁也不會遺失。'],
@@ -617,21 +622,77 @@
     { const prog = classProgress(cls, r); headLeft.append(ring(prog.total ? Math.round(prog.got / prog.total * 100) : 0)); }
     headLeft.append(h('div', null, h('h2', { text: cls.name }), sub));
     box.append(h('div', { class: 'classhead' }, headLeft, actions));
-    box.append(h('div', { class: 'print-meta', text: (CFG.schoolName || '') + '　' + (r ? r.name : '') + '　' + cls.name + '　列印時間 ' + new Date().toLocaleString('zh-TW') }));
+    box.append(h('div', { class: 'print-meta', text: (CFG.schoolName || '') + '　' + (r ? r.name : '') + '　' + cls.name + subjPrintNote(items) + '　列印時間 ' + new Date().toLocaleString('zh-TW') }));
 
     const skips = skippedItems(cls, r);
     if (skips.length) box.append(h('div', { class: 'skipline' }, h('span', { class: 'note', text: '本次不用繳：' }), skips.map(it => h('span', { class: 'tag skiptag' + (it.kind === 'exam' ? ' exam' : '') }, it.name, admin ? h('button', { class: 'link', 'aria-label': '恢復 ' + it.name + ' 要繳', onclick: () => setSkip(cls, it, false) }, '恢復') : null))));
     if (r && !(r.itemIds || []).length) { box.append(noItemsCard(r)); return box; }
+    if (admin) { const gf = gradeFixBanner(cls, r); if (gf) box.append(gf); }
     if (!items.length) { box.append(h('div', { class: 'empty', text: skips.length ? '本班這次的項目都已設為「不用繳」。' : '這次抽查沒有適用於本班的項目。' + (admin ? '請到「設定」檢查本次抽查項目與本班的習作項目。' : '') })); return box; }
     if (!n) { box.append(h('div', { class: 'empty', text: admin ? '這個班級還沒有學生名單，請到「設定」貼上名單。' : '這個班級還沒有學生名單，請洽教務組。' })); return box; }
 
     if (!ed) box.append(h('div', { class: 'banner info', text: r && r.locked && S.role === 'teacher' ? '本次抽查已結案，紀錄僅供查看；如需更正請洽教務組。' : '目前為查看模式。' }));
     else if (r && r.locked && admin) box.append(h('div', { class: 'banner warn', text: '本次抽查已結案：導師不能再更動，教務組仍可更正（每次更正都會記在試算表的「異動紀錄」）。' }));
-    else box.append(h('div', { class: 'note', text: '收到該生的習作或家長簽名考卷，就點一下對應的格子打勾；再點一次可取消。勾好後按下方「儲存」（忘了按也會自動儲存）。' }));
+    else box.append(h('div', { class: 'note', text: '先用下面的「習作」「考卷」選單選科目，再點格子打勾（再點一次可取消）。會自動儲存，不用按儲存。' }));
 
-    box.append(renderTable(cls, items, studs, ed, admin));
-    if (ed) box.append(saveBar());
+    const picks = subjPickers(items);
+    box.append(renderTable(cls, applySubj(items), studs, ed, admin, picks));
     return box;
+  }
+  /* ---------- 習作／考卷下拉選單：各選一個科目（或全部、不顯示），表格只顯示選到的欄；
+     人數、繳齊、「只看未繳齊」都依顯示的項目計算；選擇記在這台裝置，換班級也保留 ---------- */
+  const SUBJ_ALL = '', SUBJ_NONE = '-';
+  function subjSel() { if (!S.subj) { const v = lsGet(LS.subj) || {}; S.subj = { hw: typeof v.hw === 'string' ? v.hw : SUBJ_ALL, exam: typeof v.exam === 'string' ? v.exam : SUBJ_ALL }; } return S.subj; }
+  const ofKind = (items, kind) => items.filter(it => (it.kind === 'exam') === (kind === 'exam'));
+  function subjList(items, kind) { const out = []; ofKind(items, kind).forEach(it => { const k = subjectKey(it); if (!out.includes(k)) out.push(k); }); return out; }
+  // 這個班實際生效的選擇（選的科目本班沒有時視為「全部」）
+  function subjEff(items, kind) { const v = subjSel()[kind]; if (v === SUBJ_NONE) return ofKind(items, kind).length ? SUBJ_NONE : SUBJ_ALL; return v && subjList(items, kind).includes(v) ? v : SUBJ_ALL; }
+  function applySubj(items) {
+    const keep = kind => { const v = subjEff(items, kind); const list = ofKind(items, kind); return v === SUBJ_NONE ? [] : v ? list.filter(it => subjectKey(it) === v) : list; };
+    const show = new Set(keep('hw').concat(keep('exam')));
+    const out = items.filter(it => show.has(it));
+    return out.length ? out : items;
+  }
+  function subjPrintNote(items) {
+    const t = []; ['hw', 'exam'].forEach(k => { const v = subjEff(items, k); const lb = k === 'exam' ? '考卷' : '習作'; if (v === SUBJ_NONE) return; if (v) t.push(v + lb); else if (subjEff(items, k === 'exam' ? 'hw' : 'exam') !== SUBJ_ALL && ofKind(items, k).length) t.push('全部' + lb); });
+    return t.length && (subjEff(items, 'hw') !== SUBJ_ALL || subjEff(items, 'exam') !== SUBJ_ALL) ? '　' + t.join('、') : '';
+  }
+  function subjPickers(items) {
+    const sel = subjSel();
+    const mk = (kind) => {
+      const lb = kind === 'exam' ? '考卷' : '習作'; const list = ofKind(items, kind); const subs = subjList(items, kind); const v = subjEff(items, kind);
+      const id = 'subj-' + kind;
+      const s = h('select', { id, disabled: !list.length, onchange: e => {
+        sel[kind] = e.target.value; const other = kind === 'exam' ? 'hw' : 'exam';
+        if (sel[kind] === SUBJ_NONE && subjEff(items, other) === SUBJ_NONE) sel[other] = SUBJ_ALL; // 兩個都「不顯示」會變空表，另一個改回全部
+        lsSet(LS.subj, sel); renderSoft(); const again = document.getElementById(id); if (again) again.focus({ preventScroll: true });
+      } }, list.length
+        ? [h('option', { value: SUBJ_ALL, text: '全部' + lb + '（' + subs.length + ' 科）', selected: v === SUBJ_ALL })]
+          .concat(subs.map(k => h('option', { value: k, text: k + lb, selected: v === k })), [h('option', { value: SUBJ_NONE, text: '不顯示' + lb, selected: v === SUBJ_NONE })])
+        : [h('option', { value: SUBJ_ALL, text: '本班這次沒有' + lb })]);
+      return h('label', { class: 'subjpick ' + kind, for: id }, h('span', { class: 'subjlbl', text: kind === 'exam' ? '考卷（家長簽名）' : '習作' }), s);
+    };
+    return h('div', { class: 'subjpicks no-print', role: 'group', 'aria-label': '選擇要登記的科目' }, mk('hw'), mk('exam'));
+  }
+  // 教務組：本次項目裡有「一個年級都沒勾」的項目 → 各班都看不到；一鍵恢復預設年級
+  const DEFAULT_GRADES = { life: [1, 2], exam_life: [1, 2], social: [3, 4, 5, 6], science: [3, 4, 5, 6], exam_english: [3, 4, 5, 6], exam_social: [3, 4, 5, 6], exam_science: [3, 4, 5, 6] };
+  function defaultGrades(it) { if (DEFAULT_GRADES[it.id]) return DEFAULT_GRADES[it.id].slice(); const k = subjectKey(it); return k === '生活' ? [1, 2] : (k === '社會' || k === '自然') ? [3, 4, 5, 6] : [1, 2, 3, 4, 5, 6]; }
+  function gradeFixBanner(cls, r) {
+    if (!r || Array.isArray(cls.itemIds)) return null;
+    const ids = new Set(r.itemIds || []);
+    const dead = allItems().filter(it => ids.has(it.id) && !(it.grades || []).length);
+    if (!dead.length) return null;
+    const btn = h('button', { class: 'btn small primary', onclick: async () => {
+      btn.disabled = true;
+      const cfg = JSON.parse(JSON.stringify(S.config)); let n = 0;
+      cfg.items.forEach(it => { if (ids.has(it.id) && !(it.grades || []).length) { it.grades = defaultGrades(it); n++; } });
+      try { await adminPost({ action: 'saveConfig', config: cfg }, '已恢復 ' + n + ' 個項目的適用年級'); S.draft = null; S.version = null; await load({ force: true, full: true }); }
+      catch (e) { btn.disabled = false; }
+    } }, '恢復預設年級');
+    return h('div', { class: 'banner warn gradefix' },
+      h('div', null, h('b', { text: '有 ' + dead.length + ' 個項目沒有勾任何適用年級，所以各班都看不到：' }), dead.map(it => it.name).join('、') + '。',
+        h('div', { class: 'note', text: '按「恢復預設年級」：國語、數學、英語習作、健康 1–6 年級，生活 1–2 年級，社會、自然、英語考卷 3–6 年級（之後可到「設定 → 檢查項目」調整）。只想看某一科，用下面的「習作」「考卷」選單就好，不用取消年級。' })),
+      btn);
   }
   // 這次抽查一個項目都沒勾：說明原因；教務組可一鍵把全部項目加入（各班只會出現該年級適用的）
   function noItemsCard(r) {
@@ -668,7 +729,7 @@
       onclick: () => setMark(cls.id, s.no, it.id, !isOn(cls.id, s.no, it.id)) });
   }
   // 一張表：列＝學生，欄＝各科習作＋考卷簽回；教務組多看到每欄人數與「收件」快捷
-  function renderTable(cls, items, studs, ed, admin) {
+  function renderTable(cls, items, studs, ed, admin, picks) {
     const n = studs.length;
     const thead = h('tr', null, h('th', { class: 'no', text: '座號' }), h('th', { class: 'name', text: '姓名' }),
       items.map((it, i) => {
@@ -678,13 +739,13 @@
         { th.append(h('span', { class: 'cnt', 'data-item': it.id, text: countItem(cls, it) + '/' + n })); if (ed) th.append(h('span', { class: 'thops' }, h('button', { class: 'link', onclick: () => openQuick(cls, it) }, '收件'), admin ? h('button', { class: 'link skipbtn', title: cls.name + '這次不用繳' + it.name, 'aria-label': it.name + '：本次不用繳', onclick: () => setSkip(cls, it, true) }, '不用繳') : null)); }
         return th;
       }),
-      admin ? h('th', { text: '狀態' }) : null, admin ? h('th', { class: 'notecol', text: '備註（給主任、校長看）' }) : null);
+      admin ? h('th', { text: '狀態' }) : null, admin ? h('th', { class: 'notecol', text: '未完成原因（給校長看）' }) : null);
     const rows = studs.map(s => {
       const miss = items.filter(it => !isOn(cls.id, s.no, it.id)).length;
       return h('tr', { class: miss === 0 ? 'allin' : null, 'data-no': String(s.no) },
         h('td', { class: 'no', text: String(s.no) }), h('td', { class: 'name', text: s.name || '—' }),
         items.map((it, i) => h('td', { class: 'cell' + examStart(items, i) }, toggleBtn(cls, s, it, ed))),
-        admin ? h('td', { class: 'st', text: miss === 0 ? '全部繳齊' : '缺 ' + miss + ' 項' }) : null, admin ? h('td', { class: 'notecol' }, noteInput(cls.id, s.no, '例如：未訂正、補交、家長未簽名')) : null);
+        admin ? h('td', { class: 'st', text: miss === 0 ? '全部繳齊' : '缺 ' + miss + ' 項' }) : null, admin ? h('td', { class: 'notecol' }, reasonCell(cls.id, s.no, s.name)) : null);
     });
     const ncol = 2 + items.length + (admin ? 2 : 0);
     const nomatch = h('tr', { class: 'nomatch', hidden: true }, h('td', { colspan: ncol, text: '沒有符合的學生' }));
@@ -714,10 +775,12 @@
       oninput: e => { S.filter.q = e.target.value; applyFilter(); },
       onkeydown: e => { if (e.key === 'Escape' && search.value) { e.preventDefault(); e.stopPropagation(); search.value = ''; S.filter.q = ''; applyFilter(); } } });
     const chip = h('button', { type: 'button', class: 'chip filterchip', 'aria-pressed': String(S.filter.onlyMissing), onclick: () => { S.filter.onlyMissing = !S.filter.onlyMissing; applyFilter(); } }, '只看未繳齊');
-    const tools = h('div', { class: 'gridtools no-print', role: 'search', 'aria-label': '篩選學生' }, search, chip, fcount);
+    const saveSt = ed ? h('span', { id: 'savestate', class: 'savestate', role: 'status' }) : null; if (saveSt) paintSaveBar(saveSt);
+    const tools = h('div', { class: 'gridtools no-print', role: 'search', 'aria-label': '篩選學生' }, search, chip, fcount, saveSt);
     applyFilter();
     const out = h('div', { class: 'stack' });
     if (admin) out.append(h('div', { class: 'row' }, h('span', { class: 'note', text: '本班備註' }), h('div', { class: 'grow' }, noteInput(cls.id, null, '整班的說明，例如：11/10 全班補交完成'))));
+    if (picks) out.append(picks);
     out.append(tools, h('div', { class: 'tablebox' }, table), legend);
     return out;
   }
@@ -734,7 +797,7 @@
       btn.setAttribute('aria-checked', String(on));
       btn.classList.remove('justset'); void btn.offsetWidth; btn.classList.add('justset');
       btn.setAttribute('aria-label', s.no + '號 ' + (s.name || '') + ' ' + it.name + (on ? (it.kind === 'exam' ? '（已繳回）' : '（已交）') : '（未交）'));
-      const items = itemsFor(cls); const studs = cls.students || []; const n = studs.length;
+      const items = applySubj(itemsFor(cls)); const studs = cls.students || []; const n = studs.length;
       const tr = table.querySelector('tbody tr[data-no="' + no + '"]');
       if (tr) { const miss = items.filter(x => !isOn(cid, s.no, x.id)).length; tr.classList.toggle('allin', miss === 0); const st = tr.querySelector('td.st'); if (st) st.textContent = miss === 0 ? '全部繳齊' : '缺 ' + miss + ' 項'; }
       const c = countItem(cls, it);
@@ -798,7 +861,7 @@
           ed ? armed(h('button', { class: 'btn small ghost' }), '全部清除', '確定全部取消？', () => { studs.forEach(s => { if (isOn(c.id, s.no, it.id)) setMark(c.id, s.no, it.id, false, { quiet: true }); }); S.mainDirty = true; if (S.modal && S.modal.refresh) S.modal.refresh(); }) : null)));
       inner.append(h('div', { class: 'tiles' + (it.kind === 'exam' ? ' exam' : '') }, studs.map(s => h('button', { type: 'button', class: 'tile', role: 'switch', 'aria-checked': String(isOn(c.id, s.no, it.id)), 'aria-label': s.no + '號 ' + (s.name || ''), disabled: !ed, onclick: () => { setMark(c.id, s.no, it.id, !isOn(c.id, s.no, it.id), { quiet: true }); S.mainDirty = true; if (S.modal && S.modal.refresh) S.modal.refresh(); } }, h('b', { text: String(s.no) }), h('small', { text: s.name || '' })))));
       inner.append(h('div', { class: 'miss', text: miss.length ? '尚未' + (it.kind === 'exam' ? '繳回' : '交') + '：' + miss.map(s => s.no + '號').join('、') : '全班皆已' + (it.kind === 'exam' ? '繳回' : '繳交') + '。' }));
-      inner.append(h('div', { class: 'row', style: 'justify-content:flex-end' }, ed ? h('button', { class: 'btn primary', onclick: () => { closeModal(); saveNow(); } }, svg('save'), '儲存') : h('button', { class: 'btn primary', onclick: closeModal }, '關閉')));
+      inner.append(h('div', { class: 'row', style: 'justify-content:flex-end' }, h('button', { class: 'btn primary', onclick: closeModal }, '完成')));
     });
   }
 
@@ -1211,12 +1274,14 @@
         h('tfoot', null, h('tr', { class: 'tfoot' }, h('td', { colspan: 3, class: 'left', text: '全校' }), items.map(it => { let c = 0, t = 0; cl.forEach(cls => { if (applies(cls, it, r)) { c += countItem(cls, it); t += (cls.students || []).length; } }); return h('td', { text: t ? c + '/' + t : '—' }); }), h('td', { text: pctAll + '%' }), h('td')))))));
     // 未交與備註名單
     const missing = [];
-    cl.forEach(cls => { const its = itemsFor(cls, r); (cls.students || []).slice().sort((a, b) => a.no - b.no).forEach(s => { const miss = its.filter(it => !isOn(cls.id, s.no, it.id)); const note = noteValue(cls.id, s.no); if (miss.length || note) missing.push({ cls, s, miss, note }); }); });
-    box.append(h('div', { class: 'rsec' }, h('h3', { text: '二、未繳交與備註' }),
+    cl.forEach(cls => { const its = itemsFor(cls, r); (cls.students || []).slice().sort((a, b) => a.no - b.no).forEach(s => { const miss = its.filter(it => !isOn(cls.id, s.no, it.id)); const note = splitNote(noteValue(cls.id, s.no)); if (miss.length || note.reason || note.text) missing.push({ cls, s, miss, note }); }); });
+    const rst = reasonStats(cl, r);
+    box.append(h('div', { class: 'rsec' }, h('h3', { text: '二、未繳交名單與未完成原因' }),
+      rst.miss ? h('div', { class: 'rreasons' }, h('b', { text: '未完成原因統計（有缺交的 ' + rst.miss + ' 位學生）：' }), reasonStatsText(rst) || '—') : null,
       missing.length ? h('div', { class: 'tablebox' }, h('table', { class: 'rtable' },
-        h('thead', null, h('tr', null, h('th', { text: '班級' }), h('th', { text: '座號' }), h('th', { text: '姓名' }), h('th', { text: '未繳交項目' }), h('th', { text: '備註' }))),
-        h('tbody', null, missing.map(m => h('tr', null, h('td', { text: m.cls.name }), h('td', { text: String(m.s.no) }), h('td', { text: m.s.name || '' }), h('td', { class: 'left', text: m.miss.map(it => it.kind === 'exam' ? it.name + '（未繳回）' : it.name).join('、') || '—' }), h('td', { class: 'left', text: m.note }))))))
-        : h('div', { class: 'note', text: '全校皆已繳交，沒有備註。' })));
+        h('thead', null, h('tr', null, h('th', { text: '班級' }), h('th', { text: '座號' }), h('th', { text: '姓名' }), h('th', { text: '未繳交項目' }), h('th', { text: '未完成原因' }), h('th', { text: '補充說明' }))),
+        h('tbody', null, missing.map(m => h('tr', null, h('td', { text: m.cls.name }), h('td', { text: String(m.s.no) }), h('td', { text: m.s.name || '' }), h('td', { class: 'left', text: m.miss.map(it => it.kind === 'exam' ? it.name + '（未繳回）' : it.name).join('、') || '—' }), h('td', { class: 'left rreason' + (m.miss.length && !m.note.reason ? ' none' : ''), text: m.note.reason || (m.miss.length ? '尚未填' : '') }), h('td', { class: 'left', text: m.note.text }))))))
+        : h('div', { class: 'note', text: '全校皆已繳交。' })));
     // 各班明細
     const detail = h('div', { class: 'rsec' }, h('h3', { text: '三、各班明細' }));
     cl.forEach(cls => {
@@ -1225,7 +1290,7 @@
       detail.append(h('div', { class: 'rclass' }, h('h4', { text: cls.name + (cls.teacher ? '　導師 ' + cls.teacher : '') + '　' + studs.length + ' 人' + (skippedItems(cls, r).length ? '　本次不用繳：' + skippedItems(cls, r).map(x => x.name).join('、') : '') + (noteValue(cls.id, null) ? '　備註：' + noteValue(cls.id, null) : '') }),
         h('div', { class: 'tablebox' }, h('table', { class: 'rtable' },
           h('thead', null, groupHeaderRow(its, 2, 1), h('tr', null, h('th', { text: '座號' }), h('th', { text: '姓名' }), its.map((it, i) => h('th', { class: (it.kind === 'exam' ? 'exam' : '') + examStart(its, i), text: it.short || it.name })), h('th', { text: '備註' }))),
-          h('tbody', null, studs.map(s => h('tr', null, h('td', { text: String(s.no) }), h('td', { class: 'rname', text: s.name || '' }), its.map((it, i) => h('td', { class: (isOn(cls.id, s.no, it.id) ? 'okcell' : 'nocell') + examStart(its, i), text: isOn(cls.id, s.no, it.id) ? '✓' : '✗' })), h('td', { class: 'left', text: noteValue(cls.id, s.no) }))))))));
+          h('tbody', null, studs.map(s => h('tr', null, h('td', { text: String(s.no) }), h('td', { class: 'rname', text: s.name || '' }), its.map((it, i) => h('td', { class: (isOn(cls.id, s.no, it.id) ? 'okcell' : 'nocell') + examStart(its, i), text: isOn(cls.id, s.no, it.id) ? '✓' : '✗' })), h('td', { class: 'left', text: noteShow(noteValue(cls.id, s.no)) }))))))));
     });
     box.append(detail);
     box.append(historySection());
@@ -1459,14 +1524,15 @@
     }
     // 二、未繳交與備註
     {
-      const rows = [[C('未繳交與備註', XS.title)], [C(org + '　' + r.name + '　　' + meta, XS.sub)], [], ['班級', '座號', '姓名', '缺交', '未繳交項目', '備註'].map(t => C(t, XS.head))];
+      const rst = reasonStats(cl, r);
+      const rows = [[C('未繳交名單與未完成原因', XS.title)], [C(org + '　' + r.name + '　　' + meta, XS.sub)], [C(rst.miss ? '未完成原因統計（有缺交的 ' + rst.miss + ' 位學生）：' + reasonStatsText(rst) : '全校皆已繳交。', XS.sub)], ['班級', '座號', '姓名', '缺交', '未繳交項目', '未完成原因', '補充說明'].map(t => C(t, XS.head))];
       let cnt = 0;
-      cl.forEach(cls => { const its = itemsFor(cls, r); (cls.students || []).slice().sort((a, b) => a.no - b.no).forEach(s => { const miss = its.filter(it => !isOn(cls.id, s.no, it.id)); const note = noteValue(cls.id, s.no); if (!miss.length && !note) return; cnt++;
+      cl.forEach(cls => { const its = itemsFor(cls, r); (cls.students || []).slice().sort((a, b) => a.no - b.no).forEach(s => { const miss = its.filter(it => !isOn(cls.id, s.no, it.id)); const nt = splitNote(noteValue(cls.id, s.no)); if (!miss.length && !nt.reason && !nt.text) return; cnt++;
         const mh = miss.filter(it => it.kind !== 'exam').map(it => it.short || it.name), me = miss.filter(it => it.kind === 'exam').map(it => it.short || it.name);
         const txt = [mh.length ? '習作：' + mh.join('、') : '', me.length ? '考卷：' + me.join('、') + '（家長簽名）' : ''].filter(Boolean).join('｜');
-        rows.push([C(cls.name, XS.name), N(s.no, XS.ctr), C(s.name || '', XS.txt), N(miss.length, miss.length ? XS.no : XS.ok), C(txt || '—', miss.length ? XS.wrap : XS.na), C(note, XS.wrap)]); }); });
-      if (!cnt) rows.push([C('全校皆已繳交，沒有備註。', XS.txt), C('', XS.txt), C('', XS.txt), C('', XS.txt), C('', XS.txt), C('', XS.txt)]);
-      sheets.push({ name: xSheetName('未繳交與備註', used), rows, merges: ['A1:F1', 'A2:F2'].concat(cnt ? [] : ['A5:F5']), freeze: { row: 4, col: 0 }, titleRows: [4, 4], widths: { 0: 8, 1: 6, 2: 10, 3: 6, 4: 52, 5: 30 }, heights: { 0: 30, 3: 24 }, footer: org + '　' + r.name });
+        rows.push([C(cls.name, XS.name), N(s.no, XS.ctr), C(s.name || '', XS.txt), N(miss.length, miss.length ? XS.no : XS.ok), C(txt || '—', miss.length ? XS.wrap : XS.na), C(nt.reason || (miss.length ? '尚未填' : ''), nt.reason ? XS.wrap : XS.na), C(nt.text, XS.wrap)]); }); });
+      if (!cnt) rows.push([C('全校皆已繳交。', XS.txt), C('', XS.txt), C('', XS.txt), C('', XS.txt), C('', XS.txt), C('', XS.txt), C('', XS.txt)]);
+      sheets.push({ name: xSheetName('未繳交與原因', used), rows, merges: ['A1:G1', 'A2:G2', 'A3:G3'].concat(cnt ? [] : ['A5:G5']), freeze: { row: 4, col: 0 }, titleRows: [4, 4], widths: { 0: 8, 1: 6, 2: 10, 3: 6, 4: 44, 5: 14, 6: 26 }, heights: { 0: 30, 2: 22, 3: 24 }, footer: org + '　' + r.name });
     }
     // 三、各班明細（一班一張）
     cl.forEach(cls => {
@@ -1481,7 +1547,7 @@
       studs.forEach(s => {
         const g = its.filter(it => isOn(cls.id, s.no, it.id)).length;
         rows.push([N(s.no, XS.ctr), C(s.name || '', XS.name)].concat(its.map(it => isOn(cls.id, s.no, it.id) ? C('✓', XS.ok) : C('✗', XS.no)))
-          .concat([N(g, XS.ctr), N(its.length, XS.ctr), C(g === its.length ? '繳齊' : '缺 ' + (its.length - g) + ' 項', g === its.length ? XS.ok : XS.ctr), C(noteValue(cls.id, s.no), XS.wrap)]));
+          .concat([N(g, XS.ctr), N(its.length, XS.ctr), C(g === its.length ? '繳齊' : '缺 ' + (its.length - g) + ' 項', g === its.length ? XS.ok : XS.ctr), C(noteShow(noteValue(cls.id, s.no)), XS.wrap)]));
       });
       if (studs.length) rows.push([C('已交人數', XS.totL), C('', XS.totL)].concat(its.map(it => C(countItem(cls, it) + '/' + studs.length, XS.totC))).concat([C('', XS.totC), C('', XS.totC), C(studs.filter(s => its.every(it => isOn(cls.id, s.no, it.id))).length + ' 人繳齊', XS.totC), C('', XS.totC)]));
       const L = xCol(ncol - 1);
@@ -1499,7 +1565,7 @@
       const blob = reportWorkbook(r);
       const d = new Date(); const ymd = (d.getFullYear() - 1911) + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
       downloadBlob(blob, '作業抽查報表_' + r.name.replace(/[\\/:*?"<>|\s]+/g, '_') + '_' + ymd + '.xlsx');
-      toast('已下載 Excel 報表（全校摘要、未繳交與備註、各班明細）');
+      toast('已下載 Excel 報表（全校摘要、未繳交與原因、各班明細）');
     } catch (e) { toast('Excel 產生失敗：' + e.message, 3600); }
   }
 
@@ -1507,12 +1573,12 @@
   function exportCSV(list) {
     const r = round(); if (!r) return;
     const items = roundItems(r);
-    const rows = [['班級', '導師', '座號', '姓名', ...items.map(i => i.name), '已交項目', '應交項目', '狀態', '備註']];
+    const rows = [['班級', '導師', '座號', '姓名', ...items.map(i => i.name), '已交項目', '應交項目', '狀態', '未完成原因', '補充說明']];
     list.forEach(cls => {
       const its = itemsFor(cls, r); const set = new Set(its.map(i => i.id));
       (cls.students || []).slice().sort((a, b) => a.no - b.no).forEach(s => {
         const got = its.filter(it => isOn(cls.id, s.no, it.id)).length;
-        rows.push([cls.name, cls.teacher || '', s.no, s.name || '', ...items.map(it => !set.has(it.id) ? (classHasItem(cls, it) && skipped(cls.id, it.id) ? '本次不用繳' : '不適用') : (isOn(cls.id, s.no, it.id) ? (it.kind === 'exam' ? '已繳回' : '已交') : (it.kind === 'exam' ? '未繳回' : '未交'))), got, its.length, got === its.length ? '繳齊' : '缺 ' + (its.length - got) + ' 項', noteValue(cls.id, s.no)]);
+        rows.push([cls.name, cls.teacher || '', s.no, s.name || '', ...items.map(it => !set.has(it.id) ? (classHasItem(cls, it) && skipped(cls.id, it.id) ? '本次不用繳' : '不適用') : (isOn(cls.id, s.no, it.id) ? (it.kind === 'exam' ? '已繳回' : '已交') : (it.kind === 'exam' ? '未繳回' : '未交'))), got, its.length, got === its.length ? '繳齊' : '缺 ' + (its.length - got) + ' 項', splitNote(noteValue(cls.id, s.no)).reason, splitNote(noteValue(cls.id, s.no)).text]);
       });
     });
     const csv = '﻿' + rows.map(row => row.map(v => { v = String(v); if (/^[=+\-@\t\r]/.test(v)) v = "'" + v; return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(',')).join('\r\n');
@@ -1552,7 +1618,8 @@
       kpi(' main' + (pct === 100 && total ? ' good' : ''), '全校完成率', pct + '%', r.locked ? '本次已結案' : '即時更新', ring(pct)),
       kpi('', '已交／應交', [String(got), h('small', { text: ' / ' + total })], '項次（學生 × 項目）'),
       kpi(full === cl.length && cl.length ? ' good' : '', '全班繳齊', [String(full), h('small', { text: ' / ' + cl.length + ' 班' })], full ? '' : '還沒有班級全部繳齊'),
-      kpi(notLogged.length ? ' warn' : ' good', '導師已登入', [String(cl.length - notLogged.length), h('small', { text: ' / ' + cl.length + ' 班' })], notLogged.length ? notLogged.length + ' 班還沒登入' : '全部導師都已登入'),
+      TEACHERS_ON ? kpi(notLogged.length ? ' warn' : ' good', '導師已登入', [String(cl.length - notLogged.length), h('small', { text: ' / ' + cl.length + ' 班' })], notLogged.length ? notLogged.length + ' 班還沒登入' : '全部導師都已登入')
+        : (st => kpi(st.none ? ' warn' : ' good', '已填未完成原因', [String(st.miss - st.none), h('small', { text: ' / ' + st.miss + ' 人' })], st.miss ? (st.none ? st.none + ' 位缺交學生還沒填原因' : '缺交學生都已填原因') : '目前沒有缺交學生'))(reasonStats(cl, r)),
       kpi(dueKpi.c, '繳交截止', dueKpi.v, dueKpi.s)));
     box.append(h('div', { class: 'row between' }, h('span'),
       h('div', { class: 'row' },
@@ -1561,7 +1628,7 @@
         h('button', { class: 'btn ghost small', onclick: () => exportCSV(cl) }, svg('down'), 'CSV'),
         h('button', { class: 'btn ghost small', onclick: () => window.print() }, svg('print'), '列印'))));
     box.append(h('div', { class: 'print-meta', text: (CFG.schoolName || '') + '　' + r.name + '　全校總覽　列印時間 ' + new Date().toLocaleString('zh-TW') }));
-    if (notLogged.length) box.append(h('div', { class: 'banner warn no-print' }, h('span', { text: '尚未登入的班級：' + notLogged.map(c => c.name + (c.teacher ? '（' + c.teacher + '）' : '')).join('、') + '。這些班級的導師還不能登記，請提醒導師開啟網址、選擇自己的班級登入' + (S.claimClosed ? '（目前「暫停新的導師登入」中，需先到設定取消勾選）' : '') + '。' })));
+    if (TEACHERS_ON && notLogged.length) box.append(h('div', { class: 'banner warn no-print' }, h('span', { text: '尚未登入的班級：' + notLogged.map(c => c.name + (c.teacher ? '（' + c.teacher + '）' : '')).join('、') + '。這些班級的導師還不能登記，請提醒導師開啟網址、選擇自己的班級登入' + (S.claimClosed ? '（目前「暫停新的導師登入」中，需先到設定取消勾選）' : '') + '。' })));
     box.append(h('section', { class: 'panel chartpanel', 'aria-label': '各班完成率' }, h('h2', { text: '各班完成率' }), classChart(cl, r)));
     box.append(h('div', { class: 'tablebox' }, h('table', { class: 'ov' },
       h('thead', null, groupHeaderRow(items, 1, 2), h('tr', null, h('th', { style: 'text-align:left', text: '班級' }), items.map((it, i) => h('th', { class: (it.kind === 'exam' ? 'exam' : '') + examStart(items, i), text: it.short || it.name })), h('th', { text: '完成率' }), h('th', { text: '最後登記' }))),
@@ -1602,7 +1669,7 @@
     const D = S.draft;
     const box = h('div', { class: 'stack' });
 
-    box.append(h('nav', { class: 'setnav', 'aria-label': '設定章節' }, [['set-rounds', '抽查次別'], ['set-items', '檢查項目'], ['set-classes', '班級與名單'], ['set-devices', '導師登入'], ['set-system', '系統']].map(([id, t]) =>
+    box.append(h('nav', { class: 'setnav', 'aria-label': '設定章節' }, [['set-rounds', '抽查次別'], ['set-items', '檢查項目'], ['set-classes', '班級與名單']].concat(TEACHERS_ON ? [['set-devices', '導師登入']] : []).concat([['set-system', '系統']]).map(([id, t]) =>
       h('a', { href: '#' + id, class: 'chip', onclick: e => { e.preventDefault(); const el = document.getElementById(id); if (el) { el.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); el.setAttribute('tabindex', '-1'); el.focus({ preventScroll: true }); } } }, t))));
     /* 抽查次別 */
     const rp = h('div', { class: 'panel', id: 'set-rounds' }, h('h2', null, '抽查次別', h('small', { text: '每次抽查建立一筆；結案後導師不能再更動' })));
@@ -1680,7 +1747,7 @@
         S.version = null; await load({ force: true }); renderMain();
       }, 4000),
       h('span', { class: 'note', text: '例如新學年、換導師或想全部重來時使用。按下後所有已登入的導師裝置都會登出，導師打開網址重新選自己的班級即可；也會自動取消「暫停新的導師登入」。登記紀錄不受影響。' })));
-    box.append(lp);
+    if (TEACHERS_ON) box.append(lp);
 
     /* 系統 */
     const sp = h('div', { class: 'panel', id: 'set-system' }, h('h2', { text: '系統' }));
@@ -1831,6 +1898,28 @@
     }
     if (S.screen === 'login') {
       const msg = h('p', { class: S.gateMsg ? 'note err' : 'note', text: S.gateMsg || '' });
+      if (!TEACHERS_ON) { // 只有教務組登入：密碼框直接顯示
+        const pw = h('input', { type: 'password', id: 'adminPw', placeholder: '教務組密碼', autocomplete: 'current-password', onkeydown: e => { if (e.key === 'Enter') goA(); } });
+        const lb = h('button', { class: 'btn primary block', onclick: () => goA() }, '登入');
+        const goA = async () => {
+          const k = pw.value.trim(); if (!k) { pw.focus(); return toast('請輸入教務組密碼'); }
+          lb.disabled = true; msg.textContent = '登入中…'; msg.className = 'note';
+          try {
+            const r = await adminSignIn(k);
+            if (r.ok) { S.role = 'admin'; S.screen = 'app'; S.view = 'class'; S.gateMsg = ''; render(); startPolling(); await load({ force: true, full: true }); return; }
+            if (r.error === 'not_initialized') { S.screen = 'init'; render(); return; }
+            msg.textContent = r.error === 'auth' ? '密碼不正確。' : (r.error === 'too_many' ? errText('too_many') : '登入失敗：' + errText(r.error)); msg.className = 'note err';
+          } catch (e) { msg.textContent = e.message; msg.className = 'note err'; }
+          lb.disabled = false;
+        };
+        p.append(h('h2', { text: '教務組登入' }),
+          h('p', { class: 'gsmall', text: '本系統由教務組統一登記：選科目、勾選學生有沒有繳交、填未完成原因，最後產生給校長的報表。' }),
+          h('label', { class: 'glabel', for: 'adminPw', text: '密碼' }), pw, lb, msg,
+          h('p', { class: 'gsmall', text: '這台電腦登入一次後會被記住，之後打開網頁就直接進入；用完可在頁尾按「登出」。' }));
+        apiGet({ action: 'classes' }).then(r => { if (r && !r.ok && r.error === 'not_initialized') { S.screen = 'init'; render(); } }).catch(() => { });
+        setTimeout(() => { if (pw.isConnected) pw.focus({ preventScroll: true }); }, 50);
+        return g;
+      }
       const sel = h('select', { id: 'whoSel', 'aria-label': '我是', style: 'width:100%' }, h('option', { value: '', text: '載入班級中…' }));
       sel.disabled = true;
       const go = async () => {
@@ -1927,7 +2016,7 @@
     if (hash.get('s')) { S.pendingScan = 'HW.' + hash.get('s').replace(/^HW\./, ''); history.replaceState(null, '', location.pathname + location.search); }
     if (!S.apiUrl) { S.screen = 'setup'; render(); return; }
     S.screen = 'boot'; render();
-    if (teacher && teacher.token) { S.token = teacher.token; S.classId = teacher.classId; S.role = 'teacher'; const cached = showCached(); S.screen = 'app'; render(); startPolling(); await load({ force: true, full: !cached }); return; }
+    if (TEACHERS_ON && teacher && teacher.token) { S.token = teacher.token; S.classId = teacher.classId; S.role = 'teacher'; const cached = showCached(); S.screen = 'app'; render(); startPolling(); await load({ force: true, full: !cached }); return; }
     if (admin && (admin.atoken || admin.key)) {
       S.atoken = admin.atoken || null; S.key = admin.atoken ? null : admin.key; S.role = 'admin'; const cached = showCached(); S.screen = 'app'; S.view = 'class'; render(); startPolling(); await load({ force: true, full: !cached });
       // 舊版本記住的是密碼：換成登入憑證後刪掉密碼（後端尚未更新時維持原狀）

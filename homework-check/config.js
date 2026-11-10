@@ -10,5 +10,8 @@ window.HC_CONFIG = {
   appName: "作業抽查紀錄",
 
   // ③ 自動更新間隔（秒）。老師開著網頁時，每隔這段時間向資料表確認一次最新繳交情形
-  pollSeconds: 45
+  pollSeconds: 45,
+
+  // ④ 導師登入：false＝全部由教務組登入操作（登入頁只有教務組密碼）；true＝導師也可在登入頁選班級登入
+  teacherLogin: false
 };
