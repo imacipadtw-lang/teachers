@@ -2681,7 +2681,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.10z";
+const APP_VERSION = "專業版 2026.11.10za";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -4939,8 +4939,10 @@ function refreshPlan(){
     const fee = $("#planFee"); if(!bad && rowsN && fee && fee.textContent.trim() && plan.kind === "sub") $("#planSum").insertAdjacentHTML("beforeend", `<span class="sumfee">　${esc(fee.textContent.trim())}</span>`); }
   $("#planSave").textContent = plan.force ? "仍要儲存（我已確認提醒）" : "儲存到雲端表格";
   $("#planSave").disabled = !rowsN || anyMissing || anyOut || hardN > 0;
+  { const done = plan.kind==="absent" && plan.absent.saved, c = $("#planCancel"); if(c) c.textContent = done ? "關閉" : "取消"; }
   if(plan.kind==="absent" && plan.absent.saved){
-    $("#planSum").innerHTML = `<span style="color:var(--sage);font-weight:700">✓ 已儲存請假（${esc(plan.absent.saved)}）。還沒安排的課，按各天的「排這天的代課」。</span>`;
+    let left = 0; try { if(state.meta && plan.absent.teacher) absDays().forEach(d => { left += absDayInfo(plan.absent.teacher, d, plan.absent).todo.filter(t => !t.extra).length; }); } catch(e){ left = -1; }
+    $("#planSum").innerHTML = `<span style="color:var(--sage);font-weight:700">✓ 已儲存請假（${esc(plan.absent.saved)}）。</span>` + (left > 0 ? `<span style="color:var(--c-leave);font-weight:700">還有 ${left} 節沒安排代課，按各天的「排這天的代課」。</span>` : left === 0 ? `<span style="color:var(--sage);font-weight:700">每一節都安排好了，可以關閉。</span>` : "還沒安排的課，按各天的「排這天的代課」。");
     $("#planSave").disabled = true; $("#planSave").textContent = "已儲存";
   }
 }
