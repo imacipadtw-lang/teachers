@@ -77,6 +77,7 @@
 - 自製表格（網站列印、Excel、雲端試算表）不放核章欄（製表員、出納、主任、會計主任、校長、承辦人等）：主計室 115.10.31 提醒，空白核章欄查核時會有問題。老師本人的簽名／簽收欄保留。Excel 的 `K.sig()` 已停用（保留呼叫處）。
 
 ## 工作方式
+- **115.11.10 管理者指示：專案一律放在 GitHub、改完自動更新。** 每次改動（任何子專案、CLAUDE.md）測試通過後立刻 commit 並推到 `imacipadtw-lang/teachers` 的 `index.html` 分支（這個倉庫的預設分支就叫 `index.html`），不用問、不要留著沒推；推之前先 `git pull --rebase origin index.html`（其他工作階段也會推）。GitHub Pages 會在一兩分鐘內自動發布。後端 Apps Script（`程式碼.gs`、`自動執行.gs`）不在倉庫裡，仍要管理者在 Apps Script 手動部署。
 - **115.11.8 管理者指示：做事過程中不用問，Claude 自己做專業判斷、直接完成並推上線。** 每次做完，回報的最後一定要附上網址（例如 https://imacipadtw-lang.github.io/teachers/daike-calendar/ 、作業抽查 https://imacipadtw-lang.github.io/teachers/homework-check/）。
 - 會改變金額、規則或資料結構的修改：不用事先問，但要選最符合上面計算規則與會計室既有做法的方案，並在回報裡清楚寫出影響（哪些金額、哪些月份會變）。已結帳月份的數字不可被改動。
 - 修改後要跑測試；與學校 8–9 月清冊逐格比對的結果必須一致。
