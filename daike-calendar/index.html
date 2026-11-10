@@ -1528,6 +1528,7 @@ html[data-theme=dark] .wb-todo li.ok{background:rgba(79,209,161,.10)}
 @media screen and (max-width:480px){ #subNav{position:static} }   /* 小手機：書籤列不黏在上面，多出閱讀空間 */
 @media screen{ .m-who{margin:8px 0 0;font-size:13px;color:var(--ink-2);line-height:1.7} .m-who b{color:var(--ink)} }
 @media print{ .m-who{display:none} }
+@media screen{ .m-flow{margin:6px 0 0;font-size:13px;color:var(--ink-2);line-height:1.6} .m-flow b{color:var(--ink)} } @media print{ .m-flow{display:none} }
 </style>
 </head>
 <body>
@@ -2681,7 +2682,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.10za";
+const APP_VERSION = "專業版 2026.11.10zb";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -6367,7 +6368,7 @@ function renderMonthly(){
       <button class="btn ghost" type="button" id="mAcctX" title="同一份月報表的雲端試算表版本，可以給會計開">出納會計試算表（雲端）</button>
       <button class="btn ghost" type="button" id="mExcel" title="這個月每一筆代課、調課的明細">本月明細試算表（雲端）</button></div>
     <p class="m-who"><b>給誰：</b>簽收單 → 老師簽名｜月報表 → 送出納、會計｜雲端試算表 → 會計可以隨時開｜明細 → 教務組自己核對</p>
-    <div class="steps"><span><b>1</b>月底印簽收單</span><span><b>2</b>請老師核對、簽名</span><span><b>3</b>有錯就在網站按「修改」，再印一次</span><span><b>4</b>印月報表送出納、會計</span></div>
+    <p class="m-flow"><b>簽收單流程：</b>月底印簽收單 → 請老師核對、簽名 → 有錯就在網站按「修改」再印一次 → 印月報表送出納、會計（整個月的步驟見下面「報帳前檢查與月結」）</p>
     <div class="acct" id="acctBox" aria-live="polite"></div>
     ${(state.heli||[]).length ? `<div class="heli-panel"><h3>合理員額代課教師鐘點費 <span>（另一個會計項目：${esc(state.heli.join("、"))}）</span></h3>
       <p>依課表逐節計算；合班且只有一位老師上的課 ×1.5。上面選的月份同時套用。簽到表月初印給老師簽，月底印清冊送出納、會計。</p>
