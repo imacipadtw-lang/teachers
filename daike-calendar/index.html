@@ -2689,7 +2689,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.10zf";
+const APP_VERSION = "專業版 2026.11.10zg";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -4984,7 +4984,7 @@ $("#planBody").addEventListener("change", e=>{
     const skip = [];
     plan.sub.rows.forEach((r, i) => { const before = hardMap(), old = r.sub, oldAuto = r.auto.sub; setField(`r.${i}.sub`, t); const after = hardMap();
       if(Object.keys(after).some(key => after[key].some(m => (before[key] || []).indexOf(m) < 0))){ r.sub = old; if(oldAuto !== undefined) r.auto.sub = oldAuto; skip.push(i + 1); } });
-    renderPlan(); toast(skip.length ? `已填 ${plan.sub.rows.length - skip.length} 節；第 ${skip.join("、")} 列 ${t} 會衝堂或請假，請另外選` : `${plan.sub.rows.length} 節都由 ${t} 代`, skip.length ? "warn" : "ok");
+    renderPlan(); toast(skip.length ? `第 ${skip.join("、")} 列沒填：${t} 那節會衝堂或請假，請另外選（其他 ${plan.sub.rows.length - skip.length} 節填好了）` : `✓ ${plan.sub.rows.length} 節都由 ${t} 代`);
     return;
   }
   const k = e.target.dataset.k; if(!k) return;
@@ -5848,6 +5848,7 @@ async function hrRun(text, opt){
   opt = opt || {};
   if(!text || !text.trim()){ state.hr = null; store.set(K+"hrText", "", localStorage); renderHrBox(); renderList(); if(state.selected) renderPanel(state.selected); renderWorkbench(); return; }
   try{ await ensureMeta(); }catch(err){ toast("課表還沒讀到：" + err.message); return; }
+  if(hrAuto.t){ clearTimeout(hrAuto.t); hrAuto.t = null; }   // 這次的比對比較新：取消課表讀到時排好的自動重比（否則舊資料會蓋掉這次的結果）
   if(!opt.noSave && state.role === "admin"){                    // 10/31：貼上、上傳後存到雲端（一筆請假一列；不存事由、地點；同一筆只存一次）
     try{
       const recs = hrRecsFromText(text), P0 = HR.parse(text, (state.meta && state.meta.teachers) || []);
