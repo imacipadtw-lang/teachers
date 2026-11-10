@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.10r';
+  const APP_VERSION = '2026.11.10s';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
   // 115.11.10 管理者決定：全部由教務組登入操作，導師不用登入（config.js teacherLogin: true 才開放導師登入）
   // 這版網站需要的後端版本（apps-script/Code.gs 的 BACKEND_VER）；正式後端比這個舊，教務組畫面會提醒更新並可一鍵複製新版程式碼
@@ -487,13 +487,14 @@
     const steps = h('ol', { class: 'updsteps', hidden: true },
       h('li', null, '按「複製新版程式碼」。'),
       h('li', null, '按「開啟 Apps Script」，打開專案「作業抽查_後端程式」，點左邊的 Code.gs（或「程式碼.gs」），全選刪掉，貼上，按存檔。'),
+      h('li', null, '先授權：上方函式選單選「testOcrKey」按「執行」。第一次會跳出「需要授權」→「審查權限」→ 選帳號；若出現「Google 尚未驗證這個應用程式」，按「進階」→「前往（不安全）」→「允許」。（新版要連到 Google AI 做拍照辨識，沒授權就部署，網站可能連不上後端）'),
       h('li', null, '右上「部署」→「管理部署作業」→ 鉛筆「編輯」→ 版本選「新版本」→「部署」。網址不會變。'),
       h('li', null, '回到這裡按右上的重新整理，這個提示消失就完成了。（拍照辨識另外要在「專案設定 → 指令碼屬性」加 GEMINI_KEY）'));
     const more = h('button', { class: 'link', 'aria-expanded': 'false', onclick: () => { steps.hidden = !steps.hidden; more.setAttribute('aria-expanded', String(!steps.hidden)); more.textContent = steps.hidden ? '怎麼更新？' : '收起步驟'; } }, '怎麼更新？');
     return h('div', { class: 'banner warn updbanner no-print', role: 'region', 'aria-label': '後端需要更新' },
       h('div', { class: 'updmain' },
         h('div', null, h('b', { text: '後端程式需要更新' + (S.backendVer ? '（目前 ' + S.backendVer + '）' : '（目前是舊版）') }),
-          h('div', { class: 'note', text: '拍照辨識、本次不用繳、異動紀錄、歷次趨勢、登入憑證等功能，要更新後端（約 1 分鐘）才會生效。' })),
+          h('div', { class: 'note', text: '拍照辨識、本次不用繳、異動紀錄、歷次趨勢、登入憑證等功能，要更新後端（約 2 分鐘）才會生效。' })),
         h('div', { class: 'row' },
           h('button', { class: 'btn small primary', onclick: copyBackendCode }, svg('copy'), '複製新版程式碼'),
           h('a', { class: 'btn small ghost', href: 'https://script.google.com/home', target: '_blank', rel: 'noopener' }, '開啟 Apps Script'),
@@ -1184,7 +1185,7 @@
     finally { clearTimeout(t); }
   }
   const OCR_ERR = {
-    need_deploy: '拍照辨識要先更新後端：把新版 Code.gs 貼到 Apps Script，按「部署 → 管理部署作業 → 編輯 → 新版本 → 部署」。',
+    need_deploy: '拍照辨識要先更新後端：照畫面上方「後端程式需要更新」的步驟做（貼上新版 Code.gs、執行 testOcrKey 授權、部署新版本）。',
     no_ocr_key: '還沒設定 AI 金鑰：Apps Script「專案設定 → 指令碼屬性」新增 GEMINI_KEY（Google AI Studio 的 API 金鑰）。',
     ocr_key_bad: 'AI 金鑰無效或沒有權限，請檢查指令碼屬性 GEMINI_KEY。',
     ocr_busy: 'AI 一分鐘內能辨識的次數有限，請等 10 秒再按「再試一次」。可以一次拍好幾本，減少次數。',
