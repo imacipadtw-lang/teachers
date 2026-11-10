@@ -1029,6 +1029,7 @@ html[data-theme=dark] .wb-mstat .bad dd,html[data-theme=dark] .wb-mstat .bad dd 
 .notice.line{background:rgba(6,150,70,.10);color:#0B6B34}
 .line-code{color:var(--ink)}
 .toast{background:var(--ink);color:#fff}
+@media screen and (max-width:1050px){ body:has(.side.open) .toast{bottom:auto;top:72px} }
 .undo-bar{background:#fff}
 /* 勞健保核對的紅框（白底版） */
 .hr-tbl td.risk input{color:#9E1F37;background:rgba(255,90,110,.10)}
@@ -2688,7 +2689,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.10zc";
+const APP_VERSION = "專業版 2026.11.10zd";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -5724,7 +5725,8 @@ $("#sidOk").onclick = async () => {
 function wbOpenSid(e){
   const sid = sidOf(e); wbOpenDay(e.date);
   setTimeout(() => { const el = [...document.querySelectorAll("#panelBody .ev[data-sid]")].find(x => x.dataset.sid === sid);
-    if(el){ el.classList.add("hit"); el.scrollIntoView({block:"center", behavior:"smooth"}); setTimeout(() => el.classList.remove("hit"), 4000); } }, 150);
+    if(el){ el.classList.add("hit"); el.scrollIntoView({block:"center", behavior:"smooth"}); setTimeout(() => el.classList.remove("hit"), 4000);
+      el.setAttribute("tabindex", "-1"); try{ el.focus({preventScroll:true}); }catch(_){} } }, 150);   // 115.11.10：鍵盤焦點移到找到的那一筆（可直接 Tab 到修改／刪除）
   toast(`序號 ${sid}：${md(e.date)} ${(describe(e)||{}).p || ""}`);
 }
 function wbOpenDay(d){ if(state.page && state.page !== "cal" && state.page !== "all") showPage("cal"); if(!d.startsWith(state.range || d)) setRange(d.slice(0,7)); state.selected = d; renderYear(); renderPanel(d); const ag = document.getElementById("ag-" + d); if(ag && ag.offsetParent) wbGo(ag); else wbGo("#side"); }
