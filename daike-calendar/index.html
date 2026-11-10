@@ -2689,7 +2689,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.10zd";
+const APP_VERSION = "專業版 2026.11.10ze";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -3651,7 +3651,7 @@ function renderChecks(ym){
       <button class="btn ghost small" type="button" id="chkRun">重新檢查</button>
       ${RO ? `<span class="set-msg">${closed ? "這個月教務組已結帳，數字已鎖定；上面若有紅字表示結帳後資料有變動，請向教務組確認" : "這個月教務組還沒結帳，數字還可能變動；請以結帳後的 Excel 為準"}</span>`
          : closed ? `<button class="btn" type="button" id="chkClose" ${ready ? "" : "disabled"}>重新結帳</button><button class="btn dghost small" type="button" id="chkReopen" ${ready ? "" : "disabled"}>解除月結</button>`
-                  : `<button class="btn" type="button" id="chkClose" ${ready && !blocking.length ? "" : "disabled"}>本月結帳</button>`}
+                  : `<button class="btn" type="button" id="chkClose" ${ready && !blocking.length ? "" : "disabled"} ${!ready ? `title="後端還沒更新到新版，月結先不能存"` : blocking.length ? `title="還有 ${blocking.length} 項紅字要處理才能結帳（見上面清單）"` : ""}>本月結帳</button>`}
       ${RO ? "" : `<span class="set-msg" id="chkMsg">${!ready ? "（後端還沒更新到新版，月結先不能存）" : blocking.length ? `還有 ${blocking.length} 項要處理才能結帳` : closed ? "" : "檢查通過，送會計後按「本月結帳」鎖定本月數字"}</span>`}</div>`;
   box.querySelectorAll("[data-chkgo]").forEach(b => b.onclick = () => CHK_GO[b.dataset.chkgo](ym));
   if(!RO && $("#hrSave")) $("#hrSave").onclick = async () => {
