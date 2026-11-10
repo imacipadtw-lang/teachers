@@ -74,6 +74,9 @@ async function login(p){
       return {can, kind: plan && plan.kind, teacher: plan && plan.absent.teacher, strip: !!(state.lastSaved && state.lastSaved.ids.length)}; });
     ok(back.can && back.kind === 'absent' && back.teacher === '丁老師', '假單「排這天的代課」存好後回到同一張假單');
     ok(back.strip, '剛存好的序號記在工作台');
+    const metaOk = await p.evaluate(async () => { state.meta = null; renderWorkbench(); await openPlan(); closePlan(); await new Promise(r => setTimeout(r, 300));
+      return !!state.meta && !/課表還沒讀到/.test(document.getElementById('workbench').textContent); });
+    ok(metaOk, '課表重讀完會更新工作台，不會留著「課表還沒讀到」');
     const auto = await p.evaluate(async () => { resetPlan(); plan.kind = 'sub'; renderPlan(); await ensureMeta();
       const sel = document.querySelector('#planBody [data-k="u.leaver"]'); sel.value = '丁老師'; sel.dispatchEvent(new Event('change', {bubbles:true}));
       const d = document.querySelector('#planBody [data-k="u.date"]'); d.value = '2026-11-17'; d.dispatchEvent(new Event('change', {bubbles:true}));
