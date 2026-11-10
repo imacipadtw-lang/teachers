@@ -79,6 +79,9 @@ async function login(p){
       const d = document.querySelector('#planBody [data-k="u.date"]'); d.value = '2026-11-17'; d.dispatchEvent(new Event('change', {bubbles:true}));
       await new Promise(r => setTimeout(r, 200)); return plan.sub.rows.length; });
     ok(auto > 0, '選好請假老師和日期自動帶入那天的課');
+    const fa = await p.evaluate(async () => { if(plan.sub.rows.length < 2) return 'few'; const s = document.getElementById('fillAll'); if(!s) return 'none';
+      s.value = '王教務'; s.dispatchEvent(new Event('change', {bubbles:true})); await new Promise(r => setTimeout(r, 200)); return plan.sub.rows.every(r => r.sub === '王教務'); });
+    ok(fa === true || fa === 'few', `多節代課可「全部由」同一位老師一次填好（${fa}）`);
     await p.evaluate(() => { resetPlan(); closePlan(); state.lastSaved = null; try{ localStorage.removeItem('planKind'); }catch(e){} });
     ok(await p.evaluate(() => { showPage('report'); return document.getElementById('pgTitle').textContent.trim().length > 0; }), '換頁後頁面標題（螢幕閱讀器）有內容');
     const saves = await p.evaluate(async () => { let n = 0; const o = apiPost; apiPost = async b => { if(b.action === 'save'){ n++; await new Promise(r => setTimeout(r, 600)); } return o(b); };
