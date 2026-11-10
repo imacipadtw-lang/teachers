@@ -3,7 +3,9 @@
 const http = require('http'), fs = require('fs'), path = require('path'), vm = require('vm'), crypto = require('crypto');
 const ROOT = path.resolve(process.argv[2]); const PORT = +process.argv[3] || 8787;
 const LOG = []; // 記錄後端收到的請求（檢查密碼是否出現在網址）
-const HANG = { on: false, list: [] }; // 模擬 Google 卡住不回應：/__hang 開、/__unhang 關（並切斷卡住的連線）
+const HANG = { on: false, list: [] };
+// 模擬 Google Gemini（拍照辨識）：/__ocr 設定下一次的回應，/__ocrcalls 查看後端送出的請求
+const OCR = { next: { data: { students: [], text: '' } }, calls: [] }; // 模擬 Google 卡住不回應：/__hang 開、/__unhang 關（並切斷卡住的連線）
 
 function makeEnv() {
   const props = {}; const cache = {};
@@ -32,6 +34,11 @@ function makeEnv() {
     PropertiesService: { getScriptProperties: () => ({ getProperty: k => (k in props ? props[k] : null), setProperty: (k, v) => { props[k] = String(v); }, deleteProperty: k => { delete props[k]; } }) },
     CacheService: { getScriptCache: () => ({ get: k => { const e = cache[k]; return e && e.exp > Date.now() ? e.v : null; }, put: (k, v, s) => { cache[k] = { v: String(v), exp: Date.now() + (s || 600) * 1000 }; }, remove: k => { delete cache[k]; } }) },
     SpreadsheetApp: { openById: () => ss, getActiveSpreadsheet: () => null, create: () => ss },
+    UrlFetchApp: { fetch: (url, opt) => {
+      const pl = JSON.parse(opt.payload); const n = OCR.next; OCR.calls.push({ url, key: (opt.headers || {})['x-goog-api-key'] || '', prompt: pl.contents[0].parts[0].text, img: (pl.contents[0].parts[1].inline_data || {}).data || '', gen: pl.generationConfig });
+      const code = n.code404 && OCR.calls.length === 1 ? 404 : (n.code || 200);
+      return { getResponseCode: () => code, getContentText: () => code !== 200 ? (n.body || '{"error":{"message":"x"}}') : JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(n.data) }] } }] }) };
+    } },
     LockService: { getScriptLock: () => ({ tryLock: () => true, waitLock: () => { }, releaseLock: () => { } }) },
     Utilities: { getUuid: () => crypto.randomUUID(), formatDate: d => d.toISOString(), sleep: () => { } },
     ContentService: { createTextOutput: t => ({ _t: t, setMimeType() { return this; } }), MimeType: { JSON: 'json' } },
@@ -53,6 +60,9 @@ http.createServer((req, res) => {
   if (u.pathname === '/__breaklog') { env.ctx.Utilities.formatDate = function () { throw new Error('boom'); }; res.end('ok'); return; }
   if (u.pathname === '/__hang') { HANG.on = true; res.end('ok'); return; }
   if (u.pathname === '/__unhang') { HANG.on = false; HANG.list.forEach(r => { try { r.socket.destroy(); } catch (e) { } }); HANG.list = []; res.end('ok'); return; }
+  if (u.pathname === '/__ocr') { let b = ''; req.on('data', c => b += c); req.on('end', () => { OCR.next = JSON.parse(b || '{}'); OCR.calls = []; res.end('ok'); }); return; }
+  if (u.pathname === '/__ocrcalls') { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(OCR.calls)); return; }
+  if (u.pathname === '/__ocrkey') { const v = u.searchParams.get('v'); if (v) env.props.GEMINI_KEY = v; else delete env.props.GEMINI_KEY; res.end('ok'); return; }
   if (u.pathname === '/__reads') { res.end(String(env.counter.reads)); return; }
   if (u.pathname === '/__log') { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(LOG)); return; }
   if (u.pathname === '/__seed') { // 建立測試資料：密碼 test1234、3 班、每班 6 人

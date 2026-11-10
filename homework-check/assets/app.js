@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.10p';
+  const APP_VERSION = '2026.11.10q';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
   // 115.11.10 管理者決定：全部由教務組登入操作，導師不用登入（config.js teacherLogin: true 才開放導師登入）
   const TEACHERS_ON = (window.HC_CONFIG || {}).teacherLogin === true;
@@ -68,6 +68,7 @@
     scan: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg>',
     mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>',
     xls: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>',
+    camera: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/></svg>',
     save: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h11l5 5v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M7 3v5h8V3"/><rect x="7" y="13" width="10" height="8" rx="1"/></svg>',
     tag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>'
   };
@@ -559,7 +560,8 @@
       inner.append(sec('收作業時', [
         ['點格子登記：', '收到習作點藍色格；家長簽名的考卷繳回點紅色格。再點一次可取消；會自動儲存，不用按儲存。表格上方的「習作」「考卷」選單可以只看一個科目。'],
         ['一次收一整疊：', '在表頭按「收件」，依本子上的座號一個一個點，比找格子快。'],
-        ['有貼標籤：', '按「掃描登記」，用手機相機或條碼掃描器掃，掃到就登記；同一本重複掃不會取消。'],
+        ['拍照辨識：', '按「拍照辨識」，手機對準習作或考卷封面拍照，AI 讀出姓名和座號，認得出來就自動登記；沒把握的會請你按一下確認。可以一次拍好幾本。'],
+        ['有貼標籤：', '按「掃描標籤」，用手機相機或條碼掃描器掃，掃到就登記；同一本重複掃不會取消。'],
         ['找學生：', '表格上方輸入座號或姓名；按「只看未繳齊」只列出還沒交齊的學生。']]));
       inner.append(sec('提醒與通知', [
         ['家長通知單：', '每位缺交的學生印一張「作業繳交提醒」，列出還沒交的項目，請家長簽名。'],
@@ -612,7 +614,7 @@
     if (cls.teacher) sub.prepend(h('span', { text: '導師 ' + cls.teacher }));
     if (admin && d && d.updatedAt) sub.append(h('span', { text: '最後登記 ' + fmtStamp(d.updatedAt) + (d.updatedBy ? '（' + d.updatedBy + '）' : '') }));
     const actions = h('div', { class: 'row' });
-    if (ed) actions.append(h('button', { class: 'btn primary small', onclick: () => openScan(cls) }, svg('scan'), '掃描登記'));
+    if (ed) actions.append(h('button', { class: 'btn primary small', onclick: () => openOcr(cls) }, svg('camera'), '拍照辨識'), h('button', { class: 'btn ghost small', onclick: () => openScan(cls) }, svg('scan'), '掃描標籤'));
     actions.append(h('button', { class: 'btn ghost small', onclick: () => openMissing([cls]) }, svg('list'), '未交名單'));
     actions.append(h('button', { class: 'btn ghost small', onclick: () => openNotices([cls]) }, svg('mail'), '家長通知單'));
     if (admin) actions.append(
@@ -1119,6 +1121,145 @@
     function closeScan() { closeModal(); renderMain(); }
     S.modal.onClose = sc.close;
     S.modal.refresh = () => { }; // 掃描中不重繪，避免相機與輸入框被重置
+  }
+
+  /* ---------- 拍照辨識：手機拍習作／考卷封面 → AI 讀出姓名、座號 → 認出是哪位學生並登記 ----------
+     有把握（姓名和座號都對上名單）就直接登記；沒把握的列出來讓教務組按一下確認；認不出來可直接選學生。
+     照片只送到後端（再轉給 Google Gemini 辨識），不存檔；登記走原本的 setMark（會記在異動紀錄）。 */
+  function shrinkImage(src, max) {
+    const w0 = src.videoWidth || src.naturalWidth || src.width, h0 = src.videoHeight || src.naturalHeight || src.height;
+    const k = Math.min(1, max / Math.max(w0 || 1, h0 || 1)); const w = Math.max(1, Math.round(w0 * k)), hh = Math.max(1, Math.round(h0 * k));
+    const cv = document.createElement('canvas'); cv.width = w; cv.height = hh; cv.getContext('2d').drawImage(src, 0, 0, w, hh);
+    const kt = Math.min(1, 160 / Math.max(w, hh)); const tc = document.createElement('canvas'); tc.width = Math.max(1, Math.round(w * kt)); tc.height = Math.max(1, Math.round(hh * kt)); tc.getContext('2d').drawImage(cv, 0, 0, tc.width, tc.height);
+    return { url: cv.toDataURL('image/jpeg', 0.85), thumb: tc.toDataURL('image/jpeg', 0.7) };
+  }
+  function fileToImage(file) {
+    return new Promise((res, rej) => { const u = URL.createObjectURL(file); const im = new Image(); im.onload = () => { res(im); setTimeout(() => URL.revokeObjectURL(u), 2000); }; im.onerror = () => { URL.revokeObjectURL(u); rej(new Error('看不懂這個圖檔')); }; im.src = u; });
+  }
+  // 辨識要幾秒：單次最多等 60 秒；不自動重送（避免同一張照片重複辨識）
+  async function apiOcr(body) {
+    const ac = new AbortController(); const t = setTimeout(() => ac.abort(), 60000);
+    try {
+      const r = await fetch(S.apiUrl, { method: 'POST', body: JSON.stringify(Object.assign({}, authParams(), body)), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, redirect: 'follow', signal: ac.signal });
+      if (!r.ok) throw new Error('連不到資料表（' + r.status + '）');
+      return await parseJson(r);
+    } catch (e) { throw new Error(e && e.name === 'AbortError' ? '超過 60 秒沒有回應，請再拍一次' : ((e && e.message) || '網路錯誤')); }
+    finally { clearTimeout(t); }
+  }
+  const OCR_ERR = {
+    need_deploy: '拍照辨識要先更新後端：把新版 Code.gs 貼到 Apps Script，按「部署 → 管理部署作業 → 編輯 → 新版本 → 部署」。',
+    no_ocr_key: '還沒設定 AI 金鑰：Apps Script「專案設定 → 指令碼屬性」新增 GEMINI_KEY（Google AI Studio 的 API 金鑰）。',
+    ocr_key_bad: 'AI 金鑰無效或沒有權限，請檢查指令碼屬性 GEMINI_KEY。',
+    ocr_busy: 'AI 一分鐘內能辨識的次數有限，請等 10 秒再按「再試一次」。可以一次拍好幾本，減少次數。',
+    too_large: '照片太大，請再拍一次。', no_students: '這個班還沒有學生名單，請到「設定 → 班級與名單」貼上。', no_round: '找不到這次抽查，請重新整理。'
+  };
+  function openOcr(cls0) {
+    const st = { stream: null, jobs: [], busy: false, n: 0, marked: 0 };
+    const c = classes().find(x => x.id === cls0.id) || cls0;
+    const items = itemsFor(c); const shown = applySubj(items);
+    const studs = (c.students || []).slice().sort((a, b) => a.no - b.no);
+    const stud = no => studs.find(x => x.no === Number(no));
+    const iname = id => (items.find(it => it.id === id) || {}).name || '';
+    let itemSel, video, shot, camMsg, listEl, countEl, fileIn;
+    const itemOptions = (sel, firstText) => [h('option', { value: '', text: firstText, selected: !sel })].concat(
+      ofKind(items, 'hw').length ? [h('optgroup', { label: '習作' }, ofKind(items, 'hw').map(it => h('option', { value: it.id, text: it.name, selected: sel === it.id })))] : [],
+      ofKind(items, 'exam').length ? [h('optgroup', { label: '考卷（家長簽名繳回）' }, ofKind(items, 'exam').map(it => h('option', { value: it.id, text: it.name, selected: sel === it.id })))] : []);
+    const studOptions = sel => [h('option', { value: '', text: '選學生…' })].concat(studs.map(x => h('option', { value: String(x.no), text: x.no + ' 號 ' + (x.name || ''), selected: Number(sel) === x.no })));
+    const doMark = (no, itemId) => { setMark(c.id, no, itemId, true, { quiet: true }); S.mainDirty = true; st.marked++; countEl.textContent = String(st.marked); };
+    const stopCam = () => { if (st.stream) { st.stream.getTracks().forEach(t => t.stop()); st.stream = null; } if (video) video.srcObject = null; };
+    const startCam = async () => {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { camMsg.textContent = '這個瀏覽器不能直接開相機，請按「拍照或選照片」。'; return; }
+      try { st.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false }); }
+      catch (e) { camMsg.textContent = e && e.name === 'NotAllowedError' ? '沒有相機權限：請允許網站使用相機，或按「拍照或選照片」。' : '這台裝置沒有可用的相機，請按「拍照或選照片」。'; return; }
+      if (!S.modal || !video.isConnected) return stopCam();
+      video.srcObject = st.stream; video.hidden = false; shot.disabled = false; camMsg.textContent = '對準封面上的姓名與座號，按下方圓鈕拍照';
+      await video.play().catch(() => { });
+    };
+    // 判斷每一位：有把握＝直接登記；其他列出來確認
+    const decide = job => {
+      (job.res.matches || []).forEach(m => {
+        const it = items.find(x => x.id === (m.itemId || job.itemId));
+        m.itemId = it ? it.id : '';
+        const fixedIt = job.itemId ? items.find(x => x.id === job.itemId) : null;
+        m.mismatch = !!(fixedIt && m.seenItem && !m.seenItem.includes(subjectKey(fixedIt)));
+        if (!m.itemId) m.act = 'item';
+        else if (isOn(c.id, m.no, m.itemId)) m.act = 'already';
+        else if (m.confidence === 'high' && !m.mismatch) { doMark(m.no, m.itemId); m.act = 'marked'; }
+        else m.act = 'confirm';
+      });
+    };
+    const pump = async () => {
+      if (st.busy) return; const job = st.jobs.find(j => j.state === 'wait'); if (!job) return;
+      st.busy = true; job.state = 'run'; paint(job);
+      try {
+        const r = await apiOcr({ action: 'ocr', rid: S.rid, classId: c.id, itemId: job.itemId, image: job.img.url.split(',')[1] });
+        if (r.ok) { job.state = 'done'; job.res = r; decide(job); }
+        else if (r.error === 'auth') { st.busy = false; closeModal(true); authLost(); return; }
+        else { job.state = 'err'; job.err = r.error === 'unknown_action' ? 'need_deploy' : r.error; }
+      } catch (e) { job.state = 'err'; job.err = e.message; }
+      st.busy = false; if (S.modal) { paint(job); pump(); }
+    };
+    const addJob = img => { const job = { id: ++st.n, img, state: 'wait', itemId: itemSel.value || '', el: h('li', { class: 'ocrjob' }) }; st.jobs.push(job); listEl.prepend(job.el); paint(job); pump(); };
+    const lineFor = (job, m) => {
+      const who = m.no + ' 號 ' + (m.name || (stud(m.no) || {}).name || '');
+      const seen = m.seen ? h('small', { class: 'ocrseen', text: '看到：' + m.seen + (m.seenItem ? '｜' + m.seenItem : '') }) : null;
+      const li = h('li', { class: 'ocrm ' + m.act });
+      if (m.act === 'marked') li.append(h('span', { class: 'ocrst ok', text: '✓ 已登記' }), h('b', { text: who }), h('span', { text: iname(m.itemId) }), seen,
+        h('button', { class: 'link', onclick: () => { setMark(c.id, m.no, m.itemId, false, { quiet: true }); S.mainDirty = true; st.marked--; countEl.textContent = String(st.marked); m.act = 'undone'; paint(job); } }, '取消'));
+      else if (m.act === 'already') li.append(h('span', { class: 'ocrst', text: '已經登記過' }), h('b', { text: who }), h('span', { text: iname(m.itemId) }), seen);
+      else if (m.act === 'undone') li.append(h('span', { class: 'ocrst', text: '已取消' }), h('b', { text: who }), h('span', { text: iname(m.itemId) }));
+      else if (m.act === 'confirm') {
+        const ps = h('select', { class: 'ocrpick', 'aria-label': '改成別的學生' }, studOptions(m.no));
+        li.append(h('span', { class: 'ocrst warn', text: '請確認' }), h('b', { text: who + '？' }), h('span', { text: iname(m.itemId) + (m.mismatch ? '（封面看起來是「' + m.seenItem + '」）' : '') }), seen,
+          h('span', { class: 'ocrbtns' },
+            h('button', { class: 'btn small primary', onclick: () => { const no = Number(ps.value) || m.no; if (no !== m.no) { m.no = no; m.name = (stud(no) || {}).name || ''; } if (isOn(c.id, m.no, m.itemId)) m.act = 'already'; else { doMark(m.no, m.itemId); m.act = 'marked'; } paint(job); } }, '登記'), ps));
+      } else if (m.act === 'item') {
+        const is = h('select', { class: 'ocrpick', 'aria-label': who + ' 的項目' }, itemOptions('', '選項目…'));
+        li.append(h('span', { class: 'ocrst warn', text: '看不出科目' }), h('b', { text: who }), seen,
+          h('span', { class: 'ocrbtns' }, is, h('button', { class: 'btn small primary', onclick: () => { if (!is.value) return toast('請先選項目'); m.itemId = is.value; if (isOn(c.id, m.no, m.itemId)) m.act = 'already'; else { doMark(m.no, m.itemId); m.act = 'marked'; } paint(job); } }, '登記')));
+      }
+      return li;
+    };
+    function paint(job) {
+      const head = h('div', { class: 'ocrhead' }, h('img', { class: 'ocrthumb', src: job.img.thumb, alt: '第 ' + job.id + ' 張照片' }));
+      const body = h('div', { class: 'ocrbody' });
+      if (job.state === 'wait') body.append(h('div', { class: 'ocrst', text: '排隊中…' }));
+      else if (job.state === 'run') body.append(h('div', { class: 'ocrst busy', text: '辨識中…（約 3–10 秒）' }));
+      else if (job.state === 'err') body.append(h('div', { class: 'ocrst err', text: OCR_ERR[job.err] || ('辨識失敗：' + (job.err || '未知錯誤')) }),
+        job.err === 'need_deploy' || job.err === 'no_ocr_key' || job.err === 'ocr_key_bad' ? null : h('button', { class: 'btn small ghost', onclick: () => { job.state = 'wait'; paint(job); pump(); } }, '再試一次'));
+      else {
+        const ms = job.res.matches || [];
+        if (ms.length) body.append(h('ul', { class: 'ocrms' }, ms.map(m => lineFor(job, m))));
+        // 沒認出來（或還有別本沒認出來）：直接選學生登記
+        const ps = h('select', { class: 'ocrpick', 'aria-label': '選學生' }, studOptions(''));
+        const is = h('select', { class: 'ocrpick', 'aria-label': '選項目' }, itemOptions(job.itemId, '選項目…'));
+        const manual = h('div', { class: 'ocrmanual' }, ms.length ? null : h('span', { class: 'ocrst warn', text: '沒有認出學生' + (job.res.text ? '（看到：' + job.res.text + '）' : '') }),
+          ps, is, h('button', { class: 'btn small', onclick: () => { if (!ps.value || !is.value) return toast('請選學生和項目'); const no = Number(ps.value); if (isOn(c.id, no, is.value)) return toast(no + ' 號已經登記過了'); doMark(no, is.value); const x = stud(no); job.res.matches = ms.concat([{ no, name: x ? x.name : '', itemId: is.value, act: 'marked', confidence: 'manual', seen: '' }]); paint(job); } }, '登記'));
+        body.append(ms.length ? h('details', { class: 'ocrmore' }, h('summary', { text: '這張還有別本沒認出來？手動選學生' }), manual) : manual);
+      }
+      job.el.replaceChildren(head, body);
+    }
+    openModal(inner => {
+      inner.classList.add('ocrmode');
+      itemSel = h('select', { id: 'ocrItem', 'aria-label': '登記項目' }, itemOptions(shown.length === 1 ? shown[0].id : '', '自動判斷（看封面上的科目）'));
+      video = h('video', { playsinline: true, muted: true, autoplay: true, hidden: true, class: 'ocrvideo' });
+      camMsg = h('div', { class: 'ocrcammsg', text: '正在開啟相機…' });
+      shot = h('button', { class: 'ocrshot', disabled: true, 'aria-label': '拍照辨識', onclick: () => { if (!video.videoWidth) return; addJob(shrinkImage(video, 1600)); shot.classList.remove('flash'); void shot.offsetWidth; shot.classList.add('flash'); } }, h('span'));
+      fileIn = h('input', { type: 'file', accept: 'image/*', multiple: true, hidden: true, id: 'ocrFile', onchange: async e => { const fs = Array.from(e.target.files || []); e.target.value = ''; for (const f of fs) { try { addJob(shrinkImage(await fileToImage(f), 1600)); } catch (err) { toast(err.message); } } } });
+      countEl = h('b', { text: '0' });
+      listEl = h('ul', { class: 'ocrjobs', 'aria-live': 'polite' });
+      inner.append(
+        h('div', { class: 'row between' }, h('h3', null, '拍照辨識', h('small', { text: c.name })), h('button', { class: 'btn ghost small', onclick: () => closeModal() }, '完成')),
+        h('div', { class: 'note', text: '拍習作或考卷的封面（姓名、座號要清楚）。認得出來就自動登記；沒把握的會請你確認。可以一次拍好幾本攤開排好。' }),
+        h('label', { class: 'row ocritem', for: 'ocrItem' }, h('span', { class: 'note', text: '登記項目' }), itemSel),
+        h('div', { class: 'ocrcam' }, video, camMsg),
+        h('div', { class: 'ocrctl' }, h('button', { class: 'btn ghost', onclick: () => fileIn.click() }, svg('camera'), '拍照或選照片'), shot, h('div', { class: 'counter' }, '已登記 ', countEl, ' 本')),
+        fileIn, listEl,
+        h('div', { class: 'note', text: '照片只用來辨識，不會存檔；辨識由 Google Gemini 進行。' }));
+    });
+    S.modal.onClose = stopCam;
+    S.modal.refresh = () => { }; // 辨識中不重繪，避免相機與結果被重置
+    startCam();
   }
 
   /* ---------- 最小 .xlsx 產生器（給 NIIMBOT 等標籤機 App 匯入；全部存成文字，座號不會掉 0） ---------- */

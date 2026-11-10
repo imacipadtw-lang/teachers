@@ -291,7 +291,7 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
   await fetch(B + '__reset'); await fetch(B + '__seed');
   ctx = await br.newContext({ viewport: { width: 1280, height: 860 } }); pg = await newPage(ctx);
   await adminLogin(pg, B);
-  await pg.click('button:has-text("掃描登記")'); await pg.waitForSelector('#scanInput');
+  await pg.click('button:has-text("掃描標籤")'); await pg.waitForSelector('#scanInput');
   const scan = async code => { await pg.fill('#scanInput', code); await pg.press('#scanInput', 'Enter'); await sleep(250); return (await pg.textContent('.scanstatus .big')).trim(); };
   ok(await scan('1010102') === '已登記', '1010102（一甲 1 號數學習作）→ 已登記');
   ok(await scan('1010102') === '已經登記過', '同一本再掃 → 已經登記過（不會取消）');
@@ -308,7 +308,7 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
   const tok2 = await (await fetch(B + 'exec?action=claim&classId=g1&label=t')).json();
   ctx = await br.newContext({ viewport: { width: 1280, height: 860 } }); pg = await newPage(ctx);
   await pg.goto(B); await pg.evaluate(t => localStorage.setItem('hc.teacher', JSON.stringify({ token: t.token, classId: 'g1' })), tok2);
-  await pg.reload(); await pg.waitForSelector('table.grid'); await pg.click('button:has-text("掃描登記")'); await pg.waitForSelector('#scanInput');
+  await pg.reload(); await pg.waitForSelector('table.grid'); await pg.click('button:has-text("掃描標籤")'); await pg.waitForSelector('#scanInput');
   ok(/不是本班/.test(await scan('2010202')), '導師掃到別班 → 擋下「這不是本班的習作」');
   await ctx.close();
 
@@ -475,7 +475,7 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
     const [dl] = await Promise.all([pg.waitForEvent('download'), pg.click('button:has-text("本班 CSV")')]);
     const csv = fs.readFileSync(await dl.path(), 'utf8');
     ok(csv.split('\r\n')[1].includes('本次不用繳'), 'CSV 該欄寫「本次不用繳」');
-    await pg.click('button:has-text("掃描登記")'); await pg.waitForSelector('#scanInput');
+    await pg.click('button:has-text("掃描標籤")'); await pg.waitForSelector('#scanInput');
     await pg.fill('#scanInput', '1010202'); await pg.press('#scanInput', 'Enter'); await sleep(250);
     ok(/不用繳/.test(await pg.textContent('.scanstatus .big')), '掃描不用繳的習作 → 提示「這次不用繳」');
     await pg.click('.scanmode button:has-text("結束")'); await sleep(300);
@@ -874,6 +874,68 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
     const nRounds = rd9.rounds.length;
     await pg.click('#set-rounds button:has-text("建立抽查次別")'); await sleep(300);
     ok(/至少勾選一個/.test(await pg.textContent('.toast')) && (await R({ action: 'read', key: 'test1234' })).rounds.length === nRounds, '一個項目都沒勾就不能建立次別');
+    await ctx.close();
+  }
+
+  console.log('36. 拍照辨識（模擬 Google Gemini）');
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+  { const setOcr = o => fetch(B + '__ocr', { method: 'POST', body: JSON.stringify(o) });
+    const calls = async () => (await fetch(B + '__ocrcalls')).json();
+    const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
+    const upload = () => pg.setInputFiles('#ocrFile', { name: 'cover.png', mimeType: 'image/png', buffer: png });
+    const lastJob = () => pg.locator('.ocrjobs > li').first();
+    const waitJob = re => pg.waitForFunction(r => { const li = document.querySelector('.ocrjobs > li'); return !!li && new RegExp(r).test(li.textContent); }, re, { timeout: 15000 });
+    const mk = async (no, it) => !!(((await marks(B)).g1.marks[String(no)] || {})[it]);
+    ctx = await br.newContext({ viewport: { width: 1280, height: 860 } }); pg = await newPage(ctx); await adminLogin(pg, B);
+    await pg.click('button:has-text("拍照辨識")'); await pg.waitForSelector('.ocrmode');
+    await pg.waitForFunction(() => /相機|拍照或選照片/.test(document.querySelector('.ocrcam').textContent), null, { timeout: 5000 });
+    ok(true, '開啟拍照辨識（沒有相機的電腦會提示改用「拍照或選照片」）');
+    await upload(); await waitJob('GEMINI_KEY');
+    ok(true, '還沒設定金鑰：提示到指令碼屬性新增 GEMINI_KEY');
+    await fetch(B + '__ocrkey?v=test-key');
+    await setOcr({ data: { students: [{ no: 3, confidence: 'high', itemId: 'math', seen: '一甲 3號 陳大同', seenItem: '數學習作' }], text: '數學習作 一甲 3 陳大同' } });
+    await upload(); await waitJob('已登記');
+    await sleep(1500);
+    ok(await mk(3, 'math'), '有把握（姓名、座號都對上名單）：自動登記 3 號數學習作');
+    const cl = (await calls())[0] || {};
+    ok(cl.key === 'test-key' && !/key=/.test(cl.url) && /陳大同/.test(cl.prompt) && /黃怡君/.test(cl.prompt) && cl.img.length > 100 && /gemini-flash-latest/.test(cl.url), '送給 AI 的內容：金鑰放在標頭（不在網址）、本班名單、照片');
+    ok(/已登記\s*1\s*本/.test(await pg.textContent('.ocrctl .counter')), '計數顯示「已登記 1 本」');
+    await lastJob().locator('button:has-text("取消")').click(); await sleep(1500);
+    ok(!(await mk(3, 'math')), '辨識錯了可以按「取消」撤銷');
+    await setOcr({ data: { students: [{ no: 4, confidence: 'medium', itemId: 'math', seen: '林美美' }], text: '' } });
+    await upload(); await waitJob('請確認');
+    await sleep(800);
+    ok(!(await mk(4, 'math')), '沒把握（只認出姓名）：先不登記，請教務組確認');
+    await lastJob().locator('.ocrbtns button:has-text("登記")').click(); await sleep(1500);
+    ok(await mk(4, 'math'), '按「登記」後才寫入');
+    await setOcr({ data: { students: [{ no: 4, confidence: 'high', itemId: 'math', seen: '' }, { no: 5, confidence: 'high', itemId: 'exam_math', seen: '' }, { no: 99, confidence: 'high', itemId: 'math', seen: '' }], text: '' } });
+    await upload(); await waitJob('已經登記過');
+    const t3 = await lastJob().textContent(); await sleep(1500);
+    ok(/4 號/.test(t3) && /5 號/.test(t3) && !/99/.test(t3) && await mk(5, 'exam_math'), '一張照片拍好幾本：4 號已登記過不重複、5 號數學考卷登記、名單外的 99 號不採用');
+    await pg.selectOption('#ocrItem', 'math');
+    await setOcr({ data: { students: [{ no: 6, confidence: 'high', itemId: 'math', seen: '黃怡君', seenItem: '國語習作' }], text: '' } });
+    await upload(); await waitJob('請確認');
+    ok(/國語習作/.test(await lastJob().textContent()) && !(await mk(6, 'math')), '選了「數學習作」但封面是國語習作：不自動登記，提示確認');
+    await setOcr({ data: { students: [], text: '看不清楚' } });
+    await upload(); await waitJob('沒有認出學生');
+    await lastJob().locator('select[aria-label="選學生"]').selectOption('1');
+    await lastJob().locator('.ocrmanual button:has-text("登記")').click(); await sleep(1500);
+    ok(await mk(1, 'math'), '沒認出來：直接選學生登記（項目沿用已選的數學習作）');
+    await setOcr({ code: 429 }); await upload(); await waitJob('次數有限');
+    ok(!!(await lastJob().locator('button:has-text("再試一次")').count()), 'AI 忙碌（429）：提示稍等，有「再試一次」');
+    await pg.selectOption('#ocrItem', '');
+    await setOcr({ code404: true, data: { students: [{ no: 2, confidence: 'high', itemId: 'math', seen: '' }], text: '' } });
+    await upload(); await waitJob('已登記');
+    const cs = await calls();
+    ok(cs.length === 2 && /gemini-flash-latest/.test(cs[0].url) && /gemini-2\.5-flash/.test(cs[1].url) && !!cs[1].gen.thinkingConfig, '預設模型停用（404）時自動改用 gemini-2.5-flash');
+    await pg.click('.ocrmode button:has-text("完成")'); await sleep(500);
+    ok(await pg.getAttribute('table.grid button.chk[data-no="5"][data-item="exam_math"]', 'aria-checked') === 'true', '關閉後表格顯示辨識登記的結果');
+    await ctx.close();
+    const L = 'http://localhost:8788/'; await fetch(L + '__reset'); await fetch(L + '__seed');
+    ctx = await br.newContext({ viewport: { width: 1280, height: 860 } }); pg = await newPage(ctx); await adminLogin(pg, L);
+    await pg.click('button:has-text("拍照辨識")'); await pg.waitForSelector('.ocrmode');
+    await upload(); await waitJob('更新後端');
+    ok(true, '舊版後端：提示要先更新後端（Code.gs 重新部署）');
     await ctx.close();
   }
 

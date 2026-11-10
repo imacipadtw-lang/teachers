@@ -199,6 +199,11 @@ function doPost(e) {
     if (!initialized_()) return json_({ ok: false, error: 'not_initialized' });
     return read_(body);
   }
+  if (body.action === 'ocr') { // 拍照辨識：只讀＋呼叫 AI（要幾秒），不佔用寫入的排隊鎖定
+    if (!initialized_()) return json_({ ok: false, error: 'not_initialized' });
+    if (body.key && adminLocked_()) return json_({ ok: false, error: 'too_many' });
+    return ocr_(body);
+  }
   var lock = LockService.getScriptLock();
   if (!lock.tryLock(20000)) return json_({ ok: false, error: 'busy' });
   try {
@@ -545,6 +550,103 @@ function delPrefix_(prefix) {
 }
 function version_() { return PropertiesService.getScriptProperties().getProperty('VERSION') || '0'; }
 function bump_() { var v = String(Date.now()); PropertiesService.getScriptProperties().setProperty('VERSION', v); return v; }
+/* ---------- 拍照辨識：手機拍習作／考卷封面 → AI 讀出班級、座號、姓名，對照本班名單判斷是哪位學生 ----------
+   金鑰：Apps Script「專案設定 → 指令碼屬性」新增 GEMINI_KEY（Google AI Studio 建立的 API 金鑰）；不寫進網站、試算表或倉庫。
+   模型：預設 gemini-flash-latest（Google 維護的「最新 Flash」別名），找不到時改用 gemini-2.5-flash；
+         要固定某個模型，在指令碼屬性加 OCR_MODEL。
+   送出的資料：照片、本班座號與姓名、本次項目名稱。辨識結果不寫入任何資料；登記一律走原本的 marks（會記在異動紀錄）。 */
+var OCR_MODELS_DEFAULT = ['gemini-flash-latest', 'gemini-2.5-flash'];
+function ocr_(p) {
+  var all = readAll_();
+  var who = whoIs_(p, all);
+  if (!who) return json_({ ok: false, error: 'auth' });
+  var config = all.config || { items: [], classes: [] };
+  var cls = (config.classes || []).filter(function (c) { return c.id === String(p.classId || ''); })[0];
+  if (!cls) return json_({ ok: false, error: 'bad_request' });
+  if (who.role !== 'admin' && who.classId !== cls.id) return json_({ ok: false, error: 'auth' });
+  var round = (all.rounds || []).filter(function (x) { return x.id === String(p.rid || ''); })[0];
+  if (!round) return json_({ ok: false, error: 'no_round' });
+  var img = String(p.image || '').replace(/^data:image\/[a-z+]+;base64,/, '');
+  if (!img || !/^[A-Za-z0-9+\/=]+$/.test(img.slice(0, 200))) return json_({ ok: false, error: 'bad_request' });
+  if (img.length > 8000000) return json_({ ok: false, error: 'too_large' });
+  var key = PropertiesService.getScriptProperties().getProperty('GEMINI_KEY');
+  if (!key) return json_({ ok: false, error: 'no_ocr_key' });
+  var doc = all['checks:' + round.id + ':' + cls.id] || {};
+  var inRound = {}; (round.itemIds || []).forEach(function (id) { inRound[id] = true; });
+  var items = (config.items || []).filter(function (it) { return inRound[it.id] && classHasItem_(cls, it) && !(doc.skip && doc.skip[it.id]); });
+  var itemById = {}; items.forEach(function (it) { itemById[it.id] = it; });
+  var fixed = p.itemId && itemById[p.itemId] ? String(p.itemId) : '';
+  var studs = (cls.students || []).slice().sort(function (a, b) { return a.no - b.no; });
+  if (!studs.length) return json_({ ok: false, error: 'no_students' });
+  var byNo = {}; studs.forEach(function (st) { byNo[String(st.no)] = st; });
+  var prompt = [
+    '你是國小教務處的作業登記助理。照片裡是學生繳交的習作或考卷（可能一本，也可能好幾本攤開排在一起）。',
+    '請找出每一本封面或卷頭上寫的班級、座號、姓名（多半是小朋友手寫），對照下面的「本班名單」，判斷是哪一位學生。',
+    '班級：' + cls.name + '（' + cls.grade + ' 年級）',
+    '本班名單（座號 姓名）：',
+    studs.map(function (st) { return st.no + ' ' + (st.name || '（無姓名）'); }).join('\n'),
+    fixed ? '這次登記的項目已經指定：' + itemById[fixed].name + '（itemId=' + fixed + '）。每一筆 itemId 都填 ' + fixed + '；若封面明顯是別的科目，seenItem 寫出你看到的科目。'
+      : '本次可能的項目（itemId：名稱）：\n' + items.map(function (it) { return it.id + '：' + it.name + (it.kind === 'exam' ? '（考卷，家長簽名繳回）' : ''); }).join('\n'),
+    '規則：',
+    '1. no 只能是名單上的座號；看不清楚、或名單上找不到，就不要列出，絕對不要猜。',
+    '2. confidence：姓名和座號都對得上名單＝high；只看得清其中一個（例如只有姓名、或只有座號）但和名單一致＝medium；字跡模糊、只能部分辨認＝low。',
+    '3. 每一本各回傳一筆；同一位學生只回傳一次。',
+    '4. itemId：依封面上的科目字樣（例如「數學 習作」「國語 考卷」）從上面的清單挑一個；判斷不出來就填空字串。',
+    '5. seen：照抄你在這一本上看到的班級、座號、姓名文字（例如「三年甲班 5號 張家豪」）。seenItem：照抄看到的科目字樣，沒有就空字串。',
+    '6. text：整張照片上主要文字的簡短摘要（50 字以內）。'
+  ].join('\n');
+  var out = callGemini_(key, prompt, img);
+  if (!out.ok) return json_(out);
+  var res = out.data || {};
+  var seen = {}, matches = [];
+  (res.students || []).forEach(function (m) {
+    var no = String(parseInt(m && m.no, 10)); if (!byNo[no] || seen[no]) return; seen[no] = true;
+    var conf = { high: 'high', medium: 'medium', low: 'low' }[String(m.confidence || '').toLowerCase()] || 'low';
+    var guess = itemById[m.itemId] ? String(m.itemId) : '';
+    matches.push({ no: Number(no), name: byNo[no].name || '', itemId: fixed || guess, confidence: conf,
+      seen: String(m.seen || '').slice(0, 60), seenItem: String(m.seenItem || '').slice(0, 30) });
+  });
+  return json_({ ok: true, matches: matches.slice(0, 40), text: String(res.text || '').slice(0, 200), model: out.model });
+}
+function callGemini_(key, prompt, img, mime) {
+  var schema = { type: 'OBJECT', properties: {
+    students: { type: 'ARRAY', items: { type: 'OBJECT', properties: {
+      no: { type: 'INTEGER' }, confidence: { type: 'STRING' }, itemId: { type: 'STRING' }, seen: { type: 'STRING' }, seenItem: { type: 'STRING' } },
+      required: ['no', 'confidence', 'itemId', 'seen'] } },
+    text: { type: 'STRING' } }, required: ['students', 'text'] };
+  var own = PropertiesService.getScriptProperties().getProperty('OCR_MODEL');
+  var models = own ? [own].concat(OCR_MODELS_DEFAULT.filter(function (m) { return m !== own; })) : OCR_MODELS_DEFAULT.slice();
+  for (var i = 0; i < models.length; i++) {
+    var gen = { temperature: 0, responseMimeType: 'application/json', responseSchema: schema };
+    if (/^gemini-2\.5-flash/.test(models[i])) gen.thinkingConfig = { thinkingBudget: 0 }; // 2.5 Flash 關掉思考，回應較快
+    var resp;
+    try {
+      resp = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(models[i]) + ':generateContent', {
+        method: 'post', contentType: 'application/json', muteHttpExceptions: true, headers: { 'x-goog-api-key': key },
+        payload: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }, { inline_data: { mime_type: mime || 'image/jpeg', data: img } }] }], generationConfig: gen })
+      });
+    } catch (err) { return { ok: false, error: 'ocr_failed', detail: String((err && err.message) || err).slice(0, 120) }; }
+    var code = resp.getResponseCode(), body = resp.getContentText() || '';
+    if (code === 404 && i < models.length - 1) continue; // 這個模型名稱已停用：換下一個
+    if (code === 429 || code === 503) return { ok: false, error: 'ocr_busy' };
+    if ((code === 400 || code === 401 || code === 403) && /API[ _]?key|API_KEY_INVALID|PERMISSION_DENIED|unregistered callers/i.test(body)) return { ok: false, error: 'ocr_key_bad' };
+    if (code !== 200) return { ok: false, error: 'ocr_failed', detail: 'HTTP ' + code };
+    try {
+      var j = JSON.parse(body);
+      var txt = ((((j.candidates || [])[0] || {}).content || {}).parts || []).map(function (x) { return x.text || ''; }).join('');
+      return { ok: true, data: JSON.parse(txt), model: models[i] };
+    } catch (err2) { return { ok: false, error: 'ocr_failed', detail: 'parse' }; }
+  }
+  return { ok: false, error: 'ocr_failed', detail: 'no_model' };
+}
+// 在 Apps Script 編輯器執行，確認 GEMINI_KEY 能用（結果在「執行紀錄」，不印出金鑰）
+function testOcrKey() {
+  var key = PropertiesService.getScriptProperties().getProperty('GEMINI_KEY');
+  if (!key) { Logger.log('還沒有設定 GEMINI_KEY：專案設定 → 指令碼屬性 → 新增 GEMINI_KEY'); return; }
+  var px = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+  var out = callGemini_(key, '這是一張測試圖片，請回傳 students 空陣列、text 寫「測試成功」。', px, 'image/png');
+  Logger.log(out.ok ? '金鑰可以使用（模型：' + out.model + '）' : '無法使用：' + out.error + (out.detail ? '（' + out.detail + '）' : ''));
+}
 function json_(obj) { return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON); }
 function rand_(n) {
   var chars = 'abcdefghjkmnpqrstuvwxyz23456789'; var s = '';
