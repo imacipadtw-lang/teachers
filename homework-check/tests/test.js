@@ -939,6 +939,26 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
     await ctx.close();
   }
 
+  console.log('37. 後端版本提醒與一鍵複製新版程式碼');
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+  { ctx = await br.newContext({ viewport: { width: 1280, height: 860 } }); pg = await newPage(ctx); await adminLogin(pg, B); await sleep(300);
+    ok(!(await pg.$('.updbanner')), '後端是新版：不顯示更新提醒');
+    await ctx.close();
+    const L = 'http://localhost:8788/'; await fetch(L + '__reset'); await fetch(L + '__seed');
+    ctx = await br.newContext({ viewport: { width: 1280, height: 860 }, permissions: ['clipboard-read', 'clipboard-write'] }); pg = await newPage(ctx); await adminLogin(pg, L);
+    await pg.waitForSelector('.updbanner', { timeout: 10000 });
+    ok(/後端程式需要更新/.test(await pg.textContent('.updbanner')), '後端是舊版：教務組畫面上方提醒「後端程式需要更新」');
+    await pg.click('.updbanner button:has-text("怎麼更新？")');
+    ok(await pg.isVisible('.updsteps') && /新版本/.test(await pg.textContent('.updsteps')), '「怎麼更新？」展開 4 個步驟');
+    await pg.click('.updbanner button:has-text("複製新版程式碼")'); await sleep(600);
+    const clip = await pg.evaluate(() => navigator.clipboard.readText());
+    ok(/function doPost\(/.test(clip) && /已複製新版程式碼/.test(await pg.textContent('.toast')), '「複製新版程式碼」把 Code.gs 放進剪貼簿（' + clip.split('\n').length + ' 行）');
+    ok((await pg.getAttribute('.updbanner a:has-text("開啟 Apps Script")', 'href')) === 'https://script.google.com/home', '「開啟 Apps Script」連到 Apps Script 專案列表');
+    await pg.click('.updbanner button:has-text("這次先不要")'); await sleep(200);
+    ok(!(await pg.$('.updbanner')), '「這次先不要」：本次不再顯示');
+    await ctx.close();
+  }
+
   await br.close();
   console.log('\n頁面錯誤：' + (errors.length ? errors.join(' | ') : '無'));
   console.log(`結果：${pass} 通過，${fail} 失敗`);

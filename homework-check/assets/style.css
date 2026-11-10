@@ -776,3 +776,12 @@ footer.foot .helpbtn { font-size: 12px; }
   .ocrpick { min-height: 36px; font-size: 14px; max-width: 100%; }
   @media (prefers-reduced-motion: reduce) { .ocrshot.flash span { animation: none; } }
 }
+
+/* ---------- 後端更新提醒 ---------- */
+@media screen {
+  .updbanner { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+  .updmain { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; }
+  .updmain > div:first-child { flex: 1 1 280px; }
+  .updsteps { margin: 4px 0 0; padding-left: 1.4em; line-height: 1.8; font-size: 14px; }
+  .codebox { width: 100%; min-height: 50vh; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; white-space: pre; }
+}

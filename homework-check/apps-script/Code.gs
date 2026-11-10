@@ -11,6 +11,8 @@
  * 打開網站依畫面設定教務組密碼即完成。（也可以在編輯器執行 setup，密碼會印在執行紀錄。）
  */
 
+// 後端版本：網站會比對這個版本，教務組畫面上會提醒「後端需要更新」（改了這個檔就要把版本一起改，並同步改 app.js 的 BACKEND_NEED）
+var BACKEND_VER = '2026.11.10r';
 var SHEET_NAME = 'data';
 var MAX_CELL = 49000; // 試算表單格上限 50,000 字
 
@@ -126,7 +128,7 @@ function read_(p) {
       }
     });
   }
-  var out = { ok: true, role: who.role, version: version, rounds: rounds, rid: rid, checks: checks };
+  var out = { ok: true, role: who.role, version: version, backend: BACKEND_VER, rounds: rounds, rid: rid, checks: checks };
   if (p.allRounds && who.role === 'admin') {
     // 教務組：一次取回所有抽查次別的登記（歷次趨勢、下載備份用）
     var history = {};

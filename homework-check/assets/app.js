@@ -4,9 +4,11 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.10q';
+  const APP_VERSION = '2026.11.10r';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
   // 115.11.10 管理者決定：全部由教務組登入操作，導師不用登入（config.js teacherLogin: true 才開放導師登入）
+  // 這版網站需要的後端版本（apps-script/Code.gs 的 BACKEND_VER）；正式後端比這個舊，教務組畫面會提醒更新並可一鍵複製新版程式碼
+  const BACKEND_NEED = '2026.11.10r';
   const TEACHERS_ON = (window.HC_CONFIG || {}).teacherLogin === true;
   const LS = { admin: 'hc.admin', teacher: 'hc.teacher', api: 'hc.api', cls: 'hc.class', outbox: 'hc.outbox', theme: 'hc.theme', cache: 'hc.cache', subj: 'hc.subj' };
   const GRADE = ['', '一', '二', '三', '四', '五', '六'];
@@ -196,6 +198,7 @@
       S.role = r.role; S.config = r.config || { items: [], classes: [] }; S.rounds = r.rounds || []; S.links = r.links || {}; S.claimClosed = !!r.claimClosed;
       if (r.role === 'teacher') S.classId = r.classId;
       S.rid = r.rid || null; S.loadedRid = S.rid;
+      if (r.role === 'admin') { S.backendVer = S.legacyRead ? '' : String(r.backend || ''); S.backendKnown = true; }
       applyServer(r.checks || {}, startedAt);
       S.lastSync = new Date(); S.fromCache = false; setSync('ok');
       saveCache(r);
@@ -465,6 +468,39 @@
       onkeydown: e => { if (e.key === 'Enter') e.target.blur(); } });
     return inp;
   }
+  /* ---------- 後端版本提醒：正式後端比網站需要的舊 → 教務組畫面上方提示，一鍵複製新版 Code.gs ---------- */
+  async function copyBackendCode() {
+    let text = '';
+    for (const u of ['apps-script/Code.gs?v=' + BACKEND_NEED, 'https://raw.githubusercontent.com/imacipadtw-lang/teachers/index.html/homework-check/apps-script/Code.gs']) {
+      try { const r = await fetch(u, { cache: 'no-store' }); if (r.ok) { const t = await r.text(); if (/function doPost\(/.test(t)) { text = t; break; } } } catch (e) { }
+    }
+    if (!text) return toast('暫時拿不到新版程式碼，請稍後再試，或到 GitHub 的 homework-check/apps-script/Code.gs 複製。', 4800);
+    try { await navigator.clipboard.writeText(text); toast('已複製新版程式碼（' + text.split('\n').length + ' 行），到 Apps Script 貼上', 3600); return; } catch (e) { }
+    openModal(inner => {   // 無法直接放進剪貼簿（例如舊瀏覽器）：顯示文字框讓使用者自己全選複製
+      const ta = h('textarea', { class: 'codebox', readonly: true, 'aria-label': '新版後端程式碼' }); ta.value = text;
+      inner.append(h('h3', { text: '新版後端程式碼' }), h('div', { class: 'note', text: '點一下文字框、全選（Ctrl＋A／⌘＋A）再複製，貼到 Apps Script 的 Code.gs。' }), ta,
+        h('div', { class: 'row', style: 'justify-content:flex-end' }, h('button', { class: 'btn primary', onclick: closeModal }, '關閉')));
+      setTimeout(() => { ta.focus(); ta.select(); }, 60);
+    });
+  }
+  function backendBanner() {
+    const steps = h('ol', { class: 'updsteps', hidden: true },
+      h('li', null, '按「複製新版程式碼」。'),
+      h('li', null, '按「開啟 Apps Script」，打開專案「作業抽查_後端程式」，點左邊的 Code.gs（或「程式碼.gs」），全選刪掉，貼上，按存檔。'),
+      h('li', null, '右上「部署」→「管理部署作業」→ 鉛筆「編輯」→ 版本選「新版本」→「部署」。網址不會變。'),
+      h('li', null, '回到這裡按右上的重新整理，這個提示消失就完成了。（拍照辨識另外要在「專案設定 → 指令碼屬性」加 GEMINI_KEY）'));
+    const more = h('button', { class: 'link', 'aria-expanded': 'false', onclick: () => { steps.hidden = !steps.hidden; more.setAttribute('aria-expanded', String(!steps.hidden)); more.textContent = steps.hidden ? '怎麼更新？' : '收起步驟'; } }, '怎麼更新？');
+    return h('div', { class: 'banner warn updbanner no-print', role: 'region', 'aria-label': '後端需要更新' },
+      h('div', { class: 'updmain' },
+        h('div', null, h('b', { text: '後端程式需要更新' + (S.backendVer ? '（目前 ' + S.backendVer + '）' : '（目前是舊版）') }),
+          h('div', { class: 'note', text: '拍照辨識、本次不用繳、異動紀錄、歷次趨勢、登入憑證等功能，要更新後端（約 1 分鐘）才會生效。' })),
+        h('div', { class: 'row' },
+          h('button', { class: 'btn small primary', onclick: copyBackendCode }, svg('copy'), '複製新版程式碼'),
+          h('a', { class: 'btn small ghost', href: 'https://script.google.com/home', target: '_blank', rel: 'noopener' }, '開啟 Apps Script'),
+          more,
+          h('button', { class: 'link', onclick: () => { S.hideUpd = true; renderMain(); } }, '這次先不要'))),
+      steps);
+  }
   /* ---------- 未完成原因：存在每位學生的備註，格式「〔未寫完〕補充說明」（舊版後端也能存）；報表另列原因與統計 ---------- */
   const REASONS = ['未寫完', '忘了帶', '遺失', '未訂正', '家長未簽名', '請假／缺席', '新轉入（尚未發）', '其他'];
   function splitNote(t) { t = t || ''; const m = /^〔([^〕]{1,12})〕\s*/.exec(t); return m ? { reason: m[1], text: t.slice(m[0].length) } : { reason: '', text: t }; }
@@ -493,6 +529,7 @@
     document.body.classList.toggle('labels-view', S.role === 'admin' && S.view === 'labels');
     document.body.classList.toggle('report-view', S.role === 'admin' && S.view === 'report');
     m.replaceChildren();
+    if (S.role === 'admin' && S.backendKnown && S.backendVer < BACKEND_NEED && !S.hideUpd) m.append(backendBanner());
     if (S.role === 'admin' && S.view === 'overview') return m.append(renderOverview());
     if (S.role === 'admin' && S.view === 'settings') return m.append(renderSettings());
     if (S.role === 'admin' && S.view === 'labels') return m.append(renderLabels());
