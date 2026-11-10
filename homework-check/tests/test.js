@@ -342,7 +342,7 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
   await pg.locator('thead button:has-text("收件")').nth(1).click(); await pg.waitForSelector('.tiles');
   await pg.locator('.tiles .tile').nth(0).click(); await pg.locator('.tiles .tile').nth(2).click(); await pg.locator('.tiles .tile').nth(4).click(); await pg.locator('.tiles .tile').nth(4).click();
   ok((await pg.textContent('.modal .counter')).includes('2'), '對話框計數即時更新（2 人）');
-  await pg.click('.modal button:has-text("完成")'); await sleep(300);
+  await pg.click('.modal button:has-text("儲存")'); await sleep(300);
   const p1 = await snap();
   ok(/2\/6/.test(await pg.locator('thead .cnt[data-item="math"]').innerText()), '關閉後表頭人數為 2/6');
   await sleep(1500); await pg.evaluate(() => document.querySelector('#sync .link').click()); await sleep(2500);
@@ -675,7 +675,7 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
     const [dl] = await Promise.all([pg.waitForEvent('download'), pg.click('button:has-text("下載 Excel 報表")')]);
     ok(fs.statSync(await dl.path()).size > 1000, '沒有項目的次別仍可下載 Excel');
     await pg.click('nav.tabs >> text=班級檢核'); await pg.locator('.chip', { hasText: '二甲' }).click(); await sleep(200);
-    ok(/還沒有學生名單|沒有適用於本班的項目/.test(await pg.textContent('main')), '0 人的班級：顯示提示而不是空白表格');
+    ok(/還沒有學生名單|沒有適用於本班的項目|還沒有勾選任何項目/.test(await pg.textContent('main')), '0 人的班級（或沒有項目的次別）：顯示提示而不是空白表格');
     await ctx.close();
     const tk = await (await fetch(B + 'exec?action=claim&classId=g3&label=t')).json();
     ctx = await br.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true }); pg = await newPage(ctx);
@@ -769,6 +769,60 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
   ok(lay.due.length >= 2 && lay.due.every(Boolean), '「截止」字和日期框在同一行（' + lay.due.length + ' 處）');
   ok(lay.pick.length >= 2 && lay.pick.every(Boolean), '項目勾選表在手機上放得下，「全選／取消」不被裁切');
   await ctx.close();
+
+  console.log('35. 勾選後按「儲存」；這次沒有項目時一鍵加入');
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+  { const R = async b => (await fetch(B + 'exec', { method: 'POST', body: JSON.stringify(b) })).json();
+    const stateIs = (re) => pg.waitForFunction(r => new RegExp(r).test(document.querySelector('#savebar .sb-msg').textContent), re, { timeout: 20000 });
+    ctx = await br.newContext({ viewport: { width: 1280, height: 860 } }); pg = await newPage(ctx); await adminLogin(pg, B);
+    const st0 = await pg.textContent('#savebar .sb-msg');
+    ok(/勾好後按「儲存」/.test(st0) && /儲存/.test(await pg.textContent('#savebar .sb-btn')), '表格下方有「儲存」按鈕與說明');
+    await pg.locator('table.grid button.chk[data-no="3"][data-item="math"]').click();
+    await pg.click('#savebar .sb-btn');
+    await stateIs('已儲存');
+    ok(!!(await pg.$('.toast:has-text("已儲存")')), '按「儲存」後提示「已儲存 ✓」');
+    let mk = (await marks(B)).g1.marks;
+    ok(mk['3'] && mk['3'].math, '按「儲存」後資料表已有這一格');
+    fs.writeFileSync(OFF, '1');
+    await pg.locator('table.grid button.chk[data-no="4"][data-item="math"]').click();
+    await pg.click('#savebar .sb-btn');
+    await stateIs('先存在這台裝置');
+    ok(await pg.$eval('#savebar', e => e.dataset.state) === 'err', '網路斷線時按「儲存」：顯示「先存在這台裝置，連線後會自動送出」');
+    try { fs.unlinkSync(OFF); } catch (e) { }
+    await pg.click('#savebar .sb-btn');
+    await stateIs('已儲存');
+    mk = (await marks(B)).g1.marks;
+    ok(mk['4'] && mk['4'].math, '恢復連線後按「儲存」：補送成功');
+    await pg.click('nav.tabs >> text=設定'); await sleep(300);
+    const np = pg.locator('#set-rounds > .pickbox');
+    const lbl = async () => (await np.locator('thead button').allTextContents()).join(',');
+    ok(await lbl() === '全部取消,全部取消', '新增次別的項目表：全部勾選時按鈕寫「全部取消」（不是模稜兩可的「全選／取消」）');
+    await np.locator('thead button').nth(0).click(); await np.locator('thead button').nth(1).click();
+    ok(await lbl() === '全選,全選' && await np.locator('input:checked').count() === 0, '按下後全部取消勾選，按鈕變回「全選」');
+    const nRounds = (await R({ action: 'read', key: 'test1234' })).rounds.length;
+    await pg.click('#set-rounds button:has-text("建立抽查次別")'); await sleep(300);
+    ok(/至少勾選一個/.test(await pg.textContent('.toast')) && (await R({ action: 'read', key: 'test1234' })).rounds.length === nRounds, '一個項目都沒勾就不能建立次別（避免班級頁沒有格子可以勾）');
+    await ctx.close();
+    // 這次抽查沒有項目：導師看到說明、教務組一鍵加入全部項目
+    await R({ action: 'addRound', key: 'test1234', round: { id: 'r9', name: '空白次別', due: '', itemIds: [], locked: false, createdAt: '2099-01-01T00:00:00Z' } });
+    const tk = await (await fetch(B + 'exec?action=claim&classId=g1&label=t')).json();
+    ctx = await br.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true }); pg = await newPage(ctx);
+    await pg.goto(B); await pg.evaluate(t => localStorage.setItem('hc.teacher', JSON.stringify({ token: t.token, classId: 'g1' })), tk);
+    await pg.reload(); await pg.waitForSelector('.noitems', { timeout: 15000 });
+    const tt = await pg.textContent('.noitems');
+    ok(/還沒有勾選任何項目/.test(tt) && /請教務組/.test(tt) && !(await pg.$('.noitems button')), '導師：這次沒有項目時說明原因、請教務組設定（沒有按鈕）');
+    await ctx.close();
+    ctx = await br.newContext({ viewport: { width: 1280, height: 860 } }); pg = await newPage(ctx);
+    await pg.goto(B); await pg.waitForSelector('text=教務組登入'); await pg.click('text=教務組登入'); await pg.fill('input[type=password]', 'test1234'); await pg.keyboard.press('Enter');
+    await pg.waitForSelector('#roundSel'); await pg.selectOption('#roundSel', 'r9'); await pg.waitForSelector('.noitems button:has-text("全部項目加入本次抽查")', { timeout: 15000 });
+    await pg.click('.noitems button:has-text("全部項目加入本次抽查")');
+    await pg.waitForSelector('table.grid button.chk', { timeout: 15000 });
+    const rd = await R({ action: 'read', key: 'test1234' });
+    const r9 = rd.rounds.find(x => x.id === 'r9');
+    ok(r9 && r9.itemIds.length === rd.config.items.length, '教務組按「全部項目加入本次抽查」：' + (r9 ? r9.itemIds.length : 0) + ' 個項目加入，班級頁出現勾選表');
+    ok(!!(await pg.$('#savebar .sb-btn')), '加入後表格下方有「儲存」按鈕');
+    await ctx.close();
+  }
 
   await br.close();
   console.log('\n頁面錯誤：' + (errors.length ? errors.join(' | ') : '無'));

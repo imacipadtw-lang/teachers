@@ -709,3 +709,21 @@ input[type=checkbox], input[type=radio] { accent-color: var(--accent); }
 .gatefoot { display: flex; flex-direction: column; align-items: center; gap: 6px; }
 .gatefoot .helpbtn { font-size: 13.5px; }
 footer.foot .helpbtn { font-size: 12px; }
+
+/* ---------- 儲存列（班級檢核表下方，捲動時貼在畫面底部）---------- */
+@media screen {
+  .savebar { position: sticky; bottom: 0; z-index: 6; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    padding: 10px 12px 10px 16px; padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px)); background: var(--sheet); border: 1px solid var(--line-strong); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .savebar .sb-msg { font-size: 14px; color: var(--muted); min-width: 0; flex: 1 1 12em; }
+  .savebar[data-state="ok"] .sb-msg { color: var(--ok); font-weight: 500; }
+  .savebar[data-state="busy"] .sb-msg { color: var(--warn); }
+  .savebar[data-state="err"] .sb-msg { color: var(--seal); font-weight: 500; }
+  .savebar .sb-btn { min-width: 120px; min-height: 44px; font-size: 15px; }
+  .savebar .sb-btn svg { width: 18px; height: 18px; }
+  .empty.noitems b { display: block; color: var(--ink); font-size: 15px; margin-bottom: 4px; }
+  @media (max-width: 600px) { .savebar .sb-btn { flex: 1 1 100%; } }
+  /* 有儲存列時，提示訊息往上移，不蓋住「儲存」按鈕 */
+  body:has(#savebar) .toast { bottom: calc(86px + env(safe-area-inset-bottom, 0px)); }
+  @media (max-width: 600px) { body:has(#savebar) .toast { bottom: calc(120px + env(safe-area-inset-bottom, 0px)); } }
+}
+@media print { .savebar { display: none !important; } }

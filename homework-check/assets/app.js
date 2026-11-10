@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.10n';
+  const APP_VERSION = '2026.11.10o';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
   const LS = { admin: 'hc.admin', teacher: 'hc.teacher', api: 'hc.api', cls: 'hc.class', outbox: 'hc.outbox', theme: 'hc.theme', cache: 'hc.cache' };
   const GRADE = ['', '一', '二', '三', '四', '五', '六'];
@@ -66,6 +66,7 @@
     scan: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 12h10"/></svg>',
     mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>',
     xls: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>',
+    save: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h11l5 5v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M7 3v5h8V3"/><rect x="7" y="13" width="10" height="8" rx="1"/></svg>',
     tag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>'
   };
   // 網站標誌：藍底圓角方塊＋白色翻開的作業簿與勾（裝飾用，aria-hidden，列印不印，避免被誤認為印章）
@@ -176,7 +177,7 @@
 
   /* ---------- 讀取與同步 ---------- */
   let pollTimer = null, hiddenAt = 0;
-  function setSync(state, msg) { S.sync = state; S.syncMsg = msg || ''; const el = $('#sync'); if (el) el.replaceWith(renderSync()); }
+  function setSync(state, msg) { S.sync = state; S.syncMsg = msg || ''; const el = $('#sync'); if (el) el.replaceWith(renderSync()); paintSaveBar(); }
   async function load(opts) {
     opts = opts || {};
     if (!S.apiUrl || S.screen !== 'app') return;
@@ -270,6 +271,7 @@
     saveOutbox();
     clearTimeout(S.flushTimer); S.flushTimer = setTimeout(flush, 450);
     if (!(opts && opts.quiet)) { if (!patchCell(cid, no, itemId)) renderSoft(); }
+    paintSaveBar();
   }
   // 待送出的登記存在這台裝置；網路斷線或關掉網頁也不會遺失，下次開啟（同一身分）自動補送
   function outboxCount() { let n = 0; S.outbox.forEach(b => { n += b.size; }); S.pendingNotes.forEach(p => { if (p.retry) n++; }); return n; }
@@ -293,6 +295,43 @@
     toast('發現上次尚未送出的 ' + saved.list.length + ' 筆登記，正在補送…', 3200);
     clearTimeout(S.flushTimer); S.flushTimer = setTimeout(flush, 300);
   }
+  /* ---------- 儲存列：勾好後按「儲存」立刻送出並確認；忘了按也會自動儲存（不會遺失） ---------- */
+  function unsavedCount() { let n = 0; S.outbox.forEach(b => { n += b.size; }); return n + notesUnsent(); }
+  function saveBar() {
+    const el = h('div', { id: 'savebar', class: 'savebar' },
+      h('span', { class: 'sb-msg', role: 'status', 'aria-live': 'polite' }),
+      h('button', { type: 'button', class: 'btn primary sb-btn', onclick: () => saveNow() }, svg('save'), '儲存'));
+    paintSaveBar(el); return el;
+  }
+  function paintSaveBar(el) {
+    el = el || document.getElementById('savebar'); if (!el) return;
+    const n = unsavedCount(); let st = 'ok', text;
+    if (S.saving || S.flushing) { st = 'busy'; text = '儲存中…'; }
+    else if (n && S.sync === 'err') { st = 'err'; text = '網路不穩：' + n + ' 筆先存在這台裝置，連線後會自動送出'; }
+    else if (n) { st = 'busy'; text = '有 ' + n + ' 筆還沒儲存'; }
+    else if (S.lastSavedAt) text = '✓ 已儲存（' + fmtTime(S.lastSavedAt) + '）';
+    else { st = 'idle'; text = '勾好後按「儲存」；忘了按也會自動儲存'; }
+    el.dataset.state = st;
+    const m = el.querySelector('.sb-msg'); if (m && m.textContent !== text) m.textContent = text;
+    const b = el.querySelector('.sb-btn'); if (b) b.disabled = !!S.saving;
+  }
+  async function saveNow() {
+    if (S.saving) return;
+    S.saving = true; paintSaveBar();
+    const t0 = Date.now(); let had = unsavedCount() > 0 || S.flushing;
+    try {
+      clearTimeout(S.flushTimer); clearTimeout(retryTimer); retryDelay = 0;
+      while (Date.now() - t0 < 30000) {
+        if (!S.flushing && S.outbox.size) { await flush(); if (S.outbox.size && S.sync === 'err') break; continue; }
+        if (!S.flushing && !S.outbox.size && !notesUnsent()) break;
+        await new Promise(res => setTimeout(res, 150));
+      }
+    } finally { S.saving = false; }
+    const n = unsavedCount();
+    if (n) toast('網路不穩，' + n + ' 筆先存在這台裝置，連線後會自動送出；關掉網頁也不會遺失。', 4200);
+    else { if (!S.lastSavedAt) S.lastSavedAt = new Date(); toast(had ? '已儲存 ✓' : '已儲存 ✓（全部都已存到資料表）'); }
+    paintSaveBar();
+  }
   let retryTimer = null, retryDelay = 0;
   function scheduleRetry() {
     clearTimeout(retryTimer);
@@ -315,7 +354,7 @@
         if (r && r.ok) {
           const t = Date.now(); changes.forEach(c => { const p = S.pending.get(markKey(rid, cid, c.no, c.itemId)); if (p) p.ackAt = t; });
           S.version = null; // 強制下次完整讀取
-          saveOutbox(); retryDelay = 0;
+          S.lastSavedAt = new Date(); saveOutbox(); retryDelay = 0;
           continue;
         }
         if (err || (r && r.error === 'busy')) { // 網路斷線或資料表忙碌：保留，稍後自動重送（登記是「設成已交／未交」，重送不會重複計算）
@@ -329,7 +368,7 @@
         else toast('儲存失敗（' + errText(r && r.error) + '），已還原為資料表內容。', 3600);
       }
     } finally {
-      S.flushing = false;
+      S.flushing = false; paintSaveBar();
       if (offline) { setSync('err', '網路不穩'); renderSoft(); scheduleRetry(); }
       else setTimeout(() => load({ force: true }), 250);
     }
@@ -411,7 +450,7 @@
       setSync('busy');
       let r = null, err = null;
       try { r = await apiPost({ action: 'note', rid, classId: cid, no: no == null ? '' : no, text }); } catch (e) { err = e; }
-      if (r && r.ok) { const p = S.pendingNotes.get(key); if (p && p.text === text) { p.ackAt = Date.now(); p.retry = false; } S.version = null; setSync('ok'); return; }
+      if (r && r.ok) { const p = S.pendingNotes.get(key); if (p && p.text === text) { p.ackAt = Date.now(); p.retry = false; } S.version = null; S.lastSavedAt = new Date(); setSync('ok'); return; }
       if (err || (r && r.error === 'busy')) { // 斷線：保留備註，稍後自動重送
         const p = S.pendingNotes.get(key); if (p && p.text === text) p.retry = true;
         setSync('err', '網路不穩'); S.noteTimers[key] = setTimeout(() => send(attempt + 1), Math.min(60000, 5000 * Math.pow(2, attempt))); return;
@@ -514,7 +553,7 @@
         ['一個班一台裝置：', '換手機或登錯班，請教務組在「設定」按「解除」，再用新裝置登入。'],
         ['像 App 一樣用：', '手機瀏覽器選「加入主畫面」，桌面就會有「作業抽查」圖示。']]));
       inner.append(sec('收作業時', [
-        ['點格子登記：', '收到習作點藍色格；家長簽名的考卷繳回點紅色格。再點一次可取消，畫面會自動儲存。'],
+        ['點格子登記：', '收到習作點藍色格；家長簽名的考卷繳回點紅色格。再點一次可取消。勾好後按表格下方的「儲存」（忘了按也會自動儲存）。'],
         ['一次收一整疊：', '在表頭按「收件」，依本子上的座號一個一個點，比找格子快。'],
         ['有貼標籤：', '按「掃描登記」，用手機相機或條碼掃描器掃，掃到就登記；同一本重複掃不會取消。'],
         ['找學生：', '表格上方輸入座號或姓名；按「只看未繳齊」只列出還沒交齊的學生。']]));
@@ -582,15 +621,39 @@
 
     const skips = skippedItems(cls, r);
     if (skips.length) box.append(h('div', { class: 'skipline' }, h('span', { class: 'note', text: '本次不用繳：' }), skips.map(it => h('span', { class: 'tag skiptag' + (it.kind === 'exam' ? ' exam' : '') }, it.name, admin ? h('button', { class: 'link', 'aria-label': '恢復 ' + it.name + ' 要繳', onclick: () => setSkip(cls, it, false) }, '恢復') : null))));
+    if (r && !(r.itemIds || []).length) { box.append(noItemsCard(r)); return box; }
     if (!items.length) { box.append(h('div', { class: 'empty', text: skips.length ? '本班這次的項目都已設為「不用繳」。' : '這次抽查沒有適用於本班的項目。' + (admin ? '請到「設定」檢查本次抽查項目與本班的習作項目。' : '') })); return box; }
     if (!n) { box.append(h('div', { class: 'empty', text: admin ? '這個班級還沒有學生名單，請到「設定」貼上名單。' : '這個班級還沒有學生名單，請洽教務組。' })); return box; }
 
     if (!ed) box.append(h('div', { class: 'banner info', text: r && r.locked && S.role === 'teacher' ? '本次抽查已結案，紀錄僅供查看；如需更正請洽教務組。' : '目前為查看模式。' }));
     else if (r && r.locked && admin) box.append(h('div', { class: 'banner warn', text: '本次抽查已結案：導師不能再更動，教務組仍可更正（每次更正都會記在試算表的「異動紀錄」）。' }));
-    else box.append(h('div', { class: 'note', text: '收到該生的習作或家長簽名考卷，就點一下對應的格子；再點一次可取消。畫面會自動儲存。' }));
+    else box.append(h('div', { class: 'note', text: '收到該生的習作或家長簽名考卷，就點一下對應的格子打勾；再點一次可取消。勾好後按下方「儲存」（忘了按也會自動儲存）。' }));
 
     box.append(renderTable(cls, items, studs, ed, admin));
+    if (ed) box.append(saveBar());
     return box;
+  }
+  // 這次抽查一個項目都沒勾：說明原因；教務組可一鍵把全部項目加入（各班只會出現該年級適用的）
+  function noItemsCard(r) {
+    const admin = S.role === 'admin';
+    const el = h('div', { class: 'empty noitems' },
+      h('b', { text: '「' + r.name + '」還沒有勾選任何項目（習作、考卷），所以還沒有可以打勾的格子。' }),
+      h('div', { text: admin ? '按「全部項目加入本次抽查」，各班就會出現該年級適用的習作與考卷；之後可到「設定 → 抽查次別 → 本次項目」取消這次不用檢查的。' : '請教務組在「設定 → 抽查次別」勾選這次要檢查的習作與考卷，選好後這裡就會出現勾選表。' }));
+    if (admin) {
+      const all = allItems();
+      const add = h('button', { class: 'btn primary', disabled: !all.length, onclick: async () => {
+        add.disabled = true;
+        try { await adminPost({ action: 'updateRound', round: Object.assign({}, r, { itemIds: all.map(it => it.id) }) }, '已加入 ' + all.length + ' 個項目，現在可以勾選了'); S.version = null; await load({ force: true, full: true }); }
+        catch (e) { add.disabled = false; }
+      } }, '全部項目加入本次抽查');
+      const go = h('button', { class: 'btn ghost', onclick: () => {
+        const tab = document.querySelector('nav.tabs button[data-view="settings"]'); if (tab) tab.click();
+        setTimeout(() => { const sec = document.getElementById('set-rounds'); if (!sec) return; const d = sec.querySelector('details.fold'); if (d) d.open = true; sec.scrollIntoView({ block: 'start' }); }, 60);
+      } }, '到設定自己挑選');
+      el.append(h('div', { class: 'row', style: 'justify-content:center;margin-top:14px' }, add, go));
+      if (!all.length) el.append(h('div', { class: 'note', text: '目前沒有任何檢查項目，請先到「設定 → 檢查項目」新增。' }));
+    }
+    return el;
   }
   function ring(pct) {
     const r = 26, c = 2 * Math.PI * r;
@@ -735,7 +798,7 @@
           ed ? armed(h('button', { class: 'btn small ghost' }), '全部清除', '確定全部取消？', () => { studs.forEach(s => { if (isOn(c.id, s.no, it.id)) setMark(c.id, s.no, it.id, false, { quiet: true }); }); S.mainDirty = true; if (S.modal && S.modal.refresh) S.modal.refresh(); }) : null)));
       inner.append(h('div', { class: 'tiles' + (it.kind === 'exam' ? ' exam' : '') }, studs.map(s => h('button', { type: 'button', class: 'tile', role: 'switch', 'aria-checked': String(isOn(c.id, s.no, it.id)), 'aria-label': s.no + '號 ' + (s.name || ''), disabled: !ed, onclick: () => { setMark(c.id, s.no, it.id, !isOn(c.id, s.no, it.id), { quiet: true }); S.mainDirty = true; if (S.modal && S.modal.refresh) S.modal.refresh(); } }, h('b', { text: String(s.no) }), h('small', { text: s.name || '' })))));
       inner.append(h('div', { class: 'miss', text: miss.length ? '尚未' + (it.kind === 'exam' ? '繳回' : '交') + '：' + miss.map(s => s.no + '號').join('、') : '全班皆已' + (it.kind === 'exam' ? '繳回' : '繳交') + '。' }));
-      inner.append(h('div', { class: 'row', style: 'justify-content:flex-end' }, h('button', { class: 'btn primary', onclick: closeModal }, '完成')));
+      inner.append(h('div', { class: 'row', style: 'justify-content:flex-end' }, ed ? h('button', { class: 'btn primary', onclick: () => { closeModal(); saveNow(); } }, svg('save'), '儲存') : h('button', { class: 'btn primary', onclick: closeModal }, '關閉')));
     });
   }
 
@@ -1183,7 +1246,7 @@
         h('span', { class: 'track', 'aria-hidden': 'true' }, h('i', { style: 'width:' + pct + '%' })),
         h('span', { class: 'cv' }, h('b', { text: pct + '%' }), h('small', { text: ' ' + p.got + '/' + p.total }), late ? h('span', { class: 'tag seal', text: '逾期未齊' }) : (pct === 100 ? h('span', { class: 'tag ok', text: '繳齊' }) : null))));
     });
-    if (!list.children.length) return h('div', { class: 'note', text: !(r && (r.itemIds || []).length) ? '這次抽查還沒有勾選任何項目——請到「設定 → 抽查次別」勾選本次要檢查的習作與考卷。' : '目前沒有可計算的班級（班級沒有學生名單，或項目都設為不用繳）。' });
+    if (!list.children.length) return r && !(r.itemIds || []).length ? noItemsCard(r) : h('div', { class: 'note', text: '目前沒有可計算的班級（班級沒有學生名單，或項目都設為不用繳）。' });
     return list;
   }
 
@@ -1521,10 +1584,15 @@
   function itemPicker(items, isChecked, onChange) {
     const rows = subjectRows(items); const boxes = new Map();
     const cell = it => { if (!it) return h('td', { class: 'na', text: '—' }); const cb = h('input', { type: 'checkbox', checked: !!isChecked(it), 'aria-label': it.name, onchange: () => onChange && onChange(it, cb.checked) }); boxes.set(it.id, cb); return h('td', null, h('label', { class: 'pick' }, cb)); };
-    const colToggle = kind => h('button', { class: 'link', style: 'font-size:12px', onclick: () => { const list = items.filter(it => (it.kind === 'exam') === (kind === 'exam')); const all = list.every(it => boxes.get(it.id).checked); list.forEach(it => { const cb = boxes.get(it.id); if (cb.checked === all) { cb.checked = !all; onChange && onChange(it, cb.checked); } }); } }, '全選／取消');
+    // 按鈕文字跟著狀態變：還沒全勾＝「全選」，已全勾＝「全部取消」（原本「全選／取消」在全勾時按下會全部取消，容易誤按）
+    const toggles = [];
+    const ofKind = kind => items.filter(it => (it.kind === 'exam') === (kind === 'exam') && boxes.get(it.id));
+    const relabel = () => toggles.forEach(([kind, b]) => { const list = ofKind(kind); const all = list.length && list.every(it => boxes.get(it.id).checked); b.textContent = all ? '全部取消' : '全選'; });
+    const colToggle = kind => { const b = h('button', { type: 'button', class: 'link', style: 'font-size:12px', onclick: () => { const list = ofKind(kind); const all = list.every(it => boxes.get(it.id).checked); list.forEach(it => { const cb = boxes.get(it.id); if (cb.checked === all) { cb.checked = !all; onChange && onChange(it, cb.checked); } }); relabel(); } }, '全選'); toggles.push([kind, b]); return b; };
     const table = h('table', { class: 'picktable' },
       h('thead', null, h('tr', null, h('th', { class: 'left', text: '科目' }), h('th', { class: 'hwcol' }, '習作 ', colToggle('hw')), h('th', { class: 'examcol' }, '考卷（家長簽名） ', colToggle('exam')))),
       h('tbody', null, rows.map(r => h('tr', null, h('td', { class: 'left', text: r.key }), cell(r.hw), cell(r.exam)))));
+    table.addEventListener('change', relabel); relabel();
     return { el: h('div', { class: 'tablebox pickbox' }, table), selected: () => items.filter(it => boxes.get(it.id) && boxes.get(it.id).checked).map(it => it.id) };
   }
 
@@ -1548,6 +1616,7 @@
       h('div', { class: 'note', text: '本次要檢查的項目' }), newPick.el,
       h('div', null, h('button', { class: 'btn primary', onclick: async () => {
         const name = nName.value.trim(); if (!name) return toast('請填寫次別名稱');
+        if (!newPick.selected().length) return toast('請至少勾選一個要檢查的項目（習作或考卷），不然班級頁會沒有格子可以勾。', 4200);
         const rd = { id: 'r' + Date.now().toString(36), name, due: nDue.value || '', itemIds: newPick.selected(), locked: false, createdAt: new Date().toISOString() };
         await adminPost({ action: 'addRound', round: rd }, '已建立「' + name + '」'); S.rid = rd.id; S.version = null; await load({ force: true, full: true });
       } }, '建立抽查次別')));
@@ -1656,7 +1725,7 @@
     const due = h('input', { type: 'date', value: e.due || '', 'aria-label': '截止日', onchange: ev => { e.due = ev.target.value; } });
     const lock = h('label', { class: 'ck' }, h('input', { type: 'checkbox', checked: !!e.locked, onchange: ev => { e.locked = ev.target.checked; } }), '結案（導師不可再更動）');
     const pick = itemPicker(allItems(), it => (e.itemIds || []).includes(it.id));
-    const save = h('button', { class: 'btn small primary', onclick: async () => { e.itemIds = pick.selected(); await adminPost({ action: 'updateRound', round: e }, '已更新'); S.version = null; await load({ force: true, full: true }); } }, '儲存');
+    const save = h('button', { class: 'btn small primary', onclick: async () => { e.itemIds = pick.selected(); if (!e.itemIds.length) { open.open = true; return toast('本次項目至少要勾選一個（習作或考卷），不然班級頁會沒有格子可以勾。', 4200); } await adminPost({ action: 'updateRound', round: e }, '已更新'); S.version = null; await load({ force: true, full: true }); } }, '儲存');
     const del = armed(h('button', { class: 'btn small danger' }), '刪除', '再按一次確認刪除（紀錄一併刪除）', async () => { await adminPost({ action: 'delRound', rid: e.id }, '已刪除'); S.version = null; if (S.rid === e.id) S.rid = null; await load({ force: true, full: true }); }, 3500);
     const open = h('details', { class: 'fold' }, h('summary', { text: '本次項目（' + (e.itemIds || []).length + ' 項）' }), pick.el);
     return h('div', { class: 'classcard' }, h('div', { class: 'row' }, name, h('span', { class: 'duef' }, h('span', { class: 'note', text: '截止' }), due), lock, save, del), open);
