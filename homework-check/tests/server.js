@@ -36,7 +36,7 @@ function makeEnv() {
     SpreadsheetApp: { openById: () => ss, getActiveSpreadsheet: () => null, create: () => ss },
     UrlFetchApp: { fetch: (url, opt) => {
       const pl = JSON.parse(opt.payload); const n = OCR.next; OCR.calls.push({ url, key: (opt.headers || {})['x-goog-api-key'] || '', prompt: pl.contents[0].parts[0].text, img: (pl.contents[0].parts[1].inline_data || {}).data || '', gen: pl.generationConfig });
-      const code = n.code404 && OCR.calls.length === 1 ? 404 : (n.code || 200);
+      const code = n.code404 && OCR.calls.length === 1 ? 404 : n.code429First && OCR.calls.length === 1 ? 429 : (n.code || 200);
       return { getResponseCode: () => code, getContentText: () => code !== 200 ? (n.body || '{"error":{"message":"x"}}') : JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(n.data) }] } }] }) };
     } },
     LockService: { getScriptLock: () => ({ tryLock: () => true, waitLock: () => { }, releaseLock: () => { } }) },
@@ -92,7 +92,7 @@ http.createServer((req, res) => {
     }); return;
   }
   let p = u.pathname.replace(/^\/+/, ''); if (!p || p.endsWith('/')) p += 'index.html';
-  if (p === 'config.js') { res.setHeader('Content-Type', TYPES['.js']); res.end(fs.readFileSync(path.join(ROOT, 'config.js'), 'utf8').replace(/apiUrl:\s*"[^"]*"/, 'apiUrl: "http://localhost:' + PORT + '/exec"').replace(/pollSeconds:\s*\d+/, 'pollSeconds: 45, timeoutMs: 1500').replace(/teacherLogin:\s*(true|false)/, 'teacherLogin: true')); return; }
+  if (p === 'config.js') { res.setHeader('Content-Type', TYPES['.js']); res.end(fs.readFileSync(path.join(ROOT, 'config.js'), 'utf8').replace(/apiUrl:\s*"[^"]*"/, 'apiUrl: "http://localhost:' + PORT + '/exec"').replace(/pollSeconds:\s*\d+/, 'pollSeconds: 45, timeoutMs: 1500, ocrRetryMs: 300').replace(/teacherLogin:\s*(true|false)/, 'teacherLogin: true')); return; }
   const f = path.join(ROOT, p);
   if (!f.startsWith(ROOT) || !fs.existsSync(f)) { res.statusCode = 404; res.end('nf'); return; }
   res.setHeader('Content-Type', TYPES[path.extname(f)] || 'application/octet-stream'); res.end(fs.readFileSync(f));

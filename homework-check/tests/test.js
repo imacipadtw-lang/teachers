@@ -921,8 +921,14 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
     await lastJob().locator('select[aria-label="選學生"]').selectOption('1');
     await lastJob().locator('.ocrmanual button:has-text("登記")').click(); await sleep(1500);
     ok(await mk(1, 'math'), '沒認出來：直接選學生登記（項目沿用已選的數學習作）');
+    await setOcr({ code429First: true, data: { students: [{ no: 6, confidence: 'high', itemId: 'math', seen: '黃怡君', seenItem: '數學習作' }], text: '' } });
+    await upload(); await waitJob('已登記'); await sleep(1500);
+    ok((await calls()).length === 2 && await mk(6, 'math') && !/null/.test(await lastJob().textContent()), 'AI 忙碌（429）一次：自動等一下再試，成功登記（沒讀到文字時不會顯示 null）');
     await setOcr({ code: 429 }); await upload(); await waitJob('次數有限');
-    ok(!!(await lastJob().locator('button:has-text("再試一次")').count()), 'AI 忙碌（429）：提示稍等，有「再試一次」');
+    ok((await calls()).length === 3 && !!(await lastJob().locator('button:has-text("再試一次")').count()), '一直忙碌：自動重試 2 次後才提示，有「再試一次」');
+    await setOcr({ data: { students: [{ no: 2, confidence: 'high', itemId: 'math', seen: '李小華', seenItem: '數學考卷' }], text: '' } });
+    await upload(); await waitJob('請確認');
+    ok(/數學考卷/.test(await lastJob().textContent()) && !(await mk(2, 'math')), '選了「數學習作」但封面是數學考卷：不自動登記，提示確認');
     await pg.selectOption('#ocrItem', '');
     await setOcr({ code404: true, data: { students: [{ no: 2, confidence: 'high', itemId: 'math', seen: '' }], text: '' } });
     await upload(); await waitJob('已登記');

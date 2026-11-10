@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.10s';
+  const APP_VERSION = '2026.11.10t';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
   // 115.11.10 管理者決定：全部由教務組登入操作，導師不用登入（config.js teacherLogin: true 才開放導師登入）
   // 這版網站需要的後端版本（apps-script/Code.gs 的 BACKEND_VER）；正式後端比這個舊，教務組畫面會提醒更新並可一鍵複製新版程式碼
@@ -1219,20 +1219,28 @@
         const it = items.find(x => x.id === (m.itemId || job.itemId));
         m.itemId = it ? it.id : '';
         const fixedIt = job.itemId ? items.find(x => x.id === job.itemId) : null;
-        m.mismatch = !!(fixedIt && m.seenItem && !m.seenItem.includes(subjectKey(fixedIt)));
+        // 選了固定項目但封面看起來不一樣（科目不同，或習作／考卷不同）→ 不自動登記
+        const si = m.seenItem || '';
+        m.mismatch = !!(fixedIt && si && (!si.includes(subjectKey(fixedIt)) || (fixedIt.kind === 'exam' ? /習作/.test(si) : /考卷|考試|測驗|卷/.test(si))));
         if (!m.itemId) m.act = 'item';
         else if (isOn(c.id, m.no, m.itemId)) m.act = 'already';
         else if (m.confidence === 'high' && !m.mismatch) { doMark(m.no, m.itemId); m.act = 'marked'; }
         else m.act = 'confirm';
       });
     };
+    // AI 忙碌（每分鐘次數用完）：整個佇列暫停一下，同一張自動再試最多 2 次
+    const RETRY_MS = CFG.ocrRetryMs || 12000;
     const pump = async () => {
-      if (st.busy) return; const job = st.jobs.find(j => j.state === 'wait'); if (!job) return;
+      if (st.busy || st.pauseUntil > Date.now()) return; const job = st.jobs.find(j => j.state === 'wait'); if (!job) return;
       st.busy = true; job.state = 'run'; paint(job);
       try {
         const r = await apiOcr({ action: 'ocr', rid: S.rid, classId: c.id, itemId: job.itemId, image: job.img.url.split(',')[1] });
         if (r.ok) { job.state = 'done'; job.res = r; decide(job); }
         else if (r.error === 'auth') { st.busy = false; closeModal(true); authLost(); return; }
+        else if (r.error === 'ocr_busy' && (job.retries || 0) < 2) {
+          job.retries = (job.retries || 0) + 1; job.state = 'wait'; job.note = 'AI 忙碌中，' + Math.round(RETRY_MS / 1000) + ' 秒後自動再試（第 ' + job.retries + ' 次）';
+          st.pauseUntil = Date.now() + RETRY_MS; setTimeout(() => { if (S.modal) pump(); }, RETRY_MS + 50);
+        }
         else { job.state = 'err'; job.err = r.error === 'unknown_action' ? 'need_deploy' : r.error; }
       } catch (e) { job.state = 'err'; job.err = e.message; }
       st.busy = false; if (S.modal) { paint(job); pump(); }
@@ -1242,18 +1250,19 @@
       const who = m.no + ' 號 ' + (m.name || (stud(m.no) || {}).name || '');
       const seen = m.seen ? h('small', { class: 'ocrseen', text: '看到：' + m.seen + (m.seenItem ? '｜' + m.seenItem : '') }) : null;
       const li = h('li', { class: 'ocrm ' + m.act });
-      if (m.act === 'marked') li.append(h('span', { class: 'ocrst ok', text: '✓ 已登記' }), h('b', { text: who }), h('span', { text: iname(m.itemId) }), seen,
+      const add = (...xs) => li.append(...xs.filter(Boolean)); // 沒有「看到」文字時不要出現 null
+      if (m.act === 'marked') add(h('span', { class: 'ocrst ok', text: '✓ 已登記' }), h('b', { text: who }), h('span', { text: iname(m.itemId) }), seen,
         h('button', { class: 'link', onclick: () => { setMark(c.id, m.no, m.itemId, false, { quiet: true }); S.mainDirty = true; st.marked--; countEl.textContent = String(st.marked); m.act = 'undone'; paint(job); } }, '取消'));
-      else if (m.act === 'already') li.append(h('span', { class: 'ocrst', text: '已經登記過' }), h('b', { text: who }), h('span', { text: iname(m.itemId) }), seen);
-      else if (m.act === 'undone') li.append(h('span', { class: 'ocrst', text: '已取消' }), h('b', { text: who }), h('span', { text: iname(m.itemId) }));
+      else if (m.act === 'already') add(h('span', { class: 'ocrst', text: '已經登記過' }), h('b', { text: who }), h('span', { text: iname(m.itemId) }), seen);
+      else if (m.act === 'undone') add(h('span', { class: 'ocrst', text: '已取消' }), h('b', { text: who }), h('span', { text: iname(m.itemId) }));
       else if (m.act === 'confirm') {
         const ps = h('select', { class: 'ocrpick', 'aria-label': '改成別的學生' }, studOptions(m.no));
-        li.append(h('span', { class: 'ocrst warn', text: '請確認' }), h('b', { text: who + '？' }), h('span', { text: iname(m.itemId) + (m.mismatch ? '（封面看起來是「' + m.seenItem + '」）' : '') }), seen,
+        add(h('span', { class: 'ocrst warn', text: '請確認' }), h('b', { text: who + '？' }), h('span', { text: iname(m.itemId) + (m.mismatch ? '（封面看起來是「' + m.seenItem + '」）' : '') }), seen,
           h('span', { class: 'ocrbtns' },
             h('button', { class: 'btn small primary', onclick: () => { const no = Number(ps.value) || m.no; if (no !== m.no) { m.no = no; m.name = (stud(no) || {}).name || ''; } if (isOn(c.id, m.no, m.itemId)) m.act = 'already'; else { doMark(m.no, m.itemId); m.act = 'marked'; } paint(job); } }, '登記'), ps));
       } else if (m.act === 'item') {
         const is = h('select', { class: 'ocrpick', 'aria-label': who + ' 的項目' }, itemOptions('', '選項目…'));
-        li.append(h('span', { class: 'ocrst warn', text: '看不出科目' }), h('b', { text: who }), seen,
+        add(h('span', { class: 'ocrst warn', text: '看不出科目' }), h('b', { text: who }), seen,
           h('span', { class: 'ocrbtns' }, is, h('button', { class: 'btn small primary', onclick: () => { if (!is.value) return toast('請先選項目'); m.itemId = is.value; if (isOn(c.id, m.no, m.itemId)) m.act = 'already'; else { doMark(m.no, m.itemId); m.act = 'marked'; } paint(job); } }, '登記')));
       }
       return li;
@@ -1261,8 +1270,8 @@
     function paint(job) {
       const head = h('div', { class: 'ocrhead' }, h('img', { class: 'ocrthumb', src: job.img.thumb, alt: '第 ' + job.id + ' 張照片' }));
       const body = h('div', { class: 'ocrbody' });
-      if (job.state === 'wait') body.append(h('div', { class: 'ocrst', text: '排隊中…' }));
-      else if (job.state === 'run') body.append(h('div', { class: 'ocrst busy', text: '辨識中…（約 3–10 秒）' }));
+      if (job.state === 'wait') body.append(h('div', { class: 'ocrst' + (job.note ? ' warn' : ''), text: job.note || '排隊中…' }));
+      else if (job.state === 'run') { job.note = ''; body.append(h('div', { class: 'ocrst busy', text: '辨識中…（約 3–10 秒）' })); }
       else if (job.state === 'err') body.append(h('div', { class: 'ocrst err', text: OCR_ERR[job.err] || ('辨識失敗：' + (job.err || '未知錯誤')) }),
         job.err === 'need_deploy' || job.err === 'no_ocr_key' || job.err === 'ocr_key_bad' ? null : h('button', { class: 'btn small ghost', onclick: () => { job.state = 'wait'; paint(job); pump(); } }, '再試一次'));
       else {
