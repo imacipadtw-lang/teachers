@@ -1058,7 +1058,7 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
     const firstExam = await pg.$$eval('table.grid thead tr:not(.grprow) th', t => t.findIndex(x => x.classList.contains('exam') && !x.classList.contains('rsncol')));
     ok(ih > 1 && ie > ih && ih === firstExam - 1, '「習作未繳原因」在習作最後一欄後面、「考卷未繳原因」在考卷後面');
     const opts = await pg.$$eval('tr[data-no="1"] select.reasonsel.exam option', o => o.map(x => x.textContent));
-    ok(opts.includes('請假') && opts.includes('其他') && opts.includes('家長未簽名'), '原因選單有請假、其他、家長未簽名…：' + opts.slice(1).join('、'));
+    ok(opts.includes('請假') && opts.includes('其他') && opts.includes('家長未簽名') && opts.includes('無法完成'), '原因選單有請假、其他、家長未簽名…：' + opts.slice(1).join('、'));
     const span = await pg.$$eval('table.grid thead tr.grprow th', t => t.map(x => +x.getAttribute('colspan')));
     const nItems = await pg.$$eval('table.grid thead .cnt', e => e.length);
     ok(span.reduce((a, b) => a + b, 0) === nItems + 2, '上排「習作」「考卷」標題涵蓋各自的原因欄（不會錯位）');

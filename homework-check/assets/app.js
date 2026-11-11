@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.11f';
+  const APP_VERSION = '2026.11.11g';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
   // 115.11.10 管理者決定：全部由教務組登入操作，導師不用登入（config.js teacherLogin: true 才開放導師登入）
   // 這版網站需要的後端版本（apps-script/Code.gs 的 BACKEND_VER）；正式後端比這個舊，教務組畫面會提醒更新並可一鍵複製新版程式碼
@@ -528,7 +528,7 @@
   }
   /* ---------- 未完成原因：存在每位學生的備註，格式「〔未寫完〕補充說明」（舊版後端也能存）；報表另列原因與統計 ---------- */
   // 115.11.11 管理者要求：習作、考卷各自一個「未繳原因」下拉選單（例如請假、其他）
-  const REASONS = ['未寫完', '家長未簽名', '忘了帶', '遺失', '未訂正', '請假', '新轉入（尚未發）', '其他'];
+  const REASONS = ['未寫完', '無法完成', '家長未簽名', '忘了帶', '遺失', '未訂正', '請假', '新轉入（尚未發）', '其他'];
   const KIND_LB = { hw: '習作', exam: '考卷' };
   // 存在學生備註裡：「〔習作 未寫完〕〔考卷 請假〕補充說明」（舊版後端也能存）；舊格式「〔原因〕」不分習作考卷，讀成兩者都是
   function splitNote(t) {
