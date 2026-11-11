@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.11c';
+  const APP_VERSION = '2026.11.11d';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
   // 115.11.10 管理者決定：全部由教務組登入操作，導師不用登入（config.js teacherLogin: true 才開放導師登入）
   // 這版網站需要的後端版本（apps-script/Code.gs 的 BACKEND_VER）；正式後端比這個舊，教務組畫面會提醒更新並可一鍵複製新版程式碼
@@ -705,7 +705,7 @@
 
     if (!ed) box.append(h('div', { class: 'banner info', text: r && r.locked && S.role === 'teacher' ? '本次抽查已結案，紀錄僅供查看；如需更正請洽教務組。' : '目前為查看模式。' }));
     else if (r && r.locked && admin) box.append(h('div', { class: 'banner warn', text: '本次抽查已結案：導師不能再更動，教務組仍可更正（每次更正都會記在試算表的「異動紀錄」）。' }));
-    else box.append(h('ol', { class: 'steps3' }, h('li', null, h('b', { text: '選科目' }), '（下面的「習作」「考卷」選單）'), h('li', null, h('b', { text: '收到誰的，就點他那一格打勾' }), '＝有繳交；再點一次取消。會自動儲存。'), admin ? h('li', null, h('b', { text: '按「給校長的報表」' }), '列印或下載 Excel。') : null));
+    else box.append(h('ol', { class: 'steps3' }, h('li', null, h('b', { text: '選科目' }), '（下面的「習作」「考卷」選單）'), h('li', null, h('b', { text: '收到誰的，就點他那一格打勾' }), '＝有繳交；再點一次取消。大多數都交了，按「全選」再把沒交的點掉。會自動儲存。'), admin ? h('li', null, h('b', { text: '按「給校長的報表」' }), '列印或下載 Excel。') : null));
 
     const picks = subjPickers(items);
     box.append(renderTable(cls, applySubj(items), studs, ed, admin, picks));
@@ -808,7 +808,7 @@
         const th = h('th', { class: (it.kind === 'exam' ? 'exam' : '') + examStart(items, i) }, h('div', { text: it.short || it.name }));
         const who = (cls.subjectTeachers || {})[it.id];
         if (who) th.append(h('span', { class: 'who', text: who }));
-        { th.append(h('span', { class: 'cnt', 'data-item': it.id, text: countItem(cls, it) + '/' + n })); if (ed) th.append(h('span', { class: 'thops' }, h('button', { class: 'link', onclick: () => openQuick(cls, it) }, '收件'), admin ? h('button', { class: 'link skipbtn', title: cls.name + '這次不用繳' + it.name, 'aria-label': it.name + '：本次不用繳', onclick: () => setSkip(cls, it, true) }, '不用繳') : null)); }
+        { th.append(h('span', { class: 'cnt', 'data-item': it.id, text: countItem(cls, it) + '/' + n })); if (ed) th.append(h('span', { class: 'thops' }, bulkBtn(cls, [it], 'link colall', '全選', '全取消', it.name), h('button', { class: 'link', onclick: () => openQuick(cls, it) }, '收件'), admin ? h('button', { class: 'link skipbtn', title: cls.name + '這次不用繳' + it.name, 'aria-label': it.name + '：本次不用繳', onclick: () => setSkip(cls, it, true) }, '不用繳') : null)); }
         return th;
       }),
       admin ? h('th', { text: '狀態' }) : null, admin ? h('th', { class: 'notecol', text: '未完成原因（給校長看）' }) : null);
@@ -848,7 +848,7 @@
       onkeydown: e => { if (e.key === 'Escape' && search.value) { e.preventDefault(); e.stopPropagation(); search.value = ''; S.filter.q = ''; applyFilter(); } } });
     const chip = h('button', { type: 'button', class: 'chip filterchip', 'aria-pressed': String(S.filter.onlyMissing), onclick: () => { S.filter.onlyMissing = !S.filter.onlyMissing; applyFilter(); } }, '只看未繳齊');
     const saveSt = ed ? h('span', { id: 'savestate', class: 'savestate', role: 'status' }) : null; if (saveSt) paintSaveBar(saveSt);
-    const tools = h('div', { class: 'gridtools no-print', role: 'search', 'aria-label': '篩選學生' }, search, chip, fcount, saveSt);
+    const tools = h('div', { class: 'gridtools no-print', role: 'search', 'aria-label': '篩選學生' }, ed ? bulkBtn(cls, items, 'btn small allbtn', '全部全選', '全部取消', '目前顯示的全部科目') : null, search, chip, fcount, saveSt);
     applyFilter();
     const out = h('div', { class: 'stack' });
     if (picks) out.append(picks);
@@ -856,6 +856,20 @@
     return out;
   }
 
+  // 全選：一欄（某個科目）或整張表（目前顯示的科目）全班打勾；已經全勾了就變「全取消」。
+  // 按第一下先變成「再按一次」，第二下才執行（避免手滑把全班勾上）。按鈕文字決定動作。
+  function bulkMark(cls, its, val) {
+    const studs = cls.students || []; let n = 0;
+    its.forEach(it => studs.forEach(s => { if (isOn(cls.id, s.no, it.id) !== val) { setMark(cls.id, s.no, it.id, val, { quiet: true }); n++; } }));
+    if (n) renderSoft();
+    toast(val ? '已打勾 ' + n + ' 格。沒交的，再點那一格取消。' : '已取消 ' + n + ' 格');
+  }
+  function bulkBtn(cls, its, klass, labelOn, labelOff, what) {
+    const studs = cls.students || [];
+    const all = !!studs.length && !!its.length && its.every(it => studs.every(s => isOn(cls.id, s.no, it.id)));
+    const b = h('button', { type: 'button', class: klass, title: (all ? '全部取消：' : '全班打勾：') + (what || '') });
+    return armed(b, all ? labelOff : labelOn, all ? '再按一次：全部取消' : '再按一次：全班打勾', () => bulkMark(cls, its, !all), 4000);
+  }
   // 點一格只更新這一格與相關數字（30 人 × 13 項時，整張表重畫在中低階手機約 150 ms，只改一格幾乎即時）
   function patchCell(cid, no, itemId) {
     try {
@@ -876,6 +890,9 @@
       const ft = table.querySelector('tfoot td[data-item="' + itemId + '"]'); if (ft) ft.textContent = c + ' / ' + n;
       const allIn = studs.filter(x => items.every(y => isOn(cid, x.no, y.id))).length;
       const ac = table.querySelector('tfoot td.allincnt'); if (ac) ac.textContent = allIn + ' 人繳齊';
+      // 全選／全取消按鈕跟著狀態更新
+      const cb = cnt && cnt.parentElement && cnt.parentElement.querySelector('.colall'); if (cb) cb.replaceWith(bulkBtn(cls, [it], 'link colall', '全選', '全取消', it.name));
+      const ab = document.querySelector('#main .gridtools .allbtn'); if (ab) ab.replaceWith(bulkBtn(cls, items, 'btn small allbtn', '全部全選', '全部取消', '目前顯示的全部科目'));
       if (S.role !== 'admin') { const fl = table.querySelector('tfoot td.flabel'); if (fl) fl.textContent = '已交（' + allIn + ' 人繳齊）'; }
       const oldRing = document.querySelector('#main .classhead .ring');
       if (oldRing) { const p = classProgress(cls); oldRing.replaceWith(ring(p.total ? Math.round(p.got / p.total * 100) : 0)); }

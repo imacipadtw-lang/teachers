@@ -811,3 +811,10 @@ footer.foot .helpbtn { font-size: 12px; }
   .steps3 { margin: 0; padding: 12px 16px 12px 2.2em; background: var(--accent-soft); border-radius: var(--radius); font-size: 15px; line-height: 1.8; }
   .steps3 b { color: var(--ink); }
 }
+
+/* 全選（115.11.11） */
+@media screen {
+  .thops { flex-wrap: wrap; gap: 2px 8px; }
+  .thops .colall { font-weight: 700; }
+  .gridtools .allbtn { min-height: 40px; }
+}

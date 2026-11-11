@@ -1027,6 +1027,29 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
     await ctx.close();
   }
 
+  console.log('40. 全選（每一欄、整張表）');
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+  { ctx = await br.newContext({ viewport: { width: 1280, height: 860 } }); pg = await newPage(ctx); await adminLogin(pg, B);
+    const col = it => pg.locator('table.grid thead .cnt[data-item="' + it + '"]').locator('xpath=..').locator('.colall');
+    const m = async () => (((await marks(B)).g1 || {}).marks || {});
+    await col('math').click();
+    ok(/再按一次/.test(await col('math').textContent()) && !Object.values(await m()).some(x => x.math), '數學「全選」按第一下只提示「再按一次」，還沒勾');
+    await col('math').click(); await sleep(1800);
+    let mk = await m();
+    ok([1, 2, 3, 4, 5, 6].every(no => mk[no] && mk[no].math) && /6\/6/.test(await pg.textContent('table.grid thead .cnt[data-item="math"]')), '再按一次：全班 6 人的數學都打勾（6/6）');
+    ok(await col('math').textContent() === '全取消', '全勾之後這一欄的按鈕變成「全取消」');
+    await pg.locator('table.grid button.chk[data-no="3"][data-item="math"]').click(); await sleep(1500);
+    ok(!((await m())['3'] || {}).math && await col('math').textContent() === '全選', '沒交的再點一下取消（3 號），按鈕變回「全選」');
+    await pg.selectOption('#subj-hw', '英語'); await pg.selectOption('#subj-exam', '-'); await sleep(300);
+    await pg.click('.gridtools .allbtn'); await pg.click('.gridtools .allbtn'); await sleep(1800);
+    mk = await m();
+    ok([1, 2, 3, 4, 5, 6].every(no => mk[no] && mk[no].english) && !Object.values(mk).some(x => x.chinese), '表格上方「全部全選」只勾目前顯示的科目（英語），國語沒被勾');
+    ok(/全部取消/.test(await pg.textContent('.gridtools .allbtn')), '全部勾完後上方按鈕變「全部取消」');
+    await pg.click('.gridtools .allbtn'); await pg.click('.gridtools .allbtn'); await sleep(1800);
+    ok(!Object.values(await m()).some(x => x.english), '「全部取消」清掉英語');
+    await ctx.close();
+  }
+
   await br.close();
   console.log('\n頁面錯誤：' + (errors.length ? errors.join(' | ') : '無'));
   console.log(`結果：${pass} 通過，${fail} 失敗`);
