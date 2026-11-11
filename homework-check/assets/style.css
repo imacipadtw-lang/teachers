@@ -835,7 +835,7 @@ td.nasub { color: var(--muted); font-size: 12px; background: var(--sheet-2); }
 
 /* 每一格的未繳原因（115.11.11）：沒交才出現，打勾就收起 */
 @media screen {
-  td.cell .cellrsn { display: block; margin: 4px auto 0; width: 5.8em; min-width: 0; min-height: 30px; padding: 2px 4px; font-size: 12px; }
+  td.cell .cellrsn { display: block; margin: 4px auto 0; width: 7.4em; min-width: 0; min-height: 30px; padding: 2px 2px 2px 4px; font-size: 12px; }
   td.cell .cellrsn[hidden] { display: none; }
   .rsnitems { display: flex; flex-wrap: wrap; gap: 6px 14px; }
   .rsnitems .rsk { display: flex; align-items: center; gap: 6px; font-size: 13px; }
