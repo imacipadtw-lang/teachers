@@ -812,21 +812,21 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
     mk = (await marks(B)).g1.marks;
     ok(mk['4'] && mk['4'].math, '恢復連線後自動送出');
     // 未完成原因
-    await pg.selectOption('tr[data-no="2"] select.reasonsel.hw', '遺失');
+    await pg.selectOption('select.cellrsn[data-no="2"][data-item="math"]', '遺失');
     await pg.fill('tr[data-no="2"] td.notecol input.noteinput', '數學習作找不到'); await pg.press('tr[data-no="2"] td.notecol input.noteinput', 'Enter');
-    await pg.selectOption('tr[data-no="3"] select.reasonsel.hw', '未寫完'); await pg.selectOption('tr[data-no="3"] select.reasonsel.exam', '請假'); await sleep(2500);
+    await pg.selectOption('select.cellrsn[data-no="3"][data-item="math"]', '未寫完'); await pg.selectOption('select.cellrsn[data-no="3"][data-item="exam_math"]', '請假'); await sleep(2500);
     const nt = (await R({ action: 'read', key: 'test1234' })).checks.g1.notes;
-    ok(nt['2'] === '〔習作 遺失〕數學習作找不到' && nt['3'] === '〔習作 未寫完〕〔考卷 請假〕', '習作、考卷各自的未繳原因＋補充說明存在備註（舊版後端也能存）');
+    ok(nt['2'] === '〔數學習作 遺失〕數學習作找不到' && nt['3'] === '〔數學習作 未寫完〕〔數學考卷 請假〕', '每一科各自的未繳原因＋補充說明存在備註（舊版後端也能存）');
     await pg.click('nav.tabs >> text=全校總覽'); await sleep(300); await pg.click('nav.tabs >> text=班級檢核'); await sleep(300);
-    ok(await pg.inputValue('tr[data-no="2"] select.reasonsel.hw') === '遺失' && await pg.inputValue('tr[data-no="3"] select.reasonsel.exam') === '請假' && await pg.inputValue('tr[data-no="2"] td.notecol input.noteinput') === '數學習作找不到', '重新開啟仍顯示原因與說明');
+    ok(await pg.inputValue('select.cellrsn[data-no="2"][data-item="math"]') === '遺失' && await pg.inputValue('select.cellrsn[data-no="3"][data-item="exam_math"]') === '請假' && await pg.inputValue('tr[data-no="2"] td.notecol input.noteinput') === '數學習作找不到', '重新開啟仍顯示原因與說明');
     await pg.click('nav.tabs >> text=報表'); await sleep(500);
     const rep = await pg.textContent('main');
-    ok(/二、未繳交名單與未完成原因/.test(rep) && /遺失 1 人/.test(rep) && /未寫完 1 人/.test(rep) && /尚未填原因 \d+ 人/.test(rep), '報表有「未完成原因統計」（遺失 1 人、未寫完 1 人、尚未填原因…）');
+    ok(/二、未繳交名單與未完成原因/.test(rep) && /遺失 1 本/.test(rep) && /未寫完 1 本/.test(rep) && /請假 1 張/.test(rep) && /尚未填原因 \d+ 本/.test(rep), '報表有「未完成原因統計」（遺失 1 人、未寫完 1 人、尚未填原因…）');
     const trs = await pg.$$eval('.rtable tbody tr', t => t.map(x => x.textContent));
     ok(trs.some(t => /遺失/.test(t) && /數學習作找不到/.test(t)), '報表名單列出每位學生的原因與補充說明');
     const [dl] = await Promise.all([pg.waitForEvent('download'), pg.click('button:has-text("下載 Excel 報表")')]);
     const z = unzip(fs.readFileSync(await dl.path())); const s2 = z['xl/worksheets/sheet2.xml'] || '';
-    ok(z['xl/workbook.xml'].includes('未繳交與原因') && s2.includes('未繳原因統計') && s2.includes('考卷未繳原因') && s2.includes('>遺失<') && s2.includes('數學習作找不到'), 'Excel「未繳交與原因」工作表有原因欄與統計');
+    ok(z['xl/workbook.xml'].includes('未繳交與原因') && s2.includes('未繳原因統計') && s2.includes('數學（遺失）') && s2.includes('數學習作找不到'), 'Excel「未繳交與原因」工作表有原因欄與統計');
     await ctx.close();
     // 只有教務組登入（teacherLogin: false，正式網站的設定）
     const adminOnly = async p => p.route(/config\.js/, async route => { const res = await route.fetch(); await route.fulfill({ response: res, body: (await res.text()).replace(/teacherLogin:\s*true/, 'teacherLogin: false') }); });
@@ -837,7 +837,7 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
     await pg.fill('#adminPw', 'test1234'); await pg.keyboard.press('Enter'); await pg.waitForSelector('table.grid');
     await pg.click('nav.tabs >> text=全校總覽'); await sleep(400);
     const ov = await pg.textContent('main');
-    ok(!/導師已登入|尚未登入的班級/.test(ov) && /已填未完成原因/.test(ov), '全校總覽不再提醒導師登入，改顯示「已填未完成原因」');
+    ok(!/導師已登入|尚未登入的班級/.test(ov) && /已填未繳原因/.test(ov), '全校總覽不再提醒導師登入，改顯示「已填未完成原因」');
     await pg.click('nav.tabs >> text=設定'); await sleep(300);
     ok(!(await pg.$('#set-devices')) && !/導師登入/.test(await pg.textContent('.setnav')), '設定頁沒有「導師登入裝置」');
     await ctx.close();
@@ -998,16 +998,16 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
     const rd = await R({ action: 'read', key: 'test1234' }); const ids = rd.config.items.filter(it => (it.grades || []).includes(1)).map(it => it.id);
     await R({ action: 'marks', key: 'test1234', rid: rd.rid, classId: 'g1', changes: [1, 2].flatMap(no => ids.map(id => ({ no, itemId: id, val: true }))) }); // 1、2 號全部繳齊
     ctx = await br.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true }); pg = await newPage(ctx); await adminLogin(pg, B);
-    ok(/填未完成原因（4）/.test(await pg.textContent('.classhead')), '按鈕顯示還沒填原因的人數（4）');
+    const nItems1 = ids.length; ok(new RegExp('填未完成原因（' + (4 * nItems1) + '）').test(await pg.textContent('.classhead')), '按鈕顯示還沒填原因的項數（4 人 × ' + nItems1 + ' 項）');
     await pg.click('button:has-text("填未完成原因")'); await pg.waitForSelector('.rsnmode');
     const who = await pg.$$eval('.rsnlist .rsnwho b', b => b.map(x => x.textContent));
     ok(who.length === 4 && !who.some(t => /^1 號|^2 號/.test(t)), '只列出沒繳齊的 4 位（1、2 號已繳齊不列）：' + who.join('、'));
-    ok(/缺：/.test(await pg.textContent('.rsnlist li')), '每位標出缺哪幾項');
-    await pg.locator('.rsnlist li').nth(0).locator('select.reasonsel.hw').selectOption('遺失'); await sleep(200);
+    ok(/國語習作/.test(await pg.textContent('.rsnlist li')) && await pg.locator('.rsnlist li').nth(0).locator('select.cellrsn').count() === nItems1, '每位列出沒交的每一科，各有一個原因選單');
+    await pg.locator('.rsnlist li').nth(0).locator('select.cellrsn[data-item="chinese"]').selectOption('遺失'); await sleep(200);
     await pg.selectOption('.rsnbulk select', '未寫完'); await pg.click('.rsnbulk button:has-text("套用")'); await sleep(2500);
     const nt = (await R({ action: 'read', key: 'test1234' })).checks.g1.notes || {};
-    ok(nt['3'] === '〔習作 遺失〕〔考卷 未寫完〕' && nt['4'] === '〔習作 未寫完〕〔考卷 未寫完〕' && nt['6'] === '〔習作 未寫完〕〔考卷 未寫完〕' && !nt['1'], '個別選的保留（3 號習作遺失），其他還沒填的（習作、考卷）一次設為「未寫完」');
-    ok(/還沒填原因的 0 位/.test(await pg.textContent('.rsnbulk')), '套用後「還沒填原因的 0 位」');
+    ok(/^〔國語習作 遺失〕/.test(nt['3']) && /〔數學習作 未寫完〕/.test(nt['3']) && /〔國語習作 未寫完〕/.test(nt['4']) && /〔國語考卷 未寫完〕/.test(nt['6']) && !nt['1'], '個別選的保留（3 號國語習作遺失），其他還沒填的每一科一次設為「未寫完」');
+    ok(/還沒填原因的 0 項/.test(await pg.textContent('.rsnbulk')), '套用後「還沒填原因的 0 項」');
     await pg.click('.rsnmode button:has-text("完成")'); await sleep(400);
     ok(!/填未完成原因（/.test(await pg.textContent('.classhead')), '關閉後按鈕上的待填人數消失');
     ok(await pg.evaluate(() => document.documentElement.scrollWidth) <= 390, '手機上不左右捲動');
@@ -1050,22 +1050,23 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
     await ctx.close();
   }
 
-  console.log('41. 習作、考卷各自的未繳原因欄');
+  console.log('41. 每一格的未繳原因下拉選單');
   await fetch(B + '__reset'); await fetch(B + '__seed');
   { ctx = await br.newContext({ viewport: { width: 1280, height: 860 } }); pg = await newPage(ctx); await adminLogin(pg, B);
-    const heads = await pg.$$eval('table.grid thead tr:not(.grprow) th', t => t.map(x => x.textContent.trim().slice(0, 6)));
-    const ih = heads.findIndex(t => /習作未繳原因/.test(t)), ie = heads.findIndex(t => /考卷未繳原因/.test(t));
-    const firstExam = await pg.$$eval('table.grid thead tr:not(.grprow) th', t => t.findIndex(x => x.classList.contains('exam') && !x.classList.contains('rsncol')));
-    ok(ih > 1 && ie > ih && ih === firstExam - 1, '「習作未繳原因」在習作最後一欄後面、「考卷未繳原因」在考卷後面');
-    const opts = await pg.$$eval('tr[data-no="1"] select.reasonsel.exam option', o => o.map(x => x.textContent));
-    ok(opts.includes('請假') && opts.includes('其他') && opts.includes('家長未簽名') && opts.includes('無法完成'), '原因選單有請假、其他、家長未簽名…：' + opts.slice(1).join('、'));
-    const span = await pg.$$eval('table.grid thead tr.grprow th', t => t.map(x => +x.getAttribute('colspan')));
-    const nItems = await pg.$$eval('table.grid thead .cnt', e => e.length);
-    ok(span.reduce((a, b) => a + b, 0) === nItems + 2, '上排「習作」「考卷」標題涵蓋各自的原因欄（不會錯位）');
-    // 舊格式的原因（不分習作考卷）仍讀得懂
+    const sel = (no, it) => 'select.cellrsn[data-no="' + no + '"][data-item="' + it + '"]';
+    const opts = await pg.$$eval(sel(1, 'exam_math') + ' option', o => o.map(x => x.textContent));
+    ok(opts.includes('請假') && opts.includes('其他') && opts.includes('無法完成') && opts.includes('家長未簽名'), '每一格都有原因選單（沒交時）：' + opts.slice(1).join('、'));
+    ok(await pg.locator('select.cellrsn').count() === (await pg.locator('table.grid button.chk').count()), '每一科每一位都有自己的原因選單');
+    await pg.locator('table.grid button.chk[data-no="1"][data-item="math"]').click(); await sleep(200);
+    ok(await pg.isHidden(sel(1, 'math')) && await pg.isVisible(sel(1, 'chinese')), '打勾（有交）的那一格，原因選單自動收起');
+    await pg.locator('table.grid button.chk[data-no="1"][data-item="math"]').click(); await sleep(200);
+    ok(await pg.isVisible(sel(1, 'math')), '取消打勾，原因選單又出現');
     await fetch(B + 'exec', { method: 'POST', body: JSON.stringify({ action: 'note', key: 'test1234', rid: 'r1', classId: 'g1', no: 5, text: '〔遺失〕舊的說明' }) });
     await pg.evaluate(() => document.querySelector('#sync .link').click()); await sleep(1500);
-    ok(await pg.inputValue('tr[data-no="5"] select.reasonsel.hw') === '遺失' && await pg.inputValue('tr[data-no="5"] select.reasonsel.exam') === '遺失' && await pg.inputValue('tr[data-no="5"] td.notecol input') === '舊的說明', '舊格式「〔遺失〕」讀成習作、考卷都是遺失');
+    ok(await pg.inputValue(sel(5, 'chinese')) === '遺失' && await pg.inputValue(sel(5, 'exam_math')) === '遺失' && await pg.inputValue('tr[data-no="5"] td.notecol input') === '舊的說明', '舊格式「〔遺失〕」讀成每一科都是遺失');
+    await pg.selectOption(sel(5, 'chinese'), ''); await sleep(1800);
+    const n5 = (await (await fetch(B + 'exec', { method: 'POST', body: JSON.stringify({ action: 'read', key: 'test1234' }) })).json()).checks.g1.notes['5'];
+    ok(!/國語習作/.test(n5) && /〔數學習作 遺失〕/.test(n5) && /舊的說明$/.test(n5), '只清掉國語的原因，其他科仍是遺失（舊格式自動展開）');
     await ctx.close();
   }
 
