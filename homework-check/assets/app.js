@@ -4,13 +4,13 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.11b';
+  const APP_VERSION = '2026.11.11c';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
   // 115.11.10 管理者決定：全部由教務組登入操作，導師不用登入（config.js teacherLogin: true 才開放導師登入）
   // 這版網站需要的後端版本（apps-script/Code.gs 的 BACKEND_VER）；正式後端比這個舊，教務組畫面會提醒更新並可一鍵複製新版程式碼
-  const BACKEND_NEED = '2026.11.11b';
+  const BACKEND_NEED = '2026.11.11c';
   const TEACHERS_ON = (window.HC_CONFIG || {}).teacherLogin === true;
-  const LS = { admin: 'hc.admin', teacher: 'hc.teacher', api: 'hc.api', cls: 'hc.class', outbox: 'hc.outbox', theme: 'hc.theme', cache: 'hc.cache', subj: 'hc.subj' };
+  const LS = { admin: 'hc.admin', teacher: 'hc.teacher', api: 'hc.api', cls: 'hc.class', outbox: 'hc.outbox', theme: 'hc.theme', cache: 'hc.cache', subj: 'hc.subj', tools: 'hc.tools' };
   const GRADE = ['', '一', '二', '三', '四', '五', '六'];
   const WD = '日一二三四五六';
 
@@ -360,7 +360,8 @@
   const round = () => S.rounds.find(r => r.id === S.rid) || null;
   const classes = () => (S.config && S.config.classes) || [];
   const allItems = () => (S.config && S.config.items) || [];
-  function classHasItem(cls, it) { if (Array.isArray(cls.itemIds)) return cls.itemIds.includes(it.id); return (it.grades || []).map(Number).includes(Number(cls.grade)); }
+  // 項目一個年級都沒勾時，依預設年級顯示（正式資料曾有 12 個項目年級全空，各班看不到格子）
+  function classHasItem(cls, it) { if (Array.isArray(cls.itemIds)) return cls.itemIds.includes(it.id); const g = (it.grades || []).map(Number).filter(x => x >= 1 && x <= 6); return (g.length ? g : defaultGrades(it)).includes(Number(cls.grade)); }
   const grouped = list => list.filter(it => it.kind !== 'exam').concat(list.filter(it => it.kind === 'exam')); // 習作在前、考卷在後
   // 「不用繳」：教務組在班級檢核表頭設定，只影響這一次抽查、這一班；已登記的紀錄保留但不顯示、不計算
   function skipped(cid, itemId) { const d = S.checks[cid]; return !!(d && d.skip && d.skip[itemId]); }
@@ -552,7 +553,7 @@
     document.body.classList.toggle('labels-view', S.role === 'admin' && S.view === 'labels');
     document.body.classList.toggle('report-view', S.role === 'admin' && S.view === 'report');
     m.replaceChildren();
-    if (S.role === 'admin' && S.backendKnown && S.backendVer < BACKEND_NEED && !S.hideUpd) m.append(backendBanner());
+    if (S.role === 'admin' && S.view === 'settings' && S.backendKnown && S.backendVer < BACKEND_NEED && !S.hideUpd) m.append(backendBanner()); // 只在設定頁提醒，不擋勾選畫面
     if (S.role === 'admin' && S.view === 'overview') return m.append(renderOverview());
     if (S.role === 'admin' && S.view === 'settings') return m.append(renderSettings());
     if (S.role === 'admin' && S.view === 'labels') return m.append(renderLabels());
@@ -596,7 +597,7 @@
     return bar;
   }
   function renderTabs() {
-    const tabs = [['class', '班級檢核'], ['overview', '全校總覽'], ['report', '報表'], ['settings', '設定']];
+    const tabs = [['class', '班級檢核'], ['report', '給校長的報表'], ['overview', '全校總覽'], ['settings', '設定']];
     const go = id => { S.view = id; if (id !== 'settings') S.draft = null; renderMain(); document.querySelectorAll('nav.tabs button').forEach(b => { const on = b.dataset.view === id; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; }); };
     return h('nav', { class: 'tabs', 'aria-label': '功能分頁' }, h('div', { class: 'tablist', role: 'tablist', 'aria-label': '功能分頁',
       onkeydown: e => { if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft' && e.key !== 'Home' && e.key !== 'End') return; e.preventDefault(); const i = tabs.findIndex(t => t[0] === S.view); const n = e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1 : (i + (e.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length; go(tabs[n][0]); const b = document.querySelector('nav.tabs button[data-view="' + tabs[n][0] + '"]'); if (b) b.focus(); } },
@@ -673,30 +674,38 @@
     const sub = h('div', { class: 'sub' }, h('span', { text: '全班 ' + n + ' 人' }));
     if (cls.teacher) sub.prepend(h('span', { text: '導師 ' + cls.teacher }));
     if (admin && d && d.updatedAt) sub.append(h('span', { text: '最後登記 ' + fmtStamp(d.updatedAt) + (d.updatedBy ? '（' + d.updatedBy + '）' : '') }));
-    const actions = h('div', { class: 'row' });
-    if (ed) actions.append(h('button', { class: 'btn primary small', onclick: () => openOcr(cls) }, svg('camera'), '拍照辨識'), h('button', { class: 'btn ghost small', onclick: () => openScan(cls) }, svg('scan'), '掃描標籤'));
-    actions.append(h('button', { class: 'btn ghost small', onclick: () => openMissing([cls]) }, svg('list'), '未交名單'));
-    if (admin) { const nr = reasonTodo(cls, r); actions.append(h('button', { class: 'btn ghost small', onclick: () => openReasons(cls) }, svg('list'), '填未完成原因' + (nr ? '（' + nr + '）' : ''))); }
-    actions.append(h('button', { class: 'btn ghost small', onclick: () => openNotices([cls]) }, svg('mail'), '家長通知單'));
-    if (admin) actions.append(
+    // 簡化：主要只有「給校長的報表」與「填未完成原因」，其他工具收進「更多工具」（展開狀態記在這台裝置）
+    const goReport = () => { const t = document.querySelector('nav.tabs button[data-view="report"]'); if (t) { t.click(); window.scrollTo(0, 0); } };
+    const actions = h('div', { class: 'row mainacts' });
+    if (admin) actions.append(h('button', { class: 'btn primary', onclick: goReport }, svg('print'), '給校長的報表'));
+    if (admin) { const nr = reasonTodo(cls, r); actions.append(h('button', { class: 'btn ghost', onclick: () => openReasons(cls) }, svg('list'), '填未完成原因' + (nr ? '（' + nr + '）' : ''))); }
+    const tools = h('div', { class: 'row' });
+    if (ed) tools.append(h('button', { class: 'btn ghost small', onclick: () => openOcr(cls) }, svg('camera'), '拍照辨識'), h('button', { class: 'btn ghost small', onclick: () => openScan(cls) }, svg('scan'), '掃描標籤'));
+    tools.append(h('button', { class: 'btn ghost small', onclick: () => openMissing([cls]) }, svg('list'), '未交名單'));
+    tools.append(h('button', { class: 'btn ghost small', onclick: () => openNotices([cls]) }, svg('mail'), '家長通知單'));
+    if (admin) tools.append(
       h('button', { class: 'btn ghost small', title: '匯出本班 CSV（全校請到「全校總覽」）', onclick: () => exportCSV([cls]) }, svg('down'), '本班 CSV'),
-      h('button', { class: 'btn ghost small', onclick: () => window.print() }, svg('print'), '列印'));
+      h('button', { class: 'btn ghost small', onclick: () => window.print() }, svg('print'), '列印本班'));
+    const more = h('details', { class: 'moretools no-print', open: lsGet(LS.tools) ? true : null, ontoggle: e => lsSet(LS.tools, e.target.open ? 1 : null) },
+      h('summary', { text: '更多工具（拍照辨識、未交名單、家長通知單…）' }), tools,
+      admin ? h('div', { class: 'row' }, h('span', { class: 'note', text: '本班備註' }), h('div', { class: 'grow' }, noteInput(cls.id, null, '整班的說明，例如：11/10 全班補交完成'))) : null);
+    if (!admin) actions.append(...Array.from(tools.childNodes));
     const headLeft = h('div', { class: 'row' });
     { const prog = classProgress(cls, r); headLeft.append(ring(prog.total ? Math.round(prog.got / prog.total * 100) : 0)); }
     headLeft.append(h('div', null, h('h2', { text: cls.name }), sub));
     box.append(h('div', { class: 'classhead' }, headLeft, actions));
+    if (admin) box.append(more);
     box.append(h('div', { class: 'print-meta', text: (CFG.schoolName || '') + '　' + (r ? r.name : '') + '　' + cls.name + subjPrintNote(items) + '　列印時間 ' + new Date().toLocaleString('zh-TW') }));
 
     const skips = skippedItems(cls, r);
     if (skips.length) box.append(h('div', { class: 'skipline' }, h('span', { class: 'note', text: '本次不用繳：' }), skips.map(it => h('span', { class: 'tag skiptag' + (it.kind === 'exam' ? ' exam' : '') }, it.name, admin ? h('button', { class: 'link', 'aria-label': '恢復 ' + it.name + ' 要繳', onclick: () => setSkip(cls, it, false) }, '恢復') : null))));
     if (r && !(r.itemIds || []).length) { box.append(noItemsCard(r)); return box; }
-    if (admin) { const gf = gradeFixBanner(cls, r); if (gf) box.append(gf); }
     if (!items.length) { box.append(h('div', { class: 'empty', text: skips.length ? '本班這次的項目都已設為「不用繳」。' : '這次抽查沒有適用於本班的項目。' + (admin ? '請到「設定」檢查本次抽查項目與本班的習作項目。' : '') })); return box; }
     if (!n) { box.append(h('div', { class: 'empty', text: admin ? '這個班級還沒有學生名單，請到「設定」貼上名單。' : '這個班級還沒有學生名單，請洽教務組。' })); return box; }
 
     if (!ed) box.append(h('div', { class: 'banner info', text: r && r.locked && S.role === 'teacher' ? '本次抽查已結案，紀錄僅供查看；如需更正請洽教務組。' : '目前為查看模式。' }));
     else if (r && r.locked && admin) box.append(h('div', { class: 'banner warn', text: '本次抽查已結案：導師不能再更動，教務組仍可更正（每次更正都會記在試算表的「異動紀錄」）。' }));
-    else box.append(h('div', { class: 'note', text: '先用下面的「習作」「考卷」選單選科目，再點格子打勾（再點一次可取消）。會自動儲存，不用按儲存。' }));
+    else box.append(h('ol', { class: 'steps3' }, h('li', null, h('b', { text: '選科目' }), '（下面的「習作」「考卷」選單）'), h('li', null, h('b', { text: '收到誰的，就點他那一格打勾' }), '＝有繳交；再點一次取消。會自動儲存。'), admin ? h('li', null, h('b', { text: '按「給校長的報表」' }), '列印或下載 Excel。') : null));
 
     const picks = subjPickers(items);
     box.append(renderTable(cls, applySubj(items), studs, ed, admin, picks));
@@ -842,7 +851,6 @@
     const tools = h('div', { class: 'gridtools no-print', role: 'search', 'aria-label': '篩選學生' }, search, chip, fcount, saveSt);
     applyFilter();
     const out = h('div', { class: 'stack' });
-    if (admin) out.append(h('div', { class: 'row' }, h('span', { class: 'note', text: '本班備註' }), h('div', { class: 'grow' }, noteInput(cls.id, null, '整班的說明，例如：11/10 全班補交完成'))));
     if (picks) out.append(picks);
     out.append(tools, h('div', { class: 'tablebox' }, table), legend);
     return out;
@@ -1920,6 +1928,7 @@
   /* ---------- 設定（教務組） ---------- */
   function renderSettings() {
     if (!S.draft) S.draft = JSON.parse(JSON.stringify(S.config || { items: [], classes: [] }));
+    S.draft.items.forEach(it => { if (!(it.grades || []).length) it.grades = defaultGrades(it); }); // 年級全空的項目：顯示（並在儲存時寫入）預設年級，和班級頁的實際行為一致
     const D = S.draft;
     const box = h('div', { class: 'stack' });
 

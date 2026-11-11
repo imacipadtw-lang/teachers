@@ -799,3 +799,15 @@ footer.foot .helpbtn { font-size: 12px; }
   .rsnlist .reasoncell { min-width: 0; }
   .rsnlist .reasoncell .reasonsel { width: 10em; }
 }
+
+/* ---------- 簡化的班級頁（115.11.11）：三步驟、主要按鈕、更多工具收合 ---------- */
+@media screen {
+  .mainacts { gap: 8px; }
+  .mainacts .btn { min-height: 44px; font-size: 15px; }
+  .moretools { border: 1px dashed var(--line-strong); border-radius: var(--radius); padding: 8px 12px; background: var(--sheet); }
+  .moretools > summary { cursor: pointer; font-size: 14px; color: var(--muted); }
+  .moretools[open] > summary { margin-bottom: 10px; }
+  .moretools > .row + .row { margin-top: 10px; }
+  .steps3 { margin: 0; padding: 12px 16px 12px 2.2em; background: var(--accent-soft); border-radius: var(--radius); font-size: 15px; line-height: 1.8; }
+  .steps3 b { color: var(--ink); }
+}

@@ -12,7 +12,7 @@
  */
 
 // 後端版本：網站會比對這個版本，教務組畫面上會提醒「後端需要更新」（改了這個檔就要把版本一起改，並同步改 app.js 的 BACKEND_NEED）
-var BACKEND_VER = '2026.11.11b';
+var BACKEND_VER = '2026.11.11c';
 var SHEET_NAME = 'data';
 var MAX_CELL = 49000; // 試算表單格上限 50,000 字
 
@@ -457,7 +457,7 @@ function writeSummary_(round, config, all) {
   config.classes.forEach(function (cls) {
     var doc = all['checks:' + round.id + ':' + cls.id] || { marks: {} };
     var skipSet = doc.skip || {};
-    var mine = items.filter(function (it) { return !skipSet[it.id] && (Array.isArray(cls.itemIds) ? cls.itemIds.indexOf(it.id) >= 0 : (it.grades || []).indexOf(Number(cls.grade)) >= 0); });
+    var mine = items.filter(function (it) { return !skipSet[it.id] && classHasItem_(cls, it); });
     var mineSet = {}; mine.forEach(function (i) { mineSet[i.id] = true; });
     var counts = {}; var got = 0;
     (cls.students || []).forEach(function (s) {
@@ -491,7 +491,16 @@ function writeSummary_(round, config, all) {
 /* ================= 異動紀錄（只增不改，供查核） ================= */
 var LOG_SHEET = '異動紀錄';
 function whoLabel_(who, cls) { return who.role === 'admin' ? '教務組' : '導師（' + (cls ? cls.name : who.classId) + '）'; }
-function classHasItem_(cls, it) { return Array.isArray(cls.itemIds) ? cls.itemIds.indexOf(it.id) >= 0 : (it.grades || []).map(Number).indexOf(Number(cls.grade)) >= 0; }
+// 項目一個年級都沒勾時，依預設年級（115.11.11：正式資料有 12 個項目年級全空，各班看不到格子）
+var DEFAULT_GRADES_ = { life: [1, 2], exam_life: [1, 2], social: [3, 4, 5, 6], science: [3, 4, 5, 6], exam_english: [3, 4, 5, 6], exam_social: [3, 4, 5, 6], exam_science: [3, 4, 5, 6] };
+function gradesOf_(it) {
+  var g = (it.grades || []).map(Number).filter(function (x) { return x >= 1 && x <= 6; });
+  if (g.length) return g;
+  if (DEFAULT_GRADES_[it.id]) return DEFAULT_GRADES_[it.id];
+  var k = String(it.short || it.name || '');
+  return /生活/.test(k) ? [1, 2] : /社會|自然/.test(k) ? [3, 4, 5, 6] : [1, 2, 3, 4, 5, 6];
+}
+function classHasItem_(cls, it) { return Array.isArray(cls.itemIds) ? cls.itemIds.indexOf(it.id) >= 0 : gradesOf_(it).indexOf(Number(cls.grade)) >= 0; }
 // rows：[身分, 動作, 抽查次別, 班級, 座號, 姓名, 項目, 說明]；寫入失敗不影響存檔
 function log_(rows) {
   if (!rows || !rows.length) return;

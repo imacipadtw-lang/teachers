@@ -19,7 +19,8 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
   // 指定 UTF-8 語系：沒有語系的 Linux 下 Chromium 會把中文下載檔名換成 download（學校的 Windows／Mac／手機不會）
   const br = await chromium.launch({ env: Object.assign({}, process.env, { LANG: 'C.UTF-8', LC_ALL: 'C.UTF-8' }) });
   const errors = [];
-  const newPage = async (ctx) => { const p = await ctx.newPage(); p.on('pageerror', e => errors.push(e.message)); await p.route(/fonts\.(googleapis|gstatic)\.com/, r => r.abort()); return p; };
+  const newPage = async (ctx) => { const p = await ctx.newPage(); await p.addInitScript(() => { try { if (!sessionStorage.getItem('fresh')) localStorage.setItem('hc.tools', '1'); } catch (e) { } }); // 舊測試假設「更多工具」是展開的
+    p.on('pageerror', e => errors.push(e.message)); await p.route(/fonts\.(googleapis|gstatic)\.com/, r => r.abort()); return p; };
   const B = 'http://localhost:8787/';
   try { fs.unlinkSync(OFF); } catch (e) { }
 
@@ -72,7 +73,9 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
 
   console.log('5. 分頁方向鍵');
   await pg.focus('nav.tabs button[aria-selected=true]'); await pg.keyboard.press('ArrowRight'); await sleep(200);
-  ok(await pg.evaluate(() => document.activeElement.dataset.view === 'overview' && !!document.querySelector('table.ov')), '→ 鍵切到「全校總覽」');
+  ok(await pg.evaluate(() => document.activeElement.dataset.view === 'report'), '→ 鍵切到「給校長的報表」');
+  await pg.keyboard.press('ArrowRight'); await sleep(200);
+  ok(await pg.evaluate(() => document.activeElement.dataset.view === 'overview' && !!document.querySelector('table.ov')), '再按 → 切到「全校總覽」');
   ok(await pg.locator('table.ov tfoot td', { hasText: '全校合計' }).count() === 1, '總覽有「全校合計」列');
   await pg.keyboard.press('End'); await sleep(200);
   ok(await pg.evaluate(() => document.activeElement.dataset.view === 'settings'), 'End 鍵切到「設定」');
@@ -850,11 +853,15 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
     await R({ action: 'saveConfig', key: 'test1234', config: cfg });
     ctx = await br.newContext({ viewport: { width: 1280, height: 860 } }); pg = await newPage(ctx);
     await pg.goto(B); await pg.click('text=教務組登入'); await pg.fill('input[type=password]', 'test1234'); await pg.keyboard.press('Enter');
-    await pg.waitForSelector('.gradefix', { timeout: 15000 });
-    ok(/12 個項目沒有勾任何適用年級/.test(await pg.textContent('.gradefix')), '有項目沒勾年級時，班級頁說明原因（各班看不到）');
-    await pg.click('.gradefix button:has-text("恢復預設年級")'); await pg.waitForSelector('table.grid', { timeout: 15000 });
+    await pg.waitForSelector('table.grid', { timeout: 15000 });
+    const c1 = await pg.$$eval('table.grid thead .cnt', e => e.map(x => x.dataset.item).join(','));
+    ok(/math/.test(c1) && /life/.test(c1) && !/social/.test(c1) && !(await pg.$('.gradefix')), '項目沒勾任何年級時，照預設年級顯示（一甲有數學、生活，沒有社會），不用另外設定：' + c1);
+    await pg.locator('table.grid button.chk[data-no="6"][data-item="life"]').click(); await sleep(1500);
+    ok(!!(((await marks(B)).g1.marks['6'] || {}).life), '後端也照預設年級收下這一格（一甲 6 號生活習作）');
+    await pg.click('nav.tabs >> text=設定'); await sleep(300);
+    await pg.click('text=儲存項目與班級設定'); await sleep(1500);
     const g = Object.fromEntries((await R({ action: 'read', key: 'test1234' })).config.items.map(it => [it.id, it.grades.join('')]));
-    ok(g.math === '123456' && g.life === '12' && g.social === '3456' && g.exam_english === '3456' && g.chinese === '3', '恢復預設年級：數學 1–6、生活 1–2、社會與英語考卷 3–6（已有年級的國語不動）');
+    ok(g.math === '123456' && g.life === '12' && g.social === '3456' && g.exam_english === '3456' && g.chinese === '3', '設定頁顯示預設年級，按儲存後寫回（已有年級的國語不動）');
     await ctx.close();
     // 抽查次別沒有項目：教務組一鍵加入
     await R({ action: 'addRound', key: 'test1234', round: { id: 'r9', name: '空白次別', due: '', itemIds: [], locked: false, createdAt: '2099-01-01T00:00:00Z' } });
@@ -967,8 +974,9 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
     await ctx.close();
     const L = 'http://localhost:8788/'; await fetch(L + '__reset'); await fetch(L + '__seed');
     ctx = await br.newContext({ viewport: { width: 1280, height: 860 }, permissions: ['clipboard-read', 'clipboard-write'] }); pg = await newPage(ctx); await adminLogin(pg, L);
-    await pg.waitForSelector('.updbanner', { timeout: 10000 });
-    ok(/後端程式需要更新/.test(await pg.textContent('.updbanner')), '後端是舊版：教務組畫面上方提醒「後端程式需要更新」');
+    ok(!(await pg.$('.updbanner')), '勾選畫面不放「後端需要更新」提醒（避免擋住）');
+    await pg.click('nav.tabs >> text=設定'); await pg.waitForSelector('.updbanner', { timeout: 10000 });
+    ok(/後端程式需要更新/.test(await pg.textContent('.updbanner')), '後端是舊版：設定頁上方提醒「後端程式需要更新」');
     await pg.click('.updbanner button:has-text("怎麼更新？")');
     ok(await pg.isVisible('.updsteps') && /新版本/.test(await pg.textContent('.updsteps')), '「怎麼更新？」展開 4 個步驟');
     await pg.click('.updbanner button:has-text("複製新版程式碼")'); await sleep(600);
@@ -1003,6 +1011,19 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
     await pg.click('.rsnmode button:has-text("完成")'); await sleep(400);
     ok(!/填未完成原因（/.test(await pg.textContent('.classhead')), '關閉後按鈕上的待填人數消失');
     ok(await pg.evaluate(() => document.documentElement.scrollWidth) <= 390, '手機上不左右捲動');
+    await ctx.close();
+  }
+
+  console.log('39. 簡化的班級頁（三步驟、給校長的報表、更多工具收合）');
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+  { ctx = await br.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true }); pg = await newPage(ctx);
+    await pg.addInitScript(() => { try { sessionStorage.setItem('fresh', '1'); localStorage.removeItem('hc.tools'); } catch (e) { } });
+    await adminLogin(pg, B);
+    ok(await pg.isVisible('.mainacts button:has-text("給校長的報表")') && await pg.isVisible('.steps3'), '班級頁一打開就看到三步驟和「給校長的報表」');
+    ok(!(await pg.isVisible('button:has-text("掃描標籤")')) && await pg.isVisible('.moretools summary'), '其他工具收在「更多工具」裡');
+    ok(await pg.locator('table.grid button.chk').count() > 0 && await pg.isVisible('table.grid button.chk >> nth=0'), '勾選格子就在畫面上');
+    await pg.click('.mainacts button:has-text("給校長的報表")'); await sleep(400);
+    ok(/作業抽查結果/.test(await pg.textContent('main')) && await pg.isVisible('button:has-text("列印報表")'), '按「給校長的報表」直接到報表，可列印');
     await ctx.close();
   }
 
