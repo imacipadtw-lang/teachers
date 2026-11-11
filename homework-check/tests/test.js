@@ -965,6 +965,28 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
     await ctx.close();
   }
 
+  console.log('38. 填未完成原因（只列沒繳齊的學生、一次設定）');
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+  { const R = async b => (await fetch(B + 'exec', { method: 'POST', body: JSON.stringify(b) })).json();
+    const rd = await R({ action: 'read', key: 'test1234' }); const ids = rd.config.items.filter(it => (it.grades || []).includes(1)).map(it => it.id);
+    await R({ action: 'marks', key: 'test1234', rid: rd.rid, classId: 'g1', changes: [1, 2].flatMap(no => ids.map(id => ({ no, itemId: id, val: true }))) }); // 1、2 號全部繳齊
+    ctx = await br.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true }); pg = await newPage(ctx); await adminLogin(pg, B);
+    ok(/填未完成原因（4）/.test(await pg.textContent('.classhead')), '按鈕顯示還沒填原因的人數（4）');
+    await pg.click('button:has-text("填未完成原因")'); await pg.waitForSelector('.rsnmode');
+    const who = await pg.$$eval('.rsnlist .rsnwho b', b => b.map(x => x.textContent));
+    ok(who.length === 4 && !who.some(t => /^1 號|^2 號/.test(t)), '只列出沒繳齊的 4 位（1、2 號已繳齊不列）：' + who.join('、'));
+    ok(/缺：/.test(await pg.textContent('.rsnlist li')), '每位標出缺哪幾項');
+    await pg.locator('.rsnlist li').nth(0).locator('select.reasonsel').selectOption('遺失'); await sleep(200);
+    await pg.selectOption('.rsnbulk select', '未寫完'); await pg.click('.rsnbulk button:has-text("套用")'); await sleep(2500);
+    const nt = (await R({ action: 'read', key: 'test1234' })).checks.g1.notes || {};
+    ok(nt['3'] === '〔遺失〕' && nt['4'] === '〔未寫完〕' && nt['5'] === '〔未寫完〕' && nt['6'] === '〔未寫完〕' && !nt['1'], '個別選的保留（3 號遺失），其他還沒填的一次設為「未寫完」');
+    ok(/還沒填原因的 0 位/.test(await pg.textContent('.rsnbulk')), '套用後「還沒填原因的 0 位」');
+    await pg.click('.rsnmode button:has-text("完成")'); await sleep(400);
+    ok(!/填未完成原因（/.test(await pg.textContent('.classhead')), '關閉後按鈕上的待填人數消失');
+    ok(await pg.evaluate(() => document.documentElement.scrollWidth) <= 390, '手機上不左右捲動');
+    await ctx.close();
+  }
+
   await br.close();
   console.log('\n頁面錯誤：' + (errors.length ? errors.join(' | ') : '無'));
   console.log(`結果：${pass} 通過，${fail} 失敗`);

@@ -16,6 +16,7 @@ const B = 'http://localhost:8787/'; const scheme = process.argv[2] || 'light';
   await pg.click('nav.tabs >> text=班級檢核'); await pg.click('button:has-text("掃描標籤")'); await pg.waitForTimeout(300); await run('掃描對話框');
   await pg.keyboard.press('Escape'); await pg.waitForTimeout(200); await pg.click('footer .helpbtn'); await pg.waitForTimeout(200); await run('使用說明');
   await pg.keyboard.press('Escape'); await pg.waitForTimeout(200); await pg.click('nav.tabs >> text=班級檢核'); await pg.click('button:has-text("拍照辨識")'); await pg.waitForTimeout(800); await run('拍照辨識');
+  await pg.click('.ocrmode button:has-text("完成")'); await pg.waitForTimeout(200); await pg.click('button:has-text("填未完成原因")'); await pg.waitForTimeout(400); await run('填未完成原因');
   { const L = 'http://localhost:8788/'; await fetch(L + '__reset'); await fetch(L + '__seed'); // 舊版後端：教務組畫面的「後端需要更新」提示
     await pg.goto(L); await pg.click('text=教務組登入'); await pg.fill('input[type=password]', 'test1234'); await pg.keyboard.press('Enter'); await pg.waitForSelector('.updbanner');
     await pg.click('.updbanner button:has-text("怎麼更新？")'); await pg.waitForTimeout(200); await run('後端更新提醒'); }

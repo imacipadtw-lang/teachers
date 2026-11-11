@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.10t';
+  const APP_VERSION = '2026.11.10u';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
   // 115.11.10 管理者決定：全部由教務組登入操作，導師不用登入（config.js teacherLogin: true 才開放導師登入）
   // 這版網站需要的後端版本（apps-script/Code.gs 的 BACKEND_VER）；正式後端比這個舊，教務組畫面會提醒更新並可一鍵複製新版程式碼
@@ -608,7 +608,7 @@
         ['不用繳：', '這一次、這一班有些習作或考卷不用交，在「班級檢核」該欄表頭按「不用繳」，隨時可「恢復」。'],
         ['全校總覽與報表：', '看各班完成率、截止倒數；「報表」可列印或下載 Excel 給主任、校長，也有歷次抽查的趨勢。'],
         ['結案：', '抽查結束到「設定 → 抽查次別」勾「結案」，導師就不能再改；教務組仍可更正。'],
-        ['未完成原因：', '表格最右邊每位學生可選原因（未寫完、忘了帶、遺失、未訂正、家長未簽名…）並補充說明；「報表」會列出原因與各原因人數，給校長看。'],
+        ['未完成原因：', '按「填未完成原因」只列出沒繳齊的學生，逐一選原因（未寫完、忘了帶、遺失、未訂正、家長未簽名…），也可以一次設定；表格最右邊也能填。「報表」會列出原因與各原因人數，給校長看。'],
         TEACHERS_ON ? ['導師登入：', '「設定 → 導師登入裝置」可解除單班、全部重新登入，或暫停新的導師登入。'] : null,
         ['查核與備份：', '試算表「異動紀錄」記下每一次登記與變更；「設定 → 系統」可下載備份。']]));
       inner.append(sec('網路不穩時', [
@@ -654,6 +654,7 @@
     const actions = h('div', { class: 'row' });
     if (ed) actions.append(h('button', { class: 'btn primary small', onclick: () => openOcr(cls) }, svg('camera'), '拍照辨識'), h('button', { class: 'btn ghost small', onclick: () => openScan(cls) }, svg('scan'), '掃描標籤'));
     actions.append(h('button', { class: 'btn ghost small', onclick: () => openMissing([cls]) }, svg('list'), '未交名單'));
+    if (admin) { const nr = reasonTodo(cls, r); actions.append(h('button', { class: 'btn ghost small', onclick: () => openReasons(cls) }, svg('list'), '填未完成原因' + (nr ? '（' + nr + '）' : ''))); }
     actions.append(h('button', { class: 'btn ghost small', onclick: () => openNotices([cls]) }, svg('mail'), '家長通知單'));
     if (admin) actions.append(
       h('button', { class: 'btn ghost small', title: '匯出本班 CSV（全校請到「全校總覽」）', onclick: () => exportCSV([cls]) }, svg('down'), '本班 CSV'),
@@ -1014,6 +1015,30 @@
           h('button', { class: 'btn primary', onclick: async () => { toast((await copyText(text)) ? '已複製，可直接貼到 LINE 群組' : '無法自動複製，請長按文字選取後複製'); } }, svg('copy'), '複製文字'),
           h('button', { class: 'btn ghost', onclick: closeModal }, '關閉')));
     });
+  }
+
+  /* ---------- 填未完成原因（教務組）：只列還沒繳齊的學生，手機上一張張卡片，不用在大表格裡左右滑 ---------- */
+  function missingStuds(c, r) { const items = applySubj(itemsFor(c, r)); return { items, studs: (c.students || []).slice().sort((a, b) => a.no - b.no).filter(s => items.some(it => !isOn(c.id, s.no, it.id))) }; }
+  function reasonTodo(c, r) { const m = missingStuds(c, r); return m.studs.filter(s => !splitNote(noteValue(c.id, s.no)).reason).length; }
+  function openReasons(cls0) {
+    const c = classes().find(x => x.id === cls0.id) || cls0;
+    openModal(inner => {
+      inner.classList.add('rsnmode');
+      const { items, studs } = missingStuds(c);
+      const todoNow = () => studs.filter(s => !splitNote(noteValue(c.id, s.no)).reason); // 每次都重新算（個別選過的不能被一次設定蓋掉）
+      const todo = todoNow();
+      inner.append(h('div', { class: 'row between' }, h('h3', null, '未完成原因', h('small', { text: c.name + subjPrintNote(itemsFor(c)) })), h('button', { class: 'btn ghost small', onclick: () => closeModal() }, '完成')));
+      if (!studs.length) { inner.append(h('div', { class: 'empty', text: '都繳齊了，不用填原因。' })); return; }
+      inner.append(h('div', { class: 'note', text: '只列出還沒繳齊的 ' + studs.length + ' 位' + (subjPrintNote(itemsFor(c)) ? '（依上方選的科目）' : '') + '。選了就自動儲存；「報表」會列出每位的原因和各原因人數。' }));
+      const bsel = h('select', { 'aria-label': '一次設定的原因' }, [h('option', { value: '', text: '選原因…' })].concat(REASONS.map(x => h('option', { value: x, text: x }))));
+      const blabel = h('span', { text: '還沒填原因的 ' + todo.length + ' 位，一次設為' });
+      const bbtn = h('button', { class: 'btn small', disabled: !todo.length, onclick: () => { if (!bsel.value) return toast('請先選原因'); const t = todoNow(); if (!t.length) return toast('都已經填好原因了'); t.forEach(s => setNote(c.id, s.no, joinNote(bsel.value, splitNote(noteValue(c.id, s.no)).text))); toast('已把 ' + t.length + ' 位設為「' + bsel.value + '」'); S.mainDirty = true; if (S.modal && S.modal.refresh) S.modal.refresh(); } }, '套用');
+      inner.append(h('div', { class: 'rsnbulk' }, blabel, bsel, bbtn));
+      inner.append(h('ul', { class: 'rsnlist', onchange: () => { const n = todoNow().length; blabel.textContent = '還沒填原因的 ' + n + ' 位，一次設為'; bbtn.disabled = !n; } }, studs.map(s => h('li', null,
+        h('div', { class: 'rsnwho' }, h('b', { text: s.no + ' 號 ' + (s.name || '') }), h('small', { text: '缺：' + items.filter(it => !isOn(c.id, s.no, it.id)).map(it => it.name).join('、') })),
+        reasonCell(c.id, s.no, s.name)))));
+    });
+    S.modal.onClose = () => { S.mainDirty = true; };
   }
 
   /* ---------- 掃描登記（相機或條碼掃描器） ---------- */
