@@ -1069,6 +1069,17 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
     await ctx.close();
   }
 
+  console.log('42. 這個年級沒有的科目標「無此科」');
+  await fetch(B + '__reset'); await fetch(B + '__seed');
+  { ctx = await br.newContext({ viewport: { width: 1280, height: 860 } }); pg = await newPage(ctx); await adminLogin(pg, B);
+    await pg.click('nav.tabs >> text=全校總覽'); await sleep(400);
+    const ov = await pg.$$eval('table.ov tbody tr', trs => trs.map(t => t.textContent));
+    ok(/無此科/.test(ov[0]) && !/—/.test(ov[0].replace(/^[^0-9]*/, '').slice(0, 0)) && /無此科/.test(await pg.textContent('main')) && /三～六年級沒有生活/.test(await pg.textContent('main')), '全校總覽：一甲的社會、自然顯示「無此科」，下方有說明');
+    await pg.click('nav.tabs >> text=報表'); await sleep(400);
+    ok(/無此科/.test(await pg.textContent('.rsec')) && !!(await pg.$('.rsec .nanote')), '給校長的報表：沒有的科目標「無此科」並附說明');
+    await ctx.close();
+  }
+
   await br.close();
   console.log('\n頁面錯誤：' + (errors.length ? errors.join(' | ') : '無'));
   console.log(`結果：${pass} 通過，${fail} 失敗`);

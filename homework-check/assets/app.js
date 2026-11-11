@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.11g';
+  const APP_VERSION = '2026.11.11h';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
   // 115.11.10 管理者決定：全部由教務組登入操作，導師不用登入（config.js teacherLogin: true 才開放導師登入）
   // 這版網站需要的後端版本（apps-script/Code.gs 的 BACKEND_VER）；正式後端比這個舊，教務組畫面會提醒更新並可一鍵複製新版程式碼
@@ -1567,7 +1567,7 @@
       const n = (cls.students || []).length; const p = classProgress(cls, r); got += p.got; total += p.total;
       const pct = p.total ? Math.round(p.got / p.total * 100) : null;
       return h('tr', null, h('td', { class: 'rname', text: cls.name }), h('td', { text: cls.teacher || '' }), h('td', { text: String(n) }),
-        items.map((it, i) => h('td', { class: examStart(items, i).trim() || null, text: !classHasItem(cls, it) ? '—' : skipped(cls.id, it.id) ? '不用繳' : countItem(cls, it) + '/' + n })),
+        items.map((it, i) => h('td', { class: (examStart(items, i).trim() + (!classHasItem(cls, it) ? ' nasub' : '')).trim() || null, text: !classHasItem(cls, it) ? '無此科' : skipped(cls.id, it.id) ? '不用繳' : countItem(cls, it) + '/' + n })),
         h('td', { class: pct === 100 ? 'okcell' : null, text: pct == null ? '—' : pct + '%' }), h('td', { class: 'left rnote', text: noteValue(cls.id, null) }));
     });
     const pctAll = total ? Math.round(got / total * 100) : 0;
@@ -1578,6 +1578,7 @@
         h('thead', null, groupHeaderRow(items, 3, 2), h('tr', null, h('th', { text: '班級' }), h('th', { text: '導師' }), h('th', { text: '人數' }), items.map((it, i) => h('th', { class: (it.kind === 'exam' ? 'exam' : '') + examStart(items, i), text: it.short || it.name })), h('th', { text: '完成率' }), h('th', { text: '班級備註' }))),
         h('tbody', null, sumRows),
         h('tfoot', null, h('tr', { class: 'tfoot' }, h('td', { colspan: 3, class: 'left', text: '全校' }), items.map(it => { let c = 0, t = 0; cl.forEach(cls => { if (applies(cls, it, r)) { c += countItem(cls, it); t += (cls.students || []).length; } }); return h('td', { text: t ? c + '/' + t : '—' }); }), h('td', { text: pctAll + '%' }), h('td')))))));
+    box.lastElementChild && box.lastElementChild.append(h('div', { class: 'note nanote', text: '「無此科」＝這個年級沒有這一科（例如一、二年級沒有社會、自然，三～六年級沒有生活），不用繳、不計入完成率。' }));
     // 未交與備註名單
     const missing = [];
     cl.forEach(cls => { const its = itemsFor(cls, r); (cls.students || []).slice().sort((a, b) => a.no - b.no).forEach(s => { const miss = its.filter(it => !isOn(cls.id, s.no, it.id)); const note = splitNote(noteValue(cls.id, s.no)); if (miss.length || note.reason || note.text) missing.push({ cls, s, miss, note, ks: missKinds(cls.id, s.no, its) }); }); });
@@ -1807,7 +1808,7 @@
       const body = cl.map(cls => {
         const n = (cls.students || []).length; const p = classProgress(cls, r); got += p.got; total += p.total;
         const pct = p.total ? p.got / p.total : null; if (p.total && p.got === p.total) full++;
-        return [C(cls.name, XS.name), C(cls.teacher || '', XS.txt), N(n, XS.ctr)].concat(items.map(it => !classHasItem(cls, it) ? C('—', XS.na) : skipped(cls.id, it.id) ? C('不用繳', XS.skip) : C(countItem(cls, it) + '/' + n, countItem(cls, it) === n && n ? XS.ok : XS.ctr)))
+        return [C(cls.name, XS.name), C(cls.teacher || '', XS.txt), N(n, XS.ctr)].concat(items.map(it => !classHasItem(cls, it) ? C('無此科', XS.na) : skipped(cls.id, it.id) ? C('不用繳', XS.skip) : C(countItem(cls, it) + '/' + n, countItem(cls, it) === n && n ? XS.ok : XS.ctr)))
           .concat([pct == null ? C('—', XS.na) : N(Math.round(pct * 1000) / 1000, pct === 1 ? XS.pctFull : XS.pct), C(noteValue(cls.id, null), XS.wrap)]);
       });
       rows.push([C('全校完成率', XS.kpiL), null, C('已交／應交', XS.kpiL), null, C('全班繳齊', XS.kpiL)]);
@@ -1884,7 +1885,7 @@
       const its = itemsFor(cls, r); const set = new Set(its.map(i => i.id));
       (cls.students || []).slice().sort((a, b) => a.no - b.no).forEach(s => {
         const got = its.filter(it => isOn(cls.id, s.no, it.id)).length;
-        rows.push([cls.name, cls.teacher || '', s.no, s.name || '', ...items.map(it => !set.has(it.id) ? (classHasItem(cls, it) && skipped(cls.id, it.id) ? '本次不用繳' : '不適用') : (isOn(cls.id, s.no, it.id) ? (it.kind === 'exam' ? '已繳回' : '已交') : (it.kind === 'exam' ? '未繳回' : '未交'))), got, its.length, got === its.length ? '繳齊' : '缺 ' + (its.length - got) + ' 項', splitNote(noteValue(cls.id, s.no)).hw, splitNote(noteValue(cls.id, s.no)).exam, splitNote(noteValue(cls.id, s.no)).text]);
+        rows.push([cls.name, cls.teacher || '', s.no, s.name || '', ...items.map(it => !set.has(it.id) ? (classHasItem(cls, it) && skipped(cls.id, it.id) ? '本次不用繳' : '無此科') : (isOn(cls.id, s.no, it.id) ? (it.kind === 'exam' ? '已繳回' : '已交') : (it.kind === 'exam' ? '未繳回' : '未交'))), got, its.length, got === its.length ? '繳齊' : '缺 ' + (its.length - got) + ' 項', splitNote(noteValue(cls.id, s.no)).hw, splitNote(noteValue(cls.id, s.no)).exam, splitNote(noteValue(cls.id, s.no)).text]);
       });
     });
     const csv = '﻿' + rows.map(row => row.map(v => { v = String(v); if (/^[=+\-@\t\r]/.test(v)) v = "'" + v; return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(',')).join('\r\n');
@@ -1907,7 +1908,7 @@
       return h('tr', null,
         h('td', { class: 'cname' }, h('button', { class: 'link', onclick: () => { S.selClass = cls.id; lsSet(LS.cls, cls.id); S.view = 'class'; render(); } }, cls.name), h('div', { class: 'mini', text: (cls.teacher ? '導師 ' + cls.teacher + ' · ' : '') + n + ' 人' })),
         items.map((it, i) => {
-          if (!classHasItem(cls, it)) return h('td', { class: 'mini' + examStart(items, i), text: '—' });
+          if (!classHasItem(cls, it)) return h('td', { class: 'mini nasub' + examStart(items, i), text: '無此科' });
           if (skipped(cls.id, it.id)) return h('td', { class: 'mini skipcell' + examStart(items, i), text: '不用繳' });
           const c = countItem(cls, it); const q = n ? Math.round(c / n * 100) : 0;
           return h('td', { class: examStart(items, i).trim() || null }, h('div', { text: c + '/' + n }), h('div', { class: 'bar' + (it.kind === 'exam' ? ' exam' : '') }, h('i', { style: 'width:' + q + '%' })));
@@ -1942,7 +1943,7 @@
       h('tfoot', null, h('tr', { class: 'tfoot' }, h('td', { class: 'cname', text: '全校合計' }),
         items.map((it, i) => { let c = 0, t = 0; cl.forEach(cls => { if (applies(cls, it, r)) { c += countItem(cls, it); t += (cls.students || []).length; } }); const q = t ? Math.round(c / t * 100) : 0; return h('td', { class: examStart(items, i).trim() || null }, t ? [h('div', { text: q + '%' }), h('div', { class: 'mini', text: c + '/' + t })] : '—'); }),
         h('td', { class: 'pct' + (pct === 100 && total ? ' full' : ''), text: total ? pct + '%' : '—' }), h('td'))))));
-    box.append(h('div', { class: 'note', text: '點班級名稱可進入該班登記；導師在自己的裝置登記後，這裡會自動更新。' }));
+    box.append(h('div', { class: 'note', text: '「無此科」＝這個年級沒有這一科（例如一、二年級沒有社會、自然，三～六年級沒有生活），不用繳、不計入完成率。點班級名稱可進入該班登記。' }));
     return box;
   }
 

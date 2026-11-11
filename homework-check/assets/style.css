@@ -828,3 +828,7 @@ footer.foot .helpbtn { font-size: 12px; }
   .reasoncell .rsk { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
   .reasoncell { flex-wrap: wrap; }
 }
+
+/* 無此科（115.11.11）：這個年級沒有這一科 */
+td.nasub { color: var(--muted); font-size: 12px; background: var(--sheet-2); }
+@media print { td.nasub { color: #666; background: #f2f2f2 !important; } .nanote { font-size: 9pt; } }
