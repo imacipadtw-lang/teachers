@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  const APP_VERSION = '2026.11.10u';
+  const APP_VERSION = '2026.11.11a';
   const CFG = Object.assign({ apiUrl: '', schoolName: '', unitName: '教務處', appName: '作業抽查紀錄', pollSeconds: 45 }, window.HC_CONFIG || {});
   // 115.11.10 管理者決定：全部由教務組登入操作，導師不用登入（config.js teacherLogin: true 才開放導師登入）
   // 這版網站需要的後端版本（apps-script/Code.gs 的 BACKEND_VER）；正式後端比這個舊，教務組畫面會提醒更新並可一鍵複製新版程式碼
@@ -483,22 +483,44 @@
       setTimeout(() => { ta.focus(); ta.select(); }, 60);
     });
   }
-  function backendBanner() {
-    const steps = h('ol', { class: 'updsteps', hidden: true },
-      h('li', null, '按「複製新版程式碼」。'),
-      h('li', null, '按「開啟 Apps Script」，打開專案「作業抽查_後端程式」，點左邊的 Code.gs（或「程式碼.gs」），全選刪掉，貼上，按存檔。'),
+  // 正式後端網址裡的部署 ID（config.js 本來就公開），讓教務組在「管理部署作業」認出要編輯哪一個
+  function deployIdHint() { const m = /\/macros\/s\/([A-Za-z0-9_-]+)\/exec/.exec(S.apiUrl || ''); return m ? m[1].slice(0, 10) + '…' + m[1].slice(-6) : ''; }
+  function updSteps(hidden) {
+    const dep = deployIdHint();
+    return h('ol', { class: 'updsteps', hidden: !!hidden },
+      h('li', null, '請用電腦做（手機的 Apps Script 不好操作）。按「複製新版程式碼」。'),
+      h('li', null, '按「開啟 Apps Script」，打開專案「作業抽查_後端程式」，點左邊的 Code.gs（或「程式碼.gs」），全選刪掉，貼上，按存檔（磁碟片圖示）。'),
       h('li', null, '先授權：上方函式選單選「testOcrKey」按「執行」。第一次會跳出「需要授權」→「審查權限」→ 選帳號；若出現「Google 尚未驗證這個應用程式」，按「進階」→「前往（不安全）」→「允許」。（新版要連到 Google AI 做拍照辨識，沒授權就部署，網站可能連不上後端）'),
-      h('li', null, '右上「部署」→「管理部署作業」→ 鉛筆「編輯」→ 版本選「新版本」→「部署」。網址不會變。'),
-      h('li', null, '回到這裡按右上的重新整理，這個提示消失就完成了。（拍照辨識另外要在「專案設定 → 指令碼屬性」加 GEMINI_KEY）'));
+      h('li', null, '右上「部署」→「管理部署作業」→ 選' + (dep ? '部署 ID「' + dep + '」那一個' : '原本那一個') + ' → 鉛筆「編輯」→「版本」選「新版本」→「部署」。不要按「新增部署作業」（網址會變，網站就連不到新版）。'),
+      h('li', null, '回到這裡按「我更新好了，重新檢查」。拍照辨識另外要在「專案設定（齒輪）→ 指令碼屬性」新增 GEMINI_KEY。'));
+  }
+  // 「我更新好了」：重新讀一次，告訴教務組到底更新成功沒有、沒成功最常見的原因
+  async function recheckBackend() {
+    S.legacyRead = false; S.version = null;
+    await load({ force: true, full: true });
+    if (S.backendKnown && S.backendVer >= BACKEND_NEED) { toast('後端已經是新版 ✓（' + S.backendVer + '）', 4200); renderMain(); return; }
+    openModal(inner => inner.append(h('h3', { text: '後端還是舊版' }),
+      h('div', { class: 'note', text: '網站剛剛問過正式後端，它還不認得新功能。最常見的原因：' }),
+      h('ol', { class: 'updsteps' },
+        h('li', null, '只按了存檔，沒有「部署 → 管理部署作業 → 編輯 → 新版本 → 部署」。存檔不等於部署。'),
+        h('li', null, '按成「新增部署作業」：會產生新網址，網站還是連到舊的那個。請改用「管理部署作業」編輯原本那一個' + (deployIdHint() ? '（部署 ID「' + deployIdHint() + '」）' : '') + '。'),
+        h('li', null, '貼到別的專案：要貼在「作業抽查_後端程式」，不是試算表附的那個舊專案。'),
+        h('li', null, '剛部署完 Google 還在更新：等 1 分鐘再按一次「我更新好了，重新檢查」。')),
+      h('div', { class: 'row', style: 'justify-content:flex-end' }, h('button', { class: 'btn primary', onclick: closeModal }, '知道了'))));
+  }
+  function updActions() {
+    return [h('button', { class: 'btn small primary', onclick: copyBackendCode }, svg('copy'), '複製新版程式碼'),
+      h('a', { class: 'btn small ghost', href: 'https://script.google.com/home', target: '_blank', rel: 'noopener' }, '開啟 Apps Script'),
+      h('button', { class: 'btn small ghost', onclick: e => { e.target.disabled = true; recheckBackend().finally(() => { e.target.disabled = false; }); } }, '我更新好了，重新檢查')];
+  }
+  function backendBanner() {
+    const steps = updSteps(true);
     const more = h('button', { class: 'link', 'aria-expanded': 'false', onclick: () => { steps.hidden = !steps.hidden; more.setAttribute('aria-expanded', String(!steps.hidden)); more.textContent = steps.hidden ? '怎麼更新？' : '收起步驟'; } }, '怎麼更新？');
     return h('div', { class: 'banner warn updbanner no-print', role: 'region', 'aria-label': '後端需要更新' },
       h('div', { class: 'updmain' },
         h('div', null, h('b', { text: '後端程式需要更新' + (S.backendVer ? '（目前 ' + S.backendVer + '）' : '（目前是舊版）') }),
-          h('div', { class: 'note', text: '拍照辨識、本次不用繳、異動紀錄、歷次趨勢、登入憑證等功能，要更新後端（約 2 分鐘）才會生效。' })),
-        h('div', { class: 'row' },
-          h('button', { class: 'btn small primary', onclick: copyBackendCode }, svg('copy'), '複製新版程式碼'),
-          h('a', { class: 'btn small ghost', href: 'https://script.google.com/home', target: '_blank', rel: 'noopener' }, '開啟 Apps Script'),
-          more,
+          h('div', { class: 'note', text: '拍照辨識、本次不用繳、異動紀錄、歷次趨勢、登入憑證等功能，要更新後端（用電腦約 2 分鐘）才會生效。' })),
+        h('div', { class: 'row' }, updActions(), more,
           h('button', { class: 'link', onclick: () => { S.hideUpd = true; renderMain(); } }, '這次先不要'))),
       steps);
   }
@@ -1297,6 +1319,7 @@
       const body = h('div', { class: 'ocrbody' });
       if (job.state === 'wait') body.append(h('div', { class: 'ocrst' + (job.note ? ' warn' : ''), text: job.note || '排隊中…' }));
       else if (job.state === 'run') { job.note = ''; body.append(h('div', { class: 'ocrst busy', text: '辨識中…（約 3–10 秒）' })); }
+      else if (job.state === 'err' && job.err === 'need_deploy') body.append(h('div', { class: 'ocrst err', text: '拍照辨識要先更新後端（正式後端還是舊版）。照下面步驟用電腦做一次就好：' }), h('div', { class: 'row' }, updActions()), updSteps(false));
       else if (job.state === 'err') body.append(h('div', { class: 'ocrst err', text: OCR_ERR[job.err] || ('辨識失敗：' + (job.err || '未知錯誤')) }),
         job.err === 'need_deploy' || job.err === 'no_ocr_key' || job.err === 'ocr_key_bad' ? null : h('button', { class: 'btn small ghost', onclick: () => { job.state = 'wait'; paint(job); pump(); } }, '再試一次'));
       else {

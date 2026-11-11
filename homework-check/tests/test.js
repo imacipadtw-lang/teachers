@@ -941,7 +941,7 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
     ctx = await br.newContext({ viewport: { width: 1280, height: 860 } }); pg = await newPage(ctx); await adminLogin(pg, L);
     await pg.click('button:has-text("拍照辨識")'); await pg.waitForSelector('.ocrmode');
     await upload(); await waitJob('更新後端');
-    ok(true, '舊版後端：提示要先更新後端（Code.gs 重新部署）');
+    ok(!!(await lastJob().locator('button:has-text("複製新版程式碼")').count()) && /testOcrKey/.test(await lastJob().textContent()), '舊版後端：拍照辨識直接顯示更新步驟與「複製新版程式碼」');
     await ctx.close();
   }
 
@@ -960,6 +960,10 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
     const clip = await pg.evaluate(() => navigator.clipboard.readText());
     ok(/function doPost\(/.test(clip) && /已複製新版程式碼/.test(await pg.textContent('.toast')), '「複製新版程式碼」把 Code.gs 放進剪貼簿（' + clip.split('\n').length + ' 行）');
     ok((await pg.getAttribute('.updbanner a:has-text("開啟 Apps Script")', 'href')) === 'https://script.google.com/home', '「開啟 Apps Script」連到 Apps Script 專案列表');
+    ok(/部署 ID「AKfycb/.test(await pg.textContent('.updsteps')) || /部署 ID/.test(await pg.textContent('.updsteps')) || /原本那一個/.test(await pg.textContent('.updsteps')), '步驟寫明要編輯哪一個部署、不要按「新增部署作業」');
+    await pg.click('.updbanner button:has-text("我更新好了，重新檢查")'); await pg.waitForSelector('.modal h3:has-text("後端還是舊版")', { timeout: 15000 });
+    ok(/存檔不等於部署/.test(await pg.textContent('.modal')) && /新增部署作業/.test(await pg.textContent('.modal')), '還沒更新就按「我更新好了」：說明最常見的原因（只存檔沒部署、按成新增部署作業…）');
+    await pg.click('.modal button:has-text("知道了")'); await sleep(200);
     await pg.click('.updbanner button:has-text("這次先不要")'); await sleep(200);
     ok(!(await pg.$('.updbanner')), '「這次先不要」：本次不再顯示');
     await ctx.close();
