@@ -12,7 +12,7 @@
  */
 
 // 後端版本：網站會比對這個版本，教務組畫面上會提醒「後端需要更新」（改了這個檔就要把版本一起改，並同步改 app.js 的 BACKEND_NEED）
-var BACKEND_VER = '2026.11.10r';
+var BACKEND_VER = '2026.11.11b';
 var SHEET_NAME = 'data';
 var MAX_CELL = 49000; // 試算表單格上限 50,000 字
 
@@ -558,6 +558,15 @@ function bump_() { var v = String(Date.now()); PropertiesService.getScriptProper
          要固定某個模型，在指令碼屬性加 OCR_MODEL。
    送出的資料：照片、本班座號與姓名、本次項目名稱。辨識結果不寫入任何資料；登記一律走原本的 marks（會記在異動紀錄）。 */
 var OCR_MODELS_DEFAULT = ['gemini-flash-latest', 'gemini-2.5-flash'];
+// 英語課本書名 → 年級（115.11.11 管理者提供：Hooray 1＝一年級、Hooray 3＝二年級、Here We Go 1／3／5＝三／四／五年級；
+// Here We Go 7 管理者寫「7 年甲班」，國小只到六年級，依同一套編號規則判斷為六年級。下學期的 2、4、6、8 冊同年級）
+function bookGrade_(title) {
+  var t = String(title || ''), m = /hooray\s*(\d{1,2})/i.exec(t), g = 0;
+  if (m) g = Math.ceil(Number(m[1]) / 2);
+  else if ((m = /here\s*we\s*go\s*(\d{1,2})/i.exec(t))) g = Math.ceil(Number(m[1]) / 2) + 2;
+  return g >= 1 && g <= 6 ? g : 0;
+}
+var BOOK_HINT = '英語課本／習作封面上的書名對照年級：Hooray 1、Hooray 2＝一年級；Hooray 3、Hooray 4＝二年級；Here We Go 1、2＝三年級；Here We Go 3、4＝四年級；Here We Go 5、6＝五年級；Here We Go 7、8＝六年級。這些書都是英語。';
 function ocr_(p) {
   var all = readAll_();
   var who = whoIs_(p, all);
@@ -581,6 +590,7 @@ function ocr_(p) {
   var studs = (cls.students || []).slice().sort(function (a, b) { return a.no - b.no; });
   if (!studs.length) return json_({ ok: false, error: 'no_students' });
   var byNo = {}; studs.forEach(function (st) { byNo[String(st.no)] = st; });
+  var engHw = items.filter(function (it) { return it.kind !== 'exam' && /英語|英文/.test(it.name + (it.short || '')); })[0];
   var prompt = [
     '你是國小教務處的作業登記助理。照片裡是學生繳交的習作或考卷（可能一本，也可能好幾本攤開排在一起）。',
     '請找出每一本封面或卷頭上寫的班級、座號、姓名（多半是小朋友手寫），對照下面的「本班名單」，判斷是哪一位學生。',
@@ -590,30 +600,43 @@ function ocr_(p) {
     fixed ? '這次登記的項目已經指定：' + itemById[fixed].name + '（itemId=' + fixed + '）。每一筆 itemId 都填 ' + fixed + '；若封面明顯是別的科目，seenItem 寫出你看到的科目。'
       : '本次可能的項目（itemId：名稱）：\n' + items.map(function (it) { return it.id + '：' + it.name + (it.kind === 'exam' ? '（考卷，家長簽名繳回）' : ''); }).join('\n'),
     '規則：',
-    '1. no 只能是名單上的座號；看不清楚、或名單上找不到，就不要列出，絕對不要猜。',
+    '1. no 只能是名單上的座號；看不清楚就不要猜（名單上找不到依第 8 點填 0）。',
     '2. confidence：姓名和座號都對得上名單＝high；只看得清其中一個（例如只有姓名、或只有座號）但和名單一致＝medium；字跡模糊、只能部分辨認＝low。',
     '3. 每一本各回傳一筆；同一位學生只回傳一次。',
     '4. itemId：依封面上的科目字樣（例如「數學 習作」「國語 考卷」）從上面的清單挑一個；判斷不出來就填空字串。',
     '5. seen：照抄你在這一本上看到的班級、座號、姓名文字（例如「三年甲班 5號 張家豪」）。seenItem：照抄看到的科目字樣，沒有就空字串。',
-    '6. text：整張照片上主要文字的簡短摘要（50 字以內）。'
+    '6. text：整張照片上主要文字的簡短摘要（50 字以內）。',
+    BOOK_HINT + (engHw ? '本班的英語習作 itemId=' + engHw.id + '。' : ''),
+    '7. bookTitle：封面上的英語書名（例如 Here We Go 5），沒有就空字串。grade：從封面判斷的年級（寫的班級例如「五年甲班」＝5，或依上面的英語書名對照），判斷不出來填 0。',
+    '8. 如果這一本的年級和本班（' + cls.grade + ' 年級）不同，或名單上找不到這位學生：no 填 0，其他欄位照填（系統會轉到正確的班級再辨識）。'
   ].join('\n');
   var out = callGemini_(key, prompt, img);
   if (!out.ok) return json_(out);
   var res = out.data || {};
-  var seen = {}, matches = [];
+  var seen = {}, matches = [], away = {};
   (res.students || []).forEach(function (m) {
-    var no = String(parseInt(m && m.no, 10)); if (!byNo[no] || seen[no]) return; seen[no] = true;
+    if (!m) return;
+    var title = String(m.bookTitle || '').slice(0, 40), sn = String(m.seen || '').slice(0, 60);
+    // 封面判斷的年級：英語書名對照最可靠；AI 回報的年級要在看到的文字裡真的有「○年」才採用
+    var g = bookGrade_(title) || (Number(m.grade) >= 1 && Number(m.grade) <= 6 && /[一二三四五六1-6]\s*年/.test(sn) ? Number(m.grade) : 0);
+    if (g && g !== Number(cls.grade)) { var a = away[g] || (away[g] = { grade: g, count: 0, titles: [] }); a.count++; if (title && a.titles.indexOf(title) < 0) a.titles.push(title); return; }
+    var no = String(parseInt(m.no, 10)); if (!byNo[no] || seen[no]) return; seen[no] = true;
     var conf = { high: 'high', medium: 'medium', low: 'low' }[String(m.confidence || '').toLowerCase()] || 'low';
-    var guess = itemById[m.itemId] ? String(m.itemId) : '';
+    var guess = itemById[m.itemId] ? String(m.itemId) : (bookGrade_(title) && engHw ? engHw.id : '');
     matches.push({ no: Number(no), name: byNo[no].name || '', itemId: fixed || guess, confidence: conf,
-      seen: String(m.seen || '').slice(0, 60), seenItem: String(m.seenItem || '').slice(0, 30) });
+      seen: sn, seenItem: String(m.seenItem || '').slice(0, 30), bookTitle: title });
   });
-  return json_({ ok: true, matches: matches.slice(0, 40), text: String(res.text || '').slice(0, 200), model: out.model });
+  // 封面是別的年級：告訴網站該轉到哪一班（同年級只有一班才直接給 classId）
+  var redirect = Object.keys(away).map(function (g) {
+    var cs = (config.classes || []).filter(function (c) { return Number(c.grade) === Number(g); });
+    var o = away[g]; o.classes = cs.map(function (c) { return { id: c.id, name: c.name }; }); return o;
+  });
+  return json_({ ok: true, matches: matches.slice(0, 40), redirect: redirect, text: String(res.text || '').slice(0, 200), model: out.model });
 }
 function callGemini_(key, prompt, img, mime) {
   var schema = { type: 'OBJECT', properties: {
     students: { type: 'ARRAY', items: { type: 'OBJECT', properties: {
-      no: { type: 'INTEGER' }, confidence: { type: 'STRING' }, itemId: { type: 'STRING' }, seen: { type: 'STRING' }, seenItem: { type: 'STRING' } },
+      no: { type: 'INTEGER' }, confidence: { type: 'STRING' }, itemId: { type: 'STRING' }, seen: { type: 'STRING' }, seenItem: { type: 'STRING' }, bookTitle: { type: 'STRING' }, grade: { type: 'INTEGER' } },
       required: ['no', 'confidence', 'itemId', 'seen'] } },
     text: { type: 'STRING' } }, required: ['students', 'text'] };
   var own = PropertiesService.getScriptProperties().getProperty('OCR_MODEL');

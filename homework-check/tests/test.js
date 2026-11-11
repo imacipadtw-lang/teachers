@@ -934,6 +934,21 @@ const marksGet = async (base) => (await (await fetch(base + 'exec?key=test1234')
     await upload(); await waitJob('已登記');
     const cs = await calls();
     ok(cs.length === 2 && /gemini-flash-latest/.test(cs[0].url) && /gemini-2\.5-flash/.test(cs[1].url) && !!cs[1].gen.thinkingConfig, '預設模型停用（404）時自動改用 gemini-2.5-flash');
+    // 英語課本書名對照年級（115.11.11 管理者提供）
+    await setOcr({ data: { students: [{ no: 2, confidence: 'high', itemId: '', seen: '一年甲班 2號 李小華', seenItem: '英語', bookTitle: 'Hooray 1', grade: 1 }], text: '' } });
+    await upload(); await waitJob('已登記'); await sleep(1500);
+    ok(await mk(2, 'english') && /Hooray 1/.test((await calls())[0].prompt), '本班的英語課本（Hooray 1＝一年級）：自動判斷是英語習作並登記');
+    await setOcr({ seq: [
+      { students: [{ no: 0, confidence: 'high', itemId: '', seen: '二年甲班 4號 林美美', seenItem: '英語', bookTitle: 'Hooray 3', grade: 2 }], text: '' },
+      { students: [{ no: 4, confidence: 'high', itemId: '', seen: '二年甲班 4號 林美美', seenItem: '英語', bookTitle: 'Hooray 3', grade: 2 }], text: '' }] });
+    await upload();
+    await pg.waitForFunction(() => /二甲 4 號/.test(document.querySelector('.ocrjobs').textContent) && /已轉到二甲/.test(document.querySelector('.ocrjobs').textContent) && !/辨識中|排隊中/.test(document.querySelector('.ocrjobs').textContent), null, { timeout: 15000 });
+    await sleep(1500);
+    const cs2 = await calls(); const g2 = (((await marks(B)).g2 || {}).marks || {})['4'] || {};
+    ok(cs2.length === 2 && /班級：二甲/.test(cs2[1].prompt) && g2.english && !(await mk(4, 'english')), '在一甲拍到 Hooray 3（二年級）：自動轉到二甲辨識，登記在二甲 4 號，不會記到一甲');
+    await setOcr({ data: { students: [{ no: 0, confidence: 'high', itemId: '', seen: '五年甲班 3號', seenItem: '英語', bookTitle: 'Here We Go 5', grade: 5 }], text: '' } });
+    await upload(); await waitJob('找不到這個年級的班級');
+    ok(/Here We Go 5/.test(await lastJob().textContent()) && (await calls()).length === 1, 'Here We Go 5（五年級）但沒有五年級的班：說明是別班的書，不會亂登記');
     await pg.click('.ocrmode button:has-text("完成")'); await sleep(500);
     ok(await pg.getAttribute('table.grid button.chk[data-no="5"][data-item="exam_math"]', 'aria-checked') === 'true', '關閉後表格顯示辨識登記的結果');
     await ctx.close();

@@ -770,6 +770,7 @@ footer.foot .helpbtn { font-size: 12px; }
   .ocrst.err { color: var(--seal); font-weight: 500; line-height: 1.6; }
   .ocrst.busy { color: var(--accent); }
   .ocrseen { flex-basis: 100%; color: var(--muted); font-size: 12px; }
+  .ocrvia { font-size: 13px; font-weight: 700; color: var(--accent); }
   .ocrbtns, .ocrmanual { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; }
   .ocrmanual { padding-top: 6px; border-top: 1px dashed var(--line); }
   .ocrbody > .ocrmanual:first-child, .ocrmore .ocrmanual { padding-top: 0; border-top: 0; }

@@ -37,7 +37,7 @@ function makeEnv() {
     UrlFetchApp: { fetch: (url, opt) => {
       const pl = JSON.parse(opt.payload); const n = OCR.next; OCR.calls.push({ url, key: (opt.headers || {})['x-goog-api-key'] || '', prompt: pl.contents[0].parts[0].text, img: (pl.contents[0].parts[1].inline_data || {}).data || '', gen: pl.generationConfig });
       const code = n.code404 && OCR.calls.length === 1 ? 404 : n.code429First && OCR.calls.length === 1 ? 429 : (n.code || 200);
-      return { getResponseCode: () => code, getContentText: () => code !== 200 ? (n.body || '{"error":{"message":"x"}}') : JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(n.data) }] } }] }) };
+      return { getResponseCode: () => code, getContentText: () => code !== 200 ? (n.body || '{"error":{"message":"x"}}') : JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(n.seq ? n.seq[Math.min(OCR.calls.length - 1, n.seq.length - 1)] : n.data) }] } }] }) };
     } },
     LockService: { getScriptLock: () => ({ tryLock: () => true, waitLock: () => { }, releaseLock: () => { } }) },
     Utilities: { getUuid: () => crypto.randomUUID(), formatDate: d => d.toISOString(), sleep: () => { } },
