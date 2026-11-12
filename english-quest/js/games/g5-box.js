@@ -114,7 +114,7 @@
         TC.hideTalk();
         cards.forEach((c) => c.classList.add("on"));
         tapOpen.classList.remove("hidden"); openReady = true; TC.sfx("pop");
-        await TC.waitAction(7000); openReady = false; tapOpen.classList.add("hidden");
+        await TC.waitAction(7000, "👆 點禮物盒，打開看看裡面是什麼！", "等孩子點；或按 <kbd>✓ 說得好</kbd>（或 Enter），7 秒後也會自動打開"); openReady = false; tapOpen.classList.add("hidden");
         boxw.classList.add("shake"); TC.sfx("drum"); await TC.sleep(1000); boxw.classList.remove("shake");
         itemImg.src = TC.art(it.img); labelEl.textContent = cap(it.w) + "!";
         scene.classList.add("open"); TC.sfx(i === items.length - 1 ? "fanfare" : "levelup"); TC.confetti(i === items.length - 1 ? 220 : 100, [rar.c1, rar.c2, "#fff"]);

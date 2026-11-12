@@ -52,7 +52,7 @@
       ans);
     document.body.append(box); TC.sfx("levelup");
     await TC.speak(`Open your passport. Find number ${e.no}.`);
-    const r = await TC.ask({ teacher: `What is word number ${e.no}?`, tzh: `護照第 ${e.no} 號是什麼？`, say: cap(e.w) + "!", zh: "", keys: [[e.w]], word: e.w, hideKey: true });
+    const r = await TC.ask({ teacher: `What is word number ${e.no}?`, tzh: `護照第 ${e.no} 號是什麼？`, say: cap(e.w) + "!", zh: "", keys: [[e.w]], word: e.w, hideKey: true, guideKid: `📖 翻開紙本護照第 <em>${e.page}</em> 頁，找第 <em>${e.no}</em> 號單字，大聲說出來`, guideTeacher: "可幫低年級翻頁；說對 → <kbd>✓ 說得好</kbd>（Enter）・找不到 → <kbd>🔊 聽示範</kbd>" });
     if (api && api.aborted) { box.remove(); return letter; }
     TC.hideTalk();
     ans.innerHTML = ""; ans.append(h("span", { class: "first" }, e.w[0].toUpperCase()), e.w.slice(1), h("span", { class: "zh", style: "font-size:2rem;margin-left:1rem" }, e.zh));
@@ -90,6 +90,7 @@
     }
     render();
     TC.pending = () => { placed.length = 0; words.forEach((w) => placed.push(order.find((t) => t.w === w && !placed.includes(t)))); render(); check(); }; // teacher Enter = solve
+    TC.guide("👆 依順序點下面的單字卡，排出正確的句子", "排錯會自動退回；排不出來 → 按 <kbd>✓ 說得好</kbd>（或 Enter）自動排好");
     await TC.speak("Make the sentence!");
     await Promise.race([finished, new Promise((r) => { const t = setInterval(() => { if (api && api.aborted) { clearInterval(t); r(); } }, 300); finished.then(() => clearInterval(t)); })]);
     TC.pending = null;

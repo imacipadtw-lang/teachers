@@ -364,13 +364,24 @@
       $("#heard").innerHTML = "&nbsp;";
       $("#okBtn").classList.remove("glow");
       revealKey = () => $("#kLine").querySelectorAll(".w.blank").forEach((w) => { w.classList.remove("blank"); w.textContent = w.dataset.t; });
-      talk.classList.add("show");
+      talk.classList.add("show"); syncGuide();
+      { // 👣 tell the child and the gate host exactly what to do now
+        const micOK = TC.micListening();
+        const kidG = spec.guideKid || (spec.hideKey ? "猜猜看！大聲說出答案（不會就請老師按 🔊 聽示範）" : `大聲說：<em>${esc(spec.say || "")}</em>`);
+        const askT = spec.teacher && !spec.silentTeacher ? "① 先唸 <em>Teacher</em> 句問孩子　② " : "";
+        const teachG = (spec.guideTeacher || `${askT}說對了 → <kbd>✓ 說得好</kbd>（Enter）・示範 <kbd>🔊 聽示範</kbd>・跳過 <kbd>⏭ 跳過</kbd>`) +
+          (micOK ? " <small>（AI 聽懂會自動過關）</small>" : " <small>（麥克風沒開：說完一定要按 ✓）</small>");
+        const tg = $("#tGuide"); if (tg) tg.innerHTML = "🧑‍🏫 關主老師：" + teachG;
+        TC.guide(kidG, teachG);
+        if (!micOK) $("#okBtn").classList.add("glow");
+      }
       if (TC.cfg.ollieAsks && spec.teacher && !spec.silentTeacher) TC.speak(spec.teacher.replace(/___/g, ""));
       const wrongSeen = new Set();
       let finished = false, hintT = null, best = 0;
       const t0 = Date.now();
       const finish = async (r) => {
         if (finished) return; finished = true; turn = null;
+        if (!r.cancelled) TC.guide("👀 看大螢幕！", "不用按，動畫跑完會自動進到下一步");
         clearTimeout(hintT); ASR.stop();
         const blob = await Mic.stopRec();
         r.blob = blob; r.ms = Date.now() - t0;
@@ -420,10 +431,26 @@
     if (TC.pending) { const p = TC.pending; TC.pending = null; p(); }
   };
   /** wait for a tap/swipe (or teacher Enter, or timeout) between turns */
-  TC.waitAction = (ms = 6000) => new Promise((res) => { let t; const done = () => { clearTimeout(t); if (TC.pending === done) TC.pending = null; res(); }; TC.pending = done; t = setTimeout(done, ms); });
+  TC.waitAction = (ms = 6000, kidG, teachG) => new Promise((res) => { if (kidG || teachG) TC.guide(kidG, teachG); let t; const done = () => { clearTimeout(t); if (TC.pending === done) TC.pending = null; res(); }; TC.pending = done; t = setTimeout(done, ms); });
   TC.skipTurn = () => turn && turn.finish({ ok: false, skipped: true });
   TC.hearModel = () => { if (!turn) return; revealKey(); TC.model(turn.spec.say, turn.spec.word); };
-  TC.hideTalk = () => $("#talk").classList.remove("show");
+  TC.hideTalk = () => { $("#talk").classList.remove("show"); syncGuide(); };
+  /** 👣 Step guide bar under the HUD: 🧒 what the child does · 🧑‍🏫 which button the gate host presses.
+      Texts are fixed strings from the game (may contain <kbd>/<em>); never put user input in them unescaped. */
+  let guideEl = null, guideHidden = false;
+  // the bar shows only while the talk panel is closed; with the panel open, the host hint sits inside it (#tGuide)
+  function syncGuide() { if (!guideEl) return; const talkOn = $("#talk") && $("#talk").classList.contains("show"); guideEl.classList.toggle("on", !!guideEl.firstChild && !guideHidden && !talkOn); const tg = $("#tGuide"); if (tg) tg.hidden = guideHidden; }
+  TC.guide = function (kid, teacher, where) { // where: "corner" = top-right (screens whose buttons sit at the bottom)
+    if (!guideEl) { guideEl = h("div", { id: "guide", role: "status", "aria-live": "polite" }); document.body.append(guideEl); }
+    guideEl.innerHTML = ""; guideEl.classList.toggle("corner", where === "corner");
+    if (kid) guideEl.append(h("div", { class: "g-row g-kid" }, h("b", { class: "zh" }, "🧒 學生"), h("span", { class: "zh", html: kid })));
+    if (teacher) guideEl.append(h("div", { class: "g-row g-teach" }, h("b", { class: "zh" }, "🧑‍🏫 關主老師"), h("span", { class: "zh", html: teacher })));
+    syncGuide();
+  };
+  TC.guideToggle = () => { guideHidden = !guideHidden; syncGuide(); TC.toast(guideHidden ? "已隱藏操作提示（按 G 再打開）" : "已顯示操作提示", 1600); };
+  /** true when the AI can actually hear the child (mic allowed + speech recognition available) */
+  TC.micListening = () => !!(TC.cfg.asr && ASR.supported && !["denied", "network", "unsupported"].includes(ASR.state));
+  TC.esc = esc;
   TC.stats = { lines: 0, stars: 0, turns: 0, lastBlob: null };
 
   /* ---------------- little visual helpers ---------------- */
@@ -622,7 +649,7 @@
       <label><span>幾秒後提示（秒）</span><input id="sHint" type="text" value="${TC.cfg.hintAfter}" style="max-width:6rem"></label>
       <label><span>同步網址 Google Apps Script（可空白）</span><input id="sSync" type="text" placeholder="https://script.google.com/macros/s/…/exec" value="${esc(TC.cfg.syncUrl)}"></label>
       <label style="align-items:flex-start"><span>名單 Roster（手動選擇用）<br><small>每行：座號 英文名 年級<br>例：07 Amy 3</small></span><textarea id="sRoster">${esc(TC.cfg.roster)}</textarea></label>
-      <p><small>快捷鍵：Enter/空白鍵＝老師判定通過 ✓ · H＝聽示範 · N＝跳過 · C＝相機掃描 · M＝手動選擇 · Esc＝回到掃描畫面</small></p>
+      <p><small>快捷鍵：Enter/空白鍵＝老師判定通過 ✓ · H＝聽示範 · N＝跳過 · C＝相機掃描 · M＝手動選擇 · Esc＝回到掃描畫面 · G＝隱藏／顯示操作提示</small></p>
       <div class="row"><button id="sTest">🎤 測試麥克風</button><button id="sCsv">⬇ 匯出紀錄 CSV</button><button id="sClose">取消</button><button class="save" id="sSave">儲存 Save</button></div>`;
     document.body.append(wrap);
     $("#sAsr").value = TC.cfg.asr ? "1" : "0"; $("#sRounds").value = String(TC.cfg.rounds || 0); $("#sOllie").value = TC.cfg.ollieAsks ? "1" : "0"; $("#sRec").value = TC.cfg.record ? "1" : "0";

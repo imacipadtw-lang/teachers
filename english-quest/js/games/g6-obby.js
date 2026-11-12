@@ -4,6 +4,8 @@
   "use strict";
   TC.games = TC.games || {};
   const PALM = TC.artImg("palm");
+  // 土城國小校徽 (from the school's own badge file) — worn big on the uniform
+  const BADGE = new Image(); BADGE.src = "assets/img/tucheng-badge.png";
   const IM = { basketball: TC.artImg("basketball"), baseball: TC.artImg("baseball"), tennis: TC.artImg("tennis"), trophy: TC.artImg("trophy"), bike: TC.artImg("bike"), cloud: TC.artImg("cloud") };
   let cv, ctx, W, H, k = 1, raf;
   const GY = 470; // ground line in base units (720 high)
@@ -100,21 +102,31 @@
   }
   function drawAvatar() {
     const { x, y, pose, t, color } = A;
-    ctx.save(); ctx.translate(x, y); ctx.rotate(A.rot);
+    ctx.save(); ctx.translate(x, y); ctx.rotate(A.rot); ctx.scale(1.2, 1.2); // bigger runner so the school badge reads from the back of the room
     const sw = pose === "run" ? Math.sin(t * 18) : pose === "swim" ? Math.sin(t * 8) : pose === "climb" ? Math.sin(t * 10) : 0;
     if (A.bike && IM.bike.complete) ctx.drawImage(IM.bike, -55, -80, 110, 110);
-    // legs
-    ctx.fillStyle = "#3d4a8a";
-    ctx.save(); ctx.translate(-10, -50); ctx.rotate(sw * 0.7); ctx.fillRect(-9, 0, 18, 50); ctx.restore();
-    ctx.save(); ctx.translate(10, -50); ctx.rotate(-sw * 0.7); ctx.fillRect(-9, 0, 18, 50); ctx.restore();
-    // torso
-    const tg = ctx.createLinearGradient(-26, -110, 26, -48); tg.addColorStop(0, shadeHex(color, 1.35)); tg.addColorStop(1, shadeHex(color, 0.7)); ctx.fillStyle = tg; ctx.fillRect(-26, -110, 52, 62);
-    ctx.fillStyle = "rgba(255,255,255,.35)"; ctx.font = "700 26px Fredoka"; ctx.textAlign = "center"; ctx.fillText(A.name ? A.name[0] : "", 0, -70);
-    // arms
-    ctx.fillStyle = "#ffd3a8";
+    // legs: navy uniform shorts, white socks, sneakers
+    const leg = (dx, a) => { ctx.save(); ctx.translate(dx, -50); ctx.rotate(a);
+      ctx.fillStyle = "#22306b"; ctx.fillRect(-10, 0, 20, 22);
+      ctx.fillStyle = "#ffd3a8"; ctx.fillRect(-8, 22, 16, 18);
+      ctx.fillStyle = "#ffffff"; ctx.fillRect(-8, 40, 16, 5);
+      ctx.fillStyle = "#1f2433"; ctx.fillRect(-10, 45, 22, 7); ctx.restore(); };
+    leg(-11, sw * 0.7); leg(11, -sw * 0.7);
+    // torso: white school shirt with navy collar and hem
+    const tg = ctx.createLinearGradient(-32, -114, 32, -46); tg.addColorStop(0, "#ffffff"); tg.addColorStop(1, "#dfe5f1"); ctx.fillStyle = tg; ctx.fillRect(-32, -114, 64, 68);
+    ctx.fillStyle = "#22306b"; ctx.fillRect(-32, -52, 64, 6);
+    ctx.beginPath(); ctx.moveTo(-14, -114); ctx.lineTo(0, -103); ctx.lineTo(14, -114); ctx.lineTo(8, -114); ctx.lineTo(0, -108); ctx.lineTo(-8, -114); ctx.closePath(); ctx.fill();
+    // 土城國小校徽 — very big, filling the chest like a sewn-on patch
+    { const R = 30, cy = -77; ctx.beginPath(); ctx.arc(0, cy, R + 3, 0, Math.PI * 2); ctx.fillStyle = "#22306b"; ctx.fill();
+      ctx.beginPath(); ctx.arc(0, cy, R + 1, 0, Math.PI * 2); ctx.fillStyle = "#fff"; ctx.fill();
+      if (BADGE.complete && BADGE.naturalWidth) ctx.drawImage(BADGE, -R, cy - R, R * 2, R * 2); }
+    // arms with short white sleeves (pivots outside the chest so the badge stays visible)
     const armA = pose === "fly" ? -2.6 : pose === "climb" ? -2.8 + sw * 0.4 : pose === "swim" ? -1.5 + sw * 1.4 : pose === "cheer" ? -2.7 : sw * 0.8;
-    ctx.save(); ctx.translate(-30, -104); ctx.rotate(armA); ctx.fillRect(-8, 0, 16, 50); ctx.restore();
-    ctx.save(); ctx.translate(30, -104); ctx.rotate(pose === "fly" || pose === "cheer" ? 2.6 : pose === "climb" ? 2.8 - sw * 0.4 : -armA); ctx.fillRect(-8, 0, 16, 50); ctx.restore();
+    const arm = (dx, a) => { ctx.save(); ctx.translate(dx, -108); ctx.rotate(a);
+      ctx.fillStyle = "#ffd3a8"; ctx.fillRect(-7, 12, 14, 38);
+      ctx.fillStyle = "#f4f6fb"; ctx.fillRect(-9, 0, 18, 16); ctx.fillStyle = "#22306b"; ctx.fillRect(-9, 13, 18, 3); ctx.restore(); };
+    arm(-39, armA);
+    arm(39, pose === "fly" || pose === "cheer" ? 2.6 : pose === "climb" ? 2.8 - sw * 0.4 : -armA);
     // head
     const hg = ctx.createLinearGradient(-24, -158, 24, -110); hg.addColorStop(0, "#ffe6cc"); hg.addColorStop(1, "#e8a878"); ctx.fillStyle = hg; ctx.fillRect(-24, -158, 48, 48);
     ctx.fillStyle = "rgba(255,255,255,.45)"; ctx.fillRect(-18, -152, 12, 6);
@@ -123,7 +135,7 @@
     if (A.glider) { ctx.fillStyle = "#ff5fa2"; ctx.beginPath(); ctx.moveTo(-110, -150); ctx.quadraticCurveTo(0, -230, 110, -150); ctx.lineTo(0, -170); ctx.fill(); }
     ctx.restore();
     // name tag
-    ctx.font = "600 24px Fredoka, sans-serif"; ctx.textAlign = "center"; ctx.fillStyle = "rgba(10,22,51,.7)"; const tw = ctx.measureText(A.name).width + 20; ctx.fillRect(x - tw / 2, y - 205, tw, 32); ctx.fillStyle = "#fff"; ctx.fillText(A.name, x, y - 181);
+    ctx.font = "600 24px Fredoka, sans-serif"; ctx.textAlign = "center"; ctx.fillStyle = "rgba(10,22,51,.7)"; const tw = ctx.measureText(A.name).width + 20; ctx.fillRect(x - tw / 2, y - 240, tw, 32); ctx.fillStyle = "#fff"; ctx.fillText(A.name, x, y - 216);
   }
 
   async function runTo(x, speed = 340) {
@@ -175,6 +187,7 @@
       actBtn = TC.h("div", { class: "actbtn" }, TC.h("div", {}, word.toUpperCase() + "!", TC.h("small", { class: "zh" }, "👆 用力按！")));
       const go = () => { if (!actBtn) return; actBtn.remove(); actBtn = null; TC.pending = null; clearTimeout(t); TC.sfx("boost"); res(); };
       actBtn.addEventListener("pointerdown", go); document.body.append(actBtn); TC.pending = go;
+      TC.hideTalk(); TC.guide(`👆 用力按中間的大按鈕 <em>${TC.esc(word.toUpperCase())}!</em>`, "等孩子按；或按 <kbd>✓ 說得好</kbd>（或 Enter），7 秒後也會自動繼續");
       const t = setTimeout(go, 7000);
     });
   }

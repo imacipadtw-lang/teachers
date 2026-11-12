@@ -179,6 +179,7 @@
         const left = palette.filter((p) => !p.done).map((p) => p.name);
         // 👆 the child taps the colour block they want (or the teacher presses Enter)
         picked = null; TC.floatText("👆 Tap a color!", 30, 22, "#0a1633");
+        TC.hideTalk(); TC.guide("👆 點左邊一個<em>還沒打勾</em>的顏色方塊", "等孩子點；9 秒沒點會自動選一個，也可以直接按 <kbd>✓ 說得好</kbd>（或 Enter）");
         // each wait owns its own callback and timer, so an old 9 s timer can't cancel the next colour's wait
         const tapped = await new Promise((res) => {
           let tm = 0;
@@ -210,6 +211,7 @@
       TC.floatText(`${cap(liked)}! ✨`, 55, 30, glow);
       await TC.speak(`${cap(liked)}! I like ${liked}, too!`);
       TC.floatText("👆 Tap the blocks!", 55, 22, "#0a1633");
+      TC.hideTalk(); TC.guide("👆 點一點作品上的方塊，讓它們跳起來！", "不用按，約 4 秒後自動進到下一步");
       await TC.sleep(4000); toyMode = false;
       api.progress(N, N);
       return { ok: true };

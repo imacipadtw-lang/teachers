@@ -14,7 +14,8 @@
   .g4 .ball:before{content:"";position:absolute;left:50%;top:-20vh;width:.4vh;height:20vh;background:#c9d6ff}
   .g4 .floor i{border:1px solid rgba(255,255,255,.08);animation:tile 1.2s infinite}
   @keyframes tile{0%,100%{background:rgba(255,95,162,.15)}50%{background:rgba(76,201,255,.25)}}
-  .g4 .bot{position:absolute;left:50%;top:16%;width:26vh;height:30vh;margin-left:-13vh;transition:transform .2s}
+  .g4 .bot{position:absolute;left:50%;top:16%;width:26vh;height:30vh;margin-left:-13vh;transition:transform .2s,width .35s,height .35s,margin .35s,top .35s;z-index:2}
+  .g4 .bot.big{width:38vh;height:44vh;margin-left:-19vh;top:10%}
   .g4 .bot.jump{animation:pJump .45s ease-in-out infinite}
   .g4 .bot.clap{animation:pClap .3s ease-in-out infinite}
   @keyframes pClap{50%{transform:scale(1.12,.9)}}
@@ -23,8 +24,18 @@
   .g4 .bot.dance{animation:pDance .6s ease-in-out infinite}
   .g4 .bot.sing{animation:talk .25s ease-in-out infinite}
   .g4 .bot.run{animation:pRun .2s linear infinite}
-  .g4 .bot.stand{transform:scale(1.18) translateY(-6%)}
-  .g4 .bot.sit{transform:scaleY(.72) translateY(22%)}
+  .g4 .bot.stand{animation:pStand 1s ease-in-out infinite}
+  .g4 .bot.sit{animation:pSit .9s ease-in-out infinite}
+  @keyframes pStand{0%,100%{transform:translateY(0) scale(1)}35%{transform:translateY(-18%) scale(1.1,1.22)}65%{transform:translateY(-10%) scale(1.08) rotate(-7deg)}85%{transform:translateY(-10%) scale(1.08) rotate(7deg)}}
+  @keyframes pSit{0%,100%{transform:translateY(0) scale(1)}45%{transform:translateY(22%) scale(1.18,.7)}70%{transform:translateY(16%) scale(1.06,.8) rotate(5deg)}}
+  .g4 .say{position:absolute;left:calc(50% + 17vh);top:12%;z-index:3;background:#fff;color:#0a1633;border-radius:2.4vh;padding:1.2vh 2.6vh;font:700 5.4vh Fredoka,sans-serif;white-space:nowrap;box-shadow:0 1vh 0 #ffc83d,0 2vh 3vh rgba(0,0,0,.35);transform-origin:0 100%;animation:bubPop .55s cubic-bezier(.2,1.7,.4,1)}
+  .g4 .say:before{content:"";position:absolute;left:-1.8vh;bottom:2.2vh;border-top:1.4vh solid transparent;border-bottom:1.4vh solid transparent;border-right:2vh solid #fff}
+  .g4 .say small{display:block;font-size:2.4vh;color:#7a4fe0;font-family:var(--font)}
+  .g4 .say.try{box-shadow:0 1vh 0 #4cc9ff,0 2vh 3vh rgba(0,0,0,.35)}
+  @keyframes bubPop{from{transform:scale(.2) rotate(-12deg)}to{transform:none}}
+  .g4 .heart{position:absolute;z-index:3;font-size:6vh;pointer-events:none;animation:heartUp 1.9s ease-out forwards}
+  @keyframes heartUp{0%{transform:translateY(0) scale(.3)}20%{transform:translateY(-4vh) scale(1.25)}100%{transform:translateY(-32vh) scale(.9) rotate(var(--r));opacity:0}}
+  @media (prefers-reduced-motion: reduce){.g4 .bot.stand,.g4 .bot.sit,.g4 .say,.g4 .heart{animation-duration:2.5s}}
   .g4 .pads{position:absolute;left:4%;right:4%;top:56%;height:13%;display:grid;grid-template-columns:repeat(4,1fr);gap:1.4rem;opacity:0;pointer-events:none;transition:opacity .25s}
   .g4 .pads.on{opacity:1;pointer-events:auto}
   .g4 .pad{border-radius:1.6rem;display:grid;place-items:center;font-size:3rem;font-weight:700;color:#fff;touch-action:manipulation;cursor:pointer;
@@ -88,7 +99,11 @@
   }
   function startBeat() { const c = TC.ac(); if (!c || beatOn) return; beatOn = true; nextBeat = c.currentTime + 0.05; step = 0; beatLoop(); }
   function stopBeat() { beatOn = false; }
-  function pose(p) { bot.className = "bot " + (p || ""); }
+  function pose(p, big) { bot.className = "bot " + (p || "") + (big ? " big" : ""); }
+  // 💖 cute reaction particles around Ollie
+  function hearts(n = 6, ch = "💖") { for (let i = 0; i < n; i++) { const d = TC.h("div", { class: "heart" }, ch); d.style.cssText = `left:${40 + Math.random() * 20}%;top:${26 + Math.random() * 14}%;--r:${(Math.random() * 60 - 30) | 0}deg;animation-delay:${i * 0.12}s`; root.append(d); setTimeout(() => d.remove(), 2600); } }
+  // speech bubble next to Ollie with the command everyone does
+  function sayBubble(text, sub, tryAgain) { root.querySelectorAll(".say").forEach((b) => b.remove()); const b = TC.h("div", { class: "say" + (tryAgain ? " try" : "") }, text, TC.h("small", { class: "zh" }, sub)); root.append(b); return b; }
   function notes(n = 6) { for (let i = 0; i < n; i++) { const d = TC.artImg("star", "note"); d.style.cssText = `left:${25 + Math.random() * 50}%;top:${28 + Math.random() * 22}%;animation-delay:${i * 0.1}s`; root.append(d); setTimeout(() => d.remove(), 2000); } }
   /** DJ time: the child taps the pads while everyone does the move */
   const PADS = [["#ff5fa2", "kick", "BOOM"], ["#4cc9ff", "snare", "CLAP"], ["#ffc83d", "hat", "TSS"], ["#2ee6b6", "levelup", "YEAH"]];
@@ -148,17 +163,28 @@
         await slideIn(m.say, m.pose);
         peak = 0; duck = true; // keep the music soft while the AI listens
         const t0 = Date.now();
-        const r = await api.ask({ teacher: G.teacher, tzh: "你是老大！大聲叫大家做動作！", say: m.say, zh: "老師和家長要跟著做喔！", keys: m.keys, word: m.keys[0][0] });
+        const r = await api.ask({ teacher: G.teacher, tzh: "你是老大！大聲叫大家做動作！", say: m.say, zh: "老師和家長要跟著做喔！", keys: m.keys, word: m.keys[0][0],
+          guideKid: `你是老大！看右邊的動作圖，大聲喊：<em>${TC.esc(m.say)}</em>`,
+          guideTeacher: "孩子喊完，帶全場做動作！說對 → <kbd>✓ 說得好</kbd>・示範 <kbd>🔊 聽示範</kbd>・不會 → <kbd>⏭ 跳過</kbd>（歐力照樣做動作）" });
         duck = false;
         if (api.aborted) { stopBeat(); return null; }
         hit.classList.remove("pulse");
         const fast = Date.now() - t0 < 5000, loud = peak > 0.45;
         streak = r.ok ? streak + 1 : 0;
         combo.textContent = streak > 1 ? `COMBO ×${streak}` : "";
-        TC.floatText(loud ? "LOUD & PROUD!" : fast ? "PERFECT!" : "GREAT!", 50, 30, loud ? "#ff5fa2" : "#2ee6b6");
-        TC.confetti(loud ? 160 : 70);
-        pose(m.pose); notes(loud ? 10 : 5); TC.hideTalk(); djTime(true);
-        await TC.sleep(4200); djTime(false); pose(""); poseCard && poseCard.classList.remove("on");
+        poseCard && poseCard.classList.remove("on");
+        // right or wrong, Ollie always does the move — big, bouncy and cute — so everyone can copy it
+        if (r.ok) {
+          TC.floatText(loud ? "LOUD & PROUD!" : fast ? "PERFECT!" : "GREAT!", 50, 30, loud ? "#ff5fa2" : "#2ee6b6");
+          TC.confetti(loud ? 160 : 70); hearts(loud ? 10 : 7);
+          sayBubble(m.say, "全場一起做！Everybody, do it!");
+        } else {
+          TC.floatText("Nice try! 😊", 50, 30, "#ffc83d"); TC.sfx("pop"); hearts(5, "⭐");
+          sayBubble(m.say, "沒關係！跟歐力一起做 Let's do it together!", true);
+        }
+        pose(m.pose, true); notes(loud ? 10 : 5); TC.hideTalk(); djTime(true);
+        TC.guide(`👆 點下面彩色鼓墊打節奏！跟歐力一起 <em>${TC.esc(m.say)}</em>`, "帶全場一起做動作 💃 不用按，約 4 秒後自動下一題");
+        await TC.sleep(4200); djTime(false); pose(""); root.querySelectorAll(".say").forEach((b) => b.remove());
       }
       api.progress(moves.length, N);
       const F = G.finale, L = api.level;
@@ -169,6 +195,7 @@
       duck = false;
       if (api.aborted) { stopBeat(); return null; }
       TC.hideTalk(); lane.querySelectorAll(".cmd").forEach((c) => c.remove()); hit.classList.remove("pulse"); poseCard && poseCard.classList.remove("on");
+      TC.guide("📸 看鏡頭，大家一起笑！Say cheese!", "不用按，拍完照會自動到下一步");
       const cvs = await snapshot();
       const ph = TC.h("div", { class: "photo" }, cvs, TC.h("div", {}, `${api.kid.name} & friends · Say cheese!`));
       root.append(ph); TC.sfx("fanfare"); TC.confetti(200); pose("dance");

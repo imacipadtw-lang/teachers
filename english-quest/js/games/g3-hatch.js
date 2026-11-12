@@ -101,6 +101,7 @@
   function tapToCrack() {
     return new Promise((res) => {
       let taps = 0; tapme.classList.remove("hidden");
+      TC.hideTalk(); TC.guide("👆 點蛋 <em>3 下</em>，把蛋敲開！", "等孩子點；或按 <kbd>✓ 說得好</kbd>（或 Enter）幫他敲開，15 秒後也會自動敲開");
       const paths = cracks.querySelectorAll("path");
       const hit = () => {
         taps++; egg.classList.remove("idle", "wob"); void egg.offsetWidth; egg.classList.add("wob");
@@ -167,7 +168,7 @@
       const cards = got.map((g) => { const c = addCard(g.it, g.r, line); c.onclick = () => { chosen = g; cards.forEach((x) => x.classList.remove("sel")); c.classList.add("sel"); TC.sfx("pop"); TC.model(g.it.w, g.it.w); if (TC.pending) TC.pending(); }; return c; });
       pets.innerHTML = "";
       await TC.speak("Which one do you like? Tap it!");
-      await TC.waitAction(9000);
+      await TC.waitAction(9000, "👆 點你<em>最喜歡</em>的寵物卡", "等孩子點；9 秒後自動繼續，也可以按 <kbd>✓ 說得好</kbd>（或 Enter）");
       cards[got.indexOf(chosen)].classList.add("sel");
       const F = G.finale, L = api.level, it = chosen.it;
       const fill = (s) => s.replace("[Animal]", cap(it.w)).replace("[animal]", it.w).replace("[fin3]", it.fin3);

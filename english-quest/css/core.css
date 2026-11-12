@@ -222,3 +222,23 @@ img{-webkit-user-drag:none}
 @keyframes flapR{to{transform:rotate(35deg)}}
 @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-4%) rotate(-4deg)}40%{transform:translateX(4%) rotate(4deg)}60%{transform:translateX(-3%) rotate(-2deg)}80%{transform:translateX(3%) rotate(2deg)}}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01s!important}}
+
+/* 👣 step guide under the HUD: what the child does now + which button the gate host presses */
+#guide{position:fixed;left:50%;bottom:1.4rem;transform:translateX(-50%);z-index:55;display:none;flex-direction:column;gap:.35rem;width:max-content;max-width:min(94vw,80rem);
+  padding:.65rem 1.2rem;border-radius:1.4rem;background:rgba(10,22,51,.9);border:2px solid rgba(255,255,255,.28);box-shadow:0 .8rem 2rem rgba(0,0,0,.35);pointer-events:none;animation:guideIn .3s ease-out}
+@keyframes guideIn{from{transform:translateX(-50%) translateY(1.2rem)}to{transform:translateX(-50%)}}
+#guide.on{display:flex}
+#guide .g-row{display:flex;gap:.8rem;align-items:baseline;font-size:1.75rem;line-height:1.4;color:#fff}
+#guide .g-row b{flex:none;font-size:1.2rem;padding:.1rem .7rem;border-radius:999px;color:#0a1633}
+#guide .g-kid b{background:#ffc83d}
+#guide .g-teach b{background:#7fd8ff}
+#guide kbd{font:inherit;font-weight:700;background:#fff;color:#0a1633;border-radius:.55rem;padding:0 .45rem;box-shadow:0 .2rem 0 rgba(0,0,0,.4);white-space:nowrap}
+#guide em{font-style:normal;font-weight:700;color:#ffe08a}
+#guide small{font-size:1.25rem;color:#c9d6ff}
+@media (prefers-reduced-motion: reduce){#guide{animation:none}}
+.t-guide{margin-top:.3rem;padding-top:.35rem;border-top:1px dashed var(--line);font-size:1.3rem;line-height:1.4;color:#dfe6ff}
+.t-guide kbd{font:inherit;font-weight:700;background:#fff;color:#0a1633;border-radius:.5rem;padding:0 .4rem;box-shadow:0 .2rem 0 rgba(0,0,0,.4);white-space:nowrap}
+.t-guide em{font-style:normal;font-weight:700;color:#ffe08a}
+.t-guide small{font-size:1.15rem;color:#b8c4ea}
+#guide.corner{left:auto;right:1.4rem;top:7.8rem;bottom:auto;transform:none;width:auto;max-width:36rem;animation:none}
+#guide.corner .g-row{font-size:1.5rem}

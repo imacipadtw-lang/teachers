@@ -54,6 +54,8 @@
       h("div", { class: "av", style: `background:${k.color}` }, k.name[0]),
       h("span", {}, k.name), h("span", { class: "x zh", onclick: () => { queue.splice(i, 1); renderQueue(); } }, "移除 ✕"))));
     $("#goBtn").classList.toggle("hidden", !queue.length || running);
+    if (!running) TC.guide(queue.length ? "拿著護照，準備闖關！" : "拿出護照，排隊準備闖關！",
+      queue.length ? `按下面的 <kbd>START ▶</kbd>（或 Enter）開始；後面的孩子可以繼續掃 QR 排隊` : `掃孩子護照上的 QR（<kbd>📷 相機掃描</kbd> 或掃描機），或按 <kbd>👆 手動選擇</kbd> 點座號 → 再按 <kbd>START ▶</kbd>`, "corner");
   }
   TC.onScan((kid) => {
     TC.ac();
@@ -104,6 +106,7 @@
           h("div", { class: "rt" }, `TPE ✈ ${G.city.toUpperCase()} · GATE ${gate}`), h("div", { class: "zh", style: "font-size:2rem;color:#5a6aa8" }, ["", "初級 Basic", "中級 Intermediate", "高級 Advanced"][kid.level] + " · " + G.zh)),
         h("div", { style: "width:13rem;height:15rem", html: TC.ollieSVG("cheer") })));
     document.body.append(ov); TC.sfx("fanfare"); TC.confetti(80);
+    TC.guide(`歡迎 <em>${TC.esc(kid.name)}</em>！聽歐力說話`, "不用按，等一下會自動開始");
     // with sync on: show how many gates this traveller has already stamped
     TC.fetchState().then((st) => {
       const k = st && st.kids && (st.kids[kid.id] || st.kids[String(+kid.id)]);
@@ -132,6 +135,7 @@
     if (TC.lastSay && !TC.cfg.rounds) {
       const bar = h("i"), ch = h("div", { class: "chorus" }, h("div", { class: "c1 zh" }, "🎉 Everybody! 大家一起說！"), h("div", { class: "c2", style: `font-size:${TC.lastSay.length > 24 ? 6.4 : TC.lastSay.length > 14 ? 8 : 10}rem` }, TC.lastSay), h("div", { class: "bar" }, bar), h("div", { class: "zh", style: "font-size:1.8rem;color:var(--ink2)" }, "越大聲，煙火越多！"));
       document.body.append(ch); TC.sfx("levelup");
+      TC.guide(`🎉 全場一起大聲說：<em>${TC.esc(TC.lastSay)}</em>`, "帶全場一起喊，越大聲煙火越多！不用按，約 5 秒後自動繼續");
       let peak = 0; const t0 = Date.now();
       await new Promise((res) => { (function loop() { const l = TC.Mic.level || 0; peak = Math.max(peak, l); bar.style.width = Math.min(100, peak * 140) + "%"; if (l > 0.35 && Math.random() < 0.15) TC.confetti(30); if (Date.now() - t0 < 4500 && !api.aborted) requestAnimationFrame(loop); else res(); })(); });
       TC.confetti(peak > 0.5 ? 260 : 120); TC.sfx(peak > 0.5 ? "fanfare" : "ding"); await sleep(700); ch.remove();
@@ -171,6 +175,8 @@
     const AZ = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     for (let i = 0; i < 8; i++) { letter.textContent = AZ[(Math.random() * 26) | 0]; TC.sfx("tick"); await sleep(60 + i * 8); }
     letter.classList.remove("roll"); letter.textContent = LETTER; TC.sfx("levelup"); TC.confetti(200);
+    TC.guide(`✏️ 把秘密字母 <em>${LETTER}</em> 寫在護照卡第 <em>${gate}</em> 格`,
+      queue.length ? `寫好後按下面的 <kbd>NEXT: ${TC.esc(queue[0].name)} ▶</kbd>（或 Enter）換下一位` : "寫好後按下面的 <kbd>DONE ✓</kbd>（或 Enter）回到掃描畫面", "corner");
     TC.log({ type: "complete", stars, letter: LETTER, lines: TC.stats.lines });
     await sleep(500);
     await TC.speak(`Great job, ${kid.name}! Your secret letter is ${LETTER}.`);
@@ -232,6 +238,8 @@
     else if ((k === "s" || k === "S") && !running) TC.openSettings();
     else if ((k === "c" || k === "C") && !running) TC.cameraScan();
     else if ((k === "m" || k === "M") && !running) TC.manualPick();
+    else if (k === "g" || k === "G") TC.guideToggle();
   };
   game.idle && game.idle(api);
+  renderQueue();
 })();
