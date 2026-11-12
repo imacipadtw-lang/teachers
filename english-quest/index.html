@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,noai,noimageai">
+<title>土城國小英語闖關</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&family=Noto+Sans+TC:wght@400;700&display=swap">
+<style>
+/* Layout: a launch board — six gate tiles (the classroom TVs), the Final Gate, then the teacher tools. */
+:root {
+  --bg: #f3f6fb; --panel: #ffffff; --fg: #17223b; --muted: #5b6784; --line: #dbe2ef; --accent: #2f6bff;
+  --display: "Fredoka", "Noto Sans TC", system-ui, sans-serif;
+  --body: "Noto Sans TC", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #0f1526; --panel: #182038; --fg: #eef2fb; --muted: #a6b1cc; --line: #2a3554; --accent: #7aa2ff; color-scheme: dark } }
+:root[data-theme="dark"] { --bg: #0f1526; --panel: #182038; --fg: #eef2fb; --muted: #a6b1cc; --line: #2a3554; --accent: #7aa2ff; color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font-family: var(--body); line-height: 1.55 }
+.wrap { max-width: 1080px; margin: 0 auto; padding-block: 28px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 28px }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(1.7rem, 4vw, 2.6rem); margin: 0; text-wrap: balance; letter-spacing: .01em }
+h2 { font-family: var(--display); font-weight: 700; font-size: 1.15rem; margin: 0 }
+.lead { margin: 6px 0 0; color: var(--muted); max-width: 65ch }
+.note { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; color: var(--muted); font-size: .92rem; max-width: 80ch }
+.note b { color: var(--fg) }
+.gates { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr)); gap: 14px }
+.gate { --c: var(--accent); display: grid; grid-template-columns: 64px 1fr; gap: 4px 14px; align-items: center; text-decoration: none; color: inherit; background: var(--panel); border: 1px solid var(--line); border-top: 5px solid var(--c); border-radius: 14px; padding: 14px; transition: transform .15s ease, box-shadow .15s ease }
+.gate:hover, .gate:focus-visible { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(20, 40, 90, .14); outline: none }
+.gate:focus-visible { box-shadow: 0 0 0 3px var(--c) }
+.gate img { width: 64px; height: 64px; grid-row: span 3 }
+.gate .no { font-family: var(--display); font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted) }
+.gate .zh { font-size: .9rem; color: var(--muted); min-width: 0 }
+.row { display: flex; flex-wrap: wrap; gap: 10px }
+.tool { text-decoration: none; color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 8px 16px; font-size: .95rem }
+.tool:hover, .tool:focus-visible { border-color: var(--accent); outline: none }
+.tool.main { background: var(--accent); border-color: var(--accent); color: var(--bg); font-weight: 700 }
+@media (prefers-reduced-motion: reduce) { .gate { transition: none } .gate:hover { transform: none } }
+</style>
+<style>body{margin:0}img{max-width:100%}</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1>土城國小 運動會英語日</h1>
+    <p class="lead">六間教室各開一關。點下面的關卡，在該教室的大螢幕上按全螢幕（F11）就能開始。</p>
+  </header>
+
+  <section aria-labelledby="g-h" style="display:grid;gap:12px">
+    <h2 id="g-h">六關大螢幕 Gates 1–6</h2>
+    <div class="gates" id="gates"></div>
+  </section>
+
+  <section aria-labelledby="f-h" style="display:grid;gap:12px">
+    <h2 id="f-h">終點與大廳 Final Gate</h2>
+    <div class="row">
+      <a class="tool main" href="control.html">★ 終點解碼關＋家長即時看板</a>
+      <a class="tool" href="opening.html">🎬 開場動畫（大廳）</a>
+    </div>
+  </section>
+
+  <section aria-labelledby="t-h" style="display:grid;gap:12px">
+    <h2 id="t-h">老師工具</h2>
+    <div class="row">
+      <a class="tool" href="guide.html">活動手冊</a>
+      <a class="tool" href="teacher-cards.html">關主一頁卡</a>
+      <a class="tool" href="cards.html">護照 QR 卡</a>
+      <a class="tool" href="phone.html">老師手機登記</a>
+      <a class="tool" href="credits.html">發音來源</a>
+    </div>
+  </section>
+
+  <p class="note"><b>正式版網址（不用登入）。</b>每間教室的電腦或大螢幕用 Chrome 開這一頁，點自己的關卡即可。第一次開啟時，瀏覽器會詢問能否使用<b>麥克風</b>和<b>相機</b>，請按「允許」，AI 才聽得到孩子說話、才能用鏡頭掃護照 QR。也可以直接把關卡網址加入書籤：本頁網址後面加 <b>#gate-1</b> 到 <b>#gate-6</b>，或 <b>#final</b>（終點）、<b>#opening</b>（開場）。</p>
+</div>
+
+<script src="js/art.js"></script>
+<script>
+(function () {
+  // Deep links: this page's URL + #gate-1 … #gate-6, #final, #opening opens that screen directly.
+  function route() {
+    var h = (location.hash || "").slice(1);
+    var m = h.match(/^gate-([1-6])$/);
+    if (m) { location.replace("station.html?gate=" + m[1] + "#gate-" + m[1]); return true; }
+    if (h === "final") { location.replace("control.html"); return true; }
+    if (h === "opening") { location.replace("opening.html"); return true; }
+    return false;
+  }
+  window.addEventListener("hashchange", route);
+  if (route()) return;
+
+  var G = [
+    [1, "Turbo Talk Kart", "極速英語賽車 · Tokyo", "#4cc9ff", "kart"],
+    [2, "Pixel Craft", "方塊創造家 · Sydney", "#2ee6b6", "rainbow"],
+    [3, "Pet Hatch", "英語寵物孵蛋 · Paris", "#e0a800", "mystegg"],
+    [4, "Beat Party", "英語節奏派對 · Cairo", "#ff5fa2", "mic"],
+    [5, "Mystery Box", "神秘盲盒 · Vancouver", "#9b6bff", "gift"],
+    [6, "Sports Day Obby", "運動會障礙跑酷 · San Diego", "#ff9a2e", "trophy"]
+  ];
+  var box = document.getElementById("gates");
+  G.forEach(function (g) {
+    var a = document.createElement("a");
+    a.className = "gate"; a.href = "station.html?gate=" + g[0] + "#gate-" + g[0]; a.style.setProperty("--c", g[3]);
+    var img = document.createElement("img"); img.alt = "";
+    try { if (window.TC && TC.art) img.src = TC.art(g[4]); } catch (e) {}
+    var no = document.createElement("span"); no.className = "no"; no.textContent = "Gate " + g[0];
+    var t = document.createElement("h2"); t.textContent = g[1];
+    var zh = document.createElement("span"); zh.className = "zh"; zh.textContent = g[2];
+    a.append(img, no, t, zh); box.append(a);
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Audio Credits</title>
+<link rel="stylesheet" href="css/core.css">
+<style>
+  html{font-size:16px} html,body{overflow:auto;height:auto}
+  body{max-width:1100px;margin:0 auto;padding:24px 16px 60px;user-select:text;-webkit-user-select:text;line-height:1.6}
+  h1{margin:0 0 6px} h2{margin-top:32px;color:var(--sun)}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+  th{color:var(--ink2);position:sticky;top:0;background:var(--bg1)}
+  a{color:var(--sky)}
+  button.play{background:#2b3f7a;border-radius:8px;padding:2px 10px}
+  .note{color:var(--ink2)}
+</style>
+</head>
+<body>
+<h1>🔊 發音與素材來源 Credits</h1>
+<p class="note">遊戲中的 <b>「真人發音」</b> 都是 Wikimedia Commons 上的美式英語真人錄音（多數是 Commons「En-us-單字」系列，由 Dvortygirl 等志工錄製；另有 3 個 Lingua Libre 錄音），依原授權使用。每個檔案都用 Commons 公布的 SHA-1 檢查碼逐一比對，確認下載的就是該單字的原始檔；我們只轉成 MP3、去掉前後靜音並統一音量。沒有真人錄音的句子，才使用瀏覽器的電腦語音，畫面上會標示「電腦語音」。</p>
+<div id="sum" class="note"></div>
+<p class="note">目前仍以標示「電腦語音」代替的單字：<b>pink、hamburger、tennis、clap</b>——在 Wiktionary／Wikimedia Commons 上找不到美式英語真人錄音（只有英式、澳式，或內容不符的錄音），所以沒有使用。所有例句（整句）也使用電腦語音。</p>
+<table><thead><tr><th>字</th><th>聽</th><th>檔案 Commons file</th><th>錄音者／作者</th><th>口音</th><th>授權 Licence</th><th>錄音日期</th><th>下載日期</th></tr></thead><tbody id="rows"></tbody></table>
+
+<h2>其他素材</h2>
+<ul>
+  <li>所有動物、交通工具、食物、彩蛋、獎盃與機器貓頭鷹歐力的 3D 圖案，都是為本活動以程式原創繪製（js/art.js），沒有使用任何第三方圖庫或遊戲角色。</li>
+  <li>字型：<a href="https://fonts.google.com/specimen/Fredoka">Fredoka</a>（SIL Open Font License 1.1，見 fonts/Fredoka-OFL.txt）。</li>
+  <li>QR 掃描：<a href="https://github.com/cozmo/jsQR">jsQR</a> 1.4.0（Apache-2.0）；QR 產生：<a href="https://github.com/kazuhikoarase/qrcode-generator">qrcode-generator</a> 1.4.4（MIT）。</li>
+  <li>機器貓頭鷹歐力（Ollie-Bot）的圖形是依《土城國小英語護照》裡的角色描述重新繪製的簡化向量圖；可換成護照原圖。</li>
+  <li>音效與節奏全部由程式即時合成，沒有使用外部音檔。</li>
+</ul>
+<script src="assets/audio/credits.js"></script>
+<script>
+  const A = window.TC_AUDIO || {}, rows = document.getElementById("rows");
+  const words = Object.keys(A).sort();
+  document.getElementById("sum").textContent = words.length ? `共 ${words.length} 個真人發音檔。` : "目前尚未放入真人發音檔（所有語音暫時使用標示清楚的電腦語音）。";
+  const esc = (s) => String(s || "").replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+  words.forEach((w) => {
+    const a = A[w];
+    rows.insertAdjacentHTML("beforeend", `<tr><td><b>${esc(w)}</b></td><td><button class="play" data-f="${esc(a.file)}">▶</button></td>
+      <td><a href="${esc(a.page)}" target="_blank" rel="noopener">${esc(a.source)}</a></td><td>${esc(a.speaker)}</td><td>${esc(a.accent || "")}</td>
+      <td>${a.licenceUrl ? `<a href="${esc(a.licenceUrl)}" target="_blank" rel="noopener">${esc(a.licence)}</a>` : esc(a.licence)}</td><td>${esc(a.recorded)}</td><td>${esc(a.downloaded)}</td></tr>`);
+  });
+  rows.addEventListener("click", (e) => { const f = e.target.dataset.f; if (f) new Audio("assets/audio/" + f).play(); });
+</script>
+</body>
+</html>

@@ -123,6 +123,7 @@
 - 待辦（前後端一起改）：排調代課存檔前已會提醒「調整後日期是週末」（`CF`），但已存的調課在「資料檢查」（`CF.audit`）不會列出週末，要和後端一起加。
 
 ## 其他子專案
+- `english-quest/`：運動會英語日六關闖關遊戲（115.11.12 管理者同意放在本倉庫，網址 https://imacipadtw-lang.github.io/teachers/english-quest/ ；`#gate-1`～`#gate-6`、`#final`、`#opening` 直接開到各畫面）。原始程式由另一個工作階段開發（原本預定放 `imacipadtw-lang/123456` 的 `english-quest/`，但那邊無法推送），本資料夾是從它在 claude.ai 的預覽版複製來的公開版：入口頁 `index.html` 改成正式版說明；`sw.js` 是不做快取的佔位檔（原版離線快取沒有一起過來）；`guide.html` 第 10 節改成這個網址；修正 `js/games/g2-craft.js` 選顏色的 9 秒計時器會取消下一個顏色的等待、整關卡住的錯誤（孩子 9 秒內回答就會發生）。學生名單只存在各台電腦的 localStorage，不進倉庫。第三方素材（Wikimedia Commons 真人發音、Fredoka、jsQR、qrcode-generator）依各自授權，見 `english-quest/README.md` 與 `credits.html`。
 - `homework-check/`：作業抽查紀錄（習作開關、考卷家長簽名印章；115.11.10 起全部由教務組登入操作，導師登入預設關閉，`config.js` 的 `teacherLogin`）。同樣是 GitHub Pages 前端＋Google 試算表＋Apps Script，說明與安裝步驟見 `homework-check/README.md`。
   - 115.11.6 下午正式部署：**獨立的 Apps Script 專案「作業抽查_後端程式」**（不綁試算表；第一次使用時程式自動建立試算表「作業抽查_資料表」，ID 記在指令碼屬性 `SHEET_ID`），誰可以存取＝所有人，網址填在 `config.js`。教務組密碼由管理者第一次開網站時自己設定（`init`），不印在執行紀錄。
   - 11/6 上午另一個工作階段先裝的那一組（綁在試算表「作業抽查_資料表（網頁讀這份）」的部署，網址 `AKfycbw-3Zg…`）**已不使用**，可刪除；不要再把它的網址填回 `config.js`。

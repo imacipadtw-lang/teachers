@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Passport QR Cards</title>
+<link rel="stylesheet" href="css/core.css">
+<style>
+  html,body{overflow:auto;height:auto;font-size:16px;user-select:text;-webkit-user-select:text}
+  body{background:#eef2ff;color:#0a1633}
+  .bar{max-width:1100px;margin:0 auto;padding:24px 16px}
+  .bar h1{margin:0 0 8px;font-size:28px}
+  .bar p{margin:6px 0;color:#334}
+  textarea{width:100%;min-height:180px;font:16px/1.5 ui-monospace,Consolas,monospace;border-radius:12px;border:2px solid #c9d6ff;padding:12px}
+  .btns{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+  .btns button{background:#152a63;color:#fff;border-radius:12px;padding:10px 18px;font-size:16px;font-weight:600}
+  .btns .main{background:#ffc83d;color:#0a1633}
+  .sheet{display:grid;grid-template-columns:repeat(2,90mm);gap:6mm;justify-content:center;padding:8mm 0}
+  .card{width:90mm;height:56mm;border-radius:4mm;background:#fff;border:.6mm solid #152a63;position:relative;overflow:hidden;display:grid;grid-template-columns:30mm 1fr;break-inside:avoid;font-family:Fredoka,"Microsoft JhengHei",sans-serif}
+  .card .l{background:#152a63;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2mm;padding:2mm}
+  .card .l svg{width:25mm;height:25mm;background:#fff;border-radius:1.5mm}
+  .card .l small{font-size:2.6mm;letter-spacing:.3mm}
+  .card .r{padding:2.6mm 3mm;display:flex;flex-direction:column;gap:1mm}
+  .card .top{font-size:2.5mm;font-weight:700;color:#5a6aa8;letter-spacing:.4mm}
+  .card .name{font-size:7.2mm;font-weight:700;line-height:1}
+  .card .meta{font-size:2.8mm;color:#445}
+  .card .gates{display:grid;grid-template-columns:repeat(6,1fr);gap:1mm;margin-top:auto}
+  .card .g{border:.45mm solid #152a63;border-radius:1.2mm;height:10mm;position:relative;display:flex;align-items:flex-end;justify-content:center}
+  .card .g b{position:absolute;top:.4mm;left:.8mm;font-size:2.2mm;color:#5a6aa8}
+  .card .g i{font-style:normal;font-size:2mm;color:#8a94b8;margin-bottom:.5mm}
+  .card .hint{font-size:2.4mm;color:#445}
+  .card .owl{position:absolute;right:2mm;top:2mm;width:9mm;height:10mm}
+  @media print{
+    @page{size:A4;margin:8mm}
+    body{background:#fff}
+    .bar{display:none}
+    .sheet{padding:0}
+    .card{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+<div class="bar">
+  <h1>🛂 護照 QR 卡片產生器 Passport QR Cards</h1>
+  <p>每行輸入一位學生：<b>座號 英文名字 年級</b>（例：<code>07 Amy 3</code>）。年級決定遊戲難度：1–2 年級＝初級、3–4＝中級、5–6＝高級。</p>
+  <p>名單只存在這台電腦，不會上傳。列印後剪下，貼在護照第 40 頁「印章收藏冊」或護照封底內頁。建議用貼紙紙列印。</p>
+  <textarea id="roster" placeholder="01 Amy 1&#10;02 Ben 2&#10;03 Cindy 3"></textarea>
+  <div class="btns">
+    <button class="main" id="make">產生卡片 Make cards</button>
+    <button id="print">🖨 列印 Print</button>
+    <button id="save">💾 存到這台電腦（各關卡的「手動選擇」會用到）</button>
+    <button id="demo">範例名單 Demo list</button>
+  </div>
+  <p id="msg"></p>
+</div>
+<div class="sheet" id="sheet"></div>
+<script src="js/vendor/qrcode.js"></script>
+<script src="js/content.js"></script>
+<script src="js/core.js"></script>
+<script src="js/art.js"></script>
+<script>
+  const CITY = [1, 2, 3, 4, 5, 6].map((g) => TC_CONTENT.gates[g].city);
+  const $ = (s) => document.querySelector(s);
+  $("#roster").value = TC.cfg.roster || "";
+  function make() {
+    const roster = TC.roster(), ids = Object.keys(roster).sort();
+    const sheet = $("#sheet"); sheet.innerHTML = "";
+    if (!ids.length) { $("#msg").textContent = "請先輸入名單。"; return; }
+    ids.forEach((id) => {
+      const r = roster[id], kid = TC.mkKid(id, r.name, r.grade);
+      const payload = TC.kidPayload(kid);
+      const q = qrcode(0, "M"); q.addData(payload); q.make();
+      const lvl = ["", "初級 Basic", "中級 Intermediate", "高級 Advanced"][kid.level];
+      const card = document.createElement("div"); card.className = "card";
+      card.innerHTML = `<div class="l">${q.createSvgTag({ cellSize: 4, margin: 2, scalable: true })}<small>SCAN ME · 掃我</small></div>
+        <div class="r"><div class="top">TUCHENG ENGLISH DAY · BOARDING PASS</div>
+        <div class="name">${TC.esc(kid.name)}</div>
+        <div class="meta">No. ${id} · Grade ${kid.grade} · ${lvl}</div>
+        <div class="hint">每過一關，翻護照找出密碼字母，寫進那一關的格子！Find the code letter in your passport.</div>
+        <div class="gates">${CITY.map((c, i) => `<div class="g"><b>${i + 1}</b><i>${c}</i></div>`).join("")}</div></div>
+        <div class="owl">${TC.ollieSVG()}</div>`;
+      sheet.append(card);
+    });
+    const bad = ids.filter((id) => /[^A-Za-z .\-]/.test(roster[id].name));
+    $("#msg").innerHTML = `已產生 ${ids.length} 張卡片。QR 內容格式：TCES-座號-年級-英文名字（不含中文姓名）。` +
+      (bad.length ? `<br><b style="color:#d6337a">⚠ 第 ${bad.join("、")} 號的名字含有中文或特殊符號：USB 掃描機無法輸入這些字，請改用英文名字（例如 Amy、Ming）。</b>` : "");
+  }
+  $("#make").onclick = () => { TC.cfg.roster = $("#roster").value; make(); };
+  $("#print").onclick = () => { TC.cfg.roster = $("#roster").value; make(); setTimeout(() => print(), 300); };
+  $("#save").onclick = () => { TC.cfg.roster = $("#roster").value; TC.saveCfg(); $("#msg").textContent = "已存到這台電腦。"; };
+  $("#demo").onclick = () => { $("#roster").value = ["01 Amy 1", "02 Ben 2", "03 Cindy 3", "04 David 4", "05 Emma 5", "06 Frank 6"].join("\n"); TC.cfg.roster = $("#roster").value; make(); };
+  if (TC.cfg.roster) make();
+</script>
+<script>if ("serviceWorker" in navigator && location.protocol !== "file:") navigator.serviceWorker.register("sw.js").catch(() => {});</script>
+</body>
+</html>

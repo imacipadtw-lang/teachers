@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Teacher Stamp Phone</title>
+<link rel="stylesheet" href="css/core.css">
+<style>
+  html{font-size:16px} html,body{overflow:auto;height:auto}
+  body{padding:16px;max-width:560px;margin:0 auto;user-select:text;-webkit-user-select:text}
+  h1{font-size:22px;margin:4px 0 12px}
+  .gates{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .gates button{border-radius:14px;padding:12px 6px;font-size:15px;font-weight:700;background:#2b3f7a}
+  .gates button.on{outline:4px solid #fff}
+  .camwrap{position:relative;margin:14px 0;border-radius:18px;overflow:hidden;background:#000;aspect-ratio:1}
+  .camwrap video{width:100%;height:100%;object-fit:cover}
+  .camwrap .box{position:absolute;inset:18%;border:5px solid var(--sun);border-radius:18px}
+  .go{width:100%;padding:16px;border-radius:16px;font-size:18px;font-weight:700;background:var(--sun);color:#0a1633}
+  .res{background:#fff;color:#0a1633;border-radius:18px;padding:14px;margin:12px 0;display:flex;gap:12px;align-items:center;animation:pop .4s}
+  .res .L{font-size:44px;font-weight:700;width:64px;height:76px;border-radius:12px;background:var(--sun);display:grid;place-items:center}
+  .res b{font-size:20px}
+  .list{font-size:14px;color:var(--ink2);margin-top:8px}
+  .row{display:flex;gap:8px;margin-top:10px}
+  .row input{flex:1;font:inherit;padding:10px;border-radius:10px;border:1px solid var(--line);background:#0a1633;color:#fff}
+  .row button{padding:10px 14px;border-radius:10px;background:#2b3f7a}
+  small{color:var(--ink2)}
+</style>
+</head>
+<body>
+<h1>📱 老師手機蓋章 Teacher Stamp</h1>
+<small>選你的關卡 → 開相機 → 掃孩子護照卡上的 QR Code，就會自動登記並顯示秘密字母。</small>
+<div class="gates" id="gates" style="margin-top:12px"></div>
+<div class="camwrap"><video id="v" playsinline muted></video><div class="box"></div></div>
+<button class="go" id="start">📷 開始掃描 Start scanning</button>
+<div id="out"></div>
+<div class="list" id="list"></div>
+<details style="margin-top:16px"><summary>⚙ 同步設定（Google Apps Script 網址，可空白）</summary>
+  <div class="row"><input id="sync" placeholder="https://script.google.com/macros/s/…/exec"><button id="saveSync">儲存</button></div>
+  <small>設定後，這支手機登記的印章會同步到「Mission Control 終點登機門」的即時看板。</small>
+</details>
+<script src="js/vendor/jsQR.js"></script>
+<script src="js/content.js"></script>
+<script src="js/passport-code.js"></script>
+<script src="js/core.js"></script>
+<script src="js/art.js"></script>
+<script>
+  const $ = (s) => document.querySelector(s);
+  let gate = +localStorage.getItem("tc_phone_gate") || 1;
+  const SECRET = TC_CONTENT.secret.toUpperCase();
+  function drawGates() {
+    $("#gates").innerHTML = "";
+    [1, 2, 3, 4, 5, 6].forEach((g) => { const G = TC_CONTENT.gates[g]; const b = TC.h("button", { class: g === gate ? "on" : "", style: `background:${G.color};color:#0a1633`, onclick: () => { gate = g; localStorage.setItem("tc_phone_gate", g); drawGates(); } }, `${g} ${G.city}`); $("#gates").append(b); });
+  }
+  drawGates();
+  $("#sync").value = TC.cfg.syncUrl || "";
+  $("#saveSync").onclick = () => { TC.cfg.syncUrl = $("#sync").value.trim(); TC.saveCfg(); TC.toast("已儲存"); };
+  const seen = {};
+  function stamp(kid) {
+    const key = gate + "-" + kid.id;
+    if (seen[key] && Date.now() - seen[key] < 8000) return;
+    seen[key] = Date.now();
+    TC.gate = gate; TC.kid = kid;
+    TC.log({ type: "complete", by: "phone", letter: SECRET[gate - 1], stars: "" });
+    TC.kid = null;
+    TC.sfx("coin"); if (navigator.vibrate) navigator.vibrate(120);
+    const G = TC_CONTENT.gates[gate];
+    const L = SECRET[gate - 1], pc = (window.TC_PASSCODE || {})[L] || [], e = pc[(Math.random() * pc.length) | 0];
+    $("#out").prepend(TC.h("div", { class: "res" }, TC.h("div", { class: "L" }, L), TC.h("div", {}, TC.h("b", {}, `✓ ${kid.name}`), TC.h("div", {}, `Gate ${gate} · ${G.city} 已登記`),
+      TC.h("small", {}, e ? `護照密碼：請孩子翻到第${e.level}關（第${e.page}頁）找第 ${e.no} 號「${e.w}」，第一個字母 ${L} 寫在第 ${gate} 格` : `請孩子把字母寫在第 ${gate} 格`))));
+  }
+  $("#start").onclick = async () => {
+    TC.ac();
+    const v = $("#v");
+    try { const st = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }); v.srcObject = st; await v.play(); }
+    catch (e) { TC.toast("無法開啟相機（需要 https 與相機權限）"); return; }
+    $("#start").textContent = "掃描中… Scanning";
+    const cv = document.createElement("canvas"), ctx = cv.getContext("2d", { willReadFrequently: true });
+    const det = "BarcodeDetector" in window ? new BarcodeDetector({ formats: ["qr_code"] }) : null;
+    (async function loop() {
+      let text = null;
+      try {
+        if (v.videoWidth) {
+          if (det) { const r = await det.detect(v); if (r[0]) text = r[0].rawValue; }
+          if (!text) { cv.width = v.videoWidth >> 1; cv.height = v.videoHeight >> 1; ctx.drawImage(v, 0, 0, cv.width, cv.height); const q = jsQR(ctx.getImageData(0, 0, cv.width, cv.height).data, cv.width, cv.height); if (q) text = q.data; }
+        }
+      } catch (e) {}
+      const kid = text && TC.parseKid(text);
+      if (kid) stamp(kid);
+      setTimeout(loop, 250);
+    })();
+  };
+</script>
+<script>if ("serviceWorker" in navigator && location.protocol !== "file:") navigator.serviceWorker.register("sw.js").catch(() => {});</script>
+</body>
+</html>

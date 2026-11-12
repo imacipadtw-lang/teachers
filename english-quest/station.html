@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>English Day Gate</title>
+<link rel="stylesheet" href="css/core.css">
+</head>
+<body>
+<div id="stage"></div>
+
+<header id="hud">
+  <div class="gate-badge"><div class="num" id="gNum">1</div><div><div class="t1" id="gTitle">Gate</div><div class="t2" id="gSub"></div></div></div>
+  <div class="kid-chip hidden" id="kidChip"><div class="av" id="kAv">A</div><span id="kName">Amy</span>
+    <div class="lvl" id="lvlBtns"><button data-l="1" class="zh">初級</button><button data-l="2" class="zh">中級</button><button data-l="3" class="zh">高級</button></div></div>
+  <div class="pips" id="pips"></div>
+  <div class="ai-pill" id="clock" title="這位孩子已玩的時間 · 排隊人數">⏱ 0:00</div>
+  <div class="ai-pill" id="aiPill"><i></i>AI</div>
+  <button class="icon-btn" id="helpBtn" title="Teacher script">📋</button>
+  <button class="icon-btn" id="setBtn" title="Settings">⚙</button>
+</header>
+
+<section id="talk">
+  <div class="talk-main">
+    <div class="t-row"><span class="who t">Teacher</span><div class="t-line" id="tLine"></div></div>
+    <div class="t-row" style="margin-top:.4rem"><span class="who k">You 你說</span><div class="k-line" id="kLine"></div></div>
+    <div class="heard" id="heard">&nbsp;</div>
+  </div>
+  <div class="talk-side">
+    <button class="big-btn btn-ok" id="okBtn">✓ <span class="zh">說得好</span></button>
+    <button class="big-btn btn-hear" id="hearBtn">🔊 <span class="zh">聽示範</span> <span class="src-tag" id="srcTag"></span></button>
+    <div class="meter"><i id="micMeter"></i></div>
+    <canvas id="wave" width="300" height="70"></canvas>
+    <button class="big-btn btn-skip" id="skipBtn">⏭ <span class="zh">跳過</span></button>
+  </div>
+</section>
+
+<section id="scan">
+  <div style="width:15rem;height:17rem" id="scanOllie"></div>
+  <div class="genre zh" id="scanGenre"></div>
+  <h1 id="scanTitle">Gate</h1>
+  <div class="sub zh" id="scanSub"></div>
+  <div class="scan-box"><span class="qr">🛂</span><span>Scan your passport! <span class="zh">請掃描護照 QR Code</span></span></div>
+  <div class="queue" id="queue"></div>
+  <div class="scan-actions">
+    <button class="big-btn" id="camBtn">📷 <span class="zh">相機掃描</span></button>
+    <button class="big-btn" id="manBtn">👆 <span class="zh">手動選擇</span></button>
+    <button class="big-btn" id="vipBtn">⭐ <span class="zh">貴賓體驗 Guest</span></button>
+    <button class="big-btn go hidden" id="goBtn">START ▶</button>
+  </div>
+  <div class="hint zh" id="passportRef"></div>
+</section>
+
+<script src="js/vendor/jsQR.js"></script>
+<script src="js/content.js"></script>
+<script src="assets/audio/credits.js"></script>
+<script src="js/passport-code.js"></script>
+<script src="js/core.js"></script>
+<script src="js/art.js"></script>
+<script src="js/puzzles.js"></script>
+<script src="js/games/g1-kart.js"></script>
+<script src="js/games/g2-craft.js"></script>
+<script src="js/games/g3-hatch.js"></script>
+<script src="js/games/g4-beat.js"></script>
+<script src="js/games/g5-box.js"></script>
+<script src="js/games/g6-obby.js"></script>
+<script src="js/station.js"></script>
+<script>if ("serviceWorker" in navigator && location.protocol !== "file:") navigator.serviceWorker.register("sw.js").catch(() => {});</script>
+</body>
+</html>
