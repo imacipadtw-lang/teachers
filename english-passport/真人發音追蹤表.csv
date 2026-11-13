@@ -1,0 +1,701 @@
+﻿id,level,word,zh,status,accent,author,license,file,page,note,foundAt,downloadedAt,checkedAt
+1,1,bird,鳥,human-bundled,US,Dvortygirl,CC BY-SA 3.0,en-us-bird.ogg,https://commons.wikimedia.org/wiki/File:En-us-bird.ogg,,2026-11-09T16:55:28Z,2026-11-09T16:40:09Z,2026-11-13T09:57:37Z
+2,1,bear,熊,human-bundled,US,Dvortygirl,CC BY-SA 3.0,en-us-bear.ogg,https://commons.wikimedia.org/wiki/File:En-us-bear.ogg,,2026-11-09T16:55:28Z,2026-11-11T16:01:09Z,2026-11-13T09:57:37Z
+3,1,cat,貓,human-bundled,US,Dvortygirl,CC BY-SA 3.0,En-us-cat.ogg,https://commons.wikimedia.org/wiki/File:En-us-cat.ogg,,2026-11-09T16:55:28Z,2026-11-11T16:01:10Z,2026-11-13T09:57:37Z
+4,1,dog,狗,human-bundled,US,Dvortygirl,CC BY-SA 3.0,en-us-dog.ogg,https://commons.wikimedia.org/wiki/File:En-us-dog.ogg,,2026-11-09T16:55:28Z,2026-11-13T04:00:10Z,2026-11-13T09:57:37Z
+5,1,duck,鴨,human-bundled,US,Dvortygirl,CC BY-SA 3.0,en-us-duck.ogg,https://commons.wikimedia.org/wiki/File:En-us-duck.ogg,,2026-11-09T16:55:28Z,2026-11-13T04:00:11Z,2026-11-13T09:57:37Z
+6,1,elephant,大象,human-bundled,US,not stated (see Commons page),Public domain,En-us-elephant.ogg,https://commons.wikimedia.org/wiki/File:En-us-elephant.ogg,,2026-11-09T16:55:28Z,2026-11-13T04:00:13Z,2026-11-13T09:57:37Z
+7,1,horse,馬,human-bundled,US,Dvortygirl (assumed by Commons),CC BY-SA 3.0,en-us-horse.ogg,https://commons.wikimedia.org/wiki/File:En-us-horse.ogg,,2026-11-09T16:55:28Z,2026-11-13T07:03:03Z,2026-11-13T09:57:37Z
+8,1,monkey,猴子,human-bundled,US,Dvortygirl,CC BY-SA 3.0,En-us-monkey.ogg,https://commons.wikimedia.org/wiki/File:En-us-monkey.ogg,,2026-11-09T16:55:28Z,2026-11-13T07:03:05Z,2026-11-13T09:57:37Z
+9,1,pig,豬,human-bundled,US,Dvortygirl,CC BY-SA 3.0,en-us-pig.ogg,https://commons.wikimedia.org/wiki/File:En-us-pig.ogg,,2026-11-09T16:55:28Z,2026-11-13T07:03:06Z,2026-11-13T09:57:37Z
+10,1,rabbit,兔子,human-bundled,US,Dvortygirl,CC BY-SA 3.0,en-us-rabbit.ogg,https://commons.wikimedia.org/wiki/File:En-us-rabbit.ogg,,2026-11-09T16:55:28Z,2026-11-13T07:03:08Z,2026-11-13T09:57:37Z
+11,1,tiger,老虎,human-bundled,US,Dvortygirl,CC BY-SA 3.0,en-us-tiger.ogg,https://commons.wikimedia.org/wiki/File:En-us-tiger.ogg,,2026-11-09T16:55:28Z,2026-11-13T07:03:09Z,2026-11-13T09:57:37Z
+12,1,turtle,烏龜,human-bundled,US,Dvortygirl,CC BY-SA 3.0,en-us-turtle.ogg,https://commons.wikimedia.org/wiki/File:En-us-turtle.ogg,,2026-11-09T16:55:28Z,2026-11-13T07:03:11Z,2026-11-13T09:57:37Z
+13,1,zebra,斑馬,human-bundled,US,Dvortygirl (assumed by Commons),CC BY-SA 3.0,en-us-zebra.ogg,https://commons.wikimedia.org/wiki/File:En-us-zebra.ogg,,2026-11-09T16:55:28Z,2026-11-13T07:03:12Z,2026-11-13T09:57:37Z
+14,1,lion,獅子,human-bundled,US,Dvortygirl,CC BY-SA 3.0,en-us-lion.ogg,https://commons.wikimedia.org/wiki/File:En-us-lion.ogg,,2026-11-09T16:55:28Z,2026-11-13T07:03:14Z,2026-11-13T09:57:37Z
+15,1,boat,船,human-stream,US,Naomi Persephone Amethyst (recorded by NaomiAmethyst),CC BY-SA 4.0,LL-Q1860 (eng)-Naomi Persephone Amethyst (NaomiAmethyst)-boat.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Naomi_Persephone_Amethyst_(NaomiAmethyst)-boat.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+16,1,bike,腳踏車,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-bike.ogg,https://commons.wikimedia.org/wiki/File:En-us-bike.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+17,1,train,火車,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-train.ogg,https://commons.wikimedia.org/wiki/File:En-us-train.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+18,1,taxi,計程車,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-taxi.ogg,https://commons.wikimedia.org/wiki/File:En-us-taxi.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+19,1,plane,飛機,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-plane.ogg,https://commons.wikimedia.org/wiki/File:En-us-plane.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+20,1,bus,公車,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-bus.ogg,https://commons.wikimedia.org/wiki/File:En-us-bus.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+21,1,scooter,摩托車,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-scooter.ogg,https://commons.wikimedia.org/wiki/File:En-us-scooter.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+22,1,MRT,捷運,none,,,,,,,,,2026-11-13T09:57:37Z
+23,1,truck,卡車,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-truck.ogg,https://commons.wikimedia.org/wiki/File:En-us-truck.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+24,2,sister,姐妹,human-stream,US,Naomi Persephone Amethyst (recorded by NaomiAmethyst),CC BY-SA 4.0,LL-Q1860 (eng)-Naomi Persephone Amethyst (NaomiAmethyst)-sister.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Naomi_Persephone_Amethyst_(NaomiAmethyst)-sister.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+25,2,brother,兄弟,human-stream,US,Naomi Persephone Amethyst (recorded by NaomiAmethyst),CC BY-SA 4.0,LL-Q1860 (eng)-Naomi Persephone Amethyst (NaomiAmethyst)-brother.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Naomi_Persephone_Amethyst_(NaomiAmethyst)-brother.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+26,2,father,父親,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-father.ogg,https://commons.wikimedia.org/wiki/File:En-us-father.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+27,2,mother,母親,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-mother.ogg,https://commons.wikimedia.org/wiki/File:En-us-mother.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+28,2,family,家庭,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-family.ogg,https://commons.wikimedia.org/wiki/File:En-us-family.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+29,2,mom,媽媽,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-mom.ogg,https://commons.wikimedia.org/wiki/File:En-us-mom.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+30,2,grandpa,爺爺,human-stream,US,Vininn126,CC BY-SA 4.0,LL-Q1860 (eng)-Vininn126-grandpa.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vininn126-grandpa.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+31,2,dad,爸爸,human-stream,US,Dvortygirl (assumed by Commons),CC BY-SA 3.0,en-us-dad.ogg,https://commons.wikimedia.org/wiki/File:En-us-dad.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+32,2,grandma,奶奶,human-stream,US,Wodencafe,CC0,LL-Q1860 (eng)-Wodencafe-grandma.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Wodencafe-grandma.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+33,2,she,她,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-she.ogg,https://commons.wikimedia.org/wiki/File:En-us-she.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+34,2,you,你,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-you.ogg,https://commons.wikimedia.org/wiki/File:En-us-you.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+35,2,it,它,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-it.ogg,https://commons.wikimedia.org/wiki/File:En-us-it.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+36,2,he,他,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-he.ogg,https://commons.wikimedia.org/wiki/File:En-us-he.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+37,2,I'm,我是,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-I'm.ogg,https://commons.wikimedia.org/wiki/File:En-us-I%27m.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+38,2,I,我,human-stream,US,not stated (see Commons page),Public domain,en-us-I.ogg,https://commons.wikimedia.org/wiki/File:En-us-I.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+39,2,your,你的,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-your.ogg,https://commons.wikimedia.org/wiki/File:En-us-your.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+40,2,we,我們,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-we.ogg,https://commons.wikimedia.org/wiki/File:En-us-we.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+41,2,they,他們,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-they.ogg,https://commons.wikimedia.org/wiki/File:En-us-they.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+42,2,my,我的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-my.ogg,https://commons.wikimedia.org/wiki/File:En-us-my.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+43,2,the,這,human-stream,CA,Tawker (assumed by Commons),CC BY-SA 3.0,en-ca-the.ogg,https://commons.wikimedia.org/wiki/File:En-ca-the.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+44,2,a,一個,human-stream,US,Xnux (assumed by Commons),Public domain,en-us-a.ogg,https://commons.wikimedia.org/wiki/File:En-us-a.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+45,2,an,一個（字首母音時）,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-an.ogg,https://commons.wikimedia.org/wiki/File:En-us-an.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+46,3,hands,手,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-hands.ogg,https://commons.wikimedia.org/wiki/File:En-us-hands.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+47,3,nose,鼻子,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-nose.ogg,https://commons.wikimedia.org/wiki/File:En-us-nose.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+48,3,throat,喉嚨,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-throat.ogg,https://commons.wikimedia.org/wiki/File:En-us-throat.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+49,3,foot,腳,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-foot.ogg,https://commons.wikimedia.org/wiki/File:En-us-foot.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+50,3,eyes,眼睛,human-stream,US,Dvortygirl (assumed by Commons),CC BY-SA 3.0,en-us-eyes.ogg,https://commons.wikimedia.org/wiki/File:En-us-eyes.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+51,3,teeth,牙齒,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-teeth.ogg,https://commons.wikimedia.org/wiki/File:En-us-teeth.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+52,3,ears,耳朵,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-ears.ogg,https://commons.wikimedia.org/wiki/File:En-us-ears.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+53,3,arm,手臂,human-stream,US,Naomi Persephone Amethyst (recorded by NaomiAmethyst),CC BY-SA 4.0,LL-Q1860 (eng)-Naomi Persephone Amethyst (NaomiAmethyst)-arm.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Naomi_Persephone_Amethyst_(NaomiAmethyst)-arm.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+54,3,back,背部,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-back.ogg,https://commons.wikimedia.org/wiki/File:En-us-back.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+55,3,feet,腳,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-feet.ogg,https://commons.wikimedia.org/wiki/File:En-us-feet.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+56,3,leg,腿,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-leg.ogg,https://commons.wikimedia.org/wiki/File:En-us-leg.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+57,3,thirsty,渴,human-stream,US,Neoglitch (assumed by Commons),CC BY-SA 3.0,en-us-thirsty.ogg,https://commons.wikimedia.org/wiki/File:En-us-thirsty.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+58,3,stomachache,胃痛,human-stream,US,"Flame, not lame",CC0,"LL-Q1860 (eng)-Flame, not lame-stomachache.wav","https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Flame,_not_lame-stomachache.wav",,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+59,3,hungry,餓,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-hungry.ogg,https://commons.wikimedia.org/wiki/File:En-us-hungry.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+60,3,sick,生病,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-sick.ogg,https://commons.wikimedia.org/wiki/File:En-us-sick.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+61,3,sore,痛,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-sore.ogg,https://commons.wikimedia.org/wiki/File:En-us-sore.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+62,3,runny,流鼻涕的,human-stream,US,Wodencafe,CC0,LL-Q1860 (eng)-Wodencafe-runny.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Wodencafe-runny.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+63,3,headache,頭痛,human-stream,US,Dvortygirl,Public domain,en-us-headache.ogg,https://commons.wikimedia.org/wiki/File:En-us-headache.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+64,3,toothache,牙痛,human-stream,US,not stated (see Commons page),CC BY-SA 3.0,en-us-toothache.ogg,https://commons.wikimedia.org/wiki/File:En-us-toothache.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+65,3,head,頭,human-stream,US,Dvortygirl (assumed by Commons),CC BY-SA 3.0,en-us-head.ogg,https://commons.wikimedia.org/wiki/File:En-us-head.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+66,3,mouth,嘴巴,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-mouth.ogg,https://commons.wikimedia.org/wiki/File:En-us-mouth.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+67,4,reuse,再利用,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-reuse.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-reuse.wav,verb pronunciation chosen to match sentence,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+68,4,rest,休息,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-rest.ogg,https://commons.wikimedia.org/wiki/File:En-us-rest.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+69,4,repeat,重複,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-repeat.ogg,https://commons.wikimedia.org/wiki/File:En-us-repeat.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+70,4,run,跑,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-run.ogg,https://commons.wikimedia.org/wiki/File:En-us-run.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+71,4,put,放,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-put.ogg,https://commons.wikimedia.org/wiki/File:En-us-put.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+72,4,prepare,準備,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-prepare.ogg,https://commons.wikimedia.org/wiki/File:En-us-prepare.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+73,4,pick,挑選,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-pick.ogg,https://commons.wikimedia.org/wiki/File:En-us-pick.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+74,4,pay,付,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-pay.ogg,https://commons.wikimedia.org/wiki/File:En-us-pay.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+75,4,write,寫,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-write.ogg,https://commons.wikimedia.org/wiki/File:En-us-write.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+76,4,clean,清潔,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-clean.ogg,https://commons.wikimedia.org/wiki/File:En-us-clean.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+77,4,find,找到,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-find.ogg,https://commons.wikimedia.org/wiki/File:En-us-find.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+78,4,hurt,傷害,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-hurt.ogg,https://commons.wikimedia.org/wiki/File:En-us-hurt.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+79,4,help,幫助,human-stream,US,Dvortygirl (assumed by Commons),CC BY-SA 3.0,en-us-help.ogg,https://commons.wikimedia.org/wiki/File:En-us-help.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+80,4,miss,想念,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-miss.ogg,https://commons.wikimedia.org/wiki/File:En-us-miss.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+81,4,need,需要,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-need.ogg,https://commons.wikimedia.org/wiki/File:En-us-need.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+82,4,want to,想要,none,,,,,,,,,2026-11-13T09:57:37Z
+83,4,try,嘗試,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-try.ogg,https://commons.wikimedia.org/wiki/File:En-us-try.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+84,4,have to,必須,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-have to.ogg,https://commons.wikimedia.org/wiki/File:En-us-have_to.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+85,4,wash hands,洗手,none,,,,,,,,,2026-11-13T09:57:37Z
+86,4,wear a mask,戴口罩,none,,,,,,,,,2026-11-13T09:57:37Z
+87,5,airport,機場,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-airport.ogg,https://commons.wikimedia.org/wiki/File:En-us-airport.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+88,5,classroom,教室,human-stream,UK,"Association Shtooka, Judith Franck",CC BY 3.0 us,En-uk-classroom.ogg,https://commons.wikimedia.org/wiki/File:En-uk-classroom.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+89,5,street,街道,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-street.ogg,https://commons.wikimedia.org/wiki/File:En-us-street.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+90,5,hot,熱,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-hot.ogg,https://commons.wikimedia.org/wiki/File:En-us-hot.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+91,5,sunny,晴朗,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-sunny.ogg,https://commons.wikimedia.org/wiki/File:En-us-sunny.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+92,5,cold,冷,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-cold.ogg,https://commons.wikimedia.org/wiki/File:En-us-cold.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+93,5,rainy,下雨,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-rainy.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-rainy.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+94,5,weather,天氣,human-stream,US,Dvortygirl (assumed by Commons),CC BY-SA 3.0,en-us-weather.ogg,https://commons.wikimedia.org/wiki/File:En-us-weather.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+95,5,cloudy,多雲,human-stream,US,Sylvanmoon,CC BY-SA 4.0,en-us-cloudy.ogg,https://commons.wikimedia.org/wiki/File:En-us-cloudy.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+96,5,windy,風,human-stream,AU,Commander Keane,CC BY-SA 4.0,En-au-windy.ogg,https://commons.wikimedia.org/wiki/File:En-au-windy.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+97,5,warm,溫暖,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-warm.ogg,https://commons.wikimedia.org/wiki/File:En-us-warm.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+98,5,snow,雪,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-snow.ogg,https://commons.wikimedia.org/wiki/File:En-us-snow.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+99,5,raining,下雨,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-raining.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-raining.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+100,5,cloud,雲,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-cloud.ogg,https://commons.wikimedia.org/wiki/File:En-us-cloud.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+101,5,snowy,下雪,human-stream,US,Neskaya,CC BY-SA 3.0,en-us-snowy.ogg,https://commons.wikimedia.org/wiki/File:En-us-snowy.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+102,5,spring,春天,human-stream,US,Naomi Persephone Amethyst (recorded by NaomiAmethyst),CC BY-SA 4.0,LL-Q1860 (eng)-Naomi Persephone Amethyst (NaomiAmethyst)-spring.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Naomi_Persephone_Amethyst_(NaomiAmethyst)-spring.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+103,5,summer,夏天,human-stream,US,Dvortygirl (assumed by Commons),CC BY-SA 3.0,en-us-summer.ogg,https://commons.wikimedia.org/wiki/File:En-us-summer.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+104,5,fall,秋天,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-fall.ogg,https://commons.wikimedia.org/wiki/File:En-us-fall.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+105,5,winter,冬天,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-winter.ogg,https://commons.wikimedia.org/wiki/File:En-us-winter.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+106,5,Santa Claus,聖誕老人,human-stream,UK,Vealhurl,CC BY 4.0,LL-Q1860 (eng)-Vealhurl-Santa Claus.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-Santa_Claus.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+107,5,lady,女士,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-lady.ogg,https://commons.wikimedia.org/wiki/File:En-us-lady.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+108,5,girl,女孩,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-girl.ogg,https://commons.wikimedia.org/wiki/File:En-us-girl.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+109,5,children,孩子們,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-children.ogg,https://commons.wikimedia.org/wiki/File:En-us-children.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+110,5,boy,男孩,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-boy.ogg,https://commons.wikimedia.org/wiki/File:En-us-boy.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+111,5,friend,朋友,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-friend.ogg,https://commons.wikimedia.org/wiki/File:En-us-friend.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+112,5,Miss,小姐,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-Miss.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-Miss.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+113,5,Mr.,先生,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-Mr.ogg,https://commons.wikimedia.org/wiki/File:En-us-Mr.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+114,5,Mrs.,太太,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-Mrs..oga,https://commons.wikimedia.org/wiki/File:En-us-Mrs..oga,found on Commons by search,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+115,6,sing,唱,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-sing.ogg,https://commons.wikimedia.org/wiki/File:En-us-sing.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+116,6,dance,跳舞,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-dance.ogg,https://commons.wikimedia.org/wiki/File:En-us-dance.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+117,6,see,看見,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-see.ogg,https://commons.wikimedia.org/wiki/File:En-us-see.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+118,6,go,去,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-go.ogg,https://commons.wikimedia.org/wiki/File:En-us-go.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+119,6,eat,吃,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-eat.ogg,https://commons.wikimedia.org/wiki/File:En-us-eat.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+120,6,play,玩,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-play.ogg,https://commons.wikimedia.org/wiki/File:En-us-play.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+121,6,drink,喝,human-stream,US,Naomi Persephone Amethyst (recorded by NaomiAmethyst),CC BY-SA 4.0,LL-Q1860 (eng)-Naomi Persephone Amethyst (NaomiAmethyst)-drink.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Naomi_Persephone_Amethyst_(NaomiAmethyst)-drink.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+122,6,draw,畫,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-draw.ogg,https://commons.wikimedia.org/wiki/File:En-us-draw.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+123,6,read,讀,human-stream,US,Dvortygirl,Public domain,en-us-read.ogg,https://commons.wikimedia.org/wiki/File:En-us-read.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+124,6,thank,感謝,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-thank.ogg,https://commons.wikimedia.org/wiki/File:En-us-thank.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+125,6,ride,騎,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-ride.ogg,https://commons.wikimedia.org/wiki/File:En-us-ride.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+126,6,welcome,歡迎,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-welcome.ogg,https://commons.wikimedia.org/wiki/File:En-us-welcome.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+127,6,walk,走,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-walk.ogg,https://commons.wikimedia.org/wiki/File:En-us-walk.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+128,6,cook,煮,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-cook.ogg,https://commons.wikimedia.org/wiki/File:En-us-cook.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+129,6,watch,看,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-watch.ogg,https://commons.wikimedia.org/wiki/File:En-us-watch.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+130,6,open,打開,human-stream,US,TheDaveRoss (assumed by Commons),CC BY-SA 3.0,en-us-open.ogg,https://commons.wikimedia.org/wiki/File:En-us-open.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+131,6,answer,回答,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-answer.ogg,https://commons.wikimedia.org/wiki/File:En-us-answer.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+132,6,wash,洗,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-wash.ogg,https://commons.wikimedia.org/wiki/File:En-us-wash.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+133,6,listen,聽,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-listen.ogg,https://commons.wikimedia.org/wiki/File:En-us-listen.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+134,6,can,可以,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-can.ogg,https://commons.wikimedia.org/wiki/File:En-us-can.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+135,6,can't,不能,human-stream,US,Dvortygirl,Public domain,En-us-can't.ogg,https://commons.wikimedia.org/wiki/File:En-us-can%27t.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+136,6,will,將,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-will.ogg,https://commons.wikimedia.org/wiki/File:En-us-will.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+137,6,should,應該,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-should.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-should.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+138,6,is,是,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-is.ogg,https://commons.wikimedia.org/wiki/File:En-us-is.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+139,6,fly,飛,human-stream,US,Dvortygirl,Public domain,en-us-fly.ogg,https://commons.wikimedia.org/wiki/File:En-us-fly.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+140,6,climb,爬,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-climb.ogg,https://commons.wikimedia.org/wiki/File:En-us-climb.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+141,7,zero,0,human-stream,US,TheDaveRoss (assumed by Commons),CC BY-SA 3.0,En-us-zero.ogg,https://commons.wikimedia.org/wiki/File:En-us-zero.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+142,7,one,1,human-stream,US,Akafinland,Public domain,En-US-One.oga,https://commons.wikimedia.org/wiki/File:En-US-One.oga,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+143,7,two,2,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-two.ogg,https://commons.wikimedia.org/wiki/File:En-us-two.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+144,7,three,3,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-three.ogg,https://commons.wikimedia.org/wiki/File:En-us-three.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+145,7,four,4,human-stream,US,Dvortygirl,Public domain,en-us-four.ogg,https://commons.wikimedia.org/wiki/File:En-us-four.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+146,7,five,5,human-stream,US,Dvortygirl,Public domain,en-us-five.ogg,https://commons.wikimedia.org/wiki/File:En-us-five.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+147,7,six,6,human-stream,US,TheDaveRoss (assumed by Commons),CC BY-SA 3.0,en-us-six.ogg,https://commons.wikimedia.org/wiki/File:En-us-six.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+148,7,seven,7,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-seven.ogg,https://commons.wikimedia.org/wiki/File:En-us-seven.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+149,7,eight,8,human-stream,US,TheDaveRoss,CC BY-SA 3.0,en-us-eight.ogg,https://commons.wikimedia.org/wiki/File:En-us-eight.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+150,7,nine,9,human-stream,US,TheDaveRoss (assumed by Commons),CC BY-SA 3.0,en-us-nine.ogg,https://commons.wikimedia.org/wiki/File:En-us-nine.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+151,7,ten,10,human-stream,US,TheDaveRoss (assumed by Commons),CC BY-SA 3.0,en-us-ten.ogg,https://commons.wikimedia.org/wiki/File:En-us-ten.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+152,7,eleven,11,human-stream,US,TheDaveRoss (assumed by Commons),Public domain,En-us-eleven.ogg,https://commons.wikimedia.org/wiki/File:En-us-eleven.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+153,7,twelve,12,human-stream,US,TheDaveRoss (assumed by Commons),CC BY-SA 3.0,en-us-twelve.ogg,https://commons.wikimedia.org/wiki/File:En-us-twelve.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+154,7,thirteen,13,human-stream,US,TheDaveRoss (assumed by Commons),CC BY-SA 3.0,en-us-thirteen.ogg,https://commons.wikimedia.org/wiki/File:En-us-thirteen.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+155,7,fourteen,14,human-stream,US,TheDaveRoss (assumed by Commons),CC BY-SA 3.0,en-us-fourteen.ogg,https://commons.wikimedia.org/wiki/File:En-us-fourteen.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+156,7,fifteen,15,human-stream,US,TheDaveRoss (assumed by Commons),CC BY-SA 3.0,en-us-fifteen.ogg,https://commons.wikimedia.org/wiki/File:En-us-fifteen.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+157,7,sixteen,16,human-stream,US,TheDaveRoss (assumed by Commons),CC BY-SA 3.0,en-us-sixteen.ogg,https://commons.wikimedia.org/wiki/File:En-us-sixteen.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+158,7,seventeen,17,human-stream,US,TheDaveRoss (assumed by Commons),CC BY-SA 3.0,en-us-seventeen.ogg,https://commons.wikimedia.org/wiki/File:En-us-seventeen.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+159,7,eighteen,18,human-stream,US,TheDaveRoss (assumed by Commons),CC BY-SA 3.0,en-us-eighteen.ogg,https://commons.wikimedia.org/wiki/File:En-us-eighteen.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+160,7,nineteen,19,human-stream,US,TheDaveRoss (assumed by Commons),CC BY-SA 3.0,En-us-nineteen.ogg,https://commons.wikimedia.org/wiki/File:En-us-nineteen.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+161,7,twenty,20,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-twenty.ogg,https://commons.wikimedia.org/wiki/File:En-us-twenty.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+162,7,thirty,30,human-stream,US,TheDaveRoss (assumed by Commons),CC BY-SA 3.0,en-us-thirty.ogg,https://commons.wikimedia.org/wiki/File:En-us-thirty.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+163,7,forty,40,human-stream,US,TheDaveRoss (assumed by Commons),CC BY-SA 3.0,en-us-forty.ogg,https://commons.wikimedia.org/wiki/File:En-us-forty.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+164,7,fifty,50,human-stream,US,TheDaveRoss (assumed by Commons),CC BY-SA 3.0,En-us-fifty.ogg,https://commons.wikimedia.org/wiki/File:En-us-fifty.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+165,7,seventy,70,human-stream,US,TheDaveRoss (assumed by Commons),CC BY-SA 3.0,en-us-seventy.ogg,https://commons.wikimedia.org/wiki/File:En-us-seventy.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+166,7,eighty,80,human-stream,US,TheDaveRoss (assumed by Commons),CC BY-SA 3.0,en-us-eighty.ogg,https://commons.wikimedia.org/wiki/File:En-us-eighty.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+167,7,hundred,100,human-stream,US,TheDaveRoss (assumed by Commons),CC BY-SA 3.0,En-us-hundred.ogg,https://commons.wikimedia.org/wiki/File:En-us-hundred.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+168,7,thousand,1000,human-stream,US,SalomeCzapiewski,CC0,Thousand.wav,https://commons.wikimedia.org/wiki/File:Thousand.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+169,7,first,第一,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-first.ogg,https://commons.wikimedia.org/wiki/File:En-us-first.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+170,7,second,第二,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-second.ogg,https://commons.wikimedia.org/wiki/File:En-us-second.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+171,7,third,第三,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-third.ogg,https://commons.wikimedia.org/wiki/File:En-us-third.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+172,7,number,數字,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-number.ogg,https://commons.wikimedia.org/wiki/File:En-us-number.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+173,8,festival,節日,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-festival.ogg,https://commons.wikimedia.org/wiki/File:En-us-festival.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+174,8,Christmas,聖誕節,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-Christmas.ogg,https://commons.wikimedia.org/wiki/File:En-us-Christmas.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+175,8,moon,月亮,human-stream,US,Naomi Persephone Amethyst (recorded by NaomiAmethyst),CC BY-SA 4.0,LL-Q1860 (eng)-Naomi Persephone Amethyst (NaomiAmethyst)-moon.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Naomi_Persephone_Amethyst_(NaomiAmethyst)-moon.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+176,8,day,日,human-stream,US,Dvortygirl (assumed by Commons),CC BY-SA 3.0,en-us-day.ogg,https://commons.wikimedia.org/wiki/File:En-us-day.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+177,8,Halloween,萬聖節,human-stream,US,Mx. Granger,CC0,En-us-Halloween.ogg,https://commons.wikimedia.org/wiki/File:En-us-Halloween.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+178,8,Easter,復活節,human-stream,US,Neskaya,CC BY-SA 3.0,En-us-easter.ogg,https://commons.wikimedia.org/wiki/File:En-us-easter.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+179,8,dragon,龍,human-stream,US,Naomi Persephone Amethyst (recorded by NaomiAmethyst),CC BY-SA 4.0,LL-Q1860 (eng)-Naomi Persephone Amethyst (NaomiAmethyst)-dragon.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Naomi_Persephone_Amethyst_(NaomiAmethyst)-dragon.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+180,8,trick,惡作劇,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-trick.ogg,https://commons.wikimedia.org/wiki/File:En-us-trick.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+181,8,birthday,生日,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-birthday.ogg,https://commons.wikimedia.org/wiki/File:En-us-birthday.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+182,8,turkey,火雞,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-turkey.ogg,https://commons.wikimedia.org/wiki/File:En-us-turkey.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+183,8,pumpkin,南瓜,human-stream,US,not stated (see Commons page),CC BY-SA 3.0,en-us-pumpkin.ogg,https://commons.wikimedia.org/wiki/File:En-us-pumpkin.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+184,8,Mother's Day,母親節,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-Mother's Day.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-Mother%27s_Day.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+185,8,Thanksgiving,感恩節,human-stream,US,"Flame, not lame",CC0,"LL-Q1860 (eng)-Flame, not lame-Thanksgiving.wav","https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Flame,_not_lame-Thanksgiving.wav",,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+186,8,lantern,燈籠,human-stream,US,Neskaya,CC BY-SA 3.0,en-us-lantern.ogg,https://commons.wikimedia.org/wiki/File:En-us-lantern.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+187,8,Father's Day,父親節,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-Father's Day.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-Father%27s_Day.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+188,8,eve,前夕,human-stream,US,Dvortygirl (assumed by Commons),CC BY-SA 3.0,en-us-eve.ogg,https://commons.wikimedia.org/wiki/File:En-us-eve.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+189,8,costume,服裝,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-costume.ogg,https://commons.wikimedia.org/wiki/File:En-us-costume.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+190,8,New Year's,新年,none,,,,,,,,,2026-11-13T09:57:37Z
+191,8,treat,招待,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-treat.ogg,https://commons.wikimedia.org/wiki/File:En-us-treat.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+192,8,party,派對,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-party.ogg,https://commons.wikimedia.org/wiki/File:En-us-party.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+193,8,Chinese New Year,春節,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-Chinese New Year.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-Chinese_New_Year.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+194,8,Dragon Boat Festival,端午節,none,,,,,,,,,2026-11-13T09:57:37Z
+195,8,Lantern Festival,元宵節,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-Lantern Festival.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-Lantern_Festival.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+196,8,Moon Festival,中秋節,none,,,,,,,,,2026-11-13T09:57:37Z
+197,8,mooncake,月餅,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-mooncake.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-mooncake.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+198,8,New Year's Eve,跨年夜,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-New Year's Eve.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-New_Year%27s_Eve.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+199,8,Teacher's Day,教師節,none,,,,,,,,,2026-11-13T09:57:37Z
+200,8,Christmas Eve,聖誕夜,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-Christmas Eve.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-Christmas_Eve.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+201,8,April Fool's Day,愚人節,none,,,,,,,,,2026-11-13T09:57:37Z
+202,8,red envelope,紅包,none,,,,,,,,,2026-11-13T09:57:37Z
+203,8,lion dance,醒獅,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-lion dance.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-lion_dance.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+204,8,firecracker,鞭炮,human-stream,US,Naomi Persephone Amethyst (recorded by NaomiAmethyst),CC BY-SA 4.0,LL-Q1860 (eng)-Naomi Persephone Amethyst (NaomiAmethyst)-firecracker.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Naomi_Persephone_Amethyst_(NaomiAmethyst)-firecracker.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+205,8,dragon boat,龍舟,none,,,,,,,,,2026-11-13T09:57:37Z
+206,8,trick-or-treat,不給糖就搗蛋,human-stream,unknown,"Flame, not lame",CC0,"LL-Q1860 (eng)-Flame, not lame-trick or treat.wav","https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Flame,_not_lame-trick_or_treat.wav",found on Commons by search,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+207,8,reunion dinner,團圓飯,none,,,,,,,,,2026-11-13T09:57:37Z
+208,8,firework,煙花,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-firework.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-firework.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+209,8,Christmas tree,聖誕樹,human-stream,US,Paul2520,CC0,En-us-Christmas tree.oga,https://commons.wikimedia.org/wiki/File:En-us-Christmas_tree.oga,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+210,9,new,新的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-new.ogg,https://commons.wikimedia.org/wiki/File:En-us-new.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+211,9,old,舊的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-old.ogg,https://commons.wikimedia.org/wiki/File:En-us-old.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+212,9,good,好的,human-stream,US,not stated (see Commons page),Public domain,En-us-good.ogg,https://commons.wikimedia.org/wiki/File:En-us-good.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+213,9,beautiful,美麗的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-beautiful.ogg,https://commons.wikimedia.org/wiki/File:En-us-beautiful.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+214,9,short,短的,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-short.ogg,https://commons.wikimedia.org/wiki/File:En-us-short.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+215,9,heavy,重的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-heavy.ogg,https://commons.wikimedia.org/wiki/File:En-us-heavy.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+216,9,cool,涼的,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-cool.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-cool.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+217,9,tall,高的,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-tall.ogg,https://commons.wikimedia.org/wiki/File:En-us-tall.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+218,9,lucky,幸運的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-lucky.ogg,https://commons.wikimedia.org/wiki/File:En-us-lucky.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+219,9,big,大的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-big.ogg,https://commons.wikimedia.org/wiki/File:En-us-big.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+220,9,thin,瘦的,human-stream,US,not stated (see Commons page),Public domain,en-us-thin.ogg,https://commons.wikimedia.org/wiki/File:En-us-thin.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+221,9,sweet,甜的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-sweet.ogg,https://commons.wikimedia.org/wiki/File:En-us-sweet.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+222,9,sour,酸的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-sour.ogg,https://commons.wikimedia.org/wiki/File:En-us-sour.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+223,9,small,小的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-small.ogg,https://commons.wikimedia.org/wiki/File:En-us-small.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+224,9,nice,好的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-nice.ogg,https://commons.wikimedia.org/wiki/File:En-us-nice.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+225,9,hard,硬的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-hard.ogg,https://commons.wikimedia.org/wiki/File:En-us-hard.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+226,9,delicious,美味的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-delicious.ogg,https://commons.wikimedia.org/wiki/File:En-us-delicious.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+227,9,bad,壞的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-bad.ogg,https://commons.wikimedia.org/wiki/File:En-us-bad.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+228,9,young,年輕的,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-young.ogg,https://commons.wikimedia.org/wiki/File:En-us-young.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+229,9,strong,強壯的,human-stream,US,Naomi Persephone Amethyst (recorded by NaomiAmethyst),CC BY-SA 4.0,LL-Q1860 (eng)-Naomi Persephone Amethyst (NaomiAmethyst)-strong.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Naomi_Persephone_Amethyst_(NaomiAmethyst)-strong.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+230,9,soft,柔軟的,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-soft.ogg,https://commons.wikimedia.org/wiki/File:En-us-soft.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+231,9,safe,安全的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-safe.ogg,https://commons.wikimedia.org/wiki/File:En-us-safe.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+232,9,rich,富有的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-rich.ogg,https://commons.wikimedia.org/wiki/File:En-us-rich.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+233,9,long,長的,human-stream,US,Naomi Persephone Amethyst (recorded by NaomiAmethyst),CC BY-SA 4.0,LL-Q1860 (eng)-Naomi Persephone Amethyst (NaomiAmethyst)-long.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Naomi_Persephone_Amethyst_(NaomiAmethyst)-long.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+234,9,great,偉大的,human-stream,US,Naomi Persephone Amethyst (recorded by NaomiAmethyst),CC BY-SA 4.0,LL-Q1860 (eng)-Naomi Persephone Amethyst (NaomiAmethyst)-great.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Naomi_Persephone_Amethyst_(NaomiAmethyst)-great.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+235,9,fried,油炸的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-fried.ogg,https://commons.wikimedia.org/wiki/File:En-us-fried.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+236,9,free,自由的,human-stream,US,not stated (see Commons page),Public domain,En-us-free.ogg,https://commons.wikimedia.org/wiki/File:En-us-free.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+237,9,cute,可愛的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-cute.ogg,https://commons.wikimedia.org/wiki/File:En-us-cute.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+238,9,amazing,驚人的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-amazing.ogg,https://commons.wikimedia.org/wiki/File:En-us-amazing.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+239,10,wrong,錯的,human-stream,US,not stated (see Commons page),Public domain,en-us-wrong.ogg,https://commons.wikimedia.org/wiki/File:En-us-wrong.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+240,10,wet,濕的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-wet.ogg,https://commons.wikimedia.org/wiki/File:En-us-wet.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+241,10,warmer,更溫暖的,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-warmer.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-warmer.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+242,10,thick,厚的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-thick.ogg,https://commons.wikimedia.org/wiki/File:En-us-thick.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+243,10,terrible,可怕的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-terrible.ogg,https://commons.wikimedia.org/wiki/File:En-us-terrible.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+244,10,super,超級的,human-stream,CA,Tawker (assumed by Commons),CC BY 2.5,En-ca-super.ogg,https://commons.wikimedia.org/wiki/File:En-ca-super.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+245,10,spicy,辣的,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-spicy.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-spicy.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+246,10,smooth,光滑的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-smooth.ogg,https://commons.wikimedia.org/wiki/File:En-us-smooth.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+247,10,smart,聰明的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-smart.ogg,https://commons.wikimedia.org/wiki/File:En-us-smart.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+248,10,slow,慢的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-slow.ogg,https://commons.wikimedia.org/wiki/File:En-us-slow.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+249,10,raw,生的,human-stream,US,Dvortygirl,Public domain,en-us-raw.ogg,https://commons.wikimedia.org/wiki/File:En-us-raw.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+250,10,quiet,安靜的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-quiet.ogg,https://commons.wikimedia.org/wiki/File:En-us-quiet.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+251,10,pretty,漂亮的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-pretty.ogg,https://commons.wikimedia.org/wiki/File:En-us-pretty.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+252,10,popular,受歡迎的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-popular.ogg,https://commons.wikimedia.org/wiki/File:En-us-popular.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+253,10,poor,貧窮的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-poor.ogg,https://commons.wikimedia.org/wiki/File:En-us-poor.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+254,10,peaceful,和平的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-peaceful.ogg,https://commons.wikimedia.org/wiki/File:En-us-peaceful.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+255,10,happy,快樂的,human-stream,US,Naomi Persephone Amethyst (recorded by NaomiAmethyst),CC BY-SA 4.0,LL-Q1860 (eng)-Naomi Persephone Amethyst (NaomiAmethyst)-happy.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Naomi_Persephone_Amethyst_(NaomiAmethyst)-happy.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+256,10,angry,生氣的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-angry.ogg,https://commons.wikimedia.org/wiki/File:En-us-angry.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+257,10,sad,傷心的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-sad.ogg,https://commons.wikimedia.org/wiki/File:En-us-sad.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+258,10,fine,好的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-fine.ogg,https://commons.wikimedia.org/wiki/File:En-us-fine.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+259,10,excited,興奮的,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-excited.ogg,https://commons.wikimedia.org/wiki/File:En-us-excited.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+260,10,tired,累的,human-stream,US,Naomi Persephone Amethyst (recorded by NaomiAmethyst),CC BY-SA 4.0,LL-Q1860 (eng)-Naomi Persephone Amethyst (NaomiAmethyst)-tired.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Naomi_Persephone_Amethyst_(NaomiAmethyst)-tired.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+261,10,scared,害怕的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-scared.ogg,https://commons.wikimedia.org/wiki/File:En-us-scared.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+262,10,early,早,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-early.ogg,https://commons.wikimedia.org/wiki/File:En-us-early.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+263,10,late,晚,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-late.ogg,https://commons.wikimedia.org/wiki/File:En-us-late.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+264,10,OK,好的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-okay.ogg,https://commons.wikimedia.org/wiki/File:En-us-okay.ogg,"recording of ""okay""",2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+265,10,Great!,太棒了！,human-stream,US,Naomi Persephone Amethyst (recorded by NaomiAmethyst),CC BY-SA 4.0,LL-Q1860 (eng)-Naomi Persephone Amethyst (NaomiAmethyst)-great.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Naomi_Persephone_Amethyst_(NaomiAmethyst)-great.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+266,10,fast,快的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-fast.ogg,https://commons.wikimedia.org/wiki/File:En-us-fast.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+267,10,busy,忙碌的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-busy.ogg,https://commons.wikimedia.org/wiki/File:En-us-busy.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+268,11,question,問題,human-stream,US,Dvortygirl (assumed by Commons),CC BY-SA 3.0,en-us-question.ogg,https://commons.wikimedia.org/wiki/File:En-us-question.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+269,11,test,測驗,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-test.ogg,https://commons.wikimedia.org/wiki/File:En-us-test.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+270,11,social,社會,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-social.ogg,https://commons.wikimedia.org/wiki/File:En-us-social.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+271,11,season,季節,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-season.ogg,https://commons.wikimedia.org/wiki/File:En-us-season.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+272,11,sea,海,human-stream,US,Naomi Persephone Amethyst (recorded by NaomiAmethyst),CC BY-SA 4.0,LL-Q1860 (eng)-Naomi Persephone Amethyst (NaomiAmethyst)-sea.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Naomi_Persephone_Amethyst_(NaomiAmethyst)-sea.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+273,11,road,道路,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-road.ogg,https://commons.wikimedia.org/wiki/File:En-us-road.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+274,11,tower,塔,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-tower.ogg,https://commons.wikimedia.org/wiki/File:En-us-tower.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+275,11,Tokyo,東京,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-Tokyo.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-Tokyo.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+276,11,school,學校,human-stream,US,Qwertygiy,CC0,LL-Q1860 (eng)-Qwertygiy-school.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Qwertygiy-school.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+277,11,room,房間,human-stream,US,Naomi Persephone Amethyst (recorded by NaomiAmethyst),CC BY-SA 4.0,LL-Q1860 (eng)-Naomi Persephone Amethyst (NaomiAmethyst)-room.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Naomi_Persephone_Amethyst_(NaomiAmethyst)-room.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+278,11,museum,博物館,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-museum.ogg,https://commons.wikimedia.org/wiki/File:En-us-museum.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+279,11,supermarket,超市,human-stream,UK,TaxRebate,CC BY-SA 4.0,en-uk-supermarket.ogg,https://commons.wikimedia.org/wiki/File:En-uk-supermarket.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+280,11,library,圖書館,human-stream,US,Naomi Persephone Amethyst (recorded by NaomiAmethyst),CC BY-SA 4.0,LL-Q1860 (eng)-Naomi Persephone Amethyst (NaomiAmethyst)-library.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Naomi_Persephone_Amethyst_(NaomiAmethyst)-library.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+281,11,home,家,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-home.ogg,https://commons.wikimedia.org/wiki/File:En-us-home.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+282,11,zoo,動物園,human-stream,US,Neoglitch (assumed by Commons),CC BY-SA 3.0,en-us-zoo.ogg,https://commons.wikimedia.org/wiki/File:En-us-zoo.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+283,11,post office,郵局,human-stream,US,Persent101,CC BY-SA 4.0,LL-Q1860 (eng)-Persent101-post office.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Persent101-post_office.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+284,11,city,城市,human-stream,US,not stated (see Commons page),Public domain,en-us-city.ogg,https://commons.wikimedia.org/wiki/File:En-us-city.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+285,11,restaurant,餐廳,human-stream,unknown,Grendelkhan,CC0,LL-Q1860 (eng)-Grendelkhan-restaurant.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Grendelkhan-restaurant.wav,found on Commons by search,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+286,11,office,辦公室,human-stream,US,Dvortygirl,Public domain,en-us-office.ogg,https://commons.wikimedia.org/wiki/File:En-us-office.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+287,11,bookstore,書店,human-stream,US,Wodencafe,CC0,LL-Q1860 (eng)-Wodencafe-bookstore.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Wodencafe-bookstore.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+288,11,hospital,醫院,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-hospital.ogg,https://commons.wikimedia.org/wiki/File:En-us-hospital.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+289,11,bank,銀行,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-bank.ogg,https://commons.wikimedia.org/wiki/File:En-us-bank.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+290,11,theater,劇院,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-theatre.ogg,https://commons.wikimedia.org/wiki/File:En-us-theatre.ogg,"recording of ""theatre"" (same sound)",2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+291,12,shop,商店,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-shop.ogg,https://commons.wikimedia.org/wiki/File:En-us-shop.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+292,12,park,公園,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-park.ogg,https://commons.wikimedia.org/wiki/File:En-us-park.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+293,12,mart,市場,human-stream,UK,Mélange a trois,CC BY-SA 4.0,LL-Q1860 (eng)-Mélange a trois-mart.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-M%C3%A9lange_a_trois-mart.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+294,12,mall,購物中心,human-stream,US,Sylvanmoon,CC BY-SA 4.0,en-us-mall.ogg,https://commons.wikimedia.org/wiki/File:En-us-mall.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+295,12,church,教堂,human-stream,US,Naomi Persephone Amethyst (recorded by NaomiAmethyst),CC BY-SA 4.0,LL-Q1860 (eng)-Naomi Persephone Amethyst (NaomiAmethyst)-church.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Naomi_Persephone_Amethyst_(NaomiAmethyst)-church.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+296,12,beach,海灘,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-beach.ogg,https://commons.wikimedia.org/wiki/File:En-us-beach.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+297,12,tomb,墓,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-tomb.ogg,https://commons.wikimedia.org/wiki/File:En-us-tomb.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+298,12,store,商店,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-store.ogg,https://commons.wikimedia.org/wiki/File:En-us-store.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+299,12,station,車站,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-station.ogg,https://commons.wikimedia.org/wiki/File:En-us-station.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+300,12,restroom,廁所,human-stream,US,"Flame, not lame",CC0,"LL-Q1860 (eng)-Flame, not lame-restroom.wav","https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Flame,_not_lame-restroom.wav",,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+301,12,pool,泳池,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-pool.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-pool.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+302,12,evening,晚上,human-stream,US,Muke (assumed by Commons),Public domain,en-us-evening (noun).ogg,https://commons.wikimedia.org/wiki/File:En-us-evening_(noun).ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+303,12,o'clock,點鐘,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-o'clock.ogg,https://commons.wikimedia.org/wiki/File:En-us-o%27clock.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+304,12,month,月,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-month.ogg,https://commons.wikimedia.org/wiki/File:En-us-month.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+305,12,rain,雨,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-rain.ogg,https://commons.wikimedia.org/wiki/File:En-us-rain.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+306,12,fun,樂趣,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-fun.ogg,https://commons.wikimedia.org/wiki/File:En-us-fun.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+307,12,sale,出售,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-sale.ogg,https://commons.wikimedia.org/wiki/File:En-us-sale.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+308,12,thing,物品,human-stream,US,not stated (see Commons page),Public domain,en-us-thing.ogg,https://commons.wikimedia.org/wiki/File:En-us-thing.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+309,12,trash,垃圾,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-trash.ogg,https://commons.wikimedia.org/wiki/File:En-us-trash.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+310,12,way,方式,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-way.ogg,https://commons.wikimedia.org/wiki/File:En-us-way.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+311,12,sport,運動,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-sport.ogg,https://commons.wikimedia.org/wiki/File:En-us-sport.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+312,12,time,時間,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-time.ogg,https://commons.wikimedia.org/wiki/File:En-us-time.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+313,12,fever,發燒,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-fever.ogg,https://commons.wikimedia.org/wiki/File:En-us-fever.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+314,12,cough,咳嗽,human-stream,US,not stated (see Commons page),CC BY-SA 3.0,En-us-cough.ogg,https://commons.wikimedia.org/wiki/File:En-us-cough.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+315,12,runny nose,流鼻涕,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-runny nose.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-runny_nose.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+316,12,sore throat,喉嚨痛,human-stream,US,"Flame, not lame",CC0,"LL-Q1860 (eng)-Flame, not lame-sore throat.wav","https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Flame,_not_lame-sore_throat.wav",,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+317,12,bunny,小兔子,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-bunny.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-bunny.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+318,12,basket,籃子,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-basket.ogg,https://commons.wikimedia.org/wiki/File:En-us-basket.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+319,12,playground,操場,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-playground.ogg,https://commons.wikimedia.org/wiki/File:En-us-playground.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+320,13,doctor,醫生,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-doctor.ogg,https://commons.wikimedia.org/wiki/File:En-us-doctor.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+321,13,police,警察,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-police.ogg,https://commons.wikimedia.org/wiki/File:En-us-police.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+322,13,officer,官員,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-officer.ogg,https://commons.wikimedia.org/wiki/File:En-us-officer.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+323,13,nurse,護士,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-nurse.ogg,https://commons.wikimedia.org/wiki/File:En-us-nurse.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+324,13,job,工作,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-job.ogg,https://commons.wikimedia.org/wiki/File:En-us-job.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+325,13,teacher,老師,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-teacher.ogg,https://commons.wikimedia.org/wiki/File:En-us-teacher.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+326,13,student,學生,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-student.ogg,https://commons.wikimedia.org/wiki/File:En-us-student.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+327,13,Chinese,中文,human-stream,US,Muke (assumed by Commons),Public domain,En-us-Chinese.ogg,https://commons.wikimedia.org/wiki/File:En-us-Chinese.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+328,13,Taiwanese,臺語,human-stream,US,Wodencafe,CC0,LL-Q1860 (eng)-Wodencafe-Taiwanese.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Wodencafe-Taiwanese.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+329,13,money,錢,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-money.ogg,https://commons.wikimedia.org/wiki/File:En-us-money.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+330,13,dollar,美元,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-dollar.ogg,https://commons.wikimedia.org/wiki/File:En-us-dollar.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+331,13,TWD,新臺幣,none,,,,,,,,,2026-11-13T09:57:37Z
+332,13,homework,作業,human-stream,US,"Flame, not lame",CC0,"LL-Q1860 (eng)-Flame, not lame-homework.wav","https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Flame,_not_lame-homework.wav",,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+333,13,art,藝術,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-art.ogg,https://commons.wikimedia.org/wiki/File:En-us-art.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+334,13,math,數學,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-math.ogg,https://commons.wikimedia.org/wiki/File:En-us-math.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+335,13,music,音樂,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-music.ogg,https://commons.wikimedia.org/wiki/File:En-us-music.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+336,13,science,科學,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-science.ogg,https://commons.wikimedia.org/wiki/File:En-us-science.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+337,13,English,英文,human-stream,US,Muke (assumed by Commons),Public domain,En-us-English.ogg,https://commons.wikimedia.org/wiki/File:En-us-English.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+338,13,subject,科目,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-subject-noun.ogg,https://commons.wikimedia.org/wiki/File:En-us-subject-noun.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+339,13,PE,體育,human-stream,US,Aadenboy,CC BY 4.0,LL-Q1860 (eng)-Aadenboy-PE.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Aadenboy-PE.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+340,13,clock,時鐘,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-clock.ogg,https://commons.wikimedia.org/wiki/File:En-us-clock.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+341,13,bathroom,浴室,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-bathroom.ogg,https://commons.wikimedia.org/wiki/File:En-us-bathroom.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+342,13,living room,客廳,human-stream,US,Vininn126,CC BY-SA 4.0,LL-Q1860 (eng)-Vininn126-living room.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vininn126-living_room.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+343,13,bedroom,臥室,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-bedroom.ogg,https://commons.wikimedia.org/wiki/File:En-us-bedroom.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+344,13,kitchen,廚房,human-stream,US,EncycloPetey,CC BY-SA 3.0,En-us-kitchen.ogg,https://commons.wikimedia.org/wiki/File:En-us-kitchen.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+345,13,bed,床,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-bed.ogg,https://commons.wikimedia.org/wiki/File:En-us-bed.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+346,13,dining room,餐廳,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-dining room.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-dining_room.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+347,13,table,桌子,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-table.ogg,https://commons.wikimedia.org/wiki/File:En-us-table.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+348,13,chair,椅子,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-chair.ogg,https://commons.wikimedia.org/wiki/File:En-us-chair.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+349,14,January,1月,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-January.ogg,https://commons.wikimedia.org/wiki/File:En-us-January.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+350,14,February,2月,human-stream,US,Commonsense1776,CC0,LL-Q1860 (eng)-Commonsense1776-February.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Commonsense1776-February.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+351,14,March,3月,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-March.ogg,https://commons.wikimedia.org/wiki/File:En-us-March.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+352,14,April,4月,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-April.ogg,https://commons.wikimedia.org/wiki/File:En-us-April.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+353,14,May,5月,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-May.ogg,https://commons.wikimedia.org/wiki/File:En-us-May.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+354,14,June,6月,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-June.ogg,https://commons.wikimedia.org/wiki/File:En-us-June.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+355,14,July,7月,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-July.ogg,https://commons.wikimedia.org/wiki/File:En-us-July.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+356,14,August,8月,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-August.ogg,https://commons.wikimedia.org/wiki/File:En-us-August.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+357,14,September,9月,human-stream,US,Dvortygirl (assumed by Commons),CC BY-SA 3.0,en-us-September.ogg,https://commons.wikimedia.org/wiki/File:En-us-September.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+358,14,October,10月,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-October.ogg,https://commons.wikimedia.org/wiki/File:En-us-October.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+359,14,November,11月,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-November.ogg,https://commons.wikimedia.org/wiki/File:En-us-November.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+360,14,December,12月,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-December.ogg,https://commons.wikimedia.org/wiki/File:En-us-December.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+361,14,of,的,human-stream,US,Naomi Persephone Amethyst (recorded by NaomiAmethyst),CC BY-SA 4.0,LL-Q1860 (eng)-Naomi Persephone Amethyst (NaomiAmethyst)-of.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Naomi_Persephone_Amethyst_(NaomiAmethyst)-of.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+362,14,to,到,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-to.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-to.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+363,14,in,在,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-in.ogg,https://commons.wikimedia.org/wiki/File:En-us-in.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+364,14,yes,是,human-stream,US,Naomi Persephone Amethyst (recorded by NaomiAmethyst),CC BY-SA 4.0,LL-Q1860 (eng)-Naomi Persephone Amethyst (NaomiAmethyst)-yes.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Naomi_Persephone_Amethyst_(NaomiAmethyst)-yes.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+365,14,at,在,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-at.ogg,https://commons.wikimedia.org/wiki/File:En-us-at.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+366,14,under,在...下面,human-stream,US,Naomi Persephone Amethyst (recorded by NaomiAmethyst),CC BY-SA 4.0,LL-Q1860 (eng)-Naomi Persephone Amethyst (NaomiAmethyst)-under.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Naomi_Persephone_Amethyst_(NaomiAmethyst)-under.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+367,14,with,和,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-with.ogg,https://commons.wikimedia.org/wiki/File:En-us-with.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+368,14,these,這些,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-these.ogg,https://commons.wikimedia.org/wiki/File:En-us-these.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+369,14,some,一些,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-some.ogg,https://commons.wikimedia.org/wiki/File:En-us-some.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+370,14,every,每個,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-every.ogg,https://commons.wikimedia.org/wiki/File:En-us-every.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+371,14,those,那些,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-those.ogg,https://commons.wikimedia.org/wiki/File:En-us-those.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+372,14,this,這,human-stream,US,not stated (see Commons page),Public domain,en-us-this.ogg,https://commons.wikimedia.org/wiki/File:En-us-this.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+373,14,that,那,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-that.ogg,https://commons.wikimedia.org/wiki/File:En-us-that.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+374,14,on,在...上,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-on.ogg,https://commons.wikimedia.org/wiki/File:En-us-on.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+375,14,from,從；來自,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-from.ogg,https://commons.wikimedia.org/wiki/File:En-us-from.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+376,15,jacket,夾克,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-jacket.ogg,https://commons.wikimedia.org/wiki/File:En-us-jacket.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+377,15,vest,背心,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-vest.ogg,https://commons.wikimedia.org/wiki/File:En-us-vest.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+378,15,dress,洋裝,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-dress.ogg,https://commons.wikimedia.org/wiki/File:En-us-dress.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+379,15,scarf,圍巾,human-stream,AU,Commander Keane,CC BY-SA 4.0,En-au-scarf.ogg,https://commons.wikimedia.org/wiki/File:En-au-scarf.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+380,15,hat,帽子,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-hat.ogg,https://commons.wikimedia.org/wiki/File:En-us-hat.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+381,15,cap,帽子,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-cap.ogg,https://commons.wikimedia.org/wiki/File:En-us-cap.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+382,15,stockings,長襪,human-stream,US,Neskaya,CC BY-SA 3.0,en-us-stockings.ogg,https://commons.wikimedia.org/wiki/File:En-us-stockings.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+383,15,shirt,襯衫,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-shirt.ogg,https://commons.wikimedia.org/wiki/File:En-us-shirt.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+384,15,sweater,毛衣,human-stream,US,Spacecat2,Public domain,En-us-sweater.ogg,https://commons.wikimedia.org/wiki/File:En-us-sweater.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+385,15,sock,襪子,human-stream,US,Dvortygirl (assumed by Commons),CC BY-SA 3.0,en-us-sock.ogg,https://commons.wikimedia.org/wiki/File:En-us-sock.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+386,15,sneakers,運動鞋,human-stream,unknown,Arlo Barnes,CC0,LL-Q1860 (eng)-Arlo Barnes-sneakers.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Arlo_Barnes-sneakers.wav,found on Commons by search,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+387,15,skirt,裙子,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-skirt.ogg,https://commons.wikimedia.org/wiki/File:En-us-skirt.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+388,15,raincoat,雨衣,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-raincoat.ogg,https://commons.wikimedia.org/wiki/File:En-us-raincoat.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+389,15,shoes,鞋,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-shoes.ogg,https://commons.wikimedia.org/wiki/File:En-us-shoes.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+390,15,shopping,購物,human-stream,US,Persent101,CC BY-SA 4.0,LL-Q1860 (eng)-Persent101-shopping.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Persent101-shopping.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+391,15,swimming,游泳,human-stream,US,Neskaya,CC BY-SA 3.0,en-us-swimming.ogg,https://commons.wikimedia.org/wiki/File:En-us-swimming.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+392,15,camping,露營,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-camping.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-camping.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+393,15,fishing,釣魚,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-fishing.ogg,https://commons.wikimedia.org/wiki/File:En-us-fishing.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+394,15,swim,游泳,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-swim.ogg,https://commons.wikimedia.org/wiki/File:En-us-swim.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+395,15,hunting,狩獵,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-hunting.ogg,https://commons.wikimedia.org/wiki/File:En-us-hunting.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+396,15,race,比賽,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-race.ogg,https://commons.wikimedia.org/wiki/File:En-us-race.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+397,15,jogging,慢跑,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-jogging.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-jogging.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+398,15,BBQ,烤肉,human-stream,US,Paul2520,CC BY 4.0,En-us-BBQ.ogg,https://commons.wikimedia.org/wiki/File:En-us-BBQ.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+399,15,vacation,假期,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-vacation.ogg,https://commons.wikimedia.org/wiki/File:En-us-vacation.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+400,15,trip,旅行,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-trip.ogg,https://commons.wikimedia.org/wiki/File:En-us-trip.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+401,15,skating,溜冰,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-skating.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-skating.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+402,15,card,卡片,human-stream,US,Naomi Persephone Amethyst (recorded by NaomiAmethyst),CC BY-SA 4.0,LL-Q1860 (eng)-Naomi Persephone Amethyst (NaomiAmethyst)-card.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Naomi_Persephone_Amethyst_(NaomiAmethyst)-card.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+403,15,book,書,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-book.ogg,https://commons.wikimedia.org/wiki/File:En-us-book.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+404,15,ticket,票,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-ticket.ogg,https://commons.wikimedia.org/wiki/File:En-us-ticket.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+405,15,name,名字,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-name.ogg,https://commons.wikimedia.org/wiki/File:En-us-name.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+406,15,list,清單,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-list.ogg,https://commons.wikimedia.org/wiki/File:En-us-list.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+407,15,contact,聯絡,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-contact.ogg,https://commons.wikimedia.org/wiki/File:En-us-contact.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+408,16,pencil,鉛筆,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-pencil.ogg,https://commons.wikimedia.org/wiki/File:En-us-pencil.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+409,16,pen,筆,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-pen.ogg,https://commons.wikimedia.org/wiki/File:En-us-pen.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+410,16,eraser,橡皮擦,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-eraser.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-eraser.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+411,16,spoon,湯匙,human-stream,US,Dvortygirl (assumed by Commons),CC BY-SA 3.0,En-us-spoon.ogg,https://commons.wikimedia.org/wiki/File:En-us-spoon.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+412,16,scissors,剪刀,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-scissors.ogg,https://commons.wikimedia.org/wiki/File:En-us-scissors.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+413,16,ruler,尺,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-ruler.ogg,https://commons.wikimedia.org/wiki/File:En-us-ruler.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+414,16,year,年,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-year.ogg,https://commons.wikimedia.org/wiki/File:En-us-year.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+415,16,Monday,星期一,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-Monday.ogg,https://commons.wikimedia.org/wiki/File:En-us-Monday.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+416,16,Tuesday,星期二,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-Tuesday.ogg,https://commons.wikimedia.org/wiki/File:En-us-Tuesday.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+417,16,Wednesday,星期三,human-stream,US,Dvortygirl (assumed by Commons),CC BY-SA 3.0,en-us-Wednesday.ogg,https://commons.wikimedia.org/wiki/File:En-us-Wednesday.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+418,16,Thursday,星期四,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-Thursday.ogg,https://commons.wikimedia.org/wiki/File:En-us-Thursday.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+419,16,Friday,星期五,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-Friday.ogg,https://commons.wikimedia.org/wiki/File:En-us-Friday.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+420,16,Saturday,星期六,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-Saturday.ogg,https://commons.wikimedia.org/wiki/File:En-us-Saturday.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+421,16,Sunday,星期日,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-Sunday.ogg,https://commons.wikimedia.org/wiki/File:En-us-Sunday.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+422,16,weekend,週末,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-weekend.ogg,https://commons.wikimedia.org/wiki/File:En-us-weekend.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+423,16,morning,早晨,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-morning.ogg,https://commons.wikimedia.org/wiki/File:En-us-morning.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+424,16,today,今天,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-today.ogg,https://commons.wikimedia.org/wiki/File:En-us-today.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+425,16,tomorrow,明天,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-tomorrow.ogg,https://commons.wikimedia.org/wiki/File:En-us-tomorrow.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+426,16,yesterday,昨天,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-yesterday.ogg,https://commons.wikimedia.org/wiki/File:En-us-yesterday.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+427,16,night,夜晚,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-night.ogg,https://commons.wikimedia.org/wiki/File:En-us-night.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+428,16,afternoon,下午,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-afternoon.ogg,https://commons.wikimedia.org/wiki/File:En-us-afternoon.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+429,16,week,週,human-stream,US,Naomi Persephone Amethyst (recorded by NaomiAmethyst),CC BY-SA 4.0,LL-Q1860 (eng)-Naomi Persephone Amethyst (NaomiAmethyst)-week.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Naomi_Persephone_Amethyst_(NaomiAmethyst)-week.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+430,16,noon,中午,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-noon.ogg,https://commons.wikimedia.org/wiki/File:En-us-noon.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+431,17,tree,樹,human-stream,US,Naomi Persephone Amethyst (recorded by NaomiAmethyst),CC BY-SA 4.0,LL-Q1860 (eng)-Naomi Persephone Amethyst (NaomiAmethyst)-tree.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Naomi_Persephone_Amethyst_(NaomiAmethyst)-tree.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+432,17,price,價格,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-price.ogg,https://commons.wikimedia.org/wiki/File:En-us-price.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+433,17,phone,電話,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-phone.ogg,https://commons.wikimedia.org/wiki/File:En-us-phone.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+434,17,word,字,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-word.ogg,https://commons.wikimedia.org/wiki/File:En-us-word.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+435,17,T-shirt,T恤,human-stream,US,Persent101,CC BY-SA 4.0,LL-Q1860 (eng)-Persent101-T-shirt.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Persent101-T-shirt.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+436,17,piano,鋼琴,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-piano.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-piano.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+437,17,movie,電影,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-movie.ogg,https://commons.wikimedia.org/wiki/File:En-us-movie.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+438,17,glasses,眼鏡,human-stream,UK,"Association Shtooka, Judith Franck",CC BY 3.0 us,En-uk-glasses.ogg,https://commons.wikimedia.org/wiki/File:En-uk-glasses.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+439,17,favorite,最喜愛的,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-favorite.ogg,https://commons.wikimedia.org/wiki/File:En-us-favorite.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+440,17,color,顏色,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-color.ogg,https://commons.wikimedia.org/wiki/File:En-us-color.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+441,17,circle,圓形,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-circle.ogg,https://commons.wikimedia.org/wiki/File:En-us-circle.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+442,17,bag,袋子,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-bag.ogg,https://commons.wikimedia.org/wiki/File:En-us-bag.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+443,17,window,窗戶,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-window.ogg,https://commons.wikimedia.org/wiki/File:En-us-window.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+444,17,umbrella,雨傘,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-umbrella.ogg,https://commons.wikimedia.org/wiki/File:En-us-umbrella.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+445,17,TV,電視,human-stream,US,Persent101,CC BY-SA 4.0,en-us-TV.ogg,https://commons.wikimedia.org/wiki/File:En-us-TV.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+446,17,sunglasses,太陽眼鏡,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-sunglasses.ogg,https://commons.wikimedia.org/wiki/File:En-us-sunglasses.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+447,17,sun,太陽,human-stream,US,Persent101,CC BY-SA 4.0,LL-Q1860 (eng)-Persent101-sun.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Persent101-sun.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+448,17,recorder,錄音機,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-recorder.ogg,https://commons.wikimedia.org/wiki/File:En-us-recorder.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+449,17,pot,鍋,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-pot.ogg,https://commons.wikimedia.org/wiki/File:En-us-pot.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+450,17,paper,紙,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-paper.ogg,https://commons.wikimedia.org/wiki/File:En-us-paper.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+451,17,mask,口罩,human-stream,US,Sylvanmoon,CC BY-SA 4.0,en-us-mask.ogg,https://commons.wikimedia.org/wiki/File:En-us-mask.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+452,17,light,燈,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-light.ogg,https://commons.wikimedia.org/wiki/File:En-us-light.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+453,17,letter,信,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-letter.ogg,https://commons.wikimedia.org/wiki/File:En-us-letter.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+454,17,kite,風箏,human-stream,US,Mx. Granger,CC0,En-us-kite.ogg,https://commons.wikimedia.org/wiki/File:En-us-kite.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+455,17,gloves,手套,human-stream,US,Persent101,CC BY-SA 4.0,LL-Q1860 (eng)-Persent101-gloves.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Persent101-gloves.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+456,17,gift,禮物,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-gift.ogg,https://commons.wikimedia.org/wiki/File:En-us-gift.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+457,17,flute,長笛,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-flute.ogg,https://commons.wikimedia.org/wiki/File:En-us-flute.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+458,17,flag,旗幟,human-stream,US,Naomi Persephone Amethyst (recorded by NaomiAmethyst),CC BY-SA 4.0,LL-Q1860 (eng)-Naomi Persephone Amethyst (NaomiAmethyst)-flag.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Naomi_Persephone_Amethyst_(NaomiAmethyst)-flag.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+459,17,feelings,感情,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-feelings.ogg,https://commons.wikimedia.org/wiki/File:En-us-feelings.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+460,17,envelope,信封,human-stream,US,Dvortygirl (assumed by Commons),CC BY-SA 3.0,En-us-envelope.ogg,https://commons.wikimedia.org/wiki/File:En-us-envelope.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+461,17,door,門,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-door.ogg,https://commons.wikimedia.org/wiki/File:En-us-door.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+462,17,doll,玩偶,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-doll.ogg,https://commons.wikimedia.org/wiki/File:En-us-doll.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+463,18,desk,書桌,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-desk.ogg,https://commons.wikimedia.org/wiki/File:En-us-desk.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+464,18,COVID-19,新冠肺炎,human-stream,US,Wodencafe,CC0,LL-Q1860 (eng)-Wodencafe-COVID-19.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Wodencafe-COVID-19.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+465,18,class,班級,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-class.ogg,https://commons.wikimedia.org/wiki/File:En-us-class.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+466,18,box,盒子,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-box.ogg,https://commons.wikimedia.org/wiki/File:En-us-box.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+467,18,bottle,瓶子,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-bottle.ogg,https://commons.wikimedia.org/wiki/File:En-us-bottle.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+468,18,bell,鈴,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-bell.ogg,https://commons.wikimedia.org/wiki/File:En-us-bell.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+469,18,ball,球,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-ball.ogg,https://commons.wikimedia.org/wiki/File:En-us-ball.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+470,18,wall,牆,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-wall.ogg,https://commons.wikimedia.org/wiki/File:En-us-wall.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+471,18,violin,小提琴,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-violin.ogg,https://commons.wikimedia.org/wiki/File:En-us-violin.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+472,18,toy,玩具,human-stream,US,Dvortygirl,Public domain,en-us-toy.ogg,https://commons.wikimedia.org/wiki/File:En-us-toy.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+473,18,towel,毛巾,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-towel.ogg,https://commons.wikimedia.org/wiki/File:En-us-towel.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+474,18,tap,水龍頭,human-stream,US,Dvortygirl,Public domain,En-us-tap.ogg,https://commons.wikimedia.org/wiki/File:En-us-tap.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+475,18,step,步驟,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-step.ogg,https://commons.wikimedia.org/wiki/File:En-us-step.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+476,18,snowman,雪人,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-snowman.ogg,https://commons.wikimedia.org/wiki/File:En-us-snowman.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+477,18,seawater,海水,human-stream,US,Wodencafe,CC0,LL-Q1860 (eng)-Wodencafe-seawater.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Wodencafe-seawater.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+478,18,seat,座位,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-seat.ogg,https://commons.wikimedia.org/wiki/File:En-us-seat.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+479,18,picture,圖片,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-picture.ogg,https://commons.wikimedia.org/wiki/File:En-us-picture.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+480,18,people,人們,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-people.ogg,https://commons.wikimedia.org/wiki/File:En-us-people.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+481,18,pea,豌豆,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-pea.ogg,https://commons.wikimedia.org/wiki/File:En-us-pea.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+482,18,pearl,珍珠,human-stream,AU,Commander Keane,CC BY-SA 4.0,En-au-pearl.ogg,https://commons.wikimedia.org/wiki/File:En-au-pearl.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+483,18,car,汽車,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-car.ogg,https://commons.wikimedia.org/wiki/File:En-us-car.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+484,18,marker,標記筆,human-stream,AU,Commander Keane,CC BY-SA 4.0,En-au-marker.ogg,https://commons.wikimedia.org/wiki/File:En-au-marker.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+485,18,key,鑰匙,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-key.ogg,https://commons.wikimedia.org/wiki/File:En-us-key.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+486,18,coat,外套,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-coat.ogg,https://commons.wikimedia.org/wiki/File:En-us-coat.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+487,18,pants,褲子,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-pants.ogg,https://commons.wikimedia.org/wiki/File:En-us-pants.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+488,18,robot,機器人,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-robot.ogg,https://commons.wikimedia.org/wiki/File:En-us-robot.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+489,18,mail,郵件,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-mail.ogg,https://commons.wikimedia.org/wiki/File:En-us-mail.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+490,18,photo,照片,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-photo.ogg,https://commons.wikimedia.org/wiki/File:En-us-photo.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+491,18,television,電視,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-television.ogg,https://commons.wikimedia.org/wiki/File:En-us-television.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+492,18,computer,電腦,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-computer.ogg,https://commons.wikimedia.org/wiki/File:En-us-computer.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+493,18,mouse,滑鼠,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-mouse.ogg,https://commons.wikimedia.org/wiki/File:En-us-mouse.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+494,18,internet,網際網路,human-stream,US,Gbeebani,CC BY-SA 3.0,En-us-internet.ogg,https://commons.wikimedia.org/wiki/File:En-us-internet.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+495,18,cellphone,手機,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-cellphone.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-cellphone.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+496,18,house,房子,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-house-noun.ogg,https://commons.wikimedia.org/wiki/File:En-us-house-noun.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+497,18,cup,杯子,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-cup.ogg,https://commons.wikimedia.org/wiki/File:En-us-cup.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+498,18,crayon,蠟筆,human-stream,US,SalomeCzapiewski,CC BY-SA 4.0,En-US-crayon.wav,https://commons.wikimedia.org/wiki/File:En-US-crayon.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+499,19,and,和,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-and.ogg,https://commons.wikimedia.org/wiki/File:En-us-and.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+500,19,or,或,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-or.ogg,https://commons.wikimedia.org/wiki/File:En-us-or.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+501,19,basketball,籃球,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-basketball.ogg,https://commons.wikimedia.org/wiki/File:En-us-basketball.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+502,19,baseball,棒球,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-baseball.ogg,https://commons.wikimedia.org/wiki/File:En-us-baseball.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+503,19,tennis,網球,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-tennis.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-tennis.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+504,19,song,歌曲,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-song.ogg,https://commons.wikimedia.org/wiki/File:En-us-song.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+505,19,red,紅色,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-red.ogg,https://commons.wikimedia.org/wiki/File:En-us-red.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+506,19,green,綠色,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-green.ogg,https://commons.wikimedia.org/wiki/File:En-us-green.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+507,19,blue,藍色,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-blue.ogg,https://commons.wikimedia.org/wiki/File:En-us-blue.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+508,19,yellow,黃色,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-yellow.ogg,https://commons.wikimedia.org/wiki/File:En-us-yellow.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+509,19,white,白色,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-white.ogg,https://commons.wikimedia.org/wiki/File:En-us-white.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+510,19,pink,粉色,human-stream,UK,not stated (see Commons page),Public domain,en-uk-pink.ogg,https://commons.wikimedia.org/wiki/File:En-uk-pink.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+511,19,black,黑色,human-stream,UK,not stated (see Commons page),Public domain,en-uk-black.ogg,https://commons.wikimedia.org/wiki/File:En-uk-black.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+512,19,purple,紫色,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-purple.ogg,https://commons.wikimedia.org/wiki/File:En-us-purple.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+513,19,rice,米,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-rice.ogg,https://commons.wikimedia.org/wiki/File:En-us-rice.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+514,19,cream,奶油,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-cream.ogg,https://commons.wikimedia.org/wiki/File:En-us-cream.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+515,19,egg,蛋,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-egg.ogg,https://commons.wikimedia.org/wiki/File:En-us-egg.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+516,19,hamburger,漢堡,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-hamburger.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-hamburger.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+517,19,cake,蛋糕,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-cake.ogg,https://commons.wikimedia.org/wiki/File:En-us-cake.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+518,19,apple,蘋果,human-stream,US,Naomi Persephone Amethyst (recorded by NaomiAmethyst),CC BY-SA 4.0,LL-Q1860 (eng)-Naomi Persephone Amethyst (NaomiAmethyst)-apple.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Naomi_Persephone_Amethyst_(NaomiAmethyst)-apple.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+519,19,noodles,麵條,human-stream,US,Dvortygirl,Public domain,en-us-noodles.ogg,https://commons.wikimedia.org/wiki/File:En-us-noodles.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+520,19,fish,魚,human-stream,US,not stated (see Commons page),Public domain,En-us-fish.ogg,https://commons.wikimedia.org/wiki/File:En-us-fish.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+521,19,dumplings,餃子,none,,,,,,,,,2026-11-13T09:57:37Z
+522,19,chicken,雞肉,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-chicken.ogg,https://commons.wikimedia.org/wiki/File:En-us-chicken.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+523,19,brown,棕色,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-brown.ogg,https://commons.wikimedia.org/wiki/File:En-us-brown.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+524,20,salad,沙拉,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-salad.ogg,https://commons.wikimedia.org/wiki/File:En-us-salad.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+525,20,orange,橘子,human-stream,US,Aquild,CC BY 4.0,LL-Q1860 (eng)-Aquild-orange.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Aquild-orange.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+526,20,lemon,檸檬,human-stream,UK,"Association Shtooka, Judith Franck",CC BY 3.0 us,En-uk-lemon.ogg,https://commons.wikimedia.org/wiki/File:En-uk-lemon.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+527,20,pomelo,柚子,human-stream,US,Sapaa,CC0,LL-Q1860 (eng)-Sapaa-pomelo.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Sapaa-pomelo.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+528,20,pie,派,human-stream,US,Dvortygirl (assumed by Commons),CC BY-SA 3.0,en-us-pie.ogg,https://commons.wikimedia.org/wiki/File:En-us-pie.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+529,20,cookie,餅乾,human-stream,AU,Commander Keane,CC BY-SA 4.0,En-au-cookie.ogg,https://commons.wikimedia.org/wiki/File:En-au-cookie.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+530,20,soup,湯,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-soup.ogg,https://commons.wikimedia.org/wiki/File:En-us-soup.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+531,20,potato,馬鈴薯,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-potato.ogg,https://commons.wikimedia.org/wiki/File:En-us-potato.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+532,20,pizza,披薩,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-pizza.ogg,https://commons.wikimedia.org/wiki/File:En-us-pizza.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+533,20,papaya,木瓜,human-stream,UK,I learned some phrases,CC BY-SA 4.0,LL-Q1860 (eng)-I learned some phrases-papaya.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-I_learned_some_phrases-papaya.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+534,20,guava,番石榴,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-guava.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-guava.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+535,20,grape,葡萄,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-grape.ogg,https://commons.wikimedia.org/wiki/File:En-us-grape.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+536,20,food,食物,human-stream,UK,"Association Shtooka, Judith Franck",CC BY 3.0 us,En-uk-food.ogg,https://commons.wikimedia.org/wiki/File:En-uk-food.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+537,20,flower,花,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-flower.ogg,https://commons.wikimedia.org/wiki/File:En-us-flower.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+538,20,chocolate,巧克力,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-chocolate.ogg,https://commons.wikimedia.org/wiki/File:En-us-chocolate.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+539,20,cheese,乳酪,human-stream,US,Dvortygirl (assumed by Commons),CC BY-SA 3.0,en-us-cheese.ogg,https://commons.wikimedia.org/wiki/File:En-us-cheese.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+540,20,candy,糖果,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-candy.ogg,https://commons.wikimedia.org/wiki/File:En-us-candy.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+541,20,bread,麵包,human-stream,US,Naomi Persephone Amethyst (recorded by NaomiAmethyst),CC BY-SA 4.0,LL-Q1860 (eng)-Naomi Persephone Amethyst (NaomiAmethyst)-bread.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Naomi_Persephone_Amethyst_(NaomiAmethyst)-bread.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+542,20,banana,香蕉,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-banana.ogg,https://commons.wikimedia.org/wiki/File:En-us-banana.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+543,20,zongzi,粽子,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-zongzi.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-zongzi.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+544,20,watermelon,西瓜,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-watermelon.ogg,https://commons.wikimedia.org/wiki/File:En-us-watermelon.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+545,20,tomato,番茄,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-tomato.ogg,https://commons.wikimedia.org/wiki/File:En-us-tomato.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+546,20,strawberry,草莓,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-strawberry.ogg,https://commons.wikimedia.org/wiki/File:En-us-strawberry.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+547,20,pineapple,鳳梨,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-pineapple.ogg,https://commons.wikimedia.org/wiki/File:En-us-pineapple.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+548,20,pepper,辣椒,human-stream,UK,"Association Shtooka, Judith Franck",CC BY 3.0 us,En-uk-pepper.ogg,https://commons.wikimedia.org/wiki/File:En-uk-pepper.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+549,20,pear,梨,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-pear.ogg,https://commons.wikimedia.org/wiki/File:En-us-pear.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+550,20,peach,桃,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-peach.ogg,https://commons.wikimedia.org/wiki/File:En-us-peach.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+551,20,fruit,水果,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-fruit.ogg,https://commons.wikimedia.org/wiki/File:En-us-fruit.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+552,20,carrot,胡蘿蔔,human-stream,US,Dvortygirl (assumed by Commons),CC BY-SA 3.0,en-us-carrot.ogg,https://commons.wikimedia.org/wiki/File:En-us-carrot.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+553,20,carnation,康乃馨,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-carnation.ogg,https://commons.wikimedia.org/wiki/File:En-us-carnation.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+554,20,beef,牛肉,human-stream,UK,"Association Shtooka, Judith Franck",CC BY 3.0 us,En-uk-beef.ogg,https://commons.wikimedia.org/wiki/File:En-uk-beef.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+555,20,vegetable,蔬菜,human-stream,US,Dvortygirl (assumed by Commons),CC BY-SA 3.0,en-us-vegetable.ogg,https://commons.wikimedia.org/wiki/File:En-us-vegetable.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+556,20,sushi,壽司,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-sushi.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-sushi.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+557,20,steak,牛排,human-stream,US,Dvortygirl,Public domain,en-us-steak.ogg,https://commons.wikimedia.org/wiki/File:En-us-steak.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+558,20,soy,黃豆,human-stream,US,Unjourparfait,CC BY-SA 3.0,en-us-soy.ogg,https://commons.wikimedia.org/wiki/File:En-us-soy.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+559,20,shrimp,蝦,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-shrimp.ogg,https://commons.wikimedia.org/wiki/File:En-us-shrimp.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+560,20,sandwich,三明治,human-stream,US,Rappo (assumed by Commons),CC BY-SA 3.0,en-us-sandwich.ogg,https://commons.wikimedia.org/wiki/File:En-us-sandwich.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+561,20,corn,玉米,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-corn.ogg,https://commons.wikimedia.org/wiki/File:En-us-corn.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+562,21,salty,鹹的,human-stream,AU,Commander Keane,CC BY-SA 4.0,En-au-salty.ogg,https://commons.wikimedia.org/wiki/File:En-au-salty.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+563,21,roast,烤的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-roast.ogg,https://commons.wikimedia.org/wiki/File:En-us-roast.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+564,21,pudding,布丁,human-stream,AU,Commander Keane,CC BY-SA 4.0,en-au-pudding.ogg,https://commons.wikimedia.org/wiki/File:En-au-pudding.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+565,21,pork,豬肉,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-pork.ogg,https://commons.wikimedia.org/wiki/File:En-us-pork.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+566,21,ice cream,冰淇淋,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-ice cream.ogg,https://commons.wikimedia.org/wiki/File:En-us-ice_cream.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+567,21,hot pot,火鍋,human-stream,US,"Flame, not lame",CC0,"LL-Q1860 (eng)-Flame, not lame-hotpot.wav","https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Flame,_not_lame-hotpot.wav",homophone recording: hotpot,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+568,21,rice dumpling,粽子,none,,,,,,,,,2026-11-13T09:57:37Z
+569,21,sweet dumpling,湯圓,none,,,,,,,,,2026-11-13T09:57:37Z
+570,21,rice cake,年糕,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-rice cake.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-rice_cake.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+571,21,juice,果汁,human-stream,US,Dominic (assumed by Commons),Public domain,en-us-juice.ogg,https://commons.wikimedia.org/wiki/File:En-us-juice.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+572,21,ice,冰,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-ice.ogg,https://commons.wikimedia.org/wiki/File:En-us-ice.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+573,21,water,水,human-stream,US,Nail123Real,CC0,LL-Q1860 (eng)-Nail123Real-water.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Nail123Real-water.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+574,21,milk,牛奶,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-milk.ogg,https://commons.wikimedia.org/wiki/File:En-us-milk.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+575,21,soda,汽水,human-stream,US,Wodencafe,CC0,LL-Q1860 (eng)-Wodencafe-soda.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Wodencafe-soda.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+576,21,tea,茶,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-tea.ogg,https://commons.wikimedia.org/wiki/File:En-us-tea.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+577,21,coffee,咖啡,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-coffee.ogg,https://commons.wikimedia.org/wiki/File:En-us-coffee.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+578,21,dinner,晚餐,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-dinner.ogg,https://commons.wikimedia.org/wiki/File:En-us-dinner.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+579,21,lunch,午餐,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-lunch.ogg,https://commons.wikimedia.org/wiki/File:En-us-lunch.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+580,21,breakfast,早餐,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-breakfast.ogg,https://commons.wikimedia.org/wiki/File:En-us-breakfast.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+581,22,have,有,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-have.ogg,https://commons.wikimedia.org/wiki/File:En-us-have.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+582,22,do,做,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-do-verb.ogg,https://commons.wikimedia.org/wiki/File:En-us-do-verb.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+583,22,call,打電話,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-call.ogg,https://commons.wikimedia.org/wiki/File:En-us-call.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+584,22,are,是,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-are.ogg,https://commons.wikimedia.org/wiki/File:En-us-are.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+585,22,want,想要,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-want.ogg,https://commons.wikimedia.org/wiki/File:En-us-want.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+586,22,take,拿,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-take.ogg,https://commons.wikimedia.org/wiki/File:En-us-take.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+587,22,paint,畫,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-paint.ogg,https://commons.wikimedia.org/wiki/File:En-us-paint.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+588,22,make,做,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-make.ogg,https://commons.wikimedia.org/wiki/File:En-us-make.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+589,22,give,給,human-stream,US,not stated (see Commons page),Public domain,en-us-give.ogg,https://commons.wikimedia.org/wiki/File:En-us-give.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+590,22,decorate,裝飾,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-decorate.ogg,https://commons.wikimedia.org/wiki/File:En-us-decorate.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+591,22,works,工作,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-works.ogg,https://commons.wikimedia.org/wiki/File:En-us-works.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+592,22,study,學習,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-study.ogg,https://commons.wikimedia.org/wiki/File:En-us-study.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+593,22,start,開始,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-start.ogg,https://commons.wikimedia.org/wiki/File:En-us-start.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+594,22,sleep,睡覺,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-sleep.ogg,https://commons.wikimedia.org/wiki/File:En-us-sleep.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+595,22,sit,坐,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-sit.ogg,https://commons.wikimedia.org/wiki/File:En-us-sit.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+596,22,send,送,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-send.ogg,https://commons.wikimedia.org/wiki/File:En-us-send.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+597,22,say,說,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-say.ogg,https://commons.wikimedia.org/wiki/File:En-us-say.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+598,22,raise,舉,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-raise.ogg,https://commons.wikimedia.org/wiki/File:En-us-raise.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+599,22,please,請,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-please.ogg,https://commons.wikimedia.org/wiki/File:En-us-please.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+600,22,plan,計劃,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-plan.ogg,https://commons.wikimedia.org/wiki/File:En-us-plan.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+601,22,nap,小睡,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-knap.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-knap.wav,homophone recording: knap,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+602,22,mix,混合,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-mix.ogg,https://commons.wikimedia.org/wiki/File:En-us-mix.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+603,22,look,看,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-look.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-look.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+604,22,like,喜歡,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-like.ogg,https://commons.wikimedia.org/wiki/File:En-us-like.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+605,22,know,知道,human-stream,US,Dvortygirl,Public domain,en-us-know.ogg,https://commons.wikimedia.org/wiki/File:En-us-know.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+606,22,keep,保持,human-stream,US,Naomi Persephone Amethyst (recorded by NaomiAmethyst),CC BY-SA 4.0,LL-Q1860 (eng)-Naomi Persephone Amethyst (NaomiAmethyst)-keep.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Naomi_Persephone_Amethyst_(NaomiAmethyst)-keep.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+607,22,jump,跳,human-stream,US,Naomi Persephone Amethyst (recorded by NaomiAmethyst),CC BY-SA 4.0,LL-Q1860 (eng)-Naomi Persephone Amethyst (NaomiAmethyst)-jump.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Naomi_Persephone_Amethyst_(NaomiAmethyst)-jump.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+608,22,hunt,狩獵,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-hunt.ogg,https://commons.wikimedia.org/wiki/File:En-us-hunt.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+609,22,going,去,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-going.ogg,https://commons.wikimedia.org/wiki/File:En-us-going.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+610,22,feel,感覺,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-feel.ogg,https://commons.wikimedia.org/wiki/File:En-us-feel.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+611,23,dye,染,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-dye.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-dye.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+612,23,cry,哭,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-cry.ogg,https://commons.wikimedia.org/wiki/File:En-us-cry.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+613,23,buy,買,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-buy.ogg,https://commons.wikimedia.org/wiki/File:En-us-buy.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+614,23,borrow,借,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-borrow.ogg,https://commons.wikimedia.org/wiki/File:En-us-borrow.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+615,23,wear,穿,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-wear.ogg,https://commons.wikimedia.org/wiki/File:En-us-wear.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+616,23,turn,轉,human-stream,US,Naomi Persephone Amethyst (recorded by NaomiAmethyst),CC BY-SA 4.0,LL-Q1860 (eng)-Naomi Persephone Amethyst (NaomiAmethyst)-turn.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Naomi_Persephone_Amethyst_(NaomiAmethyst)-turn.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+617,23,throw,丟,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-throw.ogg,https://commons.wikimedia.org/wiki/File:En-us-throw.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+618,23,thought,想,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-thought.ogg,https://commons.wikimedia.org/wiki/File:En-us-thought.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+619,23,tell,告訴,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-tell.ogg,https://commons.wikimedia.org/wiki/File:En-us-tell.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+620,23,taste,嘗,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-taste.ogg,https://commons.wikimedia.org/wiki/File:En-us-taste.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+621,23,talk,說話,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-talk.ogg,https://commons.wikimedia.org/wiki/File:En-us-talk.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+622,23,stand,站,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-stand.ogg,https://commons.wikimedia.org/wiki/File:En-us-stand.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+623,23,spell,拼,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-spell.ogg,https://commons.wikimedia.org/wiki/File:En-us-spell.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+624,23,speak,說,human-stream,US,Dvortygirl,Public domain,en-us-speak.ogg,https://commons.wikimedia.org/wiki/File:En-us-speak.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+625,23,smell,聞,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-smell.ogg,https://commons.wikimedia.org/wiki/File:En-us-smell.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+626,23,show,展示,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-show.ogg,https://commons.wikimedia.org/wiki/File:En-us-show.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+627,23,sell,賣,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-sell.ogg,https://commons.wikimedia.org/wiki/File:En-us-sell.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+628,23,seek,尋找,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-seek.ogg,https://commons.wikimedia.org/wiki/File:En-us-seek.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+629,23,row,划船,human-stream,US,Dvortygirl (assumed by Commons),CC BY-SA 3.0,en-us-row.ogg,https://commons.wikimedia.org/wiki/File:En-us-row.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+630,24,not,不,human-stream,US,Dvortygirl (assumed by Commons),CC BY-SA 3.0,en-us-not.ogg,https://commons.wikimedia.org/wiki/File:En-us-not.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+631,24,true,真實的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-true.ogg,https://commons.wikimedia.org/wiki/File:En-us-true.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+632,24,no,不是,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-no.ogg,https://commons.wikimedia.org/wiki/File:En-us-no.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+633,24,up,向上,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-up.ogg,https://commons.wikimedia.org/wiki/File:En-us-up.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+634,24,too,太,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-too.ogg,https://commons.wikimedia.org/wiki/File:En-us-too.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+635,24,next,下一個,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-next.ogg,https://commons.wikimedia.org/wiki/File:En-us-next.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+636,24,much,多,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-much.ogg,https://commons.wikimedia.org/wiki/File:En-us-much.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+637,24,here,這裡,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-here.ogg,https://commons.wikimedia.org/wiki/File:En-us-here.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+638,24,weekly,每週,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-weekly.ogg,https://commons.wikimedia.org/wiki/File:En-us-weekly.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+639,24,usually,通常,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-usually.ogg,https://commons.wikimedia.org/wiki/File:En-us-usually.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+640,24,total,總共,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-total.ogg,https://commons.wikimedia.org/wiki/File:En-us-total.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+641,24,right,右邊,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-right.ogg,https://commons.wikimedia.org/wiki/File:En-us-right.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+642,24,okay,好的,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-okay.ogg,https://commons.wikimedia.org/wiki/File:En-us-okay.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+643,24,down,向下,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-down.ogg,https://commons.wikimedia.org/wiki/File:En-us-down.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+644,24,well,好的,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-well.ogg,https://commons.wikimedia.org/wiki/File:En-us-well.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+645,24,very,非常,human-stream,US,Dvortygirl,Public domain,en-us-very.ogg,https://commons.wikimedia.org/wiki/File:En-us-very.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+646,24,top,頂部,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-top.ogg,https://commons.wikimedia.org/wiki/File:En-us-top.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+647,24,together,一起,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-together.ogg,https://commons.wikimedia.org/wiki/File:En-us-together.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+648,24,there,那裡,human-stream,US,Dvortygirl (assumed by Commons),CC BY-SA 3.0,en-us-there.ogg,https://commons.wikimedia.org/wiki/File:En-us-there.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+649,24,then,然後,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-then.ogg,https://commons.wikimedia.org/wiki/File:En-us-then.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+650,24,sure,確定,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-sure.ogg,https://commons.wikimedia.org/wiki/File:En-us-sure.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+651,24,sorry,抱歉,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-sorry.ogg,https://commons.wikimedia.org/wiki/File:En-us-sorry.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+652,24,soon,很快,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-soon.ogg,https://commons.wikimedia.org/wiki/File:En-us-soon.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+653,24,sometimes,有時候,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-sometimes.ogg,https://commons.wikimedia.org/wiki/File:En-us-sometimes.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+654,24,quite,相當,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-quite.ogg,https://commons.wikimedia.org/wiki/File:En-us-quite.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+655,24,now,現在,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-now.ogg,https://commons.wikimedia.org/wiki/File:En-us-now.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+656,24,maybe,也許,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-maybe.ogg,https://commons.wikimedia.org/wiki/File:En-us-maybe.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+657,24,only,只有,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-only.ogg,https://commons.wikimedia.org/wiki/File:En-us-only.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+658,24,every day,每天,human-stream,unknown,SchwaSoup,CC0,LL-Q1860 (eng)-SchwaSoup-every day.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-SchwaSoup-every_day.wav,found on Commons by search,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+659,24,at home,在家,human-stream,AU,Commander Keane,CC BY-SA 4.0,en-au-at home.ogg,https://commons.wikimedia.org/wiki/File:En-au-at_home.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+660,24,again,再次,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-again.ogg,https://commons.wikimedia.org/wiki/File:En-us-again.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+661,24,am,是,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-am.ogg,https://commons.wikimedia.org/wiki/File:En-us-am.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+662,25,what,什麼,human-stream,US,Inqvisitor,CC BY-SA 4.0,En-NYC-what.ogg,https://commons.wikimedia.org/wiki/File:En-NYC-what.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+663,25,who,誰,human-stream,US,Dvortygirl,CC BY-SA 3.0,En-us-who.ogg,https://commons.wikimedia.org/wiki/File:En-us-who.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+664,25,where,哪裡,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-where.ogg,https://commons.wikimedia.org/wiki/File:En-us-where.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+665,25,how,如何,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-how.ogg,https://commons.wikimedia.org/wiki/File:En-us-how.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+666,25,why,為什麼,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-why.ogg,https://commons.wikimedia.org/wiki/File:En-us-why.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+667,25,which,哪一個,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-which.ogg,https://commons.wikimedia.org/wiki/File:En-us-which.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+668,25,when,何時,human-stream,US,Dvortygirl,CC BY-SA 3.0,en-us-when.ogg,https://commons.wikimedia.org/wiki/File:En-us-when.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+669,25,Stand up.,站起來,human-stream,AU,Commander Keane,CC BY-SA 4.0,en-au-stand up.ogg,https://commons.wikimedia.org/wiki/File:En-au-stand_up.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+670,25,Sit down.,坐下,human-stream,UK,Vealhurl,CC BY-SA 4.0,LL-Q1860 (eng)-Vealhurl-sit down.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Vealhurl-sit_down.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+671,25,Raise your hand.,舉手,none,,,,,,,,,2026-11-13T09:57:37Z
+672,25,Listen carefully.,仔細聽,none,,,,,,,,,2026-11-13T09:57:37Z
+673,25,Line up.,排隊,human-stream,CA,Tawker (assumed by Commons),CC BY-SA 3.0,En-ca-lineup.ogg,https://commons.wikimedia.org/wiki/File:En-ca-lineup.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+674,25,Look at the board.,看黑板,none,,,,,,,,,2026-11-13T09:57:37Z
+675,25,Open your book.,打開書,none,,,,,,,,,2026-11-13T09:57:37Z
+676,25,Close your book.,合上書,none,,,,,,,,,2026-11-13T09:57:37Z
+677,25,Be quiet.,安靜,none,,,,,,,,,2026-11-13T09:57:37Z
+678,25,Come here.,過來,none,,,,,,,,,2026-11-13T09:57:37Z
+679,25,Today is...,今天是...,none,,,,,,,,,2026-11-13T09:57:37Z
+680,25,Clap your hands.,拍手,none,,,,,,,,,2026-11-13T09:57:37Z
+681,25,Color the picture.,塗顏色,none,,,,,,,,,2026-11-13T09:57:37Z
+682,25,Write your name.,寫下你的名字,none,,,,,,,,,2026-11-13T09:57:37Z
+683,25,Good morning!,早安,human-stream,US,Dvortygirl (assumed by Commons),CC BY-SA 3.0,En-us-good morning.ogg,https://commons.wikimedia.org/wiki/File:En-us-good_morning.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+684,25,Good night!,晚安,human-stream,US,Dvortygirl,Public domain,en-us-good night.ogg,https://commons.wikimedia.org/wiki/File:En-us-good_night.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+685,25,What time is it?,幾點了？,human-stream,US,Sapaa,CC0,LL-Q1860 (eng)-Sapaa-what time is it.wav,https://commons.wikimedia.org/wiki/File:LL-Q1860_(eng)-Sapaa-what_time_is_it.wav,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+686,25,Open the door.,打開門,none,,,,,,,,,2026-11-13T09:57:37Z
+687,25,Close the door.,關上門,none,,,,,,,,,2026-11-13T09:57:37Z
+688,25,Draw a picture.,畫一幅畫,none,,,,,,,,,2026-11-13T09:57:37Z
+689,25,Who wants...?,誰想要...?,none,,,,,,,,,2026-11-13T09:57:37Z
+690,25,Put it away.,收好,none,,,,,,,,,2026-11-13T09:57:37Z
+691,25,Wash your hands.,洗手,none,,,,,,,,,2026-11-13T09:57:37Z
+692,25,Read a book.,讀書,none,,,,,,,,,2026-11-13T09:57:37Z
+693,25,Good job!,做得好！,human-stream,AU,Commander Keane,CC BY-SA 4.0,en-au-good job.ogg,https://commons.wikimedia.org/wiki/File:En-au-good_job.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+694,25,Turn on the light.,開燈,none,,,,,,,,,2026-11-13T09:57:37Z
+695,25,Turn off the light.,關燈,none,,,,,,,,,2026-11-13T09:57:37Z
+696,25,Try again.,再試一次,none,,,,,,,,,2026-11-13T09:57:37Z
+697,25,Say cheese!,說「茄子」,human-stream,AU,Commander Keane,CC BY-SA 4.0,En-au-say cheese.ogg,https://commons.wikimedia.org/wiki/File:En-au-say_cheese.ogg,,2026-11-09T16:55:28Z,,2026-11-13T09:57:37Z
+698,25,Wear your glasses.,戴上眼鏡,none,,,,,,,,,2026-11-13T09:57:37Z
+699,25,Look at the rainbow.,看彩虹,none,,,,,,,,,2026-11-13T09:57:37Z
+700,25,Draw a sun.,畫一個太陽,none,,,,,,,,,2026-11-13T09:57:37Z
