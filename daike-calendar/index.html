@@ -2698,7 +2698,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.16b";
+const APP_VERSION = "專業版 2026.11.16c";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -4104,6 +4104,7 @@ const CMD_ACTIONS = () => [
   {ic:"⟳", t:"重新整理資料", d:"重新讀取雲端資料表", kw:"重新整理 更新 同步", run:() => $("#reload").click()},
   {ic:"印", t:"列印年曆", d:"", kw:"列印 印", run:() => $("#printCal").click()},
   {ic:"今", t:"今天的 LINE 調代課提醒", d:"今天的調代課做成圖片＋文字", kw:"今天 LINE 提醒 圖卡 圖片", run:() => openCard("day", ymd(new Date()))},
+  {ic:"公", t:"全校週曆公告（週五發 LINE）", d:"下週誰請假、誰代課，做成週曆圖＋各老師一覽", k:"F", kw:"週曆 公告 下週 全校 LINE 週五 請假", run:() => openCalCard()},
   {ic:"週", t:"本週調代課圖卡", d:"一週的調代課做成圖片或文字，傳 LINE", k:"W", kw:"本週 一週 圖卡 圖片 公告 LINE 提醒", run:() => openWeekCard()},
   {ic:"?", t:"使用說明與快捷鍵", d:"常用流程、所有快捷鍵", k:"?", kw:"說明 幫助 help 快捷鍵 教學", run:() => helpOpen()},
   {ic:"⇩", t:"安裝成 App", d:installEvt ? "放到桌面／主畫面，像一般軟體一樣開" : "用瀏覽器選單的「安裝」或手機的「加入主畫面」", kw:"安裝 app 桌面 主畫面 捷徑", run:() => installApp()}
@@ -4128,11 +4129,12 @@ function weekDays(anchor){
 function weekData(anchor){
   const days = weekDays(anchor), roc = s => { const t = new Date(s + "T00:00:00"); return `${t.getFullYear()-1911}年${t.getMonth()+1}月${t.getDate()}日`; };
   const list = days.map(d => ({ d, items: remindItems(d), off: (state.off || {})[d] }));
-  const text = `【本週調代課提醒】${roc(days[0])}～${(+days[4].slice(5,7))}月${+days[4].slice(8)}日\n`
+  const nxt = days[0] > ymd(new Date()), lab = nxt ? "下週" : "本週";
+  const text = `【${lab}調代課公告】${roc(days[0])}～${(+days[4].slice(5,7))}月${+days[4].slice(8)}日\n`
     + list.map(x => `\n${md(x.d)}` + (x.off ? `　${offLabel(x.off)}` : "") + "\n" + (x.items.length ? x.items.map((it, i) => `${i+1}. ${it.line}`).join("\n") : "（無）")).join("\n")
-    + `\n\n請相關老師留意，謝謝。\n教務組 敬啟`;
+    + `\n\n請相關老師留意，謝謝。\n如有需要修正，請私訊 LINE 聯繫教務組。\n教務組 敬啟`;
   const d0 = new Date(days[0] + "T00:00:00"), d4 = new Date(days[4] + "T00:00:00");
-  return { days, list, text, n: list.reduce((a, x) => a + x.items.length, 0), title: "本週調代課提醒",
+  return { days, list, text, n: list.reduce((a, x) => a + x.items.length, 0), title: lab + "調代課提醒", lab,
     sub: `${d0.getFullYear()-1911} 年 ${d0.getMonth()+1}/${d0.getDate()}（一）～ ${d4.getMonth()+1}/${d4.getDate()}（五）` };
 }
 /* 單日（每天的 LINE 調代課提醒）：和本週圖卡同一個樣式，文字和原本的公版提醒一樣 */
@@ -4173,14 +4175,97 @@ function weekCanvas(W){
   g.textAlign = "right"; g.font = `800 30px ${FF}`; g.fillText("教務組 敬啟", w - pad, y + 108); g.textAlign = "left";
   return c;
 }
+
+/* ---------- 全校週曆公告圖（11/16 管理者要求）：週五下班前發 LINE，一眼看出下週誰請假、自己哪一節要上什麼 ----------
+ * 上半：週一～週五五欄的週曆（每張卡＝節次＋班級＋科目、誰請假、誰代課／調課；代課綠、調課藍、導師橘，卡片上也寫字不只靠顏色）；
+ * 下半：「找自己的名字」各老師一覽；最下面提醒有問題或要修正請私訊 LINE 聯繫教務組。 */
+const CAL_C = {"代課":["#1F7A52","#E6F4EC"], "調課":["#2A58A6","#E7EEFA"], "導師":["#8A5A00","#FFF0D2"]};
+function calCanvas(W){
+  const FF = '"PingFang TC","Microsoft JhengHei","Noto Sans CJK TC","Noto Sans TC",sans-serif', S = 2, w = 1600, m = 48, gap = 14, colW = (w - m * 2 - gap * 4) / 5, tw = colW - 28;
+  const c = document.createElement("canvas"), g = c.getContext("2d");
+  const wrap = (txt, font, maxW) => { g.font = font; const out = []; let line = ""; for(const ch of String(txt)){ if(g.measureText(line + ch).width > maxW && line){ out.push(line); line = ch; } else line += ch; } if(line) out.push(line); return out; };
+  const F1 = `800 30px ${FF}`, F2 = `500 25px ${FF}`, F3 = `800 27px ${FF}`, F4 = `500 23px ${FF}`;
+  // 每欄：每張卡先排版
+  const cols = W.list.map(x => {
+    const cards = x.items.filter(it => it.card).map(it => { const k = it.card;
+      const L = [[wrap(k.t, F1, tw), F1, "#2B1722"], [k.a ? wrap(k.a, F2, tw) : [], F2, "#6B4656"], [wrap(k.b, F3, tw), F3, CAL_C[k.kind][0]], [k.c ? wrap(k.c, F4, tw) : [], F4, "#6B4656"]];
+      const lines = L.reduce((a, r) => a + r[0].length, 0);
+      return { k, L, h: 22 + 44 + L[0][0].length * 36 + (L[1][0].length ? L[1][0].length * 32 : 0) + L[2][0].length * 36 + (L[3][0].length ? L[3][0].length * 30 + 4 : 0) + 18, lines };
+    });
+    return { x, cards };
+  });
+  const colH = cols.map(cl => 86 + (cl.cards.length ? cl.cards.reduce((a, k) => a + k.h + 12, 0) : 70));
+  const calH = Math.max(...colH, 190);
+  // 各老師一覽
+  const ppl = {};
+  W.list.forEach(x => x.items.forEach(it => Object.keys(it.sh || {}).forEach(n => { if(!n || n === "（未填）") return; (ppl[n] = ppl[n] || []).push({d: x.d, p: it.p, ...it.sh[n]}); })));
+  const names = Object.keys(ppl).sort((a, b) => a.localeCompare(b, "zh-Hant")), nc = 2, pw = (w - m * 2 - gap) / nc;
+  const rows = names.map(n => { const lines = [];
+    ppl[n].sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : a.p - b.p).forEach(r => { const t = new Date(r.d + "T00:00:00"); g.font = `800 22px ${FF}`; const rw = g.measureText(r.role).width + 22; wrap(`${t.getMonth()+1}/${t.getDate()}（${DOW[t.getDay()]}）${r.t}`, `500 24px ${FF}`, pw - 190 - rw - 8).forEach((l, i) => lines.push({l, first: i === 0, role: r.role, rw})); });
+    return { n, lines, h: Math.max(64, 22 + lines.length * 33 + 12) }; });
+  const rowYs = []; let la = 0, lb = 0; rows.forEach(r => { if(la <= lb){ rowYs.push([0, la]); la += r.h + 10; } else { rowYs.push([1, lb]); lb += r.h + 10; } });
+  const listH = names.length ? Math.max(la, lb) : 70;
+  const H = 210 + calH + 40 + 70 + listH + 40 + 190;
+  c.width = w * S; c.height = H * S; g.scale(S, S);
+  g.fillStyle = "#FFFFFF"; g.fillRect(0, 0, w, H);
+  const grd = g.createLinearGradient(0, 0, w, 0); grd.addColorStop(0, "#B8336A"); grd.addColorStop(1, "#7A2147");
+  g.fillStyle = grd; g.fillRect(0, 0, w, 178);
+  g.textBaseline = "alphabetic"; g.fillStyle = "#FFFFFF"; g.font = `800 58px ${FF}`; g.fillText(`${W.lab}調代課週曆`, m, 84);
+  g.font = `600 32px ${FF}`; g.fillStyle = "#FFE3EE"; g.fillText(`${W.sub}　全校公告・請找自己的名字`, m, 134);
+  // 圖例
+  let lx = w - m; g.textAlign = "right"; ["導師","調課","代課"].forEach(k => { g.font = `700 26px ${FF}`; const tw2 = g.measureText(k).width; g.fillStyle = "#FFFFFF"; g.beginPath(); g.roundRect(lx - tw2 - 34, 62, tw2 + 34, 44, 22); g.fill(); g.fillStyle = CAL_C[k][0]; g.fillText(k, lx - 17, 94); lx -= tw2 + 34 + 12; });
+  g.textAlign = "left";
+  // 週曆
+  const y0 = 210;
+  cols.forEach((cl, i) => {
+    const x0 = m + i * (colW + gap), t = new Date(cl.x.d + "T00:00:00"), off = cl.x.off;
+    g.fillStyle = "#7A2147"; g.beginPath(); g.roundRect(x0, y0, colW, 70, 14); g.fill();
+    g.fillStyle = "#FFFFFF"; g.font = `800 34px ${FF}`; g.fillText(`週${DOW[t.getDay()]}　${t.getMonth()+1}/${t.getDate()}`, x0 + 16, y0 + 33);
+    g.font = `600 22px ${FF}`; g.fillStyle = "#FFE3EE"; g.fillText(off ? offLabel(off) : cl.cards.length ? `${cl.cards.length} 項調代課` : "沒有調代課", x0 + 16, y0 + 60);
+    g.fillStyle = "#FBF3F6"; g.beginPath(); g.roundRect(x0, y0 + 78, colW, calH - 78, 14); g.fill();
+    let y = y0 + 90;
+    if(!cl.cards.length){ g.fillStyle = "#8F6878"; g.font = `600 26px ${FF}`; g.fillText(off ? "不上課" : "（無）", x0 + 16, y + 40); return; }
+    cl.cards.forEach(cd => {
+      const [fg, bg] = CAL_C[cd.k.kind];
+      g.fillStyle = bg; g.beginPath(); g.roundRect(x0 + 8, y, colW - 16, cd.h, 12); g.fill();
+      g.fillStyle = fg; g.beginPath(); g.roundRect(x0 + 8, y, 7, cd.h, 4); g.fill();
+      g.font = `800 22px ${FF}`; const kw = g.measureText(cd.k.kind).width + 20; g.beginPath(); g.roundRect(x0 + colW - 16 - kw, y + 12, kw, 34, 17); g.fill(); g.fillStyle = "#FFFFFF"; g.fillText(cd.k.kind, x0 + colW - 16 - kw + 10, y + 36);
+      g.font = `800 32px ${FF}`; g.fillStyle = fg; g.fillText(cd.k.ph || "", x0 + 24, y + 42);
+      let yy = y + 84;
+      cd.L.forEach(([ls, font, col], ri) => ls.forEach(l => { g.font = font; g.fillStyle = col; g.fillText(l, x0 + 24, yy); yy += ri === 0 ? 36 : ri === 2 ? 36 : ri === 3 ? 30 : 32; }));
+      y += cd.h + 12;
+    });
+  });
+  // 各老師一覽
+  let y = y0 + calH + 40;
+  g.fillStyle = "#3B1E2B"; g.font = `800 38px ${FF}`; g.fillText("找自己的名字：各老師下週課務", m, y + 30);
+  y += 54;
+  if(!names.length){ g.fillStyle = "#8F6878"; g.font = `600 28px ${FF}`; g.fillText(`${W.lab}沒有調代課。`, m, y + 36); }
+  rows.forEach((r, i) => { const [col, oy] = rowYs[i], x0 = m + col * (pw + gap), yy0 = y + oy;
+    g.fillStyle = "#FBF3F6"; g.beginPath(); g.roundRect(x0, yy0, pw, r.h, 12); g.fill();
+    g.fillStyle = "#7A2147"; g.font = `800 30px ${FF}`; g.fillText(r.n, x0 + 16, yy0 + 40); g.font = `600 20px ${FF}`; g.fillText("老師", x0 + 16, yy0 + 62);
+    let ly = yy0 + 34; r.lines.forEach(L => { const rc = /代/.test(L.role) && !/課被代/.test(L.role) ? "#1F7A52" : /調/.test(L.role) ? "#2A58A6" : "#8F2F58";
+      if(L.first){ g.fillStyle = rc; g.beginPath(); g.roundRect(x0 + 150, ly - 24, L.rw, 32, 16); g.fill(); g.fillStyle = "#FFFFFF"; g.font = `800 22px ${FF}`; g.fillText(L.role, x0 + 161, ly - 1); }
+      g.font = `500 24px ${FF}`; g.fillStyle = "#3B1E2B"; g.fillText(L.l, x0 + 150 + L.rw + 8, ly); ly += 33; });
+  });
+  y += listH + 36;
+  // 提醒
+  g.fillStyle = "#FFF0D2"; g.beginPath(); g.roundRect(m, y, w - m * 2, 116, 16); g.fill();
+  g.fillStyle = "#6B4300"; g.font = `800 36px ${FF}`; g.fillText("如有需要修正、或有任何問題，請私訊 LINE 聯繫教務組", m + 28, y + 52);
+  g.font = `500 27px ${FF}`; g.fillText("請相關老師留意自己的課，謝謝。", m + 28, y + 94);
+  g.textAlign = "right"; g.fillStyle = "#3B1E2B"; g.font = `800 30px ${FF}`; g.fillText("教務組 敬啟", w - m, y + 164); g.textAlign = "left";
+  return c;
+}
 let cardMode = "week";
 function openWeekCard(anchor){ openCard("week", anchor); }
+function nextMonday(){ const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate() + ((8 - d.getDay()) % 7 || 7)); return ymd(d); }
+function openCalCard(anchor){ openCard("cal", anchor || nextMonday()); }
 function openCard(mode, anchor){
   if(!isAll()){ toast("請先切回「全校總覽」再做調代課圖卡"); return; }
-  cardMode = mode === "day" ? "day" : "week";
+  cardMode = mode === "day" ? "day" : mode === "cal" ? "cal" : "week";
   weekAnchor = anchor || state.selected || ymd(new Date());
-  const W = cardMode === "day" ? dayData(weekAnchor) : weekData(weekAnchor), c = weekCanvas(W);
-  $("#weekTitle").textContent = cardMode === "day" ? "LINE 調代課提醒（圖片＋文字）" : "本週調代課圖卡（圖片＋文字）";
+  const W = cardMode === "day" ? dayData(weekAnchor) : weekData(weekAnchor), c = cardMode === "cal" ? calCanvas(W) : weekCanvas(W);
+  $("#weekTitle").textContent = cardMode === "day" ? "LINE 調代課提醒（圖片＋文字）" : cardMode === "cal" ? "全校週曆公告（週五發 LINE：圖片＋文字）" : "本週調代課圖卡（圖片＋文字）";
   $("#weekPrev").textContent = cardMode === "day" ? "‹ 前一天" : "‹ 上一週"; $("#weekNext").textContent = cardMode === "day" ? "後一天 ›" : "下一週 ›";
   $("#weekRange").textContent = cardMode === "day" ? md(W.days[0]) : `${md(W.days[0])}～${md(W.days[4])}`;
   $("#weekSub").textContent = W.n ? `${cardMode === "day" ? "這一天" : "這一週"}共 ${W.n} 項調代課。圖片和文字都可以傳：文字可以先改再複製；圖片照系統資料產生。` : `${cardMode === "day" ? "這一天" : "這一週"}沒有調代課。`;
@@ -4202,11 +4287,11 @@ $("#weekEach").addEventListener("click", async e => {
 $("#weekModal").addEventListener("keydown", e => { if(e.key === "Escape") $("#weekModal").hidden = true; });
 $("#weekModal").addEventListener("click", e => { if(e.target.id === "weekModal") $("#weekModal").hidden = true; });
 const nextSchoolDay = (s, dir) => { const d = new Date(s + "T00:00:00"); do{ d.setDate(d.getDate() + dir); }while(d.getDay() === 0 || d.getDay() === 6); return ymd(d); };
-$("#weekPrev").onclick = () => { if(cardMode === "day"){ openCard("day", nextSchoolDay(weekAnchor, -1)); return; } const d = new Date(weekDays(weekAnchor)[0] + "T00:00:00"); d.setDate(d.getDate() - 7); openCard("week", ymd(d)); };
-$("#weekNext").onclick = () => { if(cardMode === "day"){ openCard("day", nextSchoolDay(weekAnchor, 1)); return; } const d = new Date(weekDays(weekAnchor)[0] + "T00:00:00"); d.setDate(d.getDate() + 7); openCard("week", ymd(d)); };
+$("#weekPrev").onclick = () => { if(cardMode === "day"){ openCard("day", nextSchoolDay(weekAnchor, -1)); return; } const d = new Date(weekDays(weekAnchor)[0] + "T00:00:00"); d.setDate(d.getDate() - 7); openCard(cardMode, ymd(d)); };
+$("#weekNext").onclick = () => { if(cardMode === "day"){ openCard("day", nextSchoolDay(weekAnchor, 1)); return; } const d = new Date(weekDays(weekAnchor)[0] + "T00:00:00"); d.setDate(d.getDate() + 7); openCard(cardMode, ymd(d)); };
 $("#weekLineText").onclick = () => window.open("https://line.me/R/share?text=" + encodeURIComponent($("#weekText").value), "_blank", "noopener");
 $("#weekCopyText").onclick = async () => { const ok = await copyText($("#weekText").value); toast(ok ? "已複製，貼到 LINE 就可以傳" : "請按 Ctrl＋C 複製"); };
-const weekFile = () => cardMode === "day" ? `調代課提醒_${weekAnchor.replace(/-/g, "")}.png` : `本週調代課_${weekDays(weekAnchor)[0].replace(/-/g, "")}.png`;
+const weekFile = () => cardMode === "cal" ? `調代課週曆_${weekDays(weekAnchor)[0].replace(/-/g, "")}.png` : cardMode === "day" ? `調代課提醒_${weekAnchor.replace(/-/g, "")}.png` : `本週調代課_${weekDays(weekAnchor)[0].replace(/-/g, "")}.png`;
 $("#weekDl").onclick = () => { const a = document.createElement("a"); a.href = $("#weekImg").src; a.download = weekFile(); document.body.appendChild(a); a.click(); a.remove(); };
 $("#weekShare").onclick = async () => {
   try{
@@ -5502,7 +5587,7 @@ function renderBoard(){
   $("#todayLine").innerHTML = `今天 ${esc(md(today))}` + (off ? `・<b>${esc(off.name)}${off.kind==="颱風假"?"，停止上課":"，放假"}</b>` : "")
     + (todays.length ? `・今天有 ${todays.length} 筆紀錄` : (me ? "・今天沒有代課紀錄" : "・今天沒有代課紀錄"))
     + (state.role==="admin" && !me && remindItems(today).length ? `<button type="button" class="btn small rem-btn" onclick="openRemind('${today}')">LINE 調代課提醒</button>` : "")
-    + (state.role==="admin" && !me ? `<button type="button" class="btn ghost small rem-btn" onclick="openWeekCard()">本週圖卡</button>` : "");
+    + (state.role==="admin" && !me ? `<button type="button" class="btn ghost small rem-btn" onclick="openWeekCard()">本週圖卡</button><button type="button" class="btn small rem-btn" onclick="openCalCard()">週五公告：下週週曆</button>` : "");
   let up = state.events.filter(e => e.date >= today && describe(e)), cap = "接下來的紀錄";
   if(!up.length){ up = state.events.filter(e => describe(e)).slice(-4).reverse(); cap = "最近的紀錄"; }
   up = up.slice(0, me ? 4 : 5);
@@ -5638,22 +5723,25 @@ function remindItems(d){
       const k = ["sl", e.id || "", leaver, e.period, e.cls].join("|"); if(seen.has(k)) return; seen.add(k);
       if(!sub) return;                                            // 還沒安排代課的不寫
       // 11/16：寫清楚原本是誰的什麼課（例：第6節 四甲 綜合：原本是林老師的課，由王老師代課）
-      const hd = `${p} ${[e.cls, e.subject].filter(Boolean).join(" ")}`, per = {};
+      const hd = `${p} ${[e.cls, e.subject].filter(Boolean).join(" ")}`, per = {}, sh = {};
       per[sub] = `${hd}：請您代課${leaver ? `（原本是${leaver}老師的課）` : ""}`;
       if(leaver) per[leaver] = `${hd}：您的課由${sub}老師代課`;
-      out.push({p:+e.period||0, line:`${hd}：${leaver ? `原本是${leaver}老師的課，` : ""}由${sub}老師代課`, per});
+      sh[sub] = {role:"代課", t:hd}; if(leaver) sh[leaver] = {role:"請假", t:`${hd}　→${sub}老師代`};
+      out.push({p:+e.period||0, line:`${hd}：${leaver ? `原本是${leaver}老師的課，` : ""}由${sub}老師代課`, per, sh, card:{kind:"代課", ph:p, t:[e.cls, e.subject].filter(Boolean).join(" "), a:leaver ? `${leaver} 老師請假` : "", b:`${sub} 老師代課`}});
     } else if(e.type === "tutor" || e.type === "tutorLeave"){
       const sub = e.type === "tutor" ? e.who : e.other, leaver = e.type === "tutor" ? e.other : e.who;
       const k = ["tu", leaver, e.date].join("|"); if(seen.has(k) || !sub) return; seen.add(k);
-      const per = {}; per[sub] = `${e.cls}導師：請您代理${leaver ? `（原導師${leaver}老師）` : ""}`; if(leaver) per[leaver] = `${e.cls}導師：由${sub}老師代理`;
-      out.push({p:0, line:`${e.cls}導師：${leaver ? `原導師${leaver}老師，` : ""}由${sub}老師代理`, per});
+      const per = {}, sh = {}; per[sub] = `${e.cls}導師：請您代理${leaver ? `（原導師${leaver}老師）` : ""}`; if(leaver) per[leaver] = `${e.cls}導師：由${sub}老師代理`;
+      sh[sub] = {role:"代導師", t:`${e.cls}導師`}; if(leaver) sh[leaver] = {role:"請假", t:`${e.cls}導師　→${sub}老師代`};
+      out.push({p:0, line:`${e.cls}導師：${leaver ? `原導師${leaver}老師，` : ""}由${sub}老師代理`, per, sh, card:{kind:"導師", ph:"導師", t:`${e.cls}`, a:leaver ? `${leaver} 老師請假` : "", b:`${sub} 老師代理`}});
     } else if(e.type === "swap" && e.dir){
       const k = ["sw", e.id || "", e.date, e.period, e.cls].join("|"); if(seen.has(k)) return; seen.add(k);
-      const per = {}, T = e.teacher || "", P = e.partner || "";
+      const per = {}, sh = {}, T = e.teacher || "", P = e.partner || "";
       if(!e.toDate){                                               // 調課單上寫的是代課（沒有調整後的時間）
         const hd = `${p} ${[e.cls, e.fromSubject].filter(Boolean).join(" ")}`;
         if(P) per[P] = `${hd}：請您代課（原本是${nm(T)}老師的課；調課單）`; if(T) per[T] = `${hd}：您的課由${nm(P)}老師代課（調課單）`;
-        out.push({p:+e.period||0, line:`${hd}：原本是${nm(T)}老師的課，由${nm(P)}老師代課（調課單）`, per});
+        if(P) sh[P] = {role:"代課", t:hd}; if(T) sh[T] = {role:"課被代", t:`${hd}　→${nm(P)}老師代`};
+        out.push({p:+e.period||0, line:`${hd}：原本是${nm(T)}老師的課，由${nm(P)}老師代課（調課單）`, per, sh, card:{kind:"代課", ph:p, t:[e.cls, e.fromSubject].filter(Boolean).join(" "), a:`${nm(T)} 老師的課`, b:`${nm(P)} 老師代課`}});
         return;
       }
       // 11/16：寫清楚這節原本是誰的什麼課、改成誰上什麼、原本那堂課移到哪一天
@@ -5666,7 +5754,10 @@ function remindItems(d){
         if(X) per[X] = `${p} ${e.cls}：請您上${xs}（原本是${nm(Y)}老師的${ys}；和${nm(Y)}老師調課）`;
         if(Y) per[Y] = `${p} ${e.cls}：您的${ys}改由${nm(X)}老師上${xs}（調課；您的${moved}）`;
       }
-      out.push({p:+e.period||0, line: X === Y
+      const hd2 = `${p} ${e.cls}`;
+      if(X === Y){ if(X) sh[X] = {role:"調課", t:`${hd2} 改上${xs}（${ys}移到 ${md(dD)} 第${dP}節）`}; }
+      else { if(X) sh[X] = {role:"調課上課", t:`${hd2} ${xs}（和${nm(Y)}老師調課）`}; if(Y) sh[Y] = {role:"調課", t:`${hd2} ${ys}改由${nm(X)}老師上，您的課移到 ${md(dD)} 第${dP}節`}; }
+      out.push({p:+e.period||0, sh, card:{kind:"調課", ph:p, t:`${e.cls} ${xs}`, a:X === Y ? `原本是${ys}` : `原：${nm(Y)} 老師的${ys}`, b:X === Y ? `${nm(X)} 老師改上${xs}` : `${nm(X)} 老師上${xs}`, c:`${ys}移到 ${md(dD)} 第${dP}節`}, line: X === Y
         ? `${p} ${e.cls}：原本是${nm(Y)}老師的${ys}，改上${xs}（調課；${moved}）`
         : `${p} ${e.cls}：原本是${nm(Y)}老師的${ys}，改由${nm(X)}老師上${xs}（調課；${nm(Y)}老師的${moved}）`, per});
     }
@@ -5686,13 +5777,13 @@ function remindEach(days){
     const ds = Object.keys(by[n]).sort(), total = ds.reduce((a, d) => a + by[n][d].length, 0);
     const body = one ? by[n][ds[0]].map((l, i) => `${i+1}. ${l}`).join("\n")
       : ds.map(d => `${md(d)}\n` + by[n][d].map((l, i) => `${i+1}. ${l}`).join("\n")).join("\n");
-    return { name: n, n: total, text: `${head}\n${n}老師您好，${one ? "這一天" : "本週"}您有 ${total} 項調代課：\n${body}\n請留意，謝謝。\n教務組 敬啟` };
+    return { name: n, n: total, text: `${head}\n${n}老師您好，${one ? "這一天" : "本週"}您有 ${total} 項調代課：\n${body}\n請留意，謝謝。\n如有需要修正，請私訊 LINE 聯繫教務組。\n教務組 敬啟` };
   });
 }
 function remindText(d){
   const items = remindItems(d); if(!items.length) return "";
   const t = new Date(d+"T00:00:00"), day = `${t.getFullYear()-1911}年${t.getMonth()+1}月${t.getDate()}日（星期${DOW[t.getDay()]}）`;
-  return `【調代課提醒】${day}\n${items.map((it, i) => `${i+1}. ${it.line}`).join("\n")}\n請相關老師留意，謝謝。\n教務組 敬啟`;
+  return `【調代課提醒】${day}\n${items.map((it, i) => `${i+1}. ${it.line}`).join("\n")}\n請相關老師留意，謝謝。\n如有需要修正，請私訊 LINE 聯繫教務組。\n教務組 敬啟`;
 }
 function openRemind(d){
   if(!remindItems(d).length){ toast(`${md(d)} 沒有要提醒的調代課`); return; }
