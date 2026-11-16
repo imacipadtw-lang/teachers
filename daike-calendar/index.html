@@ -1539,6 +1539,7 @@ html[data-theme=dark] .wb-todo li.ok{background:rgba(79,209,161,.10)}
 }
 @media screen{ .dash-zero{display:grid;place-items:center;aspect-ratio:300/120;border:1px dashed var(--line);border-radius:10px;color:var(--ink-3);font-size:13px} }
 @media screen{ .alerts li .al-acts{grid-column:2;display:flex;gap:6px;flex-wrap:wrap} }
+@media screen{ .al-exp{grid-column:2;margin-top:6px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface)} .al-exp .al-lab{display:block;font-size:13px;font-weight:700;margin-bottom:6px} .al-exp textarea{width:100%;box-sizing:border-box;min-height:56px;font:inherit;font-size:14px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);resize:vertical} .al-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px} .al-why{font-size:12px;color:var(--ink-2);margin-left:2px} .al-plan{margin-top:8px;padding:8px 10px;border-radius:10px;background:var(--surface-2);font-size:14px;line-height:1.6} .al-err{margin:8px 0 0;font-size:13px;color:var(--rose)} .al-btns{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap} .al-acked{margin-top:10px;font-size:13px} .al-acked summary{cursor:pointer;color:var(--ink-2)} .al-acked ul{margin:6px 0 0;padding:0;list-style:none} .al-acked li{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:6px 0;border-top:1px dashed var(--line)} }
 @media screen and (max-width:480px){ #subNav{position:static} }   /* 小手機：書籤列不黏在上面，多出閱讀空間 */
 @media screen{ .m-who{margin:8px 0 0;font-size:13px;color:var(--ink-2);line-height:1.7} .m-who b{color:var(--ink)} }
 @media print{ .m-who{display:none} }
@@ -2195,7 +2196,7 @@ var CF = (function () {
     });
     for (k in offs) {
       var x = offs[k], ids2 = uniq(x.list.map(function (e) { return e.id || ""; }).filter(String));
-      add("off|" + k, "off", k, md(k) + " " + x.o.name + (x.o.kind === "颱風假" ? "停止上課" : "放假") + "，還有 " + x.list.length + " 筆紀錄" + (x.o.kind === "颱風假" ? "，請取消假單／代課" : "，請確認") + "（" + ids2.join("、") + "）", x.list);
+      add("off|" + k, "off", k, md(k) + " " + x.o.name + (x.o.kind === "颱風假" ? "停止上課" : "放假") + "，還有 " + x.list.length + " 筆紀錄" + (x.o.kind === "颱風假" ? (x.list.every(function (e) { return e.type === "swap"; }) ? "，請重新安排這筆調課" : "，請取消假單／代課") : "，請確認") + "（" + ids2.join("、") + "）", x.list);
     }
     // 4. 請假登記：同一天登記兩次；請假的時段裡，自己課表上的課還沒安排代課或調課
     var firstAbs = {};
@@ -2697,7 +2698,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.16";
+const APP_VERSION = "專業版 2026.11.16b";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -4400,7 +4401,7 @@ function renderPageTabs(){
 }
 function tabBadges(){
   requestAnimationFrame(renderSubNav);
-  const chk = (state.audit || []).length, hr = state.hr ? state.hr.missing.length + state.hr.noHr.length : 0;
+  const chk = alList().length, hr = state.hr ? state.hr.missing.length + state.hr.noHr.length : 0;
   const put = (k, html) => { const x = document.querySelector(`#pageTabs [data-pg="${k}"] .bd`); if(x) x.innerHTML = html; };
   put("check", chk ? `<span class="b warn" title="資料檢查 ${chk} 個問題">${chk}</span>` : "");
   put("hr", hr ? `<span class="b" title="① 請假沒代課 ${state.hr.missing.length}、② 請假對照檢視遺漏 ${state.hr.noHr.length}">${hr}</span>` : "");
@@ -5606,7 +5607,7 @@ function wbTodos(ym, P){
     if(tn) L.push({lv:"info", text:`今天 ${md(today)}：${tn} 筆課務`, verb:"看今天", act: () => wbOpenDay(today)}); }
   if(!(state.settings && state.settings.labels)) L.push({lv:"err", text:"後端程式（Apps Script）還是舊版：系統設定、月結、會計報表（即時）都還不能用", verb:"", act:null});
   if(P.un) L.push({lv:"err", text:`${+ym.slice(5)} 月有 ${P.un} 筆請假還沒安排代課老師`, verb:"看哪幾筆", act: () => wbUnassigned(ym)});
-  const a = state.audit || []; if(a.length) L.push({lv:"warn", text:`資料檢查有 ${a.length} 個問題（衝堂、重複登錄…）`, verb:"去看", act: () => wbGo("#alerts")});
+  const a = alList(); if(a.length) L.push({lv:"warn", text:`資料檢查有 ${a.length} 個問題（衝堂、重複登錄…）`, verb:"去看", act: () => wbGo("#alerts")});
   const todo = (state.reports || []).filter(r => r.status === "待處理"); if(todo.length) L.push({lv:"warn", text:`${todo.length} 件老師回報還沒回覆（${[...new Set(todo.map(r => r.teacher))].slice(0,3).join("、")}）`, verb:"去回覆", act: () => wbGo("#myReports")});
   if(state.hr){ if(state.hr.missing.length) L.push({lv:"err", text:`請假系統比對 ①：${state.hr.missing.length} 節有請假、有課，卻沒有代課也沒有調課（可能沒收到代課單，代課費會漏發）`, verb:"去看", act: () => wbGo("#hrBox")});
     if(state.hr.noHr.length) L.push({lv:"warn", text:`請假系統比對 ②：${state.hr.noHr.length} 筆有代課，請假系統卻沒有請假`, verb:"去看", act: () => wbGo("#hrBox")}); }
@@ -6205,26 +6206,112 @@ async function hrFiles(list){
   if(imgs.length) await hrScanFiles(imgs);
 }
 /* ---------- 管理者：資料檢查、颱風假狀態 ---------- */
+/* ---------- 資料檢查：說明後自動處理（管理者 115.11.16 要求） ----------
+ * 每個問題旁邊有「說明」：寫下原因（例如「對調老師是簡玉惠」「這筆沒問題」「刪除」），按「依說明處理」→ 顯示要做什麼 → 確認後
+ * 走原本的 fix（改欄位／刪除），再重新讀取＝後端重新檢查；「沒問題」的記在這台電腦（alAck），同一句提醒不再列出，可恢復。 */
+const alAckGet = () => { try{ const o = JSON.parse(store.get(K+"alAck", localStorage) || "{}"); return o && typeof o === "object" ? o : {}; }catch(e){ return {}; } };
+const alAckSet = o => store.set(K+"alAck", JSON.stringify(o), localStorage);
+const alList = () => { const ak = alAckGet(); return (state.audit || []).filter(i => ak[i.key] !== i.msg); };
+const alExp = {key:"", text:"", plan:null, err:""};
+const alIsSwapOnly = i => { const ids = (i.ids || []).filter(Boolean); return ids.length > 0 && ids.every(x => /^調/.test(x)); };
+const alMsg = i => { let m = String(i.msg); if(i.kind === "dup") m = m.replace(/^重複登錄[：:]\s*/, ""); if(i.kind === "off" && alIsSwapOnly(i)) m = m.replace(/請取消假單\s*[\/／]\s*代課/, "請重新安排這筆調課"); return m; };
+function alEvents(i){
+  const pool = (state.events || []).concat(state.school || []);
+  return (i.ids || []).map(id => pool.find(e => e.id === id && fixRef(e))).filter(Boolean);
+}
+const alDesc = (e, data) => { const k = Object.keys(data)[0], lab = FIXF["調課"].find(f => f[0] === k)[1]; return `${e.id}：${lab}由「${fxTrim(fixRec(e)[k]) || "空白"}」改成「${data[k]}」。`; };
+const alNear = (name, known) => known.filter(n => n !== name && n.length === name.length && [...n].filter((c, j) => c !== name[j]).length === 1);   // 差一個字（例如 恒／恆）
+/* 依問題文字＋這筆紀錄，列出「一鍵修正」建議（只列課表能確定的）。 */
+function alSuggest(i){
+  const known = state.teachers || [], out = [], evs = alEvents(i), e = evs[0], m = String(i.msg);
+  if(!e || fixKind(e) !== "調課") return out;
+  const push = (field, val, why) => { if(val && val !== fxTrim(fixRec(e)[field]) && !out.some(o => o.data[field] === val)) out.push({data:{[field]:val}, label:`${FIXF["調課"].find(f => f[0] === field)[1]}改成 ${val}`, why}); };
+  let r;
+  if((r = m.match(/對調的「(.+?)」不在課表/))){ alNear(r[1], known).forEach(n => push("partner", n, "名字差一個字")); }
+  else if((r = m.match(/「(.+?)」不在課表的老師名單/))){ alNear(r[1], known).forEach(n => push("teacher", n, "名字差一個字")); }
+  if((r = m.match(/不是 (\S+) 的課；對調老師應該是 (\S+)/))){ if(fxTrim(e.partner) === r[1]) push("partner", r[2], "課表上那節是他的課"); }
+  else if((r = m.match(/是 (\S+?) 的\S+?，不是 (\S+) 的課/))){ const rt = r[1].split("、"); if(rt.length === 1 && fxTrim(e.teacher) === r[2]) push("teacher", rt[0], "課表上那節是他的課"); }
+  return out;
+}
+/* 把說明文字變成要做的事：沒問題／刪除／文字裡提到的老師名字（放進這個問題牽涉的欄位）／建議。看不懂就回 null。 */
+function alPlanFrom(i, text){
+  const t = fxTrim(text), evs = alEvents(i), e = evs[0], known = state.teachers || [];
+  if(/沒問題|沒有問題|正確|確認無誤|不用改|不必改|先不用|保留/.test(t) && !/不正確|有問題/.test(t)) return {kind:"ack", desc:"記下「已說明」，這句提醒不再列出（可以按「恢復」）。"};
+  if(/刪除|刪掉|取消這筆|整筆不要/.test(t)){ if(!e) return {err:"這個問題的紀錄沒有序號，沒辦法直接刪除；請按「看 ○○」到那一筆再處理。"}; return {kind:"del", ev:e, desc:`刪除 ${e.id}（${fixKind(e)}）。刪除後不能還原。`}; }
+  const sg = alSuggest(i), names = known.filter(n => t.includes(n));
+  if(e && fixKind(e) === "調課" && names.length === 1){
+    const m = String(i.msg), field = /對調的「|對調老師應該是/.test(m) ? "partner" : /「.+?」不在課表的老師名單|不是 \S+ 的課/.test(m) ? "teacher" : "";
+    if(field) return {kind:"fix", ev:e, data:{[field]:names[0]}, desc:alDesc(e, {[field]:names[0]})};
+  }
+  if(!t && sg.length === 1) return {kind:"fix", ev:e, data:sg[0].data, desc:alDesc(e, sg[0].data)};
+  return null;
+}
+async function alRun(){
+  const p = alExp.plan, i = (state.audit || []).find(x => x.key === alExp.key);
+  if(!p || !i) return;
+  if(p.kind === "ack"){ const ak = alAckGet(); ak[i.key] = i.msg; alAckSet(ak); alExp.key = ""; alExp.plan = null; renderAlerts(); try{ renderWorkbench(); }catch(e){} toast("✓ 已記下說明，這個提醒不再列出"); return; }
+  busy(true);
+  try{
+    const ref = fixRef(p.ev);
+    const d = await fixSend(p.kind === "del" ? "delete" : "save", ref, p.kind === "fix" ? p.data : null);
+    alExp.key = ""; alExp.plan = null; alExp.text = "";
+    await reload(true, true);                                                   // 重新讀取＝後端重新檢查
+    const left = alList().length;
+    toast(`✓ ${p.kind === "del" ? "已刪除" : "已修改"}，重新檢查完成：還有 ${left} 個問題` + ((d.issues || []).length ? "；修改後要注意：" + d.issues.join("、") : ""));
+  }catch(err){ alExp.err = err.message; renderAlerts(); }
+  finally{ busy(false); }
+}
+function alPanel(i){
+  const sg = alSuggest(i), p = alExp.plan;
+  const chips = sg.map((s, j) => `<button type="button" class="btn ghost small" data-alsg="${j}">${esc(s.label)}<span class="al-why">（${esc(s.why)}）</span></button>`).join("");
+  return `<div class="al-exp"><label for="alText" class="al-lab">您的說明（寫下原因或怎麼改，系統照著處理）</label>
+    <textarea id="alText" rows="2" placeholder="例如：對調老師是簡玉惠　／　這筆沒問題，那天課表有調整　／　刪除這筆">${esc(alExp.text)}</textarea>
+    ${chips ? `<div class="al-chips" role="group" aria-label="建議的修正">${chips}</div>` : ""}
+    ${alExp.err ? `<p class="al-err" role="alert">${esc(alExp.err)}</p>` : ""}
+    ${p ? `<div class="al-plan"><b>將要做：</b>${esc(p.desc)}</div>` : ""}
+    <div class="al-btns">${p ? `<button type="button" class="btn ${p.kind === "del" ? "danger" : ""}" data-alrun="1">${p.kind === "ack" ? "確定，不再提醒" : "確定，馬上處理並重新檢查"}</button>` : `<button type="button" class="btn" data-alplan="1">依說明處理</button>`}<button type="button" class="btn ghost" data-alclose="1">收起</button></div></div>`;
+}
 function renderAlerts(){
   const box = $("#alerts");
-  box.onclick = e => { const a = e.target.closest("[data-alsid]"), b = e.target.closest("[data-alday]");
-    if(a) wbFind(a.dataset.alsid); else if(b) wbOpenDay(b.dataset.alday); };
+  if(!box.dataset.alBound){ box.dataset.alBound = "1";
+    box.addEventListener("click", e => {
+      const a = e.target.closest("[data-alsid]"), b = e.target.closest("[data-alday]"), x = e.target.closest("[data-alexp]"), pl = e.target.closest("[data-alplan]"), sg = e.target.closest("[data-alsg]"),
+            rn = e.target.closest("[data-alrun]"), cl = e.target.closest("[data-alclose]"), rs = e.target.closest("[data-alrestore]");
+      if(a) wbFind(a.dataset.alsid); else if(b) wbOpenDay(b.dataset.alday);
+      else if(x){ alExp.key = alExp.key === x.dataset.alexp ? "" : x.dataset.alexp; alExp.text = ""; alExp.plan = null; alExp.err = ""; renderAlerts(); if(alExp.key) setTimeout(() => { const t = $("#alText"); if(t) t.focus(); }, 30); }
+      else if(cl){ alExp.key = ""; alExp.plan = null; renderAlerts(); }
+      else if(pl){ const i = (state.audit || []).find(z => z.key === alExp.key); if(!i) return; const t = $("#alText"); alExp.text = t ? t.value : ""; const r = alPlanFrom(i, alExp.text);
+        if(!r){ alExp.plan = null; alExp.err = "還看不懂怎麼處理。請寫出正確的老師名字（例如「對調老師是簡玉惠」），或寫「這筆沒問題」「刪除」；也可以按上面的建議。"; }
+        else if(r.err){ alExp.plan = null; alExp.err = r.err; } else { alExp.plan = r; alExp.err = ""; }
+        renderAlerts(); }
+      else if(sg){ const i = (state.audit || []).find(z => z.key === alExp.key); if(!i) return; const s = alSuggest(i)[+sg.dataset.alsg], ev = alEvents(i)[0]; if(!s || !ev) return;
+        alExp.plan = {kind:"fix", ev, data:s.data, desc:alDesc(ev, s.data) + "（" + s.why + "）"}; alExp.err = ""; renderAlerts(); }
+      else if(rn) alRun();
+      else if(rs){ const ak = alAckGet(); delete ak[rs.dataset.alrestore]; alAckSet(ak); renderAlerts(); try{ renderWorkbench(); }catch(err){} }
+    });
+    box.addEventListener("input", e => { if(e.target.id === "alText"){ alExp.text = e.target.value; if(alExp.plan){ alExp.plan = null; } } });
+  }
   if(state.role !== "admin"){ box.innerHTML = ""; return; }
-  const a = state.audit || [], t = state.typhoon;
+  const a = alList(), t = state.typhoon, ak = alAckGet(), acked = (state.audit || []).filter(i => ak[i.key] === i.msg);
   const typh = `<p class="typh">颱風假自動檢查：${t ? esc(t.at) + "　" + (t.ok ? "正常，" : "沒有成功，") + esc(t.msg) : "還沒開始（請在資料表按「代課工具 → 開始自動處理」）"}。颱風假也可以自己寫在資料表「假日與停班停課」分頁。</p>`;
-  if(!a.length){ box.innerHTML = `<div class="alerts ok"><h3>資料檢查 <span class="tag">✓ 全部通過</span></h3><div class="al-clear"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.4 7.5 9.5 4.3-1.1 7.5-4.9 7.5-9.5V6z"/><path d="m8.5 12.2 2.4 2.4 4.6-4.9"/></svg><div><b>沒有發現問題</b><ul><li>衝堂</li><li>重複登錄</li><li>調課和課表不符</li><li>合班只調走一班</li><li>請假還沒安排代課</li><li>假日、停課當天的紀錄</li></ul><small>每次讀取資料都會自動重新檢查；有新問題會立刻通知教務組。</small></div></div>${typh}</div>` + fixesCard(); return; }
+  const ackBox = acked.length ? `<details class="al-acked"><summary>已說明、先不提醒（${acked.length}）</summary><ul>${acked.map(i => `<li><span>${esc(alMsg(i))}</span><button type="button" class="btn ghost small" data-alrestore="${esc(i.key)}">恢復提醒</button></li>`).join("")}</ul></details>` : "";
+  if(!a.length){ box.innerHTML = `<div class="alerts ok"><h3>資料檢查 <span class="tag">✓ 全部通過</span></h3><div class="al-clear"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.4 7.5 9.5 4.3-1.1 7.5-4.9 7.5-9.5V6z"/><path d="m8.5 12.2 2.4 2.4 4.6-4.9"/></svg><div><b>沒有發現問題</b><ul><li>衝堂</li><li>重複登錄</li><li>調課和課表不符</li><li>合班只調走一班</li><li>請假還沒安排代課</li><li>假日、停課當天的紀錄</li></ul></div></div>${ackBox}${typh}</div>` + fixesCard(); return; }
   const kd = {dup:"重複", clash:"衝堂", leave:"請假", off:"假日", weekend:"日期", dow:"日期", todo:"未安排", swapchk:"課表不符"};
   // 115.11.10：每個問題旁邊直接有「看 序號」或「看 ○／○」按鈕，按了就到那一筆（再按修改／刪除）
   const acts = i => { const ids = [...new Set((i.ids || []).filter(Boolean))].slice(0, 4);
-    return ids.length ? ids.map(id => `<button type="button" class="btn ghost small" data-alsid="${esc(id)}">看 ${esc(sidOf({id}) || id)}</button>`).join("")
-      : i.date ? `<button type="button" class="btn ghost small" data-alday="${esc(i.date)}">看 ${esc(md(i.date))}</button>` : ""; };
-  const li = i => `<li class="${i.kind}"><span class="kd">${kd[i.kind]||"提醒"}</span><span>${esc(i.kind === "dup" ? String(i.msg).replace(/^重複登錄[：:]\s*/, "") : i.msg)}</span>${acts(i) ? `<span class="al-acts">${acts(i)}</span>` : ""}</li>`;
+    return (ids.length ? ids.map(id => `<button type="button" class="btn ghost small" data-alsid="${esc(id)}">看 ${esc(sidOf({id}) || id)}</button>`).join("")
+      : i.date ? `<button type="button" class="btn ghost small" data-alday="${esc(i.date)}">看 ${esc(md(i.date))}</button>` : "")
+      + `<button type="button" class="btn small" data-alexp="${esc(i.key)}" aria-expanded="${alExp.key === i.key}">說明</button>`; };
+  const li = i => `<li class="${i.kind}"><span class="kd">${kd[i.kind]||"提醒"}</span><span>${esc(alMsg(i))}</span><span class="al-acts">${acts(i)}</span>${alExp.key === i.key ? alPanel(i) : ""}</li>`;
   const n = a.filter(i=>i.kind==="clash"||i.kind==="leave").length, d = a.filter(i=>i.kind==="dup").length;
+  const focusT = document.activeElement && document.activeElement.id === "alText";
   box.innerHTML = `<div class="alerts" role="region" aria-label="資料檢查"><h3>⚠ 資料檢查發現 ${a.length} 個問題
       ${n?`<span class="tag">衝堂 ${n}</span>`:""}${d?`<span class="tag">重複登錄 ${d}</span>`:""}</h3>
     <ul>${a.slice(0,6).map(li).join("")}</ul>
-    ${a.length>6?`<details><summary style="font-size:13px;color:var(--ink-2);cursor:pointer;padding-top:6px">其餘 ${a.length-6} 個</summary><ul>${a.slice(6).map(li).join("")}</ul></details>`:""}
-    <p class="typh">重複登錄：網頁只算一次，請到 Excel 刪掉多的那一列（或在那筆紀錄按「修改」→「刪除這筆」）。衝堂：請確認是否改請其他老師代課。課表不符、未安排：每筆調課都會對課表（老師名字、原節次、調整後節次、合班的另一班），請按那筆的「修改」更正。有新的問題會立刻用 LINE 通知您。</p>${typh}</div>` + fixesCard();
+    ${a.length>6?`<details${a.slice(6).some(i => i.key === alExp.key) ? " open" : ""}><summary style="font-size:13px;color:var(--ink-2);cursor:pointer;padding-top:6px">其餘 ${a.length-6} 個</summary><ul>${a.slice(6).map(li).join("")}</ul></details>`:""}
+    ${ackBox}
+    <p class="typh">每個問題按「說明」，寫下原因或正確的做法（例如「對調老師是簡玉惠」「這筆沒問題」「刪除」），系統會照說明處理並自動重新檢查。重複登錄：網頁只算一次，也可以在那筆紀錄按「修改」→「刪除這筆」。有新的問題會立刻用 LINE 通知您。</p>${typh}</div>` + fixesCard();
+  if(focusT){ const tx = $("#alText"); if(tx){ tx.focus(); tx.setSelectionRange(tx.value.length, tx.value.length); } }
 }
 /* 管理者修正清單 */
 /* 刪除的紀錄刪了就不再列出（115.11.9 管理者要求：刪除後不留資料、不需要還原鈕） */
