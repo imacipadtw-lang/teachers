@@ -1544,6 +1544,14 @@ html[data-theme=dark] .wb-todo li.ok{background:rgba(79,209,161,.10)}
 @media screen{ .m-who{margin:8px 0 0;font-size:13px;color:var(--ink-2);line-height:1.7} .m-who b{color:var(--ink)} }
 @media print{ .m-who{display:none} }
 @media screen{ .m-flow{margin:6px 0 0;font-size:13px;color:var(--ink-2);line-height:1.6} .m-flow b{color:var(--ink)} } @media print{ .m-flow{display:none} }
+@media screen{
+.rot-hint{margin-top:8px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2);font-size:14px;line-height:1.6}
+.rot-hint .rot-ok{color:var(--ok,#1B7F4B);font-weight:700} .rot-hint .rot-note{color:var(--ink);margin-top:4px} .rot-hint .rot-warn{color:#8A4B00;margin-top:4px;font-weight:600}
+.rot-hint .linkbtn{background:none;border:0;padding:0;color:inherit;text-decoration:underline;cursor:pointer;font:inherit;font-weight:700}
+.rot-set{margin:12px 0;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.rot-set summary{cursor:pointer;font-weight:700} .rot-set textarea{width:100%;box-sizing:border-box;margin:6px 0 10px}
+.rot-set .rot-row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+}
 </style>
 </head>
 <body>
@@ -2698,7 +2706,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.16f";
+const APP_VERSION = "專業版 2026.11.16g";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -2766,6 +2774,59 @@ const store = {
   set(k, v, s=sessionStorage){ try{ s.setItem(k, v); }catch(e){} },
   del(k, s=sessionStorage){ try{ s.removeItem(k); }catch(e){} },
 };
+
+/* ---------- 代導師輪值提醒（11/16 管理者要求）：校長決定的輪流順序；選代導師時提醒「依順序輪到誰」，可以改選別人。
+ * 順序和起算點只存在這台電腦（localStorage），不進程式碼和倉庫（公開倉庫不放老師姓名）。
+ * 算法：從起算那一位的「下一位」開始當作輪到的人；之後每一筆代導師，若是輪到的人代的，就換下一位；
+ * 若是別人代的（輪到的人那天有事），輪到的人不變，下次仍然輪到他。同一位連續代好幾天只算一次。 */
+const ROT = {
+  list(){ try{ const a = JSON.parse(localStorage.getItem(K + "rotList") || "[]"); return Array.isArray(a) ? a.filter(x => typeof x === "string" && x) : []; }catch(e){ return []; } },
+  anchor(){ try{ return JSON.parse(localStorage.getItem(K + "rotAnchor") || "null"); }catch(e){ return null; } },
+  save(list, anchor){ try{ localStorage.setItem(K + "rotList", JSON.stringify(list)); if(anchor) localStorage.setItem(K + "rotAnchor", JSON.stringify(anchor)); else localStorage.removeItem(K + "rotAnchor"); }catch(e){} },
+  next(){
+    const L = ROT.list(); if(!L.length) return null;
+    const A = ROT.anchor(); let p = 0, last = null;
+    if(A && L.indexOf(A.name) >= 0){ p = (L.indexOf(A.name) + 1) % L.length; last = { name: A.name, date: A.date }; }
+    const ev = (state.school && state.school.length ? state.school : state.events || []).filter(e => e.type === "tutor" && L.indexOf(e.who) >= 0 && (!A || !A.date || e.date > A.date)).sort((a, b) => a.date.localeCompare(b.date));
+    ev.forEach(e => { if(e.who === L[p]){ p = (p + 1) % L.length; last = { name: e.who, date: e.date }; } });
+    return { name: L[p], last, list: L };
+  },
+};
+function rotHint(scope, cur, date){
+  const R = ROT.next();
+  if(!R) return `<div class="rot-hint">代導師輪值：<button type="button" class="linkbtn" data-rotedit="1">設定輪值順序</button></div>`;
+  const away = date && awayOf(R.name, date);
+  const lastTxt = R.last ? `（上一次輪到 ${esc(R.last.name)}，${esc(CF.md(R.last.date))}）` : "";
+  let h = `<div class="rot-hint${cur && cur !== R.name ? " off" : ""}"><b>輪值提醒：依順序輪到 ${esc(R.name)}</b>${lastTxt}`;
+  if(cur === R.name) h += `　<span class="rot-ok">✓ 目前選的就是他</span>`;
+  else h += `　<button type="button" class="btn small" data-rotpick="${scope}" data-name="${esc(R.name)}">選 ${esc(R.name)}</button>`;
+  if(cur && cur !== R.name) h += `<div class="rot-note">你選的是 ${esc(cur)}；這樣下一次仍然輪到 ${esc(R.name)}。</div>`;
+  if(away) h += `<div class="rot-warn">⚠ ${esc(away)}</div>`;
+  return h + `</div>`;
+}
+function rotEditor(){
+  const L = ROT.list(), A = ROT.anchor() || {};
+  return `<details class="rot-set"${L.length ? "" : " open"}><summary>代導師輪值順序設定（只存在這台電腦）</summary>
+    <label for="rotList">輪流順序（一行一位，照校長的表由上到下）</label>
+    <textarea id="rotList" rows="5" placeholder="每行一位老師姓名">${esc(L.join("\n"))}</textarea>
+    <div class="rot-row"><div><label for="rotLast">最近一次輪到（這位之後的下一位就是下次）</label><input id="rotLast" value="${esc(A.name || "")}" placeholder="姓名"></div>
+    <div><label for="rotDate">日期</label><input type="date" id="rotDate" value="${esc(A.date || "")}"></div>
+    <button type="button" class="btn" id="rotSave">儲存輪值順序</button></div></details>`;
+}
+document.addEventListener("click", e => {
+  const t = e.target.closest && e.target.closest("[data-rotpick],[data-rotedit],#rotSave"); if(!t) return;
+  if(t.id === "rotSave"){
+    const L = ($("#rotList").value || "").split(/[\n、,，\s]+/).map(x => x.trim()).filter(Boolean).filter((x, i, a) => a.indexOf(x) === i);
+    const n = ($("#rotLast").value || "").trim(), d = $("#rotDate").value || "";
+    if(!L.length){ toast("請輸入至少一位老師"); return; }
+    if(n && L.indexOf(n) < 0){ toast("「最近一次輪到」的姓名要在順序名單裡：" + n); return; }
+    ROT.save(L, n ? { name: n, date: d } : null); toast("已儲存輪值順序"); renderPlan(); return;
+  }
+  if(t.dataset.rotedit){ plan.kind = "tutor"; renderPlan(); const d = $(".rot-set"); if(d) d.open = true; return; }
+  const nm = t.dataset.name;
+  if(t.dataset.rotpick === "t") plan.tutor.sub = nm; else plan.sub.tutorSub = nm;
+  renderPlan();
+});
 function busy(on){
   $("#loading").classList.toggle("on", on); $("#progress").classList.toggle("on", on);
   clearTimeout(busy._t); $("#loadingHint").textContent = "";
@@ -4914,9 +4975,9 @@ function renderPlan(){
       <div><label for="tLt">假別</label><select id="tLt" data-k="t.leaveType">${LEAVES.map(l=>opt(l,l,T.leaveType)).join("")}</select></div>
       <div><label for="tF">日期（起）</label><input type="date" id="tF" data-k="t.from" value="${esc(T.from)}" min="${state.term.from}" max="${state.term.to}"><div class="dow-tag" data-dow="t.from"></div></div>
       <div><label for="tT">到（迄，一天就不用填）</label><input type="date" id="tT" data-k="t.to" value="${esc(T.to)}" min="${esc(T.from||state.term.from)}" max="${state.term.to}"><div class="dow-tag" data-dow="t.to"></div></div>
-      <div><label for="tS">代導師</label><select id="tS" data-k="t.sub">${teacherOpts(T.sub)}</select></div>
+      <div><label for="tS">代導師</label><select id="tS" data-k="t.sub">${teacherOpts(T.sub)}</select>${rotHint("t", T.sub, T.from)}</div>
       <div><label for="tN">備註</label><input id="tN" data-k="t.note" value="${esc(T.note)}" placeholder="${T.leaveType==="其他"?"假別選「其他」一定要寫，例如：公傷假":"選填"}"></div></div>
-      <p class="hintline">${home ? `${esc(T.leaver)}是 <b>${esc(home)}</b> 導師。` : ""}一天一列（週六、週日不列），每天代導師費 ${RATE_TUTOR} 元，由代導師領。只登代導師；那幾天的課要代課，請到「代課」或「請假」分頁登記。</p>`;
+      ${rotEditor()}<p class="hintline">${home ? `${esc(T.leaver)}是 <b>${esc(home)}</b> 導師。` : ""}一天一列（週六、週日不列），每天代導師費 ${RATE_TUTOR} 元，由代導師領。只登代導師；那幾天的課要代課，請到「代課」或「請假」分頁登記。</p>`;
     days.forEach((d,i)=>{
       html += `<div class="rowc"><div class="rhead"><b>${esc(CF.md(d))}</b><span class="abs-sc">${esc(home||"")}${home ? " 導師" : ""}${T.sub ? "・由 " + esc(T.sub) + " 代" : ""}</span></div><div data-chk="tutor.${i}"></div></div>`;
     });
@@ -4951,7 +5012,7 @@ function renderPlan(){
       <div style="height:12px"></div>`;
     if(home){   // 115.11.10：導師請假時代導師的勾選放在課的上面，不會漏登代導費
       html += `<div class="tutorbox"><label class="inline"><input type="checkbox" data-k="u.tutor" ${U.tutor?"checked":""}> 也登記代導師（${esc(U.leaver)}是${esc(home)}導師；全天請假通常要登）</label>
-        ${U.tutor?`<div style="margin-top:10px;max-width:260px"><label>代導師</label><select data-k="u.tutorSub">${teacherOpts(U.tutorSub)}</select></div><div data-chk="tutor.0"></div>`:""}</div>`;
+        ${U.tutor?`<div style="margin-top:10px;max-width:260px"><label>代導師</label><select data-k="u.tutorSub">${teacherOpts(U.tutorSub)}</select>${rotHint("u", U.tutorSub, U.date)}</div><div data-chk="tutor.0"></div>`:""}</div>`;
     }
     if(U.rows.length >= 2) html += `<div class="fillall"><label for="fillAll">一次填好：全部由</label><select id="fillAll">${teacherOpts("", "選代課老師")}</select><span>代（會衝堂、請假的那一節不會填）</span></div>`;
     U.rows.forEach((r,i)=>{
