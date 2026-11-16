@@ -1119,6 +1119,13 @@ html[data-theme=dark] .wb-mstat .bad dd,html[data-theme=dark] .wb-mstat .bad dd 
 .week-body img{width:100%;height:auto;border:1px solid var(--line);border-radius:12px;background:#fff}
 .week-body textarea{width:100%;min-height:360px;font:inherit;font-size:14px;line-height:1.6;border:1px solid var(--line);border-radius:10px;padding:10px;resize:vertical;color:var(--ink)}
 @media (max-width:760px){.week-body{grid-template-columns:1fr}}
+.week-each{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
+.week-each h3{margin:0 0 4px;font-size:15px}
+.week-each .hint{margin:0 0 10px}
+.each-item{margin-bottom:12px}
+.each-head{display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:14px}
+.each-head .sp{flex:1}
+.week-each textarea{width:100%;min-height:120px;font:inherit;font-size:14px;line-height:1.6;border:1px solid var(--line);border-radius:10px;padding:10px;resize:vertical;color:var(--ink);background:var(--surface)}
 
 /* ---------- 分頁頁籤（10/31）：上方一排頁籤，一頁一個主題；「全部」＝原本一整頁 ---------- */
 .pagetabs{flex-basis:100%;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;margin:4px -6px -10px;padding:0 2px}
@@ -1753,6 +1760,7 @@ html[data-theme=dark] .wb-todo li.ok{background:rgba(79,209,161,.10)}
     <p class="sub" id="weekSub"></p>
     <div class="week-nav"><button type="button" class="btn ghost small" id="weekPrev">‹ 上一週</button><span id="weekRange"></span><button type="button" class="btn ghost small" id="weekNext">下一週 ›</button></div>
     <div class="week-body"><img id="weekImg" alt="本週調代課圖卡預覽"><textarea id="weekText" aria-label="本週調代課文字"></textarea></div>
+    <div class="week-each" id="weekEach"></div>
     <div class="modal-actions">
       <button class="btn ghost" type="button" id="weekClose">關閉</button>
       <button class="btn ghost" type="button" id="weekCopyText">複製文字</button>
@@ -2689,7 +2697,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.10zg";
+const APP_VERSION = "專業版 2026.11.16";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -4176,11 +4184,20 @@ function openCard(mode, anchor){
   $("#weekRange").textContent = cardMode === "day" ? md(W.days[0]) : `${md(W.days[0])}～${md(W.days[4])}`;
   $("#weekSub").textContent = W.n ? `${cardMode === "day" ? "這一天" : "這一週"}共 ${W.n} 項調代課。圖片和文字都可以傳：文字可以先改再複製；圖片照系統資料產生。` : `${cardMode === "day" ? "這一天" : "這一週"}沒有調代課。`;
   $("#weekText").value = W.text;
+  const each = remindEach(W.days);                                   // 11/16：每位被影響的老師一則
+  $("#weekEach").innerHTML = each.length ? `<h3>分別傳給各老師（${each.length} 位）</h3><p class="hint">每一則只列和那位老師有關的、用「您」的寫法；可以先改再按「複製」或「用 LINE 傳」（LINE 會讓您選要傳給誰）。</p>`
+    + each.map((t, i) => `<div class="each-item"><div class="each-head"><b>${esc(t.name)}</b>老師　${t.n} 項<span class="sp"></span><button type="button" class="btn small" data-eachcopy="${i}">複製</button><button type="button" class="btn ghost small" data-eachline="${i}">用 LINE 傳</button></div><textarea id="eachT${i}" rows="${t.text.split("\n").length + 1}" aria-label="給${esc(t.name)}老師的訊息">${esc(t.text)}</textarea></div>`).join("") : "";
   weekBlob = null; c.toBlob(b => { weekBlob = b; }, "image/png");
   $("#weekImg").src = c.toDataURL("image/png");
   $("#weekModal").hidden = false; setTimeout(() => $("#weekClose").focus(), 0);
 }
 $("#weekClose").onclick = () => { $("#weekModal").hidden = true; };
+$("#weekEach").addEventListener("click", async e => {
+  const c = e.target.dataset.eachcopy, l = e.target.dataset.eachline; if(c === undefined && l === undefined) return;
+  const t = $("#eachT" + (c ?? l)).value;
+  if(c !== undefined){ const ok = await copyText(t); toast(ok ? "已複製，貼到 LINE 就可以傳" : "請按 Ctrl＋C 複製"); if(!ok) $("#eachT" + c).select(); }
+  else window.open("https://line.me/R/share?text=" + encodeURIComponent(t), "_blank", "noopener");
+});
 $("#weekModal").addEventListener("keydown", e => { if(e.key === "Escape") $("#weekModal").hidden = true; });
 $("#weekModal").addEventListener("click", e => { if(e.target.id === "weekModal") $("#weekModal").hidden = true; });
 const nextSchoolDay = (s, dir) => { const d = new Date(s + "T00:00:00"); do{ d.setDate(d.getDate() + dir); }while(d.getDay() === 0 || d.getDay() === 6); return ymd(d); };
@@ -5619,18 +5636,57 @@ function remindItems(d){
       const sub = e.type === "sub" ? e.who : e.other, leaver = e.type === "sub" ? e.other : e.who;
       const k = ["sl", e.id || "", leaver, e.period, e.cls].join("|"); if(seen.has(k)) return; seen.add(k);
       if(!sub) return;                                            // 還沒安排代課的不寫
-      out.push({p:+e.period||0, line:`${p} ${[e.cls, e.subject].filter(Boolean).join(" ")}：由${sub}老師代課`});
+      // 11/16：寫清楚原本是誰的什麼課（例：第6節 四甲 綜合：原本是林老師的課，由王老師代課）
+      const hd = `${p} ${[e.cls, e.subject].filter(Boolean).join(" ")}`, per = {};
+      per[sub] = `${hd}：請您代課${leaver ? `（原本是${leaver}老師的課）` : ""}`;
+      if(leaver) per[leaver] = `${hd}：您的課由${sub}老師代課`;
+      out.push({p:+e.period||0, line:`${hd}：${leaver ? `原本是${leaver}老師的課，` : ""}由${sub}老師代課`, per});
     } else if(e.type === "tutor" || e.type === "tutorLeave"){
       const sub = e.type === "tutor" ? e.who : e.other, leaver = e.type === "tutor" ? e.other : e.who;
       const k = ["tu", leaver, e.date].join("|"); if(seen.has(k) || !sub) return; seen.add(k);
-      out.push({p:0, line:`${e.cls}導師：由${sub}老師代理`});
+      const per = {}; per[sub] = `${e.cls}導師：請您代理${leaver ? `（原導師${leaver}老師）` : ""}`; if(leaver) per[leaver] = `${e.cls}導師：由${sub}老師代理`;
+      out.push({p:0, line:`${e.cls}導師：${leaver ? `原導師${leaver}老師，` : ""}由${sub}老師代理`, per});
     } else if(e.type === "swap" && e.dir){
       const k = ["sw", e.id || "", e.date, e.period, e.cls].join("|"); if(seen.has(k)) return; seen.add(k);
-      const atFrom = e.dir === "調出", X = atFrom ? e.partner : e.teacher, xs = (atFrom ? e.toSubject : e.fromSubject) || "課", Y = atFrom ? e.teacher : e.partner;
-      out.push({p:+e.period||0, line: X === Y ? `${p} ${e.cls}：改上${xs}（調課）` : `${p} ${e.cls}：改由${nm(X)}老師上${xs}（調課）`});
+      const per = {}, T = e.teacher || "", P = e.partner || "";
+      if(!e.toDate){                                               // 調課單上寫的是代課（沒有調整後的時間）
+        const hd = `${p} ${[e.cls, e.fromSubject].filter(Boolean).join(" ")}`;
+        if(P) per[P] = `${hd}：請您代課（原本是${nm(T)}老師的課；調課單）`; if(T) per[T] = `${hd}：您的課由${nm(P)}老師代課（調課單）`;
+        out.push({p:+e.period||0, line:`${hd}：原本是${nm(T)}老師的課，由${nm(P)}老師代課（調課單）`, per});
+        return;
+      }
+      // 11/16：寫清楚這節原本是誰的什麼課、改成誰上什麼、原本那堂課移到哪一天
+      const atFrom = e.dir === "調出", X = atFrom ? e.partner : e.teacher, xs = (atFrom ? e.toSubject : e.fromSubject) || "課";
+      const Y = atFrom ? e.teacher : e.partner, ys = (atFrom ? e.fromSubject : e.toSubject) || "課";
+      const dD = atFrom ? e.toDate : e.fromDate, dP = atFrom ? e.toPeriod : e.fromPeriod;
+      const moved = `${ys}移到 ${md(dD)} 第${dP}節`;
+      if(X === Y){ if(X) per[X] = `${p} ${e.cls}：您的${ys}改上${xs}（調課；${moved}）`; }
+      else {
+        if(X) per[X] = `${p} ${e.cls}：請您上${xs}（原本是${nm(Y)}老師的${ys}；和${nm(Y)}老師調課）`;
+        if(Y) per[Y] = `${p} ${e.cls}：您的${ys}改由${nm(X)}老師上${xs}（調課；您的${moved}）`;
+      }
+      out.push({p:+e.period||0, line: X === Y
+        ? `${p} ${e.cls}：原本是${nm(Y)}老師的${ys}，改上${xs}（調課；${moved}）`
+        : `${p} ${e.cls}：原本是${nm(Y)}老師的${ys}，改由${nm(X)}老師上${xs}（調課；${nm(Y)}老師的${moved}）`, per});
     }
   });
   return out.sort((a,b) => a.p - b.p);
+}
+/* 11/16：分別給每一位被影響的老師一則（只列和那位老師有關的，用「您」的寫法），教務組可以一個一個用 LINE 傳 */
+function remindEach(days){
+  const by = {};
+  days.forEach(d => remindItems(d).forEach(it => Object.keys(it.per || {}).forEach(n => {
+    if(!n || n === "（未填）") return; (by[n] = by[n] || {}); (by[n][d] = by[n][d] || []).push(it.per[n]);
+  })));
+  const roc = s => { const t = new Date(s + "T00:00:00"); return `${t.getFullYear()-1911}年${t.getMonth()+1}月${t.getDate()}日`; };
+  const one = days.length === 1, t0 = new Date(days[0] + "T00:00:00");
+  const head = one ? `【調代課提醒】${roc(days[0])}（星期${DOW[t0.getDay()]}）` : `【本週調代課提醒】${roc(days[0])}～${+days[days.length-1].slice(5,7)}月${+days[days.length-1].slice(8)}日`;
+  return Object.keys(by).sort((a, b) => a.localeCompare(b, "zh-Hant")).map(n => {
+    const ds = Object.keys(by[n]).sort(), total = ds.reduce((a, d) => a + by[n][d].length, 0);
+    const body = one ? by[n][ds[0]].map((l, i) => `${i+1}. ${l}`).join("\n")
+      : ds.map(d => `${md(d)}\n` + by[n][d].map((l, i) => `${i+1}. ${l}`).join("\n")).join("\n");
+    return { name: n, n: total, text: `${head}\n${n}老師您好，${one ? "這一天" : "本週"}您有 ${total} 項調代課：\n${body}\n請留意，謝謝。\n教務組 敬啟` };
+  });
 }
 function remindText(d){
   const items = remindItems(d); if(!items.length) return "";
