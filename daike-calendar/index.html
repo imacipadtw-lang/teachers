@@ -2706,7 +2706,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.16j";
+const APP_VERSION = "專業版 2026.11.16k";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -4193,7 +4193,7 @@ function weekData(anchor){
   const nxt = days[0] > ymd(new Date()), lab = nxt ? "下週" : "本週";
   const text = `【${lab}調代課公告】${roc(days[0])}～${(+days[4].slice(5,7))}月${+days[4].slice(8)}日\n`
     + list.map(x => `\n${md(x.d)}` + (x.off ? `　${offLabel(x.off)}` : "") + "\n" + (x.items.length ? x.items.map((it, i) => `${i+1}. ${it.line}`).join("\n") : "（無）")).join("\n")
-    + `\n\n勞煩各位老師確認自己的課務，\n如需調整，歡迎隨時私訊！\n教務組 敬啟`;
+    + `\n\n勞煩各位老師確認課務，\n如需調整，歡迎隨時私訊！\n教務組 敬啟`;
   const d0 = new Date(days[0] + "T00:00:00"), d4 = new Date(days[4] + "T00:00:00");
   return { days, list, text, n: list.reduce((a, x) => a + x.items.length, 0), title: lab + "調代課提醒", lab,
     sub: `${d0.getFullYear()-1911} 年 ${d0.getMonth()+1}/${d0.getDate()}（一）～ ${d4.getMonth()+1}/${d4.getDate()}（五）` };
@@ -4232,7 +4232,7 @@ function weekCanvas(W){
     y += 18;
   });
   g.strokeStyle = "#EFC3D3"; g.lineWidth = 2; g.beginPath(); g.moveTo(pad, y); g.lineTo(w - pad, y); g.stroke();
-  g.fillStyle = "#3B1E2B"; g.font = `600 30px ${FF}`; g.fillText("勞煩各位老師確認自己的課務，", pad, y + 58);
+  g.fillStyle = "#3B1E2B"; g.font = `600 30px ${FF}`; g.fillText("勞煩各位老師確認課務，", pad, y + 58);
   g.fillText("如需調整，歡迎隨時私訊！", pad, y + 104);
   g.textAlign = "right"; g.font = `800 30px ${FF}`; g.fillText("教務組 敬啟", w - pad, y + 160); g.textAlign = "left";
   return c;
@@ -4313,7 +4313,7 @@ function calCanvas(W){
   y += listH + 36;
   // 提醒
   g.fillStyle = "#FFF0D2"; g.beginPath(); g.roundRect(m, y, w - m * 2, 116, 16); g.fill();
-  g.fillStyle = "#6B4300"; g.font = `800 36px ${FF}`; g.fillText("勞煩各位老師確認自己的課務，", m + 28, y + 52);
+  g.fillStyle = "#6B4300"; g.font = `800 36px ${FF}`; g.fillText("勞煩各位老師確認課務，", m + 28, y + 52);
   g.font = `500 27px ${FF}`; g.fillText("如需調整，歡迎隨時私訊！", m + 28, y + 94); g.textAlign = "right"; g.font = `800 27px ${FF}`; g.fillText("教務組 敬啟", w - m - 28, y + 94); g.textAlign = "left";
   g.textAlign = "right"; g.fillStyle = "#3B1E2B"; g.font = `800 30px ${FF}`; g.fillText("教務組 敬啟", w - m, y + 164); g.textAlign = "left";
   return c;
@@ -5840,13 +5840,13 @@ function remindEach(days){
     const ds = Object.keys(by[n]).sort(), total = ds.reduce((a, d) => a + by[n][d].length, 0);
     const body = one ? by[n][ds[0]].map((l, i) => `${i+1}. ${l}`).join("\n")
       : ds.map(d => `${md(d)}\n` + by[n][d].map((l, i) => `${i+1}. ${l}`).join("\n")).join("\n");
-    return { name: n, n: total, text: `${head}\n${n}老師您好，${one ? "這一天" : "本週"}您有 ${total} 項調代課：\n${body}\n勞煩各位老師確認自己的課務，\n如需調整，歡迎隨時私訊！\n教務組 敬啟` };
+    return { name: n, n: total, text: `${head}\n${n}老師您好，${one ? "這一天" : "本週"}您有 ${total} 項調代課：\n${body}\n勞煩各位老師確認課務，\n如需調整，歡迎隨時私訊！\n教務組 敬啟` };
   });
 }
 function remindText(d){
   const items = remindItems(d); if(!items.length) return "";
   const t = new Date(d+"T00:00:00"), day = `${t.getFullYear()-1911}年${t.getMonth()+1}月${t.getDate()}日（星期${DOW[t.getDay()]}）`;
-  return `【調代課提醒】${day}\n${items.map((it, i) => `${i+1}. ${it.line}`).join("\n")}\n勞煩各位老師確認自己的課務，\n如需調整，歡迎隨時私訊！\n教務組 敬啟`;
+  return `【調代課提醒】${day}\n${items.map((it, i) => `${i+1}. ${it.line}`).join("\n")}\n勞煩各位老師確認課務，\n如需調整，歡迎隨時私訊！\n教務組 敬啟`;
 }
 function openRemind(d){
   if(!remindItems(d).length){ toast(`${md(d)} 沒有要提醒的調代課`); return; }
