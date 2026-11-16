@@ -2698,7 +2698,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.16d";
+const APP_VERSION = "專業版 2026.11.16e";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -4132,7 +4132,7 @@ function weekData(anchor){
   const nxt = days[0] > ymd(new Date()), lab = nxt ? "下週" : "本週";
   const text = `【${lab}調代課公告】${roc(days[0])}～${(+days[4].slice(5,7))}月${+days[4].slice(8)}日\n`
     + list.map(x => `\n${md(x.d)}` + (x.off ? `　${offLabel(x.off)}` : "") + "\n" + (x.items.length ? x.items.map((it, i) => `${i+1}. ${it.line}`).join("\n") : "（無）")).join("\n")
-    + `\n\n請相關老師協助確認，謝謝您！\n如需修正，歡迎私訊 LINE 告訴教務組。\n教務組 敬啟`;
+    + `\n\n辛苦各位老師了，請協助確認自己的課務；\n如需調整，歡迎私訊教務組，謝謝您！\n教務組 敬啟`;
   const d0 = new Date(days[0] + "T00:00:00"), d4 = new Date(days[4] + "T00:00:00");
   return { days, list, text, n: list.reduce((a, x) => a + x.items.length, 0), title: lab + "調代課提醒", lab,
     sub: `${d0.getFullYear()-1911} 年 ${d0.getMonth()+1}/${d0.getDate()}（一）～ ${d4.getMonth()+1}/${d4.getDate()}（五）` };
@@ -4171,15 +4171,15 @@ function weekCanvas(W){
     y += 18;
   });
   g.strokeStyle = "#EFC3D3"; g.lineWidth = 2; g.beginPath(); g.moveTo(pad, y); g.lineTo(w - pad, y); g.stroke();
-  g.fillStyle = "#3B1E2B"; g.font = `600 30px ${FF}`; g.fillText("請相關老師協助確認，謝謝您！", pad, y + 58);
-  g.font = `500 27px ${FF}`; g.fillText("如需修正，歡迎私訊 LINE 告訴教務組。", pad, y + 104);
+  g.fillStyle = "#3B1E2B"; g.font = `600 30px ${FF}`; g.fillText("辛苦各位老師了，請協助確認自己的課務；", pad, y + 58);
+  g.fillText("如需調整，歡迎私訊教務組，謝謝您！", pad, y + 104);
   g.textAlign = "right"; g.font = `800 30px ${FF}`; g.fillText("教務組 敬啟", w - pad, y + 160); g.textAlign = "left";
   return c;
 }
 
 /* ---------- 全校週曆公告圖（11/16 管理者要求）：週五下班前發 LINE，一眼看出下週誰請假、自己哪一節要上什麼 ----------
  * 上半：週一～週五五欄的週曆（每張卡＝節次＋班級＋科目、誰請假、誰代課／調課；代課綠、調課藍、導師橘，卡片上也寫字不只靠顏色）；
- * 下半：「找自己的名字」各老師一覽；最下面提醒有問題或要修正請私訊 LINE 聯繫教務組。 */
+ * 下半：「找自己的名字」各老師一覽；最下面提醒有問題或要修正私訊教務組。 */
 const CAL_C = {"代課":["#1F7A52","#E6F4EC"], "調課":["#2A58A6","#E7EEFA"], "導師":["#8A5A00","#FFF0D2"]};
 function calCanvas(W){
   const FF = '"PingFang TC","Microsoft JhengHei","Noto Sans CJK TC","Noto Sans TC",sans-serif', S = 2, w = 1600, m = 48, gap = 14, colW = (w - m * 2 - gap * 4) / 5, tw = colW - 28;
@@ -4252,8 +4252,8 @@ function calCanvas(W){
   y += listH + 36;
   // 提醒
   g.fillStyle = "#FFF0D2"; g.beginPath(); g.roundRect(m, y, w - m * 2, 116, 16); g.fill();
-  g.fillStyle = "#6B4300"; g.font = `800 36px ${FF}`; g.fillText("如有需要修正、或有任何問題，請私訊 LINE 聯繫教務組", m + 28, y + 52);
-  g.font = `500 27px ${FF}`; g.fillText("請相關老師留意自己的課，謝謝。", m + 28, y + 94);
+  g.fillStyle = "#6B4300"; g.font = `800 36px ${FF}`; g.fillText("辛苦各位老師了，請協助確認自己的課務；", m + 28, y + 52);
+  g.font = `500 27px ${FF}`; g.fillText("如需調整，歡迎私訊教務組，謝謝您！", m + 28, y + 94);
   g.textAlign = "right"; g.fillStyle = "#3B1E2B"; g.font = `800 30px ${FF}`; g.fillText("教務組 敬啟", w - m, y + 164); g.textAlign = "left";
   return c;
 }
@@ -5778,13 +5778,13 @@ function remindEach(days){
     const ds = Object.keys(by[n]).sort(), total = ds.reduce((a, d) => a + by[n][d].length, 0);
     const body = one ? by[n][ds[0]].map((l, i) => `${i+1}. ${l}`).join("\n")
       : ds.map(d => `${md(d)}\n` + by[n][d].map((l, i) => `${i+1}. ${l}`).join("\n")).join("\n");
-    return { name: n, n: total, text: `${head}\n${n}老師您好，${one ? "這一天" : "本週"}您有 ${total} 項調代課：\n${body}\n請留意，謝謝。\n如有需要修正，請私訊 LINE 聯繫教務組。\n教務組 敬啟` };
+    return { name: n, n: total, text: `${head}\n${n}老師您好，${one ? "這一天" : "本週"}您有 ${total} 項調代課：\n${body}\n辛苦各位老師了，請協助確認自己的課務；\n如需調整，歡迎私訊教務組，謝謝您！\n教務組 敬啟` };
   });
 }
 function remindText(d){
   const items = remindItems(d); if(!items.length) return "";
   const t = new Date(d+"T00:00:00"), day = `${t.getFullYear()-1911}年${t.getMonth()+1}月${t.getDate()}日（星期${DOW[t.getDay()]}）`;
-  return `【調代課提醒】${day}\n${items.map((it, i) => `${i+1}. ${it.line}`).join("\n")}\n請相關老師協助確認，謝謝您！\n如需修正，歡迎私訊 LINE 告訴教務組。\n教務組 敬啟`;
+  return `【調代課提醒】${day}\n${items.map((it, i) => `${i+1}. ${it.line}`).join("\n")}\n辛苦各位老師了，請協助確認自己的課務；\n如需調整，歡迎私訊教務組，謝謝您！\n教務組 敬啟`;
 }
 function openRemind(d){
   if(!remindItems(d).length){ toast(`${md(d)} 沒有要提醒的調代課`); return; }

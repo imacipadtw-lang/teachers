@@ -23,7 +23,7 @@ let fails = 0; const ok = (c, m) => { console.log((c ? '  ✓ ' : '  ✗ ') + m)
   await p.evaluate(m => { showPage('all'); openCalCard(m); }, mon);
   await p.waitForSelector('#weekModal:not([hidden])');
   const txt = await p.inputValue('#weekText');
-  ok(/下週調代課公告/.test(txt) && /私訊 LINE 告訴教務組/.test(txt), '文字有「下週」標題與私訊教務組提醒');
+  ok(/下週調代課公告/.test(txt) && /歡迎私訊教務組/.test(txt), '文字有「下週」標題與私訊教務組提醒');
   ok(/週曆/.test(await p.textContent('#weekTitle')), '視窗標題是週曆公告');
   const url = await p.getAttribute('#weekImg', 'src'); ok(/^data:image\/png/.test(url), '產生 PNG 圖');
   require('fs').writeFileSync('/tmp/week-calendar.png', Buffer.from(url.split(',')[1], 'base64'));
