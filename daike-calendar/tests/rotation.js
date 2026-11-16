@@ -49,6 +49,17 @@ let fails = 0; const ok = (c, m) => { console.log((c ? '  ✓ ' : '  ✗ ') + m)
   await p.evaluate(() => { document.querySelector('.rot-set').open = true; });
   await p.fill('#rotList', '子\n丑\n寅'); await p.fill('#rotLast', '丑'); await p.fill('#rotDate', '2026-11-18'); await p.click('#rotSave');
   ok(await p.evaluate(() => ROT.next().name) === '寅', '重新儲存順序後輪到寅');
+  // 5 假日：週六、週日預設不列，勾選後列出；只選一天（週六）直接列
+  const wk = await p.evaluate(() => { plan.tutor.from = '2026-11-20'; plan.tutor.to = '2026-11-23'; plan.tutor.weekend = false; const a = tutDays().length;
+    plan.tutor.weekend = true; const b = tutDays().length; plan.tutor.weekend = false; plan.tutor.from = '2026-11-21'; plan.tutor.to = ''; const c = tutDays().length; return [a, b, c]; });
+  ok(wk[0] === 2 && wk[1] === 4 && wk[2] === 1, '代導師：預設跳過週末(' + wk[0] + ')、勾選後列出(' + wk[1] + ')、只選週六一天直接列(' + wk[2] + ')');
+  // 6 年曆週六、週日格子也有「＋」，請假也能列單日週末
+  await p.evaluate(() => { const m = document.getElementById('planModal'); if(!m.hidden && typeof closePlan === 'function') closePlan(); showPage('cal'); });
+  await p.waitForTimeout(300);
+  const plus = await p.evaluate(() => [...document.querySelectorAll('#year .d.we:not(.out):not(.empty)')].filter(c => c.querySelector('.addp')).length);
+  ok(plus > 0, '年曆週六、週日格子有「＋」可補登（' + plus + ' 格）');
+  const ab = await p.evaluate(() => { plan.absent.from = '2026-11-21'; plan.absent.to = ''; const a = absDays().length; plan.absent.from = '2026-11-20'; plan.absent.to = '2026-11-23'; plan.absent.weekend = false; const b = absDays().length; plan.absent.weekend = true; const c = absDays().length; return [a, b, c]; });
+  ok(ab[0] === 1 && ab[1] === 2 && ab[2] === 4, '請假：只選週六一天直接列(' + ab[0] + ')、預設跳週末(' + ab[1] + ')、勾選列出(' + ab[2] + ')');
   ok(errs.length === 0, '沒有 JS 錯誤 ' + errs.join(';'));
   await b.close(); console.log(fails ? `\n✗ ${fails} 項失敗` : '\n✓ 全部通過'); process.exit(fails ? 1 : 0);
 })();
