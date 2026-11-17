@@ -1640,7 +1640,9 @@ html[data-theme=dark] .wb-todo li.ok{background:rgba(79,209,161,.10)}
 .tv-need em{font-style:normal;color:var(--sage);font-weight:700}
 .tv-line{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
 .tv-line img{width:132px;height:132px;border-radius:10px;background:#fff;padding:6px}
-.tv-note{margin:14px 0 0;color:var(--ink-3);font-size:13px;text-align:center}
+.tv-note{margin:14px 0 0;color:var(--ink-2);font-size:14px;text-align:center}
+.tv-contact{display:table;text-align:left;margin:6px auto 0;padding:0 0 0 1.4em;line-height:1.9}
+.tv-contact b{color:var(--ink);font-size:15px}
 @media (max-width:560px){.tv-top{padding:10px 12px}.tv-top .brand .txt{display:none}.tv-it{grid-template-columns:54px 1fr}.tv-grid th,.tv-grid td{font-size:12px;padding:6px 2px}.tv-grid td b{font-size:13px}}
 }
 @media screen{
@@ -1729,7 +1731,8 @@ html[data-theme=dark] .wb-todo li.ok{background:rgba(79,209,161,.10)}
     </div>
     <div id="tvBody" role="tabpanel"></div>
     <section class="tv-sec" id="tvLine" hidden></section>
-    <p class="tv-note">只顯示您自己的代課、調課、請假、代導師。資料有錯或要更改，請聯繫教務組。</p>
+    <div class="tv-note">只顯示您自己的代課、調課、請假、代導師。資料有錯或要更改，請聯繫：
+      <ol class="tv-contact"><li>教務組　分機 <b>124</b></li><li>英語教室　分機 <b>218</b></li></ol></div>
   </main>
 </section>
 
@@ -2845,7 +2848,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.17d";
+const APP_VERSION = "專業版 2026.11.17e";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
