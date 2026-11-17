@@ -22,3 +22,4 @@
 2026-11-17 15:11 GitHub: project pushed to imacipadtw-lang/teachers (folder lunch-box-lab/, branch index.html), Pages URL https://imacipadtw-lang.github.io/teachers/lunch-box-lab/ ; sync_github.sh mirrors+commits+rebases+pushes; build/tests path-independent (LBL_OUT, LBL_URL)
 2026-11-17 18:19 v28 published (artifact version 28): original anime mascot Boxy + manga-style effects (anime.css/js), stamp slam reveal + shine, mission line, spaced-retrieval weighting (Catch/Pack), design rationale panel in guide, README theory + references; 15 suites green
 2026-11-17 18:30 v29 published (artifact version 29): food choices bob/hop/shake, idle nudge bubble after 16 s, tests/anime.js extended; 15 suites green
+2026-11-17 18:40 Group observation rubric (? / △ / ✔ × 5 criteria × A/B) on the Evidence screen; full suite 16 groups green

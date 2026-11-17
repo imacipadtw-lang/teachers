@@ -342,6 +342,11 @@ details.panel>summary{cursor:pointer;font-weight:800;font-size:18px}
 .ev-table table{min-width:520px}
 @media (max-width:540px){.ev-table table{min-width:0}.ev-table th,.ev-table td{padding:6px 4px}}
 .mk{display:inline-block;min-width:2.2em;text-align:center;border-radius:8px;padding:0 6px;font-weight:800}
+.rubset{display:flex;gap:6px}
+.rub-btn{min-width:44px;min-height:44px;border:2px solid var(--line);border-radius:10px;background:var(--tray);font:800 18px var(--display);cursor:pointer;color:var(--nori)}
+.rub-btn[aria-pressed="true"].v1{background:var(--bad-bg);border-color:var(--bad);color:var(--bad)}
+.rub-btn[aria-pressed="true"].v2{background:var(--warn-bg);border-color:var(--warn);color:var(--warn)}
+.rub-btn[aria-pressed="true"].v3{background:var(--good-bg);border-color:var(--good);color:var(--good)}
 .mk.b1{background:var(--bad-bg);color:var(--bad)} .mk.b2{background:var(--warn-bg);color:var(--warn)} .mk.b3{background:var(--good-bg);color:var(--good)} .mk.b0{color:var(--muted)}
 .up{color:var(--good);font-weight:800} .down{color:var(--bad);font-weight:800}
 .bignum{font-family:var(--display);font-size:44px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
@@ -420,7 +425,7 @@ function load(){
     if(s&&typeof s==='object'&&!Array.isArray(s)){const f=fresh();const o=Object.assign(f,s);
       if(!Array.isArray(o.phases)||!o.phases.length)o.phases=fresh().phases;
       if(!Array.isArray(o.words)||!o.words.length){o.words=fresh().words;o.example=true;}
-      ['boxes','post','scores','speed','stamps'].forEach(k=>{if(!o[k]||typeof o[k]!=='object'||Array.isArray(o[k]))o[k]={};});
+      ['boxes','post','scores','speed','stamps','rubric'].forEach(k=>{if(!o[k]||typeof o[k]!=='object'||Array.isArray(o[k]))o[k]={};});
       ['mywords','absent'].forEach(k=>{if(!Array.isArray(o[k]))o[k]=[];});
       if(!Array.isArray(o.groups))o.groups=[0,0];
       if(s.iconsV!==2){o.icons='photo';o.iconsV=2;}
@@ -699,7 +704,7 @@ function spin(){
     $('#sp-pic').innerHTML=pic(null,'stage');$('#sp-word').textContent='Ready?';$('#sp-zh').innerHTML='&nbsp;';$('#sp-say').disabled=true;$('#sp-slow').disabled=true;draw();};
   $('#sp-pre').onclick=()=>setMode('pre');$('#sp-post').onclick=()=>setMode('post');
   const nl=$('#sp-new');
-  nl.onclick=()=>{if($('#sp-go').disabled)return;if(nl.dataset.armed){delete nl.dataset.armed;S.boxes={};S.post={};S.speed={};S.stamps={};S.groups=[0,0];S.mode='pre';save();spin();}
+  nl.onclick=()=>{if($('#sp-go').disabled)return;if(nl.dataset.armed){delete nl.dataset.armed;S.boxes={};S.post={};S.speed={};S.stamps={};S.groups=[0,0];S.rubric={};S.mode='pre';save();spin();}
     else{nl.dataset.armed='1';nl.textContent='再按一次：清空課前、課後、開口次數、印章和兩組分數';later(()=>{nl.textContent='🆕 新的一節課';delete nl.dataset.armed;},4000);}};
   $$('#sp-mark button').forEach(b=>b.onclick=()=>mark(+b.dataset.b));
   const noFull=()=>{$('#sp-full').textContent='這台裝置不支援全螢幕';$('#sp-full').disabled=true;};
@@ -1328,6 +1333,9 @@ function wordsView(){
 }
 
 /* ---------- evidence: pre vs post Spin rounds ---------- */
+/* group observation rubric for the Party Menu task: same three levels students use on their own card (? / △ / ✔) */
+const RUB=[['listen','聽與選','英-E-B1','聽出食物字並選對，含一種印度食物'],['say','說句子','英-E-B1','說出 I want some ___.，a／-s 用對'],['team','合作','英-E-C2','三人輪流、討論、互相幫忙'],['culture','文化理解','英-E-C3','知道哪一種是印度食物，說得出來'],['self','自我調整','英-E-A1','說得出自己還要練哪一個字']];
+const RUBLV={1:['?','還需要幫忙'],2:['△','大部分做到'],3:['✔','做到，能教別人']};
 function evidence(){
   const ws=words();const MK={0:'—',1:'?',2:'△',3:'✔'};
   const count=src=>{const c={0:0,1:0,2:0,3:0};ws.forEach(w=>c[src[w.en]||0]++);return c;};
@@ -1362,6 +1370,11 @@ function evidence(){
     ${[1,2,3,4,5,6].map(n=>{const x=S.speed[n]||{ok:0,t:0};return `<tr><td>${n} 號${S.absent.includes(n)?'（缺席）':''}</td><td>${n%2?'A':'B'}</td><td>${x.t}</td><td>${x.ok}</td></tr>`;}).join('')}
     </tbody></table></div>
     <p>${spoke.length===present6.length&&present6.length?'✓ 每位出席的同學都至少開口說了一次。':'還有同學沒輪到：'+present6.filter(n=>!((S.speed[n]||{}).t)).join('、')+' 號。'}</p></section>
+  <section class="panel" id="rub"><h2>小組表現觀察（Party Menu・議課用）</h2>
+    <p class="muted">上課時走到各組旁邊，用 ? △ ✔ 記下看到的表現。<b>?</b> 還需要幫忙　<b>△</b> 大部分做到　<b>✔</b> 做到，能教別人。再按一次同一個就取消。只存在這台裝置。</p>
+    <div class="ev-table"><table><thead><tr><th>觀察項目</th><th>A 組</th><th>B 組</th></tr></thead><tbody>
+    ${RUB.map(([k,nm,code,d])=>`<tr><td><b>${nm}</b> <small class="muted">${code}</small><br><small class="muted">${esc(d)}</small></td>${['A','B'].map(g=>`<td><div class="rubset" role="group" aria-label="${g} 組：${nm}">${[1,2,3].map(v=>`<button type="button" class="rub-btn v${v}" data-g="${g}" data-k="${k}" data-v="${v}" aria-pressed="false" aria-label="${g} 組 ${nm}：${RUBLV[v][1]}">${RUBLV[v][0]}</button>`).join('')}</div></td>`).join('')}</tr>`).join('')}
+    </tbody></table></div></section>
   <section class="panel"><h2>兩組得分</h2><p>A 組 <b>${S.groups[0]||0}</b> 分　B 組 <b>${S.groups[1]||0}</b> 分</p></section>
   <div class="row"><button class="btn primary" id="ev-copy">📋 複製文字摘要（貼到觀課紀錄）</button></div>
   <textarea id="ev-text" readonly hidden aria-label="摘要文字"></textarea><p class="muted" id="ev-msg" aria-live="polite"></p>
@@ -1369,6 +1382,11 @@ function evidence(){
   </div>`;
   if(celebrate){const key=`${qB}/${qA}/${both.length}/${up.length}`;let seen=null;try{seen=sessionStorage.getItem('lbl.cel');}catch(e){}
     if(seen!==key){try{sessionStorage.setItem('lbl.cel',key);}catch(e){}sfx.win();later(confetti,200);}}
+  S.rubric=S.rubric||{};
+  const paintRub=()=>$$('.rub-btn').forEach(b=>b.setAttribute('aria-pressed',String((S.rubric[b.dataset.g]||{})[b.dataset.k]===+b.dataset.v)));
+  $$('.rub-btn').forEach(b=>b.onclick=()=>{const g=b.dataset.g,k=b.dataset.k,v=+b.dataset.v;S.rubric[g]=S.rubric[g]||{};if(S.rubric[g][k]===v)S.rubric[g][k]=0;else S.rubric[g][k]=v;save();paintRub();});
+  paintRub();
+  const rubLine=['A','B'].map(g=>{const r=S.rubric[g]||{};const parts=RUB.filter(([k])=>r[k]).map(([k,nm])=>`${nm}${RUBLV[r[k]][0]}`);return parts.length?`${g} 組：${parts.join('、')}`:'';}).filter(Boolean);
   const d=new Date();
   const text=[`Lunch Box Lab 學習證據　${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`,
     `課前：✔ ${pre[3]}、△ ${pre[2]}、? ${pre[1]}、未轉到 ${pre[0]}（共 ${ws.length} 字）`,
@@ -1378,6 +1396,7 @@ function evidence(){
     `? 的字（前後都測過的 ${both.length} 字）：課前 ${qB} → 課後 ${qA}`,
     `課後仍在 Box 1：${stillBox1.length?stillBox1.map(w=>w.en).join('、'):'—'}`,
     `口說：${[1,2,3,4,5,6].map(n=>{const x=S.speed[n]||{ok:0,t:0};return `${n}號 ✓${x.ok}/${x.t}`;}).join('、')}`,
+    ...(rubLine.length?[`小組表現觀察（Party Menu）：${rubLine.join('；')}`]:[]),
     `兩組得分：A 組 ${S.groups[0]||0}、B 組 ${S.groups[1]||0}`].join('\n');
   $('#ev-copy').onclick=()=>{const ta=$('#ev-text');const fb=()=>{ta.hidden=false;ta.value=text;ta.focus();ta.select();$('#ev-msg').textContent='請選取上面的文字再複製。';};
     try{navigator.clipboard.writeText(text).then(()=>{$('#ev-msg').textContent='已複製。';ta.hidden=true;},fb);}catch(e){fb();}};
@@ -1407,7 +1426,7 @@ function guide(){
     <div class="guide" tabindex="0" role="region" aria-label="素養與教學理論對照表"><table><thead><tr><th>活動</th><th>學生做什麼（素養導向任務）</th><th>英語文核心素養</th><th>教學理論依據</th><th>學習證據在哪裡看</th></tr></thead><tbody>
     <tr><td><b>Spin</b> 轉盤＋✔ △ ?</td><td>聽、跟著唸，用手勢說出自己會不會；全班決定今天的目標字（Box 1）。</td><td>英-E-A1</td><td>形成性評量與自我評量（Black &amp; Wiliam, 1998）；全身反應（Asher, 1969）；「還沒會」而不是「不會」的成長式說法（Dweck, 2006）。</td><td>「學習證據」頁：課前、課後每個字從 ? → △ → ✔ 的變化。</td></tr>
     <tr><td><b>Catch</b> 聽力接接樂</td><td>只聽不看字，點出聽到的食物；還沒會的字會比較常出現。</td><td>英-E-B1、英-E-A1</td><td>可理解的輸入、先聽後說（Krashen, 1982）；提取練習與間隔重複（Roediger &amp; Karpicke, 2006）。</td><td>Catch 最高分；結果卡「我想再練的字」。</td></tr>
-    <tr><td><b>Party Menu</b> 派對菜單</td><td>三人一組一台 iPad：每人選一種食物，至少一種來自印度，再一起決定 I want some ___. 的正確說法。</td><td>英-E-B1、英-E-C2、英-E-C3</td><td>任務型教學（Willis, 1996；Ellis, 2003）；鷹架與近側發展區（Vygotsky, 1978；Wood, Bruner &amp; Ross, 1976）：答錯只問 Can you count it?，不直接給答案；合作學習（Johnson &amp; Johnson）、四學中的共學。</td><td>「第一次就選對」幾種；完成的菜單畫面；老師在組別間聽到的對話。</td></tr>
+    <tr><td><b>Party Menu</b> 派對菜單</td><td>三人一組一台 iPad：每人選一種食物，至少一種來自印度，再一起決定 I want some ___. 的正確說法。</td><td>英-E-B1、英-E-C2、英-E-C3</td><td>任務型教學（Willis, 1996；Ellis, 2003）；鷹架與近側發展區（Vygotsky, 1978；Wood, Bruner &amp; Ross, 1976）：答錯只問 Can you count it?，不直接給答案；合作學習（Johnson &amp; Johnson）、四學中的共學。</td><td>「第一次就選對」幾種；完成的菜單畫面；「學習證據」頁的小組表現觀察（? △ ✔）；老師在組別間聽到的對話。</td></tr>
     <tr><td><b>菜單分享</b>（互學）</td><td>兩組互相唸菜單，聽的人回答 Yummy! I like your ___.</td><td>英-E-B1、英-E-C2</td><td>互動與意義協商、同儕回饋；四學中的互學。</td><td>Speed Round 的「每位同學的開口次數」；現場錄影或筆記。</td></tr>
     <tr><td><b>Impostor</b> 抓內鬼</td><td>先用過、說過，再回頭注意 a／an 和 -s 的差別，找出錯的那個字。</td><td>英-E-B1</td><td>注意假說與聚焦形式（Schmidt, 1990；Long, 1991）：先有意義的使用，再短暫關注形式。</td><td>Impostor 抓對題數；Check 離場 6 題。</td></tr>
     <tr><td><b>全程</b>圖像、聲音、動畫</td><td>真人聲音配實物照片；角色與特效只在答對、答錯、過關時短暫出現，不蓋住題目、不用等它播完。</td><td>英-E-A1</td><td>多媒體學習認知理論（Mayer, 2009）：圖＋聲音、少量文字、去掉會分心的東西；雙碼理論（Paivio, 1986）；正向情緒設計（Um et al., 2012）；自我決定理論（Deci &amp; Ryan, 2000）：用印章看見自己的進步，不排名。</td><td>印章卡；教師工具可一鍵關閉動畫特效。</td></tr>
