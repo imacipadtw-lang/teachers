@@ -175,6 +175,11 @@
       if (res.stars >= 3) EP.questEvent('star3', 1);
       const ms = EP.srs.levelMastery(n); if (pr.stamp && ms.mastered === ms.total && !pr.gold) { pr.gold = true; newStamp = 'gold'; }
     }
+    if (res.mode === 'listen') {
+      p.listen = p.listen || {}; const pr = p.listen[res.gameId] || (p.listen[res.gameId] = { stars: 0, best: 0, plays: 0 });
+      pr.plays++; pr.best = Math.max(pr.best, res.score); pr.stars = Math.max(pr.stars, res.stars); pr.last = Date.now();
+      if (res.stars >= 3) EP.questEvent('star3', 1);
+    }
     if (res.mode === 'review') EP.questEvent('review', res.right);
     EP.questEvent('games', 1);
     p.history.push({ t: Date.now(), g: res.gameId, l: n, s: res.score, r: res.right, w: res.wrong, st: res.stars }); if (p.history.length > 300) p.history.shift();
@@ -183,7 +188,7 @@
     const stars = el('div', { class: 'stars' }, [0, 1, 2].map(() => el('span', {}, '⭐')));
     const nextOpen = n < 25 && ui.unlocked(n + 1);
     const panel = el('div', { class: 'panel results', style: { maxWidth: '760px', margin: '0 auto', width: '100%' } },
-      el('div', { class: 'muted' }, res.mode === 'review' ? 'Review Rush 錯題複習' : `Level ${n} · ${l.city}`),
+      el('div', { class: 'muted' }, res.mode === 'review' ? 'Review Rush 錯題複習' : res.mode === 'listen' ? `🎧 Sentence Listening 句型聽力 · Level ${n} · ${(EP.games[res.gameId] || {}).titleZh || ''}` : `Level ${n} · ${l.city}`),
       el('h2', { style: { fontSize: '2rem', margin: '4px 0' } }, res.completed ? (res.stars >= 3 ? 'Perfect! 太完美了！' : res.stars >= 2 ? 'Great job! 做得好！' : res.stars >= 1 ? 'Nice! 不錯喔！' : 'Keep trying! 再接再厲！') : 'Keep trying! 再接再厲！'),
       stars,
       el('div', { class: 'stat-row' },
@@ -192,9 +197,10 @@
         el('div', { class: 'stat' }, el('b', {}, '🔥 ' + res.maxCombo), 'Best combo 最高連擊'),
         el('div', { class: 'stat' }, el('b', {}, '+' + xp), 'XP 經驗'),
         el('div', { class: 'stat' }, el('b', {}, '🪙 +' + coins), 'Coins 金幣')),
-      res.missed.length ? el('div', {}, el('div', { class: 'zh' }, '📝 Practise these 再練習這些字（點一下聽發音）'), el('div', { class: 'missed' }, res.missed.map((w) => el('button', { onclick: () => EP.audio.play(w) }, `🔊 ${w.word} ${w.zh}`)))) : el('p', { class: 'zh' }, '🎉 No mistakes! 全部答對！'),
+      res.missed.length ? el('div', {}, el('div', { class: 'zh' }, '📝 Practise these 再練習這些字（點一下聽發音）'), el('div', { class: 'missed' }, res.missed.map((w) => res.mode === 'listen' ? el('button', { onclick: () => EP.audio.play(w, { sentence: true }) }, `🔊 ${w.sentence} ${w.sentenceZh}`) : el('button', { onclick: () => EP.audio.play(w) }, `🔊 ${w.word} ${w.zh}`)))) : el('p', { class: 'zh' }, '🎉 No mistakes! 全部答對！'),
       el('div', { class: 'row', style: { justifyContent: 'center', marginTop: '10px' } },
-        el('button', { class: 'btn go big', onclick: () => (res.mode === 'review' ? ui.startReview() : ui.play(n)) }, '🔁 Again 再玩'),
+        el('button', { class: 'btn go big', onclick: () => (res.mode === 'review' ? ui.startReview() : res.mode === 'listen' ? EP.listen.play(res.gameId) : ui.play(n)) }, '🔁 Again 再玩'),
+        res.mode === 'listen' ? el('button', { class: 'btn blue', onclick: () => { ui.show('listen'); ui.listenLevel(n); } }, '🎧 This level 本關句型遊戲') : null,
         res.mode === 'level' ? el('button', { class: 'btn blue', onclick: () => ui.show('learn', { level: n, words: res.missed.length ? res.missed : null }) }, '📖 Learn 學習') : null,
         res.mode === 'level' && res.stars >= 1 && !(p.levels[n] || {}).stamp ? el('button', { class: 'btn purple', onclick: () => ui.stampTest(n) }, '🛂 Stamp Test 蓋章考') : null,
         nextOpen && res.mode === 'level' ? el('button', { class: 'btn primary', onclick: () => ui.levelCard(n + 1) }, '➡️ Next 下一關') : null,

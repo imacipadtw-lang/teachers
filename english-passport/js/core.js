@@ -202,8 +202,10 @@
     manifest: D.audio || {},   // id -> {s:'human'|'tts', a: accent, by: author, lic}
     ai: {},            // id -> data URL (AI voice, ElevenLabs) — only for words with no human recording; always labelled 'AI 語音'
     aiMeta: D.aiAudio || {},   // id -> {v: voice, m: model, t: generated at, src}
+    aiS: {},           // id -> data URL: AI voice for the example SENTENCE (no human recordings of sentences exist)
+    aiMetaS: D.aiAudioS || {},
   });
-  window.EP_AUDIO_PACK = function (level, map, ai) { Object.assign(audio.clips, map); if (ai) Object.assign(audio.ai, ai); audio.packs[level] = true; const cb = audio._wait[level]; if (cb) cb.forEach((f) => f()); delete audio._wait[level]; };
+  window.EP_AUDIO_PACK = function (level, map, ai, aiS) { Object.assign(audio.clips, map); if (ai) Object.assign(audio.ai, ai); if (aiS) Object.assign(audio.aiS, aiS); audio.packs[level] = true; const cb = audio._wait[level]; if (cb) cb.forEach((f) => f()); delete audio._wait[level]; };
   audio._wait = {};
   audio.ensureLevel = function (lv) {
     if (audio.packs[lv]) return Promise.resolve();
@@ -226,6 +228,7 @@
     // or streamable (not in the hosted viewer, whose content policy blocks Wikimedia)
     if (kind !== 'sentence' && (audio.clips[w.id] || audio.offline[w.id] || (audio.manifest[w.id] && !EP.hosted && !audio.failed[w.id]))) return 'human';
     if (kind !== 'sentence' && (audio.ai[w.id] || (audio.aiMeta[w.id] && audio.packs[w.level] !== 'missing'))) return 'ai';
+    if (kind === 'sentence' && (audio.aiS[w.id] || (audio.aiMetaS[w.id] && audio.packs[w.level] !== 'missing'))) return 'ai';
     return 'tts';
   };
   audio.stop = function () { try { if (audio.current) { audio.current.pause(); audio.current = null; } window.speechSynthesis && speechSynthesis.cancel(); } catch (e) {} };
@@ -254,7 +257,7 @@
         const pre = w && audio.preloaded[w.id];
         const a = pre && pre.src === src ? pre : new Audio(src);
         if (pre) { try { a.currentTime = 0; } catch (e) {} }
-        audio.current = a; a.playbackRate = opts.slow ? 0.75 : 1; a.preservesPitch = true;
+        audio.current = a; a.playbackRate = opts.rate || (opts.slow ? 0.75 : 1); a.preservesPitch = true;
         a.onended = () => done(true);
         a.onerror = () => done(false);
         const p = a.play(); if (p && p.catch) p.catch(() => done(false));
@@ -268,7 +271,7 @@
   audio.play = async function (w, opts) {
     opts = opts || {}; const kind = opts.sentence ? 'sentence' : 'word';
     audio.stop();
-    if (kind === 'word' && !audio.packs[w.level]) await audio.ensureLevel(w.level);
+    if (!audio.packs[w.level]) await audio.ensureLevel(w.level);
     const key = (kind === 'sentence' ? 's' : 'w') + w.id;
     if (audio.teacher[key] && await playSrc(audio.teacher[key], null, opts)) return 'teacher';
     if (kind === 'word') {
@@ -279,8 +282,8 @@
         if (src === (audio.manifest[w.id] || {}).u) audio.failed[w.id] = true;
       }
       if (audio.ai[w.id] && await playSrc(audio.ai[w.id], null, opts)) return 'ai';
-    }
-    await EP.tts.say(kind === 'sentence' ? w.sentence : w.word.replace('...', ''), { slow: opts.slow });
+    } else if (audio.aiS[w.id] && await playSrc(audio.aiS[w.id], null, opts)) return 'ai';
+    await EP.tts.say(kind === 'sentence' ? w.sentence : w.word.replace('...', ''), { slow: opts.slow, rate: opts.rate });
     return 'tts';
   };
   /** Download every real human recording into this device (IndexedDB) for offline classrooms. */
@@ -327,7 +330,7 @@
           if (!window.speechSynthesis) return res();
           const ut = new SpeechSynthesisUtterance(text);
           const v = this.best(); if (v) ut.voice = v; ut.lang = v ? v.lang : 'en-US';
-          ut.rate = (o.slow ? 0.7 : 1) * (EP.settings.voiceRate || 0.9); ut.pitch = 1;
+          ut.rate = (o.rate || (o.slow ? 0.7 : 1)) * (EP.settings.voiceRate || 0.9); ut.pitch = 1;
           ut.onend = res; ut.onerror = res; speechSynthesis.speak(ut);
           setTimeout(res, 2500 + text.length * 120);
         } catch (e) { res(); }

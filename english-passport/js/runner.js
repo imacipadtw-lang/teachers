@@ -119,8 +119,9 @@
     opts = opts || {};
     const def = EP.games[gameId]; if (!def) throw new Error('No game ' + gameId);
     const level = opts.level || def.level;
-    const pool = opts.pool || EP.levelWords(level);
-    const size = opts.roundSize || EP.settings.roundSize || 12;
+    const lvWords = EP.levelWords(level);
+    const pool = opts.pool || (def.pool ? def.pool(lvWords) : lvWords);
+    const size = opts.roundSize || def.roundSize || EP.settings.roundSize || 12;
     const items = opts.items || EP.srs.pick(pool, Math.min(size, pool.length));
     await EP.audio.ensureLevel(level);
     EP.audio.preload(items.concat(pool.slice(0, 40)));
@@ -270,7 +271,7 @@
       await new Promise((res) => {
         const ic = u.el('div', { class: 'intro-card' }, u.el('div', { class: 'panel' },
           u.el('div', { style: { fontSize: '3.4rem' } }, def.icon || '🎮'),
-          u.el('div', { class: 'model' }, `Inspired by 靈感來自：${def.model}`),
+          u.el('div', { class: 'model zh' }, `${def.introLabel || 'Inspired by 靈感來自：'}${def.model}`),
           u.el('h2', {}, def.title, ' ', u.el('span', { class: 'zh', style: { fontSize: '1.3rem' } }, def.titleZh || '')),
           u.el('p', { class: 'zh' }, def.howZh || ''), u.el('p', { class: 'muted' }, def.howEn || ''),
           u.el('button', { class: 'btn go big', onclick: () => { ic.remove(); res(); } }, '▶ Start 開始')));
