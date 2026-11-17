@@ -60,6 +60,8 @@
  </g>
 </g></svg>`;
 
+  const HINTS = { catch: 'Listen and catch!', impostor: 'Find the impostor!', build: 'Build the sentence!', check: 'Can you count it?' };
+  let idleT, nudges = 0;
   let root, bubble, poseT, bubT, streak = 0, last = { x: innerWidth / 2, y: innerHeight / 2, t: 0 };
   const rnd = a => a[Math.floor(Math.random() * a.length)];
   const curView = () => (location.hash || '#home').slice(1).split('?')[0] || 'home';
@@ -117,7 +119,12 @@
     a.onfinish = () => el.remove(); setTimeout(() => el.remove(), 1900);
   }
 
+  function arm() {
+    clearTimeout(idleT); const t = HINTS[curView()]; if (!t || !live()) return;
+    idleT = setTimeout(() => { if (!live() || document.hidden) return; pose('wave', 1900); say(t); nudges++; if (nudges < 3) arm(); }, 16000);
+  }
   const API = {
+    hint() { const t = HINTS[curView()]; if (live() && t) { pose('wave', 1900); say(t); } return t || ''; },
     good() { if (!live()) return; streak++; pose('cheer', 1000); stars(9); pop(rnd(POP_GOOD)); if (streak >= 3) { root.classList.add('fire'); burst(false); } if (streak === 3 || streak === 5 || streak === 8) combo(streak); },
     bad() { streak = 0; if (!live()) return; root.classList.remove('fire'); pose('oops', 900); pop('hmm?', 'oops', 0, -80); },
     win() { if (!live()) return; pose('win', 2400); burst(true); stars(16); pop(rnd(POP_WIN), '', 0, -110); },
@@ -132,8 +139,9 @@
     isOn: () => on, mounted: () => !!root
   };
   window.ANIME = API;
-  addEventListener('pointerdown', e => { last = { x: e.clientX, y: e.clientY, t: Date.now() }; }, true);
-  addEventListener('hashchange', () => { streak = 0; if (root) root.classList.remove('fire'); sync(); });
+  addEventListener('pointerdown', e => { last = { x: e.clientX, y: e.clientY, t: Date.now() }; nudges = 0; arm(); }, true);
+  addEventListener('keydown', () => { nudges = 0; arm(); }, true);
+  addEventListener('hashchange', () => { streak = 0; nudges = 0; if (root) root.classList.remove('fire'); sync(); arm(); });
   addEventListener('resize', () => { if (root) root.classList.toggle('hide', !on || !VIEWS.includes(curView()) || innerWidth < 480); });
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount); else mount();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { mount(); arm(); }); else { mount(); arm(); }
 })();

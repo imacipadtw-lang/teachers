@@ -27,6 +27,7 @@ python3 /home/user/lunch-box-lab-src/build.py
 - 特效：答對的漫畫擬聲字（POP! YUM! WOW!…）、星星粒子、集中線爆發、COMBO 橫幅；拿到印章時印章「蓋下來」。答錯只有溫和的 hmm?，不處罰。
 - 接法：`app.html` 的 `sfx.good／bad／win`、`say()`、`stamp()` 各呼叫一次 `window.ANIME`；角色的氣泡只顯示鼓勵語與指令（不顯示單字或題目句，避免破壞「只聽不看字」）。
 - 守則：全部 `aria-hidden`、不接收點擊、不可聚焦；手機寬度（<480px）不顯示；`prefers-reduced-motion` 開啟時不產生任何特效；「教師工具」有一鍵關閉動畫。特效短（約 1 秒）、不擋題目，是依 Mayer 的一致性原則，只做回饋、不增加分心。測試：`tests/anime.js`。
+- 閒置提示：Catch、Impostor、Build It、Check 上停下超過 16 秒沒有操作，Boxy 會揮手並用氣泡顯示這一關自己的指令（Listen and catch! 等，只有氣泡、不出聲），最多三次，一操作就重新計時。食物選項的圖片會輕輕浮動，答對時像彈跳（擠壓與拉伸），答錯時搖頭；動的是圖片，不是按鈕，所以不影響點擊。
 - 要改角色顏色或表情：改 `anime.js` 裡的 SVG 與 `anime.css` 的姿勢類別（`.p-cheer`、`.p-oops`、`.p-win`、`.p-wave`、`.fire`）。
 
 ## 教學理論與素養

@@ -24,6 +24,12 @@ const { chromium } = require('playwright');
   const ov = await p.evaluate(() => document.documentElement.scrollWidth - innerWidth); check(ov <= 0, 'effects widen the page by ' + ov);
   await p.waitForTimeout(2400);
   check(await p.evaluate(() => document.querySelectorAll('.fx-pop,.fx-star,.fx-burst,.fx-combo,.fx-seal').length) === 0, 'effect elements were not cleaned up');
+  // idle nudge: Boxy offers the screen's own instruction as a bubble (no audio)
+  const hint = await p.evaluate(() => ANIME.hint()); await p.waitForTimeout(150);
+  check(hint === 'Listen and catch!' && await p.evaluate(() => document.querySelector('.mx-bubble.on') && document.querySelector('.mx-bubble').textContent === 'Listen and catch!'), 'idle nudge text wrong: ' + hint);
+  // the food choices bob (decorative animation on the picture, never on the button itself)
+  const bob = await p.evaluate(() => { const i = document.querySelector('.opt .ico img,.opt .ico svg'); const o = document.querySelector('.opt'); return i && getComputedStyle(i).animationName === 'bob' && getComputedStyle(o).animationName !== 'bob'; });
+  check(bob, 'option pictures should bob while the option button stays still');
   // teacher switch
   await p.goto(f + '#home'); await p.goto(f + '#teacher'); await p.waitForTimeout(300);
   check((await p.getAttribute('#fx-toggle', 'aria-pressed')) === 'true', 'toggle should start on');
