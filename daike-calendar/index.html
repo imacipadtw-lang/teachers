@@ -633,6 +633,7 @@ body:not(.has-view) .ev-other button{display:none}   /* 管理者看某位老師
 .ev .p .k{display:inline-block;font-size:12px;font-weight:700;padding:0 8px;border-radius:999px;background:rgba(92,200,240,.15);color:var(--c-sub);margin-right:6px}
 .ev.t-leave .p .k,.ev.t-tutorLeave .p .k,.ev.t-absent .p .k{background:rgba(239,122,155,.15);color:var(--c-leave)}
 .ev.t-tutor .p .k{background:rgba(79,209,161,.15);color:var(--c-tutor)}
+.ev .p .k.selfk{background:rgba(245,166,35,.18);color:#a05a00} html[data-theme=dark] .ev .p .k.selfk{color:#ffc46b}
 .ev.t-swap .p .k{background:var(--amber-soft);color:var(--c-swap)}
 .ev .w{font-size:16px;font-weight:800;line-height:1.4}
 .ev .f{font-size:15px;font-weight:500}
@@ -731,6 +732,33 @@ body:not(.has-view) .ev-other button{display:none}   /* 管理者看某位老師
 .line-tbl{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px} .line-tbl td{padding:6px 4px;border-bottom:1px solid var(--line-2);vertical-align:middle} .line-tbl td.act{text-align:right;white-space:nowrap}
 .line-teach{margin:10px 0;padding:12px 14px;border-radius:12px;background:var(--navy,#0e1d31);color:#fff} .line-teach .hint,.line-teach .line-wait{color:#cdd8e6}
 .line-qr{display:block;background:#fff;padding:8px;border-radius:12px;margin:4px 0 2px;box-shadow:0 0 0 1px var(--line),0 8px 24px rgba(0,0,0,.25)}
+@media screen{
+.notice.autobar{background:var(--rose-soft);color:var(--ink);border-bottom-color:var(--rose);font-weight:600}
+.notice.autobar .btn{background:var(--rose);border-color:var(--rose);color:#fff}
+.line-card.adm{width:min(660px,100%)}
+.line-kit,.line-extra{margin:0 0 16px;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--surface-2)}
+.line-extra{margin:16px 0 0}
+.line-kit h3,.line-extra h3{margin:0 0 4px;font-size:15px}
+.line-kit .hint,.line-extra .hint,.line-list>.hint{font-size:13px;color:var(--ink-2);margin:4px 0 0}
+.line-kit .hint b,.line-extra .hint b{display:inline}
+.line-kit-row{display:flex;gap:14px;align-items:center;margin:12px 0 10px;flex-wrap:wrap}
+.line-kit-id{display:flex;flex-direction:column;gap:6px;align-items:flex-start;min-width:0}
+.line-kit-id b{font-size:15px;overflow-wrap:anywhere}
+.line-kit-id span{font:600 14px/1.2 var(--digits);color:var(--ink-2)}
+.line-lab{display:block;font-size:13px;color:var(--ink-2);margin:4px 0}
+.line-kit textarea{width:100%;font:inherit;font-size:13px;line-height:1.6;border:1px solid var(--line);border-radius:10px;padding:10px;resize:vertical;color:var(--ink);background:var(--surface)}
+.line-claimsw{display:flex;gap:8px;align-items:center;margin:12px 0 0;font-weight:700;font-size:14px}
+.line-claimsw input{width:18px;height:18px;flex:0 0 18px}
+.line-quota{font-size:13px;color:var(--ink-2);font-weight:400}
+.line-role{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:999px;font-size:12px;font-weight:700;background:var(--amber-soft);color:var(--amber);white-space:nowrap}
+.line-exlist{list-style:none;margin:10px 0 0;padding:0}
+.line-exlist li{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line-2);font-size:14px}
+.line-exform{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.line-exform input,.line-exform select{min-width:0;height:44px;font:inherit;font-size:14px;border:1px solid var(--line);border-radius:10px;padding:0 10px;color:var(--ink);background:var(--surface)}
+.line-exform select{grid-column:1 / -1}
+.line-exform .btn{grid-column:1 / -1;justify-self:start}
+.line-tbl td .hint{font-size:12px;color:var(--ink-2)}
+}
 .only-desk{display:none!important}
 @media (hover:hover) and (pointer:fine){ img.only-desk{display:block!important} span.only-desk{display:inline!important} .only-touch{display:none!important} }
 @keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
@@ -822,8 +850,9 @@ body:not(.has-view) .ev-other button{display:none}   /* 管理者看某位老師
 .fee{font-size:14px;color:var(--ink-2);margin:4px 0 12px}
 .fee b{color:var(--ink)}
 .tutorbox{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:6px 0 12px;background:var(--surface)}
-.tutorbox label.inline{display:flex;gap:8px;align-items:center;margin:0;font-weight:700;color:var(--ink)}
-.tutorbox input[type=checkbox]{width:18px;height:18px}
+.selfbox{border:1px dashed var(--line);border-radius:12px;padding:10px 14px;margin:6px 0 12px;background:var(--surface)} .selfbox .hint{margin:4px 0 0}
+.tutorbox label.inline,.selfbox label.inline{display:flex;gap:8px;align-items:center;margin:0;font-weight:700;color:var(--ink)}
+.tutorbox input[type=checkbox],.selfbox input[type=checkbox]{width:18px;height:18px;flex:0 0 18px}
 @media (max-width:760px){
   .rgrid.swap,.rgrid.sub{grid-template-columns:1fr}
   .arrow{transform:rotate(90deg);height:18px}
@@ -1627,6 +1656,10 @@ html[data-theme=dark] .wb-todo li.ok{background:rgba(79,209,161,.10)}
     </div>
     <nav class="pagetabs" id="pageTabs" role="tablist" aria-label="分頁" hidden></nav>
   </header>
+  <div class="notice autobar" id="autoNotice" role="alert" hidden>
+    <span id="autoNoticeText"></span>
+    <button class="btn small" type="button" id="autoStartBtn">重新啟動</button>
+  </div>
   <div class="notice line" id="lineNotice" role="region" aria-label="LINE 通知提醒" hidden>
     開啟 LINE 通知：用 LINE 簡單提醒您今天和這一週的調代課。
     <button class="btn line small" type="button" id="openLine2">現在設定</button>
@@ -1707,7 +1740,7 @@ html[data-theme=dark] .wb-todo li.ok{background:rgba(79,209,161,.10)}
 <div class="modal" id="lineModal" hidden>
   <div class="modal-card line-card" role="dialog" aria-modal="true" aria-labelledby="lineTitle">
     <h2 id="lineTitle">LINE 通知</h2>
-    <p class="sub">每天早上 7:30：教務組收到全校當天的調代課、每週一收到本週預告；老師收到「今天＋本週接下來」自己的調代課（只傳有課務的老師）。當天有新增或取消也會再通知。老師隨時可以在 LINE 打「今天」「明天」「一週」查詢。</p>
+    <p class="sub">每天早上 7:30 傳「今天」的、前一天中午 12:00 先預告「明天」的；當天有新增或取消也會再通知。每位同仁只收到<b>自己的</b>，教務組收到全校；護理師只收到合理員額代課教師的。聊天室下方的按鈕可以查今天、明天、本週、本月。</p>
     <div id="lineBody" aria-live="polite"></div>
     <div class="modal-actions"><button class="btn ghost" type="button" id="lineClose">關閉</button></div>
   </div>
@@ -2706,7 +2739,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.17a";
+const APP_VERSION = "專業版 2026.11.17b";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -3002,12 +3035,68 @@ async function openLine(){
   try{
     const d = await apiPost({action:"lineStatus", name:state.cred.name, h:state.cred.h});
     if(!d.ok) throw new Error(d.error || "讀不到 LINE 設定");
-    state.line = d.line; lineUI.list = d.list || null;
+    state.line = d.line; lineTake(d);
   }catch(ex){ lineUI.err = ex.message; }
   renderLine();
   if(lineUI.teach && Date.now() < lineUI.teach.until && !lineUI.timer) lineTeachPoll();
 }
 function closeLine(){ lineStop(); $("#lineModal").hidden = true; }
+/* 115.11.17：後端回來的管理資料（成員清單、能不能自己點名字、其他成員、本月則數） */
+function lineTake(d){
+  lineUI.list = d.list || null;
+  if("claim" in d) lineUI.claim = d.claim === true;            // 預設關閉：後端明確說開放才算開放
+  if(d.extra) lineUI.extra = d.extra;
+  if(d.quota) lineUI.quota = d.quota;
+}
+/* 轉知同仁的邀請訊息（教務組可以先改再複製） */
+function lineInviteText(L){
+  return `【土城國小 調代課 LINE 提醒】請各位同仁加入（只要做一次，不用密碼）
+
+1. 用手機點這個連結加好友：${L.addUrl || ""}
+　（或在 LINE 搜尋 ID：${L.id || ""}）
+2. 在聊天室點「自己的名字」，再按「是」
+3. 看到「綁定成功」就完成了
+
+加入之後：
+・每天早上 7:30 收到「自己」今天的代課、調課、請假
+・前一天中午 12:00 先收到明天的預告
+・聊天室下方的按鈕可以查 今天／明天／本週／本月
+・只看得到自己的，別人的看不到；手機、電腦版 LINE 都能用
+
+不小心點錯名字、換手機、綁不上：請找教務組重新設定。
+教務組 敬啟`;
+}
+/* 邀請圖卡（1080×1350，可以貼在群組或印出來）：QR code＋三個步驟 */
+async function lineInviteCard(){
+  const L = state.line || {}; await loadQrLib();
+  const W = 1080, H = 1350, c = document.createElement("canvas"); c.width = W; c.height = H;
+  const x = c.getContext("2d"), F = (w, px) => `${w} ${px}px "Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif`;
+  const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "#0E1D31"); g.addColorStop(1, "#081220"); x.fillStyle = g; x.fillRect(0, 0, W, H);
+  x.strokeStyle = "rgba(124,207,243,.07)"; x.lineWidth = 2; for(let i = 54; i < W; i += 54){ x.beginPath(); x.moveTo(i, 0); x.lineTo(i, H); x.stroke(); } for(let i = 54; i < H; i += 54){ x.beginPath(); x.moveTo(0, i); x.lineTo(W, i); x.stroke(); }
+  const rr = (X, Y, w, h, r) => { x.beginPath(); x.moveTo(X + r, Y); x.arcTo(X + w, Y, X + w, Y + h, r); x.arcTo(X + w, Y + h, X, Y + h, r); x.arcTo(X, Y + h, X, Y, r); x.arcTo(X, Y, X + w, Y, r); x.closePath(); };
+  const fit = (t, w, px, max) => { do { x.font = F(w, px); } while(x.measureText(t).width > max && --px > 18); };   // 字太長就縮小到放得下
+  x.textBaseline = "top"; x.fillStyle = "#7CCFF3"; x.font = F(700, 34); x.fillText("土城國小 教務處", 80, 76);
+  x.fillStyle = "#F3F8FD"; x.font = F(900, 84); x.fillText("調代課 LINE 提醒", 80, 128);
+  x.fillStyle = "#A7B9CC"; x.font = F(500, 38); x.fillText("加好友 → 點自己的名字 → 完成（不用密碼）", 80, 244);
+  rr(80, 330, 440, 440, 36); x.fillStyle = "#FFFFFF"; x.fill();
+  const tmp = document.createElement("div"); new QRCode(tmp, {text: L.addUrl || "", width: 380, height: 380, correctLevel: QRCode.CorrectLevel.M});
+  const qc = tmp.querySelector("canvas"); if(qc) x.drawImage(qc, 110, 360, 380, 380);
+  x.fillStyle = "#F3F8FD"; x.font = F(800, 44); x.fillText("用手機 LINE 掃描", 570, 372);
+  x.fillStyle = "#A7B9CC"; x.font = F(500, 34); x.fillText("或在 LINE 搜尋 ID", 570, 446);
+  x.fillStyle = "#7CCFF3"; fit(String(L.id || ""), 800, 56, 430); x.fillText(String(L.id || ""), 570, 496);
+  x.fillStyle = "#A7B9CC"; x.font = F(500, 30); let oy = 590; String(L.oa || "").match(/.{1,14}/g)?.slice(0, 2).forEach(t => { x.fillText(t, 570, oy); oy += 42; });
+  const steps = [["加好友", "掃 QR code 或搜尋 ID"], ["點自己的名字", "聊天室會列出全校同仁，點自己的，再按「是」"], ["完成", "手機、電腦版 LINE 都能用"]];
+  steps.forEach((st, i) => { const Y = 826 + i * 116;
+    x.beginPath(); x.arc(118, Y + 38, 38, 0, Math.PI * 2); x.fillStyle = "#5CC8F0"; x.fill();
+    x.fillStyle = "#0E1D31"; x.font = F(900, 44); x.textAlign = "center"; x.fillText(String(i + 1), 118, Y + 14); x.textAlign = "left";
+    x.fillStyle = "#F3F8FD"; x.font = F(800, 44); x.fillText(st[0], 186, Y);
+    x.fillStyle = "#A7B9CC"; fit(st[1], 500, 32, W - 266); x.fillText(st[1], 186, Y + 56); });
+  rr(80, 1180, W - 160, 110, 24); x.fillStyle = "rgba(92,200,240,.12)"; x.fill();
+  const b1 = "每天 7:30 收今天的・前一天 12:00 收明天的・只看得到自己的", b2 = "點錯名字、換手機、綁不上：請找教務組重新設定";
+  x.fillStyle = "#E7EEF6"; fit(b1, 600, 32, W - 230); x.fillText(b1, 115, 1202);
+  x.fillStyle = "#A7B9CC"; fit(b2, 500, 28, W - 230); x.fillText(b2, 115, 1248);
+  return new Promise(res => c.toBlob(res, "image/png"));
+}
 function fmtCode(c){ return c ? c.slice(0,3)+" "+c.slice(3) : ""; }
 /* 115.11.9：加好友 QR code 依後端給的加好友網址即時產生（換 LINE 官方帳號後不用換圖片）；元件或網址有問題就保留原本的 line-qr.png */
 function loadQrLib(){
@@ -3015,23 +3104,28 @@ function loadQrLib(){
   return loadQrLib.p = loadQrLib.p || new Promise((res, rej) => { const s = document.createElement("script"); s.src = "vendor/qrcode.min.js"; s.onload = res; s.onerror = () => { loadQrLib.p = null; rej(new Error("QR 元件載入失敗")); }; document.head.appendChild(s); });
 }
 function lineQr(box){
-  const img = box.querySelector("img[data-qrurl]"); if(!img) return;
-  const url = img.dataset.qrurl; if(!/^https:\/\/(line\.me|lin\.ee|liff\.line\.me)\//.test(url)) return;
+  const imgs = [...box.querySelectorAll("img[data-qrurl]")].filter(img => /^https:\/\/(line\.me|lin\.ee|liff\.line\.me)\//.test(img.dataset.qrurl || "")); if(!imgs.length) return;
   loadQrLib().then(() => {
-    const tmp = document.createElement("div");
-    new QRCode(tmp, {text: url, width: 264, height: 264, correctLevel: QRCode.CorrectLevel.M});
-    const c = tmp.querySelector("canvas"); if(!c || !img.isConnected) return;
-    img.src = c.toDataURL("image/png");
+    imgs.forEach(img => {                                  // 11/17：一個畫面可能有兩張（自己綁定用的、邀請同仁用的）
+      if(!img.isConnected) return;
+      if(lineQr.memo && lineQr.memo.url === img.dataset.qrurl){ img.src = lineQr.memo.src; return; }
+      const tmp = document.createElement("div");
+      new QRCode(tmp, {text: img.dataset.qrurl, width: 264, height: 264, correctLevel: QRCode.CorrectLevel.M});
+      const c = tmp.querySelector("canvas"); if(!c) return;
+      img.src = c.toDataURL("image/png"); lineQr.memo = {url: img.dataset.qrurl, src: img.src};
+    });
   }).catch(() => {});
 }
 function renderLine(loading){
   const L = state.line || {}, box = $("#lineBody");
+  if(loading === "tick"){ const a = document.activeElement; if(a && box.contains(a) && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return; loading = false; }   // 倒數每秒重畫：正在打字就先不重畫
+  const card = $("#lineModal .line-card"); if(card) card.classList.toggle("adm", state.role === "admin");
   if(loading){ box.innerHTML = `<p class="line-wait">讀取中…</p>`; return; }
   let h = "";
   if(!L.on){ h = `<p>教務組還在設定 LINE 通知，請過幾天再來看看。</p>`; }
   else if(L.bound){
     h = `<div class="line-ok"><strong>✅ 已綁定</strong>LINE：${esc(L.dn||"（未顯示名稱）")}${L.at?`，${esc(L.at)} 綁定`:""}
-      <ul><li>每天早上 7:30 提醒您當天全校的調代課；每週一提醒這一週的行程</li><li>在 LINE 點「今天」「一週」「一個月」，或打日期（例如 11/2）隨時查詢</li></ul></div>
+      <ul><li>每天早上 7:30 提醒您當天全校的調代課；每週一提醒這一週的行程</li><li>在 LINE 點「今天」「明天」「本週」「本月」，或打日期（例如 11/2）隨時查詢</li></ul></div>
       <p style="margin-top:12px"><button class="btn ghost small" type="button" id="lineUnbind">解除綁定（不再收到通知）</button></p>`;
   } else {
     const left = Math.max(0, Math.round((lineUI.until - Date.now())/1000));
@@ -3050,23 +3144,64 @@ function renderLine(loading){
     </ol>`;
   }
   if(lineUI.err) h += `<p class="line-err">${esc(lineUI.err)}</p>`;
-  if(lineUI.list && state.role==="admin"){                      // 11/6：教務組替每位老師產生綁定碼（老師不用登入網站）、替老師解除
-    const yes = lineUI.list.filter(x=>x.bound), no = lineUI.list.filter(x=>!x.bound), T = lineUI.teach || {};
+  if(lineUI.list && state.role==="admin"){                      // 11/17：邀請同仁（自己點名字，不用密碼）、成員與重設、其他成員（護理師…）；綁定碼保留當備用
+    const list = lineUI.list.filter(x=>x.name!==state.cred.name), yes = list.filter(x=>x.bound), T = lineUI.teach || {};
     const left = T.until ? Math.max(0, Math.round((T.until - Date.now())/1000)) : 0;
-    h += `<div class="line-list"><b>老師綁定情形：${yes.length} / ${lineUI.list.length} 位</b>
-      <p class="hint">老師不用登入網站：按老師名字旁的「產生綁定碼」，把 6 個數字和加好友的方法轉給老師（LINE、口頭都可以）；老師加官方帳號 <b style="display:inline">${esc(L.id||"")}</b> 好友後把號碼傳過去，就綁定完成。號碼 10 分鐘內有效、只能用一次。</p>
-      ${T.name && T.code && left > 0 ? `<div class="line-teach"><b>${esc(T.name)} 老師的綁定碼</b><div class="line-code">${esc(fmtCode(T.code))}</div>
-        <p class="line-wait">還有 ${Math.floor(left/60)}:${String(left%60).padStart(2,"0")} 有效・老師傳出去後，下面的名單會自動變成「已綁定」</p>
-        <button class="btn line small" type="button" id="lineTeachCopy">複製要給老師的說明（含號碼）</button></div>` : ""}
-      <table class="line-tbl"><tbody>${lineUI.list.filter(x=>x.name!==state.cred.name).map(x=>`<tr><td>${esc(x.name)}</td><td>${x.bound?`<span class="ok">已綁定</span>${x.at?`<span class="hint">　${esc(x.at)}</span>`:""}`:`<span class="no">還沒綁定</span>`}</td>
-        <td class="act">${x.bound?`<button class="btn ghost small" type="button" data-unbind="${esc(x.name)}">解除（換手機用）</button>`:`<button class="btn ghost small" type="button" data-code="${esc(x.name)}">產生綁定碼</button>`}</td></tr>`).join("")}</tbody></table></div>`;
+    const Q = lineUI.quota, extra = lineUI.extra || [], claim = lineUI.claim === true;
+    const how = x => x.how==="claim" ? "自己點名字" : x.how==="code" ? "綁定碼" : "";
+    h += `<div class="line-list">
+      <section class="line-kit" aria-labelledby="lineKitH">
+        <h3 id="lineKitH">邀請同仁加入（不用密碼）</h3>
+        <p class="hint">把邀請訊息傳給老師、主任、校長、護理師。他們<b>加好友 → 點自己的名字 → 按「是」</b>就綁定完成，手機和電腦版 LINE 都能用。每個人只看得到自己的。</p>
+        <div class="line-kit-row">
+          <img class="line-qr" src="line-qr.png" width="132" height="132" alt="LINE 官方帳號 ${esc(L.id||"")} 的加好友 QR code" data-qrurl="${esc(L.addUrl||"")}">
+          <div class="line-kit-id"><b>${esc(L.oa || "官方帳號")}</b><span>${esc(L.id||"")}</span>
+            <button class="btn line small" type="button" id="lineInvCopy">複製邀請訊息</button>
+            <button class="btn ghost small" type="button" id="lineInvCard">下載邀請圖卡</button></div>
+        </div>
+        <label class="line-lab" for="lineInvText">邀請訊息（可以先改再複製）</label>
+        <textarea id="lineInvText" rows="9">${esc(lineUI.invText != null ? lineUI.invText : lineInviteText(L))}</textarea>
+        <label class="line-claimsw"><input type="checkbox" id="lineClaimOn" ${claim?"checked":""}> 開放「自己點名字綁定」</label>
+        <p class="hint">${claim ? "全部同仁都加入以後，建議關掉；之後新來的人由您按名字旁的「產生綁定碼」加入。"
+          : "目前<b>關閉</b>：同仁加好友後還點不到名字，要由您按名字旁的「產生綁定碼」，把 6 個數字給他。打開以後，這個官方帳號的<b>任何好友</b>都能點名字綁定——官方帳號裡如果還有不是本校同仁的好友（例如以前的學生），請先換成新的官方帳號（資料表選單「代課工具 → LINE 每日通知 → 設定 LINE」，換好會自動打開）。"}</p>
+      </section>
+      <b>綁定情形：${yes.length} / ${list.length} 位</b>${Q ? `<span class="line-quota">　本月已傳 ${Q.used}${Q.limit ? " / " + Q.limit : ""} 則</span>` : ""}
+      <p class="hint">每次有人綁定，您的 LINE 會收到通知（寫出對方的 LINE 暱稱）。不是本人、點錯名字、換手機：按「重設」，請他重新點一次名字。</p>
+      ${T.name && T.code && left > 0 ? `<div class="line-teach"><b>${esc(T.name)} 的綁定碼</b><div class="line-code">${esc(fmtCode(T.code))}</div>
+        <p class="line-wait">還有 ${Math.floor(left/60)}:${String(left%60).padStart(2,"0")} 有效・對方傳出去後，下面的名單會自動變成「已綁定」</p>
+        <button class="btn line small" type="button" id="lineTeachCopy">複製要給他的說明（含號碼）</button></div>` : ""}
+      <table class="line-tbl"><tbody>${list.map(x=>`<tr><td>${esc(x.name)}${x.title?`<span class="hint">　${esc(x.title)}</span>`:""}${x.role==="heli"?`<span class="line-role">合理員額</span>`:""}</td>
+        <td>${x.bound?`<span class="ok">已綁定</span><span class="hint">　${esc([how(x), x.dn?`LINE「${x.dn}」`:"", x.at||""].filter(String).join("・"))}</span>`:`<span class="no">還沒綁定</span>`}</td>
+        <td class="act">${x.bound?`<button class="btn ghost small" type="button" data-unbind="${esc(x.name)}">重設</button>`:`<button class="btn ghost small" type="button" data-code="${esc(x.name)}">產生綁定碼</button>`}</td></tr>`).join("")}</tbody></table>
+      <section class="line-extra" aria-labelledby="lineExH">
+        <h3 id="lineExH">其他成員（護理師、校長…）</h3>
+        <p class="hint">不在老師名單裡的人加在這裡，選名字的卡片就會出現他。<b>護理師</b>請選「看合理員額教師」：只會收到合理員額代課教師的請假、調課、代課，看不到其他老師的名字和假別。</p>
+        ${extra.length ? `<ul class="line-exlist">${extra.map(x=>`<li><span>${esc(x.name)}${x.title?`（${esc(x.title)}）`:""}・${x.role==="heli"?"看合理員額教師":"只看自己的"}</span><button class="btn ghost small" type="button" data-exdel="${esc(x.name)}">移除</button></li>`).join("")}</ul>` : ""}
+        <div class="line-exform"><input id="lineExName" placeholder="姓名" maxlength="12" autocomplete="off" aria-label="姓名" value="${esc(lineUI.exName||"")}">
+          <input id="lineExTitle" placeholder="稱呼（護理師、校長…）" maxlength="8" autocomplete="off" aria-label="稱呼" list="lineExTitles" value="${esc(lineUI.exTitle||"")}"><datalist id="lineExTitles"><option value="護理師"><option value="校長"><option value="主任"><option value="幹事"></datalist>
+          <select id="lineExRole" aria-label="看得到什麼"><option value="heli" ${lineUI.exRole!=="self"?"selected":""}>看合理員額教師（護理師）</option><option value="self" ${lineUI.exRole==="self"?"selected":""}>只看自己的</option></select>
+          <button class="btn small" type="button" id="lineExAdd">加入</button></div>
+      </section></div>`;
   }
   box.innerHTML = h;
   lineQr(box);
   box.querySelectorAll("[data-code]").forEach(b => b.onclick = () => lineTeachCode(b.dataset.code));
-  box.querySelectorAll("[data-unbind]").forEach(b => b.onclick = () => { if(confirm(`要解除 ${b.dataset.unbind} 老師的 LINE 綁定嗎？解除後要重新產生綁定碼才會再收到通知。`)) lineUnbind(b.dataset.unbind); });
+  box.querySelectorAll("[data-unbind]").forEach(b => b.onclick = () => { if(confirm(`要重設 ${b.dataset.unbind} 的 LINE 綁定嗎？\n重設後他不會再收到通知，要重新點一次自己的名字（或由您產生綁定碼）。`)) lineUnbind(b.dataset.unbind); });
+  const it = $("#lineInvText"); if(it) it.oninput = () => { lineUI.invText = it.value; };
+  [["#lineExName","exName"],["#lineExTitle","exTitle"],["#lineExRole","exRole"]].forEach(([q,k]) => { const el = $(q); if(el) el.oninput = el.onchange = () => { lineUI[k] = el.value; }; });
+  const ic = $("#lineInvCopy"); if(ic) ic.onclick = async () => { const ok = await copyText($("#lineInvText").value); toast(!ok ? "複製不了，請手動選取文字複製" : lineUI.claim === true ? "已複製，貼到 LINE 群組或私訊就可以" : "已複製。提醒：「自己點名字綁定」還沒打開，同仁加好友後點不到名字"); if(!ok) $("#lineInvText").select(); };
+  const cd = $("#lineInvCard"); if(cd) cd.onclick = async () => { cd.disabled = true;
+    try{ const blob = await lineInviteCard(); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "LINE加入說明.png"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); toast(lineUI.claim === true ? "已下載邀請圖卡" : "已下載。提醒：「自己點名字綁定」還沒打開，同仁加好友後點不到名字"); }
+    catch(e){ toast("圖卡做不出來：" + e.message); } finally{ cd.disabled = false; } };
+  const cs = $("#lineClaimOn"); if(cs) cs.onchange = () => {
+    if(cs.checked && !confirm("要開放「自己點名字綁定」嗎？\n\n開放後，這個官方帳號的任何好友都可以點名字綁定（不用密碼）。每次有人綁定，您的 LINE 都會收到通知，不是本人可以按「重設」。\n\n官方帳號裡如果還有不是本校同仁的好友（例如以前的學生），請按「取消」，先換成新的官方帳號。")){ cs.checked = false; return; }
+    lineAdmin({action:"lineClaim", on: cs.checked ? "1" : "0"}, cs.checked ? "已開放：同仁可以自己點名字綁定" : "已關閉：之後只能用綁定碼"); };
+  box.querySelectorAll("[data-exdel]").forEach(b => b.onclick = () => { if(confirm(`要把「${b.dataset.exdel}」從其他成員移除嗎？他的 LINE 綁定也會一併解除。`)) lineAdmin({action:"lineMember", op:"remove", member:b.dataset.exdel}, `已移除 ${b.dataset.exdel}`); });
+  const ea = $("#lineExAdd"); if(ea) ea.onclick = () => { const nm = ($("#lineExName").value || "").trim();
+    if(!nm){ toast("請先填姓名"); $("#lineExName").focus(); return; }
+    lineAdmin({action:"lineMember", op:"add", member:nm, title:($("#lineExTitle").value || "").trim(), role:$("#lineExRole").value}, `已加入 ${nm}，請他加好友後點自己的名字`).then(ok => { if(ok){ lineUI.exName = ""; lineUI.exTitle = ""; renderLine(); } }); };
   const tc = $("#lineTeachCopy"); if(tc) tc.onclick = async ()=>{ const T = lineUI.teach, L2 = state.line || {};
-    const msg = `${T.name} 老師好，這是「代課・調課 LINE 提醒」的綁定方法（只要做一次）：\n1. 加官方帳號好友：${L2.addUrl||""}（或在 LINE 搜尋 ID ${L2.id||""}）\n2. 在聊天室打這 6 個數字送出：${T.code}（10 分鐘內有效）\n3. 看到「綁定成功」就完成了。之後每天早上 7:30 會提醒您當天和本週的調代課，打「今天」「明天」也可以隨時查。`;
+    const msg = `${T.name} 您好，這是「代課・調課 LINE 提醒」的綁定方法（只要做一次）：\n1. 加官方帳號好友：${L2.addUrl||""}（或在 LINE 搜尋 ID ${L2.id||""}）\n2. 在聊天室打這 6 個數字送出：${T.code}（10 分鐘內有效）\n3. 看到「綁定成功」就完成了。之後每天早上 7:30 會提醒您當天和本週的調代課，打「今天」「明天」也可以隨時查。`;
     try{ await navigator.clipboard.writeText(msg); toast("已複製，貼給老師就可以"); }catch(e){ toast("請手動抄下號碼 " + T.code); } };
   const g = $("#lineGetCode"); if(g) g.onclick = lineGetCode;
   const u = $("#lineUnbind"); if(u) u.onclick = lineUnbind;
@@ -3082,19 +3217,27 @@ async function lineGetCode(){
     let n = 0;
     lineUI.timer = setInterval(async ()=>{
       if($("#lineModal").hidden || Date.now() > lineUI.until){ lineStop(); renderLine(); return; }
-      renderLine();                                   // 倒數
+      renderLine("tick");                             // 倒數（正在打字就不重畫）
       if(++n % (n <= 120 ? 4 : 10)) return;           // 前 2 分鐘每 4 秒問一次有沒有綁定成功，之後每 10 秒（少打擾伺服器）
       try{ const s = await apiPost({action:"lineStatus", name:state.cred.name, h:state.cred.h});
-        if(s.ok && s.line && s.line.bound){ state.line = s.line; lineUI.list = s.list || lineUI.list; lineStop(); lineUI.code="";
+        if(s.ok && s.line && s.line.bound){ state.line = s.line; if(s.list) lineTake(s); lineStop(); lineUI.code="";
           renderLine(); $("#lineNotice").hidden = true; toast("LINE 綁定成功！"); } }catch(e){}
     }, 1000);
   }catch(ex){ lineUI.err = ex.message; }
   finally{ busy(false); renderLine(); }
 }
+/* 115.11.17：管理動作（開關自己點名字、加／移除其他成員）；回傳是否成功 */
+async function lineAdmin(body, okText){
+  lineUI.err = ""; busy(true);
+  try{ const d = await apiPost(Object.assign({name:state.cred.name, h:state.cred.h}, body));
+    if(!d.ok) throw new Error(d.error || "沒有成功"); state.line = d.line || state.line; lineTake(d); toast(okText); return true; }
+  catch(ex){ lineUI.err = ex.message; return false; }
+  finally{ busy(false); renderLine(); }
+}
 async function lineUnbind(forName){
   busy(true);
   try{ const d = await apiPost({action:"lineUnbind", name:state.cred.name, h:state.cred.h, forName: forName || ""});
-    if(!d.ok) throw new Error(d.error || "解除失敗"); state.line = d.line; if(d.list) lineUI.list = d.list; toast(forName ? `已解除 ${forName} 老師的綁定` : "已解除綁定"); }
+    if(!d.ok) throw new Error(d.error || "解除失敗"); state.line = d.line; if(d.list) lineTake(d); toast(forName ? `已重設 ${forName} 的綁定，可以請他重新點名字` : "已解除綁定"); }
   catch(ex){ lineUI.err = ex.message; }
   finally{ busy(false); renderLine(); }
 }
@@ -3114,14 +3257,30 @@ function lineTeachPoll(){                         // 關掉再打開 LINE 視窗
     let n = 0;
     lineUI.timer = setInterval(async ()=>{
       if($("#lineModal").hidden || !lineUI.teach || Date.now() > lineUI.teach.until){ lineStop(); lineUI.teach = null; renderLine(); return; }
-      renderLine();
+      renderLine("tick");
       if(++n % (n <= 120 ? 4 : 10)) return;
       try{ const s = await apiPost({action:"lineStatus", name:state.cred.name, h:state.cred.h});
-        if(s.ok && s.list && lineUI.teach){ lineUI.list = s.list; const me = s.list.find(x=>x.name===lineUI.teach.name); if(me && me.bound){ toast(`${lineUI.teach.name} 老師綁定成功！`); lineStop(); lineUI.teach = null; renderLine(); } } }catch(e){}
+        if(s.ok && s.list && lineUI.teach){ lineTake(s); const me = s.list.find(x=>x.name===lineUI.teach.name); if(me && me.bound){ toast(`${lineUI.teach.name} 綁定成功！`); lineStop(); lineUI.teach = null; renderLine(); } } }catch(e){}
     }, 1000);
 }
 $("#openLine").onclick = openLine; $("#openLine2").onclick = openLine;
 $("#lineNoticeX").onclick = ()=>{ $("#lineNotice").hidden = true; store.set("lineNoticeOff","1",localStorage); };
+/* 115.11.17：雲端的自動處理（每分鐘：LINE 通知、資料檢查通知、重複刪除、Excel 同步）停了 → 紅色提醒＋一鍵重新啟動。11/2～11/17 曾經停了兩個星期沒有人發現 */
+function autoNotice(){
+  const A = state.auto, bar = $("#autoNotice");
+  if(state.role !== "admin" || !A || !A.stale || (state.autoKick && Date.now() - state.autoKick < 180000)){ bar.hidden = true; return; }
+  $("#autoNoticeText").textContent = `雲端的自動處理${A.off ? "目前是停止的" : "沒有在跑"}（上次執行：${A.lastText || "沒有紀錄"}）。每天 7:30、12:00 的 LINE 通知、資料檢查通知、重複紀錄自動刪除都不會執行。`;
+  bar.hidden = false;
+}
+$("#autoStartBtn").onclick = async () => {
+  if(!confirm("要重新啟動自動處理嗎？\n啟動後 1～2 分鐘內會補做：今天的 LINE 通知、目前的資料檢查警示通知、刪除重複的紀錄。")) return;
+  busy(true);
+  try{ const d = await apiPost({action:"autoStart", name:state.cred.name, h:state.cred.h});
+    if(!d.ok) throw new Error(d.error || "沒有成功");
+    state.autoKick = Date.now(); autoNotice(); toast("已重新啟動，1～2 分鐘後恢復"); }
+  catch(ex){ toast("重新啟動失敗：" + ex.message); }
+  finally{ busy(false); }
+};
 $("#lineClose").onclick = closeLine;
 $("#lineModal").addEventListener("click", e=>{ if(e.target.id==="lineModal") closeLine(); });
 document.addEventListener("keydown", e=>{ if(e.key==="Escape" && !$("#lineModal").hidden) closeLine(); });
@@ -3185,7 +3344,7 @@ function applyData(d){
   $("#openPlan").hidden = state.role!=="admin"; $("#cmdBtn").hidden = state.role!=="admin";
   $("#dlExcel").textContent = state.role==="admin" || state.role==="acct" ? "明細試算表（雲端）" : "下載 Excel";
   $("#openReport").hidden = state.role!=="teacher";                 // 老師回報：只有老師用
-  state.reports = d.reports || []; state.notify = d.notify;
+  state.reports = d.reports || []; state.notify = d.notify; state.auto = d.auto || null; autoNotice();
   state.off = d.off || {}; state.audit = d.audit || []; state.typhoon = d.typhoon || null; state.heli = d.heli || state.heli || []; if(d.ins) state.ins = d.ins; if(d.meta) state.meta = d.meta;
   if(d.offRows) state.offRows = d.offRows; if(d.settings) applySettings(d.settings);   // 費率等設定（管理者可在網站改）
   if(d.closes) state.closes = d.closes;                                                // 月結紀錄（報帳前檢查用）
@@ -3833,7 +3992,8 @@ function swapView(e){
 /* 一筆紀錄 → 三行字：p 時間/課程、w 誰代誰、f 錢 */
 function describe(e){
   const r = describe0(e);
-  if(r && e.nofee && e.type!=="swap") r.f = e.live && e.exempt === "本土語直播共學" && !(e.flags||[]).length ? "本土語直播共學：另案經費，不算校內代課費" : "這筆不計費（原因寫在下面）";
+  if(r && e.self && e.type!=="swap") r.f = "費用自理：老師自付，不列入公費";
+  else if(r && e.nofee && e.type!=="swap") r.f = e.live && e.exempt === "本土語直播共學" && !(e.flags||[]).length ? "本土語直播共學：另案經費，不算校內代課費" : "這筆不計費（原因寫在下面）";
   return r;
 }
 function describe0(e){
@@ -3888,13 +4048,13 @@ function evRow(e){
   const stampDone = /^已核章完成/.test(e.stamp || "");
   const stampBtn = state.role==="admin" && sid ? `<button type="button" class="fixbtn" data-stampid="${esc(e.id)}" aria-label="${stampDone ? "看紙本序號" : "核章完成，看紙本序號"}：${esc(sid)}">${stampDone ? "看序號" : "核章完成"}</button>` : "";
   const fixd = e.fix ? `<div class="fixd">✎ ${state.role==="admin" ? "已修正："+esc(e.fix.text)+(e.fix.pending && exSyncOn() ?"（Excel 還沒改）":"") : "教務組已更正這筆資料"}</div>` : "";
-  return `<div class="ev t-${e.type}${fl?" flag":""}"${sid ? ` data-sid="${esc(sid)}"` : ""}><div class="p">${sid ? `<span class="sid">序號 ${esc(sid)}</span>` : ""}<span class="k">${KIND[e.type]||""}</span>${esc((p0 => sid && e.id ? p0.replace(`（${e.id}）`, "") : p0)(KIND[e.type] && String(d.p).startsWith(KIND[e.type] + "・") ? String(d.p).slice(KIND[e.type].length + 1) : String(d.p)))}</div><div class="w">${esc(d.w)}</div><div class="f">${esc(d.f)}</div>${fl}${fixd}${e.stamp?`<div class="stp${e.stamp.indexOf("已核章完成")===0?"":" wait"}">${e.stamp.indexOf("已核章完成")===0?"✓ ":"⏳ "}${esc(e.stamp)}</div>`:""}${e.note?`<div class="x">備註：${esc(e.note)}</div>`:""}${repBtn}${fixBtn}${delBtn}${stampBtn}${state.role==="admin" ? `<button type="button" class="fixbtn" data-copyev aria-label="複製這筆紀錄的文字">複製</button>` : ""}</div>`;
+  return `<div class="ev t-${e.type}${fl?" flag":""}${e.self?" self":""}"${sid ? ` data-sid="${esc(sid)}"` : ""}><div class="p">${sid ? `<span class="sid">序號 ${esc(sid)}</span>` : ""}<span class="k">${KIND[e.type]||""}</span>${e.self && e.type!=="swap" ? `<span class="k selfk">費用自理</span>` : ""}${esc((p0 => sid && e.id ? p0.replace(`（${e.id}）`, "") : p0)(KIND[e.type] && String(d.p).startsWith(KIND[e.type] + "・") ? String(d.p).slice(KIND[e.type].length + 1) : String(d.p)))}</div><div class="w">${esc(d.w)}</div><div class="f">${esc(d.f)}</div>${fl}${fixd}${e.stamp?`<div class="stp${e.stamp.indexOf("已核章完成")===0?"":" wait"}">${e.stamp.indexOf("已核章完成")===0?"✓ ":"⏳ "}${esc(e.stamp)}</div>`:""}${e.note?`<div class="x">備註：${esc(e.note)}</div>`:""}${repBtn}${fixBtn}${delBtn}${stampBtn}${state.role==="admin" ? `<button type="button" class="fixbtn" data-copyev aria-label="複製這筆紀錄的文字">複製</button>` : ""}</div>`;
 }
 
 /* 月曆格子用：每一節分開寫，寫出班級、科目、誰代誰、誰領多少錢 */
 function cellEntries(evs){
   const order = e => e.type==="absent" ? -1 : e.type==="tutor"||e.type==="tutorLeave" ? 0 : (+e.period || (+e.fromPeriod) || 9);
-  return evs.filter(e=>describe(e)).sort((a,b)=>order(a)-order(b)).map(e=>Object.assign(cellEntry(e), {fl: shortFlag(e)}));
+  return evs.filter(e=>describe(e)).sort((a,b)=>order(a)-order(b)).map(e=>{ const c = cellEntry(e); if(e.self && e.type!=="swap") c.w += "（自理）"; return Object.assign(c, {fl: shortFlag(e)}); });
 }
 function cellEntry(e){
   {
@@ -4631,7 +4791,7 @@ window.addEventListener("beforeunload", e => { if(planDirty()){ e.preventDefault
 function resetPlan(date){
   plan = { kind:(() => { try{ const k = localStorage.getItem("planKind"); return ["swap","sub","absent","tutor"].includes(k) ? k : "swap"; }catch(e){ return "swap"; } })(), force:false, server:null, scan:null, scanKeys:null,
     swap:{teacher:"", applyDate:todayYmd(), reason:"", rows:[Object.assign(newSwapRow(), date?{fromDate:date}:{})]},
-    sub:{leaver:"", leaveType:"公假", date:date||"", note:"", rows:[], tutor:false, tutorSub:""},
+    sub:{leaver:"", leaveType:"公假", date:date||"", note:"", rows:[], tutor:false, tutorSub:"", self:false},
     absent:{teacher:"", leaveType:"公假", applyDate:todayYmd(), from:date||"", to:"", scope:"全天", periods:[], reason:"", scanSubs:{}, saved:null, weekend:false},
     tutor:{leaver:"", leaveType:"公假", from:date||"", to:"", sub:"", note:"", weekend:false} };
 }
@@ -4775,7 +4935,7 @@ function renderAbsInfo(){
 function absToSub(i){
   const A = plan.absent, d = absDays()[i]; if(!d || !A.teacher) return;
   const x = absDayInfo(A.teacher, d, A), sub = (A.scanSubs||{})[d] || {};
-  plan.sub = {leaver:A.teacher, leaveType:A.leaveType, date:d, note: A.leaveType==="其他" ? A.reason : "", rows:[], tutor:false, tutorSub:""};
+  plan.sub = {leaver:A.teacher, leaveType:A.leaveType, date:d, note: A.leaveType==="其他" ? A.reason : "", rows:[], tutor:false, tutorSub:"", self:false};
   plan.backTo = A;                                  // 115.11.10：存好這天的代課後回到這張假單，接著排下一天（不用重填老師、日期）
   plan.sub.rows = x.todo.filter(t => !t.extra).map(t => Object.assign(newSubRow(), {period:String(t.p), cls:t.cls, subject:t.subject, sub: sub[t.p] || "", auto:{subject:1}}));
   plan.kind = "sub"; plan.force = false; plan.server = null;
@@ -4841,8 +5001,8 @@ function formData(){
                                   toDate:r.toDate, toPeriod:r.toPeriod, toSubject:r.toSubject, partner:r.partner}))};
   }
   const U = plan.sub, home = U.leaver && state.meta.homeroom[U.leaver];
-  return {subs:U.rows.map(r=>({leaver:U.leaver, leaveType:U.leaveType, date:U.date, period:r.period, cls:r.cls, subject:r.subject, sub:r.sub, note:U.note})),
-          tutors: U.tutor && home ? [{leaver:U.leaver, leaveType:U.leaveType, date:U.date, cls:home, sub:U.tutorSub, note:U.note}] : []};
+  return {subs:U.rows.map(r=>({leaver:U.leaver, leaveType:U.leaveType, date:U.date, period:r.period, cls:r.cls, subject:r.subject, sub:r.sub, note:U.note, self:!!U.self})),
+          tutors: U.tutor && home ? [{leaver:U.leaver, leaveType:U.leaveType, date:U.date, cls:home, sub:U.tutorSub, note:U.note, self:!!U.self}] : [], self: !!U.self};
 }
 function missingOf(kind, r){
   const m=[];
@@ -5026,6 +5186,8 @@ function renderPlan(){
         </div><div data-chk="sub.${i}"></div></div>`;
     });
     html += `<button type="button" class="addrow" id="addRow">＋ 加一節</button>`;
+    html += `<div class="selfbox"><label class="inline"><input type="checkbox" id="pSelf" data-k="u.self" ${U.self?"checked":""}> <b>費用自理</b>（老師自己付給代課老師，不列入公費）</label>
+      <p class="hint">勾了會存在「代課自理登記」分頁，序號 自代-／自導-。年曆、LINE 提醒、請假比對照常有，但代課一覽表、簽收單、會計報表、Excel 都不會出現。</p></div>`;
     html += `<p class="fee" id="planFee"></p>`;
   }
   $("#planBody").innerHTML = html;
@@ -5091,7 +5253,9 @@ function refreshPlan(){
       const live = U.rows.map(r => liveAt(U.date, r.period, r.cls, r.subject)), nLive = live.filter(Boolean).length;
       const n = U.rows.length, rates = U.rows.map((r, i) => live[i] ? 0 : rateFor(U.leaver, U.date, r.period, r.cls, r.subject, U.note)), comb = rates.filter(x => x && x !== RATE_SUB).length;
       const tut = U.tutor&&home?`；代導師 1 日 <b>${RATE_TUTOR} 元</b>（由代導師領）`:"";
-      fee.innerHTML = nLive === n && n
+      fee.innerHTML = U.self
+        ? `<b>費用自理</b>：代課 <b>${n}</b> 節${U.tutor&&home?"、代導師 1 日":""}由 ${esc(U.leaver||"請假老師")} 自己付給代課老師，<b>不列入公費</b>（會計報表、簽收單不會出現）`
+        : nLive === n && n
         ? `代課 <b>${n}</b> 節，都是本土語直播共學（另案經費），<b>不算校內代課費</b>${tut}`
         : `代課 <b>${n}</b> 節${nLive ? `（其中 ${nLive} 節是本土語直播共學，另案經費不算；算代課費的 ${n - nLive} 節）` : ""}${comb ? `（其中合班 ${comb} 節，每節 ${RATE_COMB} 元）` : ` × ${RATE_SUB} 元`} ＝ <b>${rates.reduce((a,b)=>a+b,0).toLocaleString()} 元</b>（由各代課老師領）${tut}`;
     }
@@ -5168,7 +5332,7 @@ $("#planBody").addEventListener("change", e=>{
     return;
   }
   if((k==="u.leaver" || k==="u.date") && plan.sub.leaver && plan.sub.date && !plan.sub.rows.length && state.meta) fillDay();   // 115.11.10：選好老師和日期就自動帶入那天的課
-  if(k==="u.leaver" || k==="u.tutor" || k==="u.date" || k.indexOf("a.")===0 || (k.indexOf("t.")===0 && k!=="t.note")) renderPlan();   // 會改變版面的才整個重畫
+  if(k==="u.leaver" || k==="u.tutor" || k==="u.date" || k==="u.self" || k.indexOf("a.")===0 || (k.indexOf("t.")===0 && k!=="t.note")) renderPlan();   // 會改變版面的才整個重畫
   else refreshPlan();
 });
 $("#planBody").addEventListener("input", e=>{            // 打字中：只記下來，不重畫（避免游標跳掉）
@@ -5361,7 +5525,7 @@ const FIXF = {
 const fixKind = e => e.type==="swap" ? "調課" : (e.type==="tutor"||e.type==="tutorLeave") ? "代導師" : "代課";
 function fixRef(e){
   if(!e || !e.id || /^調課第/.test(e.id) || e.type==="absent") return null;   // 沒有序號的分不出是哪一列，不能改；請假登記直接改「請假登記」分頁
-  const kind = fixKind(e), src = kind==="調課" ? "表單" : (e.src==="Excel" ? "Excel" : "網頁");
+  const kind = fixKind(e), src = kind==="調課" ? "表單" : (e.src==="Excel" ? "Excel" : e.self ? "自理" : "網頁");
   return {kind, src, id:e.id, key:[kind,src,e.id].join("|")};
 }
 function fixRec(e){
@@ -5407,8 +5571,8 @@ function fixField(k, label, t){
   return `<div class="${cls.trim()}"><label for="${id}">${label}</label>${ctl}</div>`;
 }
 function renderFix(){
-  const r = fx.ref, e = fx.ev, srcName = r.src==="Excel" ? "Excel" : r.src==="表單" ? "調課登記" : "網頁／照片登記";
-  $("#fixTitle").textContent = fx.step==="done" ? "完成" : fx.step==="edit" ? "修改這筆紀錄" : fx.op==="delete" ? "確認刪除這筆" : "確認修改";
+  const r = fx.ref, e = fx.ev, srcName = r.src==="Excel" ? "Excel" : r.src==="表單" ? "調課登記" : r.src==="自理" ? "自理登記（費用自理）" : "網頁／照片登記";
+  $("#fixTitle").textContent = fx.step==="done" ? "完成" : fx.step==="edit" ? "修改這筆紀錄" : fx.op==="delete" ? "確認刪除這筆" : fx.op==="self" ? "確認改為費用自理" : fx.op==="public" ? "確認改回公費" : "確認修改";
   $("#fixSub").textContent = `${r.kind}・序號 ${r.id}（來源：${srcName}）`;
   let body = "", acts = "";
   if(fx.step==="edit"){
@@ -5416,7 +5580,14 @@ function renderFix(){
       + `<div class="fix-grid">${FIXF[r.kind].map(([k,l,t]) => fixField(k,l,t)).join("")}</div>`
       + `<p class="fix-tip">${r.src==="Excel" && exSyncOn() ? "Excel 原檔不會被改；網站、LINE、代課總表、月報表會用修改後的資料，之後 Excel 同步也不會蓋掉。" : "修改會直接寫回資料表那一列；網站、LINE、代課總表、月報表一起更新，「修正」分頁留紀錄。"}</p>`;
     acts = `<button type="button" class="btn dghost" data-fxa="delete">刪除這筆</button>`
+      + (r.kind!=="調課" ? (r.src==="自理" ? `<button type="button" class="btn ghost" data-fxa="public">改回公費</button>` : `<button type="button" class="btn ghost" data-fxa="self">改為費用自理</button>`) : "")
       + `<span class="r"><button type="button" class="btn ghost" data-fxa="close">取消</button><button type="button" class="btn" data-fxa="next">下一步：確認</button></span>`;
+  } else if(fx.step==="confirm" && (fx.op==="self" || fx.op==="public")){
+    const d = describe(e) || {p:"", w:""}, toSelf = fx.op==="self";
+    body = `<div class="about">${esc(md(e.date))} ${esc(d.p)}｜${esc(d.w)}</div><p class="fix-tip">${toSelf
+      ? "這筆會搬到「" + (r.kind==="代課" ? "代課自理登記" : "代導師自理登記") + "」分頁（新序號 自" + (r.kind==="代課" ? "代" : "導") + "-…），老師自付、不列入公費：代課一覽表、簽收單、會計報表、Excel 都不再出現；年曆、LINE、請假比對照常有。原本那筆記成刪除" + (exSyncOn() && r.src==="Excel" ? "（Excel 原檔不會被改）" : "") + "。"
+      : "這筆會搬回「" + (r.kind==="代課" ? "代課（網頁／照片登記）" : "代導師（網頁／照片登記）") + "」分頁（新序號 " + (r.kind==="代課" ? "代" : "導") + "-…），重新列入校內代課費。"}${(() => { const c = e.date && state.closes && state.closes[e.date.slice(0,7)]; return c && c.data && !c.open ? "　⚠ 這個月已結帳，改完會顯示差額，需要「重新結帳」。" : ""; })()}</p>`;
+    acts = `<span class="r"><button type="button" class="btn ghost" data-fxa="back">返回</button><button type="button" class="btn ${toSelf?"":"danger"}" data-fxa="save">${toSelf?"確認改為費用自理":"確認改回公費"}</button></span>`;
   } else if(fx.step==="confirm" && fx.op==="delete"){
     const d = describe(e) || {p:"", w:""};
     body = `<div class="about">${esc(md(e.date))} ${esc(d.p)}｜${esc(d.w)}</div><p class="fix-tip">刪除後網站、LINE、代課總表、月報表都不再算這筆${exSyncOn() ? "（Excel 原檔不會被改）" : "（資料表那一列會一併刪除，「修正」分頁留紀錄）"}。刪除後不會再列出，也不能還原，請確認。</p>`;
@@ -5468,6 +5639,7 @@ $("#fixActs").addEventListener("click", async e => {
   if(act==="close") return closeFix();
   if(act==="back"){ fx.step = "edit"; fx.op = "save"; $("#fixErr").textContent = ""; renderFix(); return; }
   if(act==="delete"){ fx.op = "delete"; fx.step = "confirm"; $("#fixErr").textContent = ""; renderFix(); return; }
+  if(act==="self" || act==="public"){ fx.op = act; fx.step = "confirm"; $("#fixErr").textContent = ""; renderFix(); return; }
   if(act==="next"){
     fx.op = "save";
     const m = fixCheck();
@@ -5479,7 +5651,7 @@ $("#fixActs").addEventListener("click", async e => {
   a.disabled = true; busy(true);
   try{
     const d = await fixSend(fx.op, fx.ref, fx.op==="save" ? fixChanges() : null);
-    fx.doneText = fx.op==="delete" ? "已刪除這筆" : fx.op==="undo" ? "已還原成原本的資料" : (d.undone ? d.text : "已修改：" + d.text);
+    fx.doneText = fx.op==="delete" ? "已刪除這筆" : fx.op==="undo" ? "已還原成原本的資料" : (fx.op==="self" || fx.op==="public") ? d.text : (d.undone ? d.text : "已修改：" + d.text);
     fx.issues = d.issues || []; fx.step = "done"; $("#fixErr").textContent = ""; renderFix();
     await reload(true, true);
   }catch(err){ $("#fixErr").textContent = err.message; a.disabled = false; if(fx.op==="undo") fx.op = "save"; }
@@ -6622,10 +6794,12 @@ async function allEvents(){                       // 管理者正在看某位老
   finally{ busy(false); }
 }
 $("#openSign").onclick = () => { let r = $("#rangeSel").value; if(!r){ r = ymd(new Date()).slice(0,7); toast(`簽收單以月為單位，先產生 ${rangeLabel(r)}`); } printSign(r); };
+/* 費用自理（11/13）：老師自付，會計報表、簽收單、Excel 連列都不列 */
+const pubOnly = list => (list || []).filter(e => !e.self);
 async function printSign(r){
   applySettingsAt(r);
   let all;
-  try{ all = await allEvents(); } catch(err){ toast("讀取失敗：" + err.message); return; }
+  try{ all = pubOnly(await allEvents()); } catch(err){ toast("讀取失敗：" + err.message); return; }
   const heliN = all.filter(e => e.date.startsWith(r) && isHeliSub(e) && !e.nofee).length;
   const evs = all.filter(e => e.date.startsWith(r) && (e.type==="sub" || e.type==="tutor") && !isHeliSub(e));   // 代合理員額教師課屬合理員額，在合理員額簽到表簽名
   if(!evs.length){ toast(`${rangeLabel(r)}沒有校內代課紀錄${heliN ? `（代合理員額教師課 ${heliN} 節請用「合理員額簽到表」）` : ""}`); return; }
@@ -7524,7 +7698,7 @@ function buildLawSheet(K){
 async function acctExcel(r){
   const win = cloudWin();
   applySettingsAt(r);
-  let all; try{ all = await allEvents(); } catch(err){ cloudFail(win, "讀取失敗：" + err.message); return; }
+  let all; try{ all = pubOnly(await allEvents()); } catch(err){ cloudFail(win, "讀取失敗：" + err.message); return; }
   const A = acctOf(all, r), inM = all.filter(e => e.date.startsWith(r));
   if(!inM.some(e => (e.type==="sub" && !isHeliSub(e)) || e.type==="tutor")){ cloudFail(win, `${rangeLabel(r)}沒有校內代課紀錄`); return; }
   busy(true);
@@ -7872,7 +8046,7 @@ async function acctRangeExcel(from, to){
   if(!from || !to || from > to){ cloudFail(win, "請先選好起訖月份（開始月份不能在結束月份之後）"); return; }
   busy(true);
   try{
-    const all = await allEvents(); await ensureMeta();
+    const all = pubOnly(await allEvents()); await ensureMeta();
     const months = monthsBetween(from, to);
     await loadExcelJS(); const wb = new ExcelJS.Workbook(); wb.creator = "代課查詢系統"; wb.created = new Date(); const K = xlKit(wb);
     const saved = state.events; state.events = all;                     // 管理者正在看某位老師時也用全校資料
@@ -7943,7 +8117,7 @@ function landscape(on){                              // 月報表用橫式
 async function printAcct(r){
   applySettingsAt(r);
   let all;
-  try{ all = await allEvents(); } catch(err){ toast("讀取失敗：" + err.message); return; }
+  try{ all = pubOnly(await allEvents()); } catch(err){ toast("讀取失敗：" + err.message); return; }
   const evs = all.filter(e => e.date.startsWith(r)), heli = state.heli || [];
   const subs = evs.filter(e => e.type==="sub" && !isHeliSub(e)).sort((a,b) => a.date.localeCompare(b.date) || (+a.period||0) - (+b.period||0));
   const tutors = evs.filter(e => e.type==="tutor");
@@ -8086,13 +8260,26 @@ async function demoApi(p){
   if(admin) out.pwStatus = DEMO_NAMES.map(n=>({name:n,changed:!!demoPw[n],at:demoPw[n]?"剛剛":""}));
   out.line = Object.assign({}, demoLine);
   out.reports = demoReports.filter(r=>admin || r.teacher===p.name); out.notify = admin ? {email:"demo@example.com", iphone:false, line:false} : undefined;
+  if(admin) out.auto = Object.assign({}, demoAuto);
   return out;
 }
-const demoLine = {on:true, bound:false, dn:"", at:"", id:"@898bjead", addUrl:"https://line.me/R/ti/p/%40898bjead"};
+const demoAuto = {stale: /[?&]autostale=1/.test(location.search), last:0, lastText:"11/2", want:false, off:false, trig:1};   // ?demo=1&autostale=1：示範「自動處理停了」的提醒列
+const demoLine = {on:true, bound:false, dn:"", at:"", id:"@demo2026", addUrl:"https://line.me/R/ti/p/%40demo2026", oa:"示範國小 調代課提醒"};
+const demoLineAdm = {claim:false, extra:[{name:"示範護理師", role:"heli", title:"護理師"}], bound:{}};
+function demoLineOut(b){
+  const o = {ok:true, line:Object.assign({},demoLine)};
+  if(b.name==="王教務"){ o.claim = demoLineAdm.claim; o.extra = demoLineAdm.extra.slice(); o.quota = {used:12, limit:200};
+    o.list = DEMO_NAMES.map(n=>({name:n, bound:n===b.name ? demoLine.bound : !!demoLineAdm.bound[n], dn:demoLineAdm.bound[n]||"", at:demoLineAdm.bound[n]?"剛剛":"", how:demoLineAdm.bound[n]?"claim":"", role:n===b.name?"admin":"self", title:"", extra:false, roster:true}))
+      .concat(demoLineAdm.extra.map(x=>({name:x.name, bound:false, dn:"", at:"", how:"", role:x.role, title:x.title, extra:true, roster:false}))); }
+  return o;
+}
 async function demoPost(b){
-  if(b.action==="lineStatus") return {ok:true, line:Object.assign({},demoLine), list: b.name==="王教務" ? DEMO_NAMES.map(n=>({name:n,bound:n===b.name&&demoLine.bound})) : undefined};
+  if(b.action==="lineStatus") return demoLineOut(b);
+  if(b.action==="lineClaim"){ demoLineAdm.claim = b.on==="1" || b.on===true; return demoLineOut(b); }
+  if(b.action==="lineMember"){ if(b.op==="add"){ if(!/^[\u4e00-\u9fffA-Za-z·．.\s]{2,12}$/.test(b.member||"")) return {ok:false,error:"姓名請填 2～12 個字（中文或英文）"}; demoLineAdm.extra = demoLineAdm.extra.filter(x=>x.name!==b.member).concat([{name:b.member, role:b.role==="heli"?"heli":"self", title:b.title||""}]); } else demoLineAdm.extra = demoLineAdm.extra.filter(x=>x.name!==b.member); return demoLineOut(b); }
+  if(b.action==="autoStart"){ demoAuto.stale = false; demoAuto.lastText = "剛剛"; return {ok:true, auto:Object.assign({},demoAuto)}; }
   if(b.action==="lineCode"){ setTimeout(()=>{ demoLine.bound=true; demoLine.dn="示範老師"; demoLine.at="剛剛"; }, 9000); return {ok:true, code:"123456", minutes:10, line:Object.assign({},demoLine)}; }
-  if(b.action==="lineUnbind"){ demoLine.bound=false; return {ok:true, line:Object.assign({},demoLine)}; }
+  if(b.action==="lineUnbind"){ if(b.forName) delete demoLineAdm.bound[b.forName]; else demoLine.bound=false; return demoLineOut(b); }
   if(b.action==="report"){ const id="回-"+String(demoReports.length+1).padStart(3,"0"); demoReports.unshift({id,time:"剛剛",teacher:b.name,date:b.date,record:b.record,kind:b.kind,text:b.text,status:"待處理",reply:""}); return {ok:true,id,notified:true}; }
   if(b.action==="reply"){ const r=demoReports.find(x=>x.id===b.id); if(r){ r.status="已處理"; r.reply=b.reply; } return {ok:true}; }
   if(b.action==="fix") return {ok:true, text: b.op==="delete" ? "刪除整筆" : Object.keys(b.data||{}).map(k=>k+"："+b.data[k]).join("；"), issues:[]};
