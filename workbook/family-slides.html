@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>家庭與我・三年級社會互動簡報</title>
+<style>
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#1b1340;overflow:hidden;font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;color:#2b2150;user-select:none}
+#wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+#stage{width:1280px;height:720px;position:relative;transform-origin:center center;flex:none;overflow:hidden;border-radius:18px;
+ background:linear-gradient(160deg,#ffd6e8 0%,#c9d8ff 45%,#d8f5ff 100%);box-shadow:0 20px 80px #0008}
+#bg{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.note{position:absolute;bottom:-60px;font-size:34px;opacity:.5;animation:floatUp linear infinite}
+@keyframes floatUp{to{transform:translateY(-820px) rotate(30deg);opacity:0}}
+.slide{position:absolute;inset:0;padding:34px 48px 78px;display:none;flex-direction:column}
+.slide.active{display:flex;animation:slideIn .55s cubic-bezier(.2,1.3,.4,1)}
+@keyframes slideIn{from{opacity:0;transform:translateX(80px) scale(.96)}to{opacity:1;transform:none}}
+h1{font-size:60px;line-height:1.1;font-weight:900}
+h2{font-size:38px;font-weight:900;margin-bottom:6px;display:flex;align-items:center;gap:12px}
+h2 small{font-size:18px;font-weight:700;color:#7b6fb5;background:#fff9;border-radius:20px;padding:3px 14px}
+.sub{font-size:20px;color:#6a5fa0;margin-bottom:10px}
+.btn{border:none;cursor:pointer;font:inherit;font-weight:800;border-radius:30px;padding:10px 26px;font-size:22px;background:#ff5d8f;color:#fff;box-shadow:0 6px 0 #c23468;transition:.12s}
+.btn:active{transform:translateY(5px);box-shadow:0 1px 0 #c23468}
+.btn.alt{background:#5b7cff;box-shadow:0 6px 0 #3149c2}
+.btn.gold{background:#ffb703;color:#4a3000;box-shadow:0 6px 0 #c98900}
+.btn.small{font-size:16px;padding:6px 16px;box-shadow:0 4px 0 #c23468}
+.card{background:#fffc;border-radius:26px;box-shadow:0 8px 24px #4a3a9020;padding:18px 24px}
+.speak{cursor:pointer;display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:#5b7cff;color:#fff;font-size:17px;flex:none;border:none}
+.speak:hover{transform:scale(1.15)}
+.zh{color:#7b6fb5;font-size:19px}
+body.nozh .zh.hideable{visibility:hidden}
+
+/* title */
+#s0{align-items:center;justify-content:center;text-align:center}
+#s0 .sky{position:absolute;inset:0;background:linear-gradient(#7b5cff,#ff8fb8 70%,#ffd89e);z-index:-1}
+.city{position:absolute;bottom:0;left:0;right:0;height:210px;display:flex;align-items:flex-end;justify-content:center;gap:6px;font-size:96px;z-index:0}
+.city span{animation:bob 3s ease-in-out infinite}
+.city span:nth-child(2n){animation-delay:-1s}
+@keyframes bob{50%{transform:translateY(-14px)}}
+.tram{position:absolute;bottom:24px;font-size:90px;animation:drive 9s linear infinite;z-index:2}
+@keyframes drive{from{left:-140px}to{left:1300px}}
+#s0 .t{position:relative;z-index:3;color:#fff;text-shadow:0 5px 0 #4b2aa8,0 12px 24px #0006}
+#s0 h1{font-size:76px}
+#s0 .en{font-size:30px;font-weight:700;margin:12px 0 26px;color:#fff6c9}
+#s0 .badge{display:inline-block;background:#fff;color:#4b2aa8;border-radius:30px;padding:6px 20px;font-weight:800;font-size:20px;margin-bottom:18px;animation:wob 2s ease-in-out infinite}
+@keyframes wob{50%{transform:rotate(-3deg) scale(1.05)}}
+.wiggle{animation:wob 1.6s infinite}
+
+/* mission */
+.missions{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:14px;flex:1}
+.mission{background:#fff;border-radius:28px;padding:22px;text-align:center;box-shadow:0 10px 0 #b9a8ff;cursor:pointer;transition:.2s;position:relative}
+.mission:hover{transform:translateY(-8px) rotate(-1deg)}
+.mission .ic{font-size:84px;display:block;animation:bob 2.4s infinite}
+.mission b{font-size:26px;display:block;margin:6px 0}
+.mission .q{font-size:22px;color:#e0357a;font-weight:800;margin-top:8px}
+.mission.done::after{content:"✅";position:absolute;top:10px;right:14px;font-size:34px}
+
+/* vocab */
+.vgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;flex:1;margin-top:8px;align-content:start}
+.fc{height:150px;perspective:800px;cursor:pointer}
+.fc>div{position:relative;width:100%;height:100%;transition:transform .6s;transform-style:preserve-3d}
+.fc.flip>div{transform:rotateY(180deg)}
+.fc .f,.fc .b{position:absolute;inset:0;backface-visibility:hidden;border-radius:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6px;box-shadow:0 6px 0 #0002}
+.fc .f{background:#fff;font-size:44px}
+.fc .f span{font-size:19px;font-weight:800;margin-top:2px}
+.fc .b{background:linear-gradient(135deg,#ffb703,#ff7aa8);color:#fff;transform:rotateY(180deg);font-weight:800;font-size:25px}
+.fc .b small{font-size:14px;font-weight:600;margin-top:4px;line-height:1.2}
+
+/* dialogue */
+.scene{height:210px;border-radius:28px;position:relative;overflow:hidden;margin:4px 0 10px;box-shadow:0 8px 0 #0002;flex:none}
+.scene .deco{position:absolute;font-size:46px;animation:bob 4s infinite}
+.cast{position:absolute;bottom:6px;left:0;right:0;display:flex;justify-content:space-around;padding:0 30px}
+.av{display:flex;flex-direction:column;align-items:center;transition:.3s;opacity:.85}
+.av .face{width:104px;height:104px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:66px;border:6px solid #fff;box-shadow:0 6px 0 #0003}
+.av .nm{background:#fff;border-radius:14px;padding:0 12px;font-weight:900;font-size:18px;margin-top:6px}
+.av.talk{opacity:1;animation:jump .5s ease 2;transform:scale(1.18)}
+@keyframes jump{40%{transform:translateY(-26px) scale(1.22)}}
+.chat{flex:1;display:flex;flex-direction:column;gap:8px;overflow:hidden;justify-content:flex-end}
+.ln{display:flex;gap:12px;align-items:center;animation:pop .45s cubic-bezier(.2,1.6,.4,1)}
+.ln.R{flex-direction:row-reverse}
+@keyframes pop{from{transform:scale(.3);opacity:0}}
+.ln .mini{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:34px;border:4px solid #fff;flex:none}
+.bub{background:#fff;border-radius:22px;padding:8px 18px;box-shadow:0 4px 0 #0002;display:flex;gap:12px;align-items:center;max-width:900px}
+.bub .en{font-size:28px;font-weight:800}
+.bub .en b{color:#e0357a}
+.hint{position:absolute;right:56px;bottom:84px;font-weight:800;color:#fff;background:#ff5d8f;border-radius:20px;padding:4px 16px;animation:wob 1.2s infinite;z-index:5;font-size:17px}
+
+/* transport */
+.tp{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin:10px 0}
+.tp button{background:#fff;border:none;border-radius:24px;padding:12px;font:inherit;cursor:pointer;box-shadow:0 7px 0 #b9a8ff;font-size:60px;transition:.15s}
+.tp button span{display:block;font-size:20px;font-weight:800}
+.tp button:hover{transform:translateY(-6px)}
+.road{height:140px;border-radius:24px;background:linear-gradient(#9fe3ff 0 55%,#6b6b80 55% 100%);position:relative;overflow:hidden;margin-top:6px}
+.road::after{content:"";position:absolute;left:0;right:0;top:92px;border-top:6px dashed #fff8}
+.road .goal{position:absolute;right:20px;top:10px;font-size:76px}
+.road .veh{position:absolute;left:10px;top:44px;font-size:70px;transition:left 2.2s cubic-bezier(.5,0,.3,1)}
+.bigS{font-size:40px;font-weight:900;text-align:center;margin:10px 0}
+.bigS u{color:#e0357a;text-decoration:none;border-bottom:5px dashed #e0357a;padding:0 8px}
+
+/* piano */
+.piano{display:flex;justify-content:center;gap:6px;margin-top:14px}
+.key{width:112px;height:230px;background:#fff;border-radius:0 0 18px 18px;box-shadow:0 8px 0 #0003;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding-bottom:14px;font-weight:900;font-size:26px;cursor:pointer;transition:.08s;border:3px solid #eee}
+.key small{font-size:15px;color:#999}
+.key.on{transform:translateY(6px);background:#ffe27a}
+.key.next{animation:glow .7s infinite alternate;border-color:#ff5d8f}
+@keyframes glow{to{background:#ffc2da;transform:translateY(-6px)}}
+.seqbar{display:flex;justify-content:center;gap:8px;margin:10px 0;font-size:34px;min-height:46px}
+.seqbar span.ok{filter:drop-shadow(0 0 8px gold)}
+.seqbar span{opacity:.35}
+.seqbar span.ok{opacity:1}
+
+/* wheel */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:24px;flex:1;align-items:center}
+#wheelWrap{position:relative;width:420px;height:420px;margin:auto}
+#wheel{width:420px;height:420px;border-radius:50%;box-shadow:0 0 0 12px #fff,0 12px 0 12px #0002;transition:transform 4.2s cubic-bezier(.1,.7,.1,1)}
+#wheelWrap::after{content:"▼";position:absolute;left:50%;top:-30px;transform:translateX(-50%);font-size:52px;color:#e0357a;z-index:2}
+.gram{font-size:30px;font-weight:800;line-height:1.55}
+.gram b{color:#e0357a}
+.gram em{font-style:normal;background:#ffe27a;border-radius:10px;padding:0 8px}
+.res{font-size:30px;font-weight:900;min-height:120px}
+
+/* TV */
+.tvbox{width:420px;height:300px;background:#6a4a30;border-radius:34px;padding:22px;position:relative;box-shadow:0 12px 0 #0003;margin:auto}
+.tvbox .scr{width:100%;height:100%;background:#0d1b2a;border-radius:20px;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;font-size:90px}
+.tvbox .scr::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(#0000 0 3px,#0003 3px 4px);animation:scan 1s linear infinite}
+@keyframes scan{to{background-position:0 8px}}
+.tvbox .ant{position:absolute;top:-52px;left:150px;font-size:60px}
+.ball{position:absolute;font-size:50px;animation:fly 2.2s linear infinite}
+@keyframes fly{0%{left:5%;top:80%}50%{left:50%;top:5%}100%{left:90%;top:75%}}
+
+/* sentence builder */
+.slots{min-height:84px;background:#fff;border-radius:22px;padding:12px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;box-shadow:inset 0 4px 0 #0001;margin:8px 0}
+.pool{display:flex;flex-wrap:wrap;gap:12px;min-height:80px;margin:8px 0}
+.w{background:#5b7cff;color:#fff;font-size:28px;font-weight:800;padding:8px 20px;border-radius:18px;cursor:pointer;box-shadow:0 5px 0 #3149c2;animation:pop .3s}
+.w.in{background:#ffb703;color:#4a3000;box-shadow:0 5px 0 #c98900}
+.fb{font-size:30px;font-weight:900;min-height:44px}
+
+/* quiz */
+.qtop{display:flex;justify-content:space-between;align-items:center;font-weight:900;font-size:22px}
+.bar{height:18px;background:#fff9;border-radius:10px;overflow:hidden;flex:1;margin:0 18px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#ff5d8f,#ffb703);width:0;transition:.5s}
+.qq{font-size:36px;font-weight:900;margin:8px 0 4px}
+.qa{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:10px}
+.qa button{background:#fff;border:none;border-radius:22px;padding:16px;font:inherit;font-weight:800;font-size:28px;cursor:pointer;box-shadow:0 7px 0 #b9a8ff;transition:.12s;text-align:left}
+.qa button:hover{transform:translateY(-4px)}
+.qa button.good{background:#7be495;box-shadow:0 7px 0 #2f9e4f;animation:jump .5s}
+.qa button.bad{background:#ffb3b3;box-shadow:0 7px 0 #c23a3a;animation:shake .4s}
+@keyframes shake{25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+.exp{font-size:22px;font-weight:700;margin-top:12px;min-height:60px;color:#4b2aa8}
+
+/* task */
+.tasks{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;flex:1;margin-top:8px}
+.task{background:#fff;border-radius:26px;padding:20px;box-shadow:0 8px 0 #b9a8ff;font-size:20px;line-height:1.5}
+.task h3{font-size:26px;margin-bottom:6px}
+.task .fr{background:#fff3b0;border-radius:14px;padding:8px 12px;margin:8px 0;font-weight:800;font-size:21px}
+.star{display:inline-block;font-size:30px;cursor:pointer;filter:grayscale(1);opacity:.5}
+.star.on{filter:none;opacity:1;animation:jump .4s}
+
+/* hud */
+#hud{position:absolute;left:0;right:0;bottom:0;height:62px;display:flex;align-items:center;gap:10px;padding:0 20px;background:#2b2150ee;z-index:20;color:#fff}
+#hud .btn{font-size:17px;padding:6px 18px;box-shadow:0 4px 0 #c23468}
+#hud .btn.alt{box-shadow:0 4px 0 #3149c2}
+#prog{flex:1;height:10px;background:#fff3;border-radius:6px;overflow:hidden}
+#prog i{display:block;height:100%;background:linear-gradient(90deg,#ff5d8f,#ffb703);width:0;transition:.4s}
+#cnt{font-weight:800;min-width:60px;text-align:center}
+.tg{background:#ffffff22;border:none;color:#fff;font:inherit;font-weight:800;border-radius:20px;padding:6px 14px;cursor:pointer;font-size:16px}
+.tg.on{background:#ffb703;color:#4a3000}
+#notes{position:absolute;right:16px;bottom:74px;width:470px;max-height:480px;overflow:auto;background:#fffffa;border:4px solid #ffb703;border-radius:22px;padding:16px 20px;z-index:30;display:none;font-size:16px;line-height:1.55;box-shadow:0 10px 40px #0006}
+#notes.show{display:block}
+#notes h4{font-size:20px;margin-bottom:6px;color:#e0357a}
+#notes li{margin-left:18px;margin-bottom:4px}
+canvas#fx{position:absolute;inset:0;pointer-events:none;z-index:40}
+
+#stage{background:linear-gradient(160deg,#fff1d6 0%,#ffe0ec 45%,#d6f1ff 100%)}
+#s0 .sky{background:linear-gradient(#4fc3c9,#8fd9a8 60%,#ffe39e)}
+.bub .en{font-size:27px}
+.bub .zh:empty{display:none}
+.imp{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:10px;flex:1}
+.ic4{perspective:900px;cursor:pointer}
+.ic4>div{position:relative;width:100%;height:100%;min-height:330px;transition:transform .7s;transform-style:preserve-3d}
+.ic4.flip>div{transform:rotateY(180deg)}
+.ic4 .f,.ic4 .b{position:absolute;inset:0;backface-visibility:hidden;border-radius:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:16px;box-shadow:0 8px 0 #0002}
+.ic4 .f{background:#fff;font-size:96px}
+.ic4 .f span{font-size:24px;font-weight:900;margin-top:10px;line-height:1.35}
+.ic4 .b{transform:rotateY(180deg);color:#fff;font-size:24px;font-weight:800;line-height:1.5}
+.ic4 .b b{font-size:46px;display:block;margin-bottom:8px;background:#fff;color:#2b2150;border-radius:16px;padding:2px 18px}
+.scen{font-size:40px;font-weight:900;text-align:center;background:#fff;border-radius:26px;padding:20px;margin:12px 0;box-shadow:0 8px 0 #0001}
+.scen .e{font-size:110px;display:block;animation:bob 2s infinite}
+.cats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.cats button{font:inherit;font-weight:900;font-size:24px;border:none;border-radius:22px;padding:14px 8px;background:#fff;cursor:pointer;box-shadow:0 7px 0 #b9a8ff}
+.cats button span{display:block;font-size:44px}
+.cats button.good{background:#7be495;box-shadow:0 7px 0 #2f9e4f}
+.cats button.bad{background:#ffb3b3;box-shadow:0 7px 0 #c23a3a;animation:shake .4s}
+.acts{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;flex:1;margin-top:8px}
+.act{background:#fff;border-radius:26px;padding:16px;text-align:center;cursor:pointer;box-shadow:0 8px 0 #b9a8ff;transition:.2s;display:flex;flex-direction:column;align-items:center}
+.act:hover{transform:translateY(-6px)}
+.act .e{font-size:84px;animation:bob 2.6s infinite}
+.act b{font-size:28px;margin:6px 0}
+.act .more{font-size:19px;line-height:1.5;color:#4b2aa8;font-weight:700;opacity:0;transition:.4s;margin-top:6px}
+.act.open .more{opacity:1}
+.benefit{display:flex;gap:16px;justify-content:center;margin-top:14px}
+.benefit span{background:#ffb703;color:#4a3000;font-weight:900;font-size:24px;border-radius:30px;padding:8px 22px;box-shadow:0 5px 0 #c98900}
+.sortWrap{display:grid;grid-template-columns:1fr 2fr;gap:20px;flex:1;margin-top:8px}
+.items{display:flex;flex-wrap:wrap;gap:12px;align-content:flex-start}
+.item{background:#fff;border-radius:18px;padding:10px 16px;font-size:24px;font-weight:900;cursor:pointer;box-shadow:0 5px 0 #b9a8ff;transition:.15s}
+.item.sel{background:#ffe27a;transform:scale(1.08)}
+.item.done{display:none}
+.bins{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.bin{background:#fff8;border:4px dashed #7b6fb5;border-radius:24px;padding:10px;min-height:150px;cursor:pointer;transition:.15s}
+.bin:hover{background:#fff}
+.bin h3{font-size:26px;margin-bottom:6px}
+.bin .in{display:flex;flex-wrap:wrap;gap:6px}
+.bin .in span{background:#7be495;border-radius:12px;padding:3px 10px;font-weight:800;font-size:18px;animation:pop .3s}
+.chores{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:10px}
+.chore{background:#fff;border-radius:24px;padding:14px;text-align:center;cursor:pointer;box-shadow:0 7px 0 #b9a8ff;font-size:26px;font-weight:900}
+.chore .e{font-size:64px;display:block}
+.chore .who{font-size:30px;margin-top:6px;min-height:40px;letter-spacing:4px}
+.fam{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.mem{background:#fff;border-radius:22px;padding:10px 12px;text-align:center;box-shadow:0 6px 0 #0001;font-size:17px;font-weight:700;line-height:1.45}
+.mem .e{font-size:60px;transition:.3s}
+.mem b{font-size:22px;display:block}
+.mem .r{min-height:26px;font-weight:900;font-size:16px}
+.mem.ok{background:#d3f5dc}.mem.no{background:#ffd6d6}
+.pick{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0}
+.pick button{font:inherit;font-weight:900;font-size:21px;border:none;border-radius:18px;padding:8px 16px;background:#fff;cursor:pointer;box-shadow:0 5px 0 #b9a8ff}
+.pick button.on{background:#5b7cff;color:#fff;box-shadow:0 5px 0 #3149c2}
+.plabel{font-weight:900;font-size:22px;margin-right:6px;align-self:center}
+.timer{font-size:60px;font-weight:900;color:#e0357a}
+.thinkAns{font-size:24px;font-weight:800;line-height:1.7;background:#fff;border-radius:22px;padding:14px 24px;margin-top:10px;display:none}
+.thinkAns.show{display:block;animation:pop .4s}
+</style>
+</head>
+<body>
+<script>(function(){try{if(localStorage.getItem("wb_ok")!=="1")location.replace("index.html");}catch(e){}})();</script>
+
+<div id="wrap"><div id="stage">
+<div id="bg"></div>
+
+<section class="slide" id="s0">
+ <div class="sky"></div>
+ <div class="t">
+  <div class="badge">🎓 三年級社會 ・ 第三單元 我的家庭</div>
+  <h1>家庭與我</h1>
+  <div class="en">🏠 一起出發：我家的超能力大冒險！</div>
+  <button class="btn gold" onclick="next()" style="font-size:30px;padding:14px 44px">▶ 出發！</button>
+ </div>
+ <div class="city"><span>🏠</span><span>👨‍👩‍👧‍👦</span><span>🍲</span><span>🧺</span><span>🏕️</span><span>🧧</span><span>🏡</span></div>
+ <div class="tram">🐶</div>
+</section>
+
+<section class="slide" id="s1">
+ <h2>🎯 今天的三個任務 <small>完成就打勾 ✅</small></h2>
+ <div class="sub">點一點任務卡，看看今天要學會什麼！</div>
+ <div class="missions">
+  <div class="mission" onclick="this.classList.add('done');sfx('ok')"><span class="ic">💖</span><b>任務 1 家庭的重要性</b><div class="q">家人怎麼照顧我、陪伴我？</div></div>
+  <div class="mission" onclick="this.classList.add('done');sfx('ok')"><span class="ic">🧺</span><b>任務 2 家庭活動</b><div class="q">家庭活動有哪些？<br>有什麼好處？</div></div>
+  <div class="mission" onclick="this.classList.add('done');sfx('ok')"><span class="ic">🗣️</span><b>任務 3 一起安排活動</b><div class="q">怎麼安排讓<br>全家都開心？</div></div>
+ </div>
+</section>
+
+<section class="slide" id="s2"></section>
+
+<section class="slide" id="s3">
+ <h2>💡 思考小站 <small>先想一想，再和旁邊的同學說說看</small></h2>
+ <div class="scen" style="font-size:44px"><span class="e">🤔</span>家庭對我們而言，有什麼重要性呢？</div>
+ <div style="display:flex;align-items:center;gap:24px;justify-content:center">
+  <button class="btn alt" onclick="think()">⏱️ 想一想 30 秒</button><span class="timer" id="tm">30</span>
+  <button class="btn gold" onclick="document.getElementById('ta').classList.add('show');sfx('win');confetti(40)">💡 看看課本怎麼說</button>
+ </div>
+ <div class="thinkAns" id="ta">🏠 家是<b style="color:#e0357a">陪伴我們成長</b>的地方，家人之間<b style="color:#e0357a">彼此照顧</b>。<br>🌱 透過安排適當的家庭活動，讓生活充滿學習與成長的機會。<br>💖 我們也要<b style="color:#e0357a">珍惜</b>每一位家人的陪伴。</div>
+</section>
+
+<section class="slide" id="s4">
+ <h2>💖 家庭的重要性 <small>點卡片翻面，看看家人怎麼幫助我們</small></h2>
+ <div class="imp" id="imp"></div>
+ <div class="sub" style="text-align:center;margin-top:12px;font-size:22px">家人是彼此重要的依靠：不論平日或生病，我們都能感受到家人的<b>關心與陪伴</b>。</div>
+</section>
+
+<section class="slide" id="s5">
+ <h2>🆘 遊戲：家人幫幫我！ <small>這個情況，家人是怎麼幫助我們的？</small></h2>
+ <div class="scen" id="hq"></div>
+ <div class="cats" id="hcats"></div>
+ <div class="exp" id="hexp" style="text-align:center"></div>
+ <div style="text-align:center"><button class="btn small gold" onclick="hNext()">下一題 ▶</button> <span id="hsc" style="font-weight:900;font-size:22px;margin-left:10px"></span></div>
+</section>
+
+<section class="slide" id="s6">
+ <h2>🧺 家庭活動有哪些？ <small>點卡片看例子</small></h2>
+ <div class="acts">
+  <div class="act" onclick="this.classList.add('open');sfx('pop')"><span class="e">🧹</span><b>做家事</b><div class="more">洗碗、晒衣服、倒垃圾<br>做家事是<br>每一位家庭成員應盡的責任</div></div>
+  <div class="act" onclick="this.classList.add('open');sfx('pop')"><span class="e">🧧</span><b>慶祝節日</b><div class="more">過年圍爐、中秋賞月<br>表達對彼此的<br>感謝與祝福</div></div>
+  <div class="act" onclick="this.classList.add('open');sfx('pop')"><span class="e">🏕️</span><b>規劃旅遊</b><div class="more">野外露營、出遊<br>聯絡家人情感</div></div>
+  <div class="act" onclick="this.classList.add('open');sfx('pop')"><span class="e">🪶</span><b>參與文化活動</b><div class="more">參加原住民族部落活動<br>和家人一起<br>體驗學習</div></div>
+ </div>
+ <div class="benefit"><span>💞 增進家人情感</span><span>🤝 提升向心力</span><span>😊 氣氛更和樂</span></div>
+</section>
+
+<section class="slide" id="s7">
+ <h2>🗂️ 遊戲：活動分類機 <small>先點一個活動，再點它屬於哪一類</small></h2>
+ <div class="sortWrap"><div class="items" id="items"></div><div class="bins" id="bins"></div></div>
+ <div class="fb" id="sfb" style="text-align:center"></div>
+</section>
+
+<section class="slide" id="s8">
+ <h2>🧹 家事是誰的工作？ <small>點一點家事，看看誰可以做</small></h2>
+ <div class="chores" id="chores"></div>
+ <div class="bigS" id="choreMsg" style="font-size:32px;margin-top:16px"></div>
+</section>
+
+<section class="slide" id="s9"></section>
+<section class="slide" id="s10"></section>
+
+<section class="slide" id="s11">
+ <h2>🗓️ 我是家庭活動規劃師 <small>選時間和活動，讓全家人都 😀</small></h2>
+ <div class="fam" id="fam"></div>
+ <div class="pick" id="ptime"><span class="plabel">⏰ 時間：</span></div>
+ <div class="pick" id="pact"><span class="plabel">🎯 活動：</span></div>
+ <div class="bigS" id="pres" style="font-size:28px;margin:4px 0"></div>
+</section>
+
+<section class="slide" id="s12">
+ <div class="qtop"><span>🏆 家庭與我 闖關挑戰</span><div class="bar"><i id="qbar"></i></div><span id="qscore">⭐ 0</span></div>
+ <div id="qbody"></div>
+</section>
+
+<section class="slide" id="s13">
+ <h2>🌟 回家任務 <small>把今天學到的帶回家用用看</small></h2>
+ <div class="tasks">
+  <div class="task"><h3>🗣️ 家庭會議小主持人</h3>邀請家人開一次 5 分鐘家庭會議，一起決定週末活動。
+   <div class="fr">① 每個人說出有空的時間<br>② 每個人說出喜歡做的事<br>③ 找出大家都可以的活動</div>
+   <div>完成後自評：<span class="star">⭐</span><span class="star">⭐</span><span class="star">⭐</span></div></div>
+  <div class="task"><h3>🧹 家事小幫手</h3>選一件家事，連續做 3 天，記錄心得。
+   <div class="fr">我選擇的家事：＿＿＿＿<br>做完後家人說：＿＿＿＿</div>
+   <div>完成後自評：<span class="star">⭐</span><span class="star">⭐</span><span class="star">⭐</span></div></div>
+  <div class="task"><h3>💌 感謝小卡</h3>家人辛勤工作維持家庭生活，寫一句話感謝一位家人的付出。
+   <div class="fr">謝謝＿＿＿，因為您＿＿＿＿</div>
+   <div>完成後自評：<span class="star">⭐</span><span class="star">⭐</span><span class="star">⭐</span></div></div>
+ </div>
+</section>
+
+<section class="slide" id="s14" style="align-items:center;justify-content:center;text-align:center">
+ <div style="font-size:120px;animation:bob 2s infinite">🏠💖</div>
+ <h1>任務完成！你是家庭小英雄！</h1>
+ <div class="sub" style="font-size:28px;margin:14px 0">家庭的重要性 ✔　家庭活動與好處 ✔　一起討論安排活動 ✔</div>
+ <div style="font-size:60px;letter-spacing:10px">🧹 🧧 🏕️ 🪶 🗣️</div>
+ <div style="margin-top:22px"><button class="btn gold" onclick="go(0)">↺ 再玩一次</button> <button class="btn alt" onclick="confetti(160)">🎉 放煙火</button></div>
+</section>
+
+<div id="notes"></div>
+<div id="hud">
+ <button class="btn alt" onclick="prev()">◀</button>
+ <button class="btn" onclick="advance()" id="adv">▶ 下一頁</button>
+ <div id="prog"><i id="pbar"></i></div><div id="cnt">1/15</div>
+ <button class="tg on" id="tgSp" onclick="toggleSp()">🔊 自動朗讀</button>
+ <button class="tg" onclick="toggleNotes()">📋 教師筆記 N</button>
+</div>
+<canvas id="fx" width="1280" height="720"></canvas>
+</div></div>
+
+<script>
+const stage=document.getElementById('stage');
+function fit(){stage.style.transform='scale('+Math.min(innerWidth/1280,innerHeight/720)*0.98+')'}
+addEventListener('resize',fit);fit();
+(()=>{const bg=document.getElementById('bg');const ns=['💖','🏠','✨','🌼','⭐'];
+for(let i=0;i<12;i++){const e=document.createElement('div');e.className='note';e.textContent=ns[i%5];e.style.left=Math.random()*1240+'px';e.style.animationDuration=(9+Math.random()*9)+'s';e.style.animationDelay=(-Math.random()*14)+'s';e.style.fontSize=(22+Math.random()*26)+'px';bg.appendChild(e)}})();
+
+let AC;function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}return AC}
+function tone(f,d=.5,type='triangle',vol=.25,when=0){const c=ac();if(!c)return;const t=c.currentTime+when;const o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.02);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(c.destination);o.start(t);o.stop(t+d+.05)}
+function sfx(k){if(k==='ok'){tone(659,.2);tone(880,.3,'triangle',.25,.12)}else if(k==='bad'){tone(220,.25,'sawtooth',.15);tone(165,.3,'sawtooth',.15,.12)}else if(k==='win'){[523,659,784,1047].forEach((f,i)=>tone(f,.4,'triangle',.25,i*.12))}else if(k==='pop'){tone(520,.1,'sine',.15)}else if(k==='tick'){tone(1000,.05,'square',.08)}}
+let autoSpeak=true,voice=null;
+function pickVoice(){const vs=speechSynthesis.getVoices();voice=vs.find(v=>/zh[-_]TW/i.test(v.lang))||vs.find(v=>/zh[-_](HK|Hant)/i.test(v.lang))||vs.find(v=>/^zh/i.test(v.lang))||null}
+if('speechSynthesis' in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
+const __TL='zh-TW';const __TR=1;
+let CT=null;(async()=>{try{if(window.claude&&window.claude.use){CT=await window.claude.use('tts')}}catch(e){CT=null}})();
+let CTsid=0;
+function say(t,pitch=1,rate){
+ if(CT){try{window.speechSynthesis&&speechSynthesis.cancel()}catch(e){}
+  const sid=++CTsid;
+  let s=String(t).replace(/_+/g,__TL==='zh-TW'?'什麼':' blank ').replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{FE0F}\u{200D}↱➡]/gu,'').trim();
+  if(!s)return;
+  const v=pitch>=1.3?'airy':pitch<=0.85?'rounded':pitch>=1.1?'glassy':'buttery';
+  CT.speak(s,{voice:v,language:__TL,rate:__TR}).catch(e=>{const c=e&&e.code;if(c==='not_granted')CT=null;if(sid===CTsid&&c!=='viewer_stopped')sayWeb(t,pitch,rate)});
+  return}
+ sayWeb(t,pitch,rate)}
+
+function sayWeb(txt,pitch=1,rate=.95){if(!('speechSynthesis' in window))return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(txt.replace(/[^一-鿿　-〿＀-￯A-Za-z0-9，。！？、…]/g,''));u.lang='zh-TW';if(voice)u.voice=voice;u.rate=rate;u.pitch=pitch;speechSynthesis.speak(u)}
+
+const CH={'小宇':['🥋','#6ea8ff'],'阿哲':['🧑‍🦱','#ffa94d'],'奶奶':['👵','#e6a6d9'],'爸爸':['👨','#6ea8ff'],'媽媽':['👩','#ff8fb8'],'哥哥':['👦','#8ad66b'],'弟弟':['🧒','#ffd166'],'旁白':['📖','#b68cff']};
+const PITCH={'小宇':1.2,'阿哲':1.1,'奶奶':1.3,'爸爸':.8,'媽媽':1.2,'哥哥':1.05,'弟弟':1.4,'旁白':1};
+const SCENES={
+ s2:{t:'開場劇場・下課了！',zh:'柔道課結束，奶奶來接小宇',bg:'linear-gradient(#ffe0b0,#ffd0e0)',deco:['🥋','🏫','🌤️','🎒'],cast:['小宇','阿哲','奶奶'],L:[
+  ['小宇','奶奶，等我一下！'],
+  ['奶奶','慢慢來，奶奶在門口等你喔！'],
+  ['阿哲','每天可以看見奶奶真好……'],
+  ['阿哲','我要等到寒假，才能跟她相聚……'],
+  ['旁白','有的家人住在一起，有的住得比較遠。家，是陪伴我們成長的地方。']]},
+ s9:{t:'漫畫劇場①・爬山還是玩水？',zh:'連假要去哪裡呢？',bg:'linear-gradient(#cdeccf,#bfe9ff)',deco:['⛰️','🌊','☀️','🎒'],cast:['爸爸','媽媽','弟弟'],L:[
+  ['爸爸','我決定了，這次連假我們全家一起去爬山吧！'],
+  ['媽媽','不知道體力夠不夠……'],
+  ['弟弟','但我更想玩水……'],
+  ['旁白','如果堅持己見，就無法滿足每一位家人的喜好。']]},
+ s10:{t:'漫畫劇場②・大家一起討論',zh:'這次換個方法！',bg:'linear-gradient(#d8c8ff,#c6f3ff)',deco:['🚲','🧺','🌳','🌙'],cast:['媽媽','爸爸','弟弟'],L:[
+  ['媽媽','這週末要不要一起去公園騎腳踏車呢？'],
+  ['爸爸','好啊，還能在草地上野餐呢！'],
+  ['弟弟','我晚上想去夜市打彈珠！'],
+  ['旁白','安排前先考量每位家人的時間和喜好，再透過充分討論、共同規劃，就能安排彼此都滿意的家庭活動！']]}
+};
+const state={};
+for(const id in SCENES){const S=SCENES[id],el=document.getElementById(id);
+ el.innerHTML=`<h2>🎬 ${S.t} <small>${S.zh}</small></h2>
+ <div class="scene" style="background:${S.bg}">${S.deco.map((d,i)=>`<div class="deco" style="left:${90+i*300}px;top:${12+(i%2)*30}px;animation-delay:${-i}s">${d}</div>`).join('')}
+ <div class="cast">${S.cast.map(n=>`<div class="av" data-n="${n}"><div class="face" style="background:${CH[n][1]}">${CH[n][0]}</div><div class="nm">${n}</div></div>`).join('')}</div></div><div class="chat"></div>`;state[id]=0}
+function revealLine(id){const S=SCENES[id],i=state[id];if(i>=S.L.length)return false;
+ const [n,t]=S.L[i],el=document.getElementById(id),chat=el.querySelector('.chat');
+ const row=document.createElement('div');row.className='ln '+(i%2?'R':'');
+ row.innerHTML=`<div class="mini" style="background:${CH[n][1]}">${CH[n][0]}</div><div class="bub"${n==='旁白'?' style="background:#fff6c9"':''}><div><div class="en">${t}</div></div><button class="speak">🔊</button></div>`;
+ row.querySelector('.speak').onclick=e=>{e.stopPropagation();say(t,PITCH[n])};
+ chat.appendChild(row);while(chat.children.length>4)chat.removeChild(chat.firstChild);
+ el.querySelectorAll('.av').forEach(a=>{a.classList.remove('talk');if(a.dataset.n===n){void a.offsetWidth;a.classList.add('talk')}});
+ sfx('pop');if(autoSpeak)say(t,PITCH[n]);state[id]++;
+ if(id==='s10'&&state[id]===S.L.length)setTimeout(()=>{confetti(90);sfx('win')},500);return true}
+
+/* think timer */
+let thT=null;function think(){clearInterval(thT);let n=30;const e=document.getElementById('tm');e.textContent=n;thT=setInterval(()=>{n--;e.textContent=n;if(n<=5&&n>0)sfx('tick');if(n<=0){clearInterval(thT);sfx('win');e.textContent='⏰'}},1000)}
+
+/* importance cards */
+const IMP=[['💼','家人努力工作賺錢','生活所需','讓我們不用為生活擔心','#ff8fb8'],['🤒','生病的時候','照顧','家人會細心照顧我們','#6ea8ff'],['📚','放學後寫功課','學習','家人提供課業指導，陪伴我們學習','#8ad66b'],['🎲','一起玩遊戲','感情','透過休閒活動，增進彼此的感情','#ffa94d']];
+document.getElementById('imp').innerHTML=IMP.map(c=>`<div class="ic4"><div><div class="f">${c[0]}<span>${c[1]}</span></div><div class="b" style="background:${c[4]}"><b>${c[2]}</b>${c[3]}</div></div></div>`).join('');
+document.querySelectorAll('.ic4').forEach((c,i)=>c.onclick=()=>{c.classList.toggle('flip');sfx('pop');if(c.classList.contains('flip'))say(IMP[i][1]+'，'+IMP[i][3])});
+
+/* help game */
+const HC=[['💰','生活所需'],['🩹','照顧'],['📖','學習'],['💞','感情']];
+const HQ=[['🛒','家裡要買米、買菜，還要繳水電費。',0,'家人努力工作賺錢，提供我們日常生活所需。'],['🤒','小宇發燒了，躺在床上。',1,'生病時，家人會細心照顧我們。'],['✏️','數學作業有一題不會寫。',2,'放學後，家人可以提供課業指導、陪伴學習。'],['🎲','週末晚上全家一起玩桌遊。',3,'透過休閒活動，增進彼此的感情。'],['👕','冬天到了，需要新的外套。',0,'家人工作賺錢，提供我們生活所需。'],['📚','媽媽陪我一起讀故事書。',2,'家人陪伴我們學習，也能和家人共同學習。']];
+let hi=0,hs=0,hlock=false;
+function hRender(){hlock=false;const q=HQ[hi];document.getElementById('hq').innerHTML=`<span class="e">${q[0]}</span>${q[1]}`;
+ document.getElementById('hexp').textContent='家人是怎麼幫助我們的？選一個！';
+ document.getElementById('hcats').innerHTML=HC.map((c,i)=>`<button data-i="${i}"><span>${c[0]}</span>${c[1]}</button>`).join('');
+ document.querySelectorAll('#hcats button').forEach(b=>b.onclick=()=>{if(hlock)return;const i=+b.dataset.i;
+  if(i===q[2]){hlock=true;b.classList.add('good');hs++;sfx('ok');confetti(30);document.getElementById('hexp').textContent='✅ '+q[3];say(q[3])}
+  else{b.classList.add('bad');sfx('bad');document.getElementById('hexp').textContent='🤔 再想想看～'}
+  document.getElementById('hsc').textContent=`答對 ${hs} 題`})}
+function hNext(){hi=(hi+1)%HQ.length;if(hi===0)hs=0;hRender()}
+hRender();
+
+/* sorting */
+const BINS=[['🧹','做家事'],['🧧','慶祝節日'],['🏕️','規劃旅遊'],['🪶','參與文化活動']];
+const ITEMS=[['洗碗',0],['過年圍爐',1],['去露營',2],['參加部落豐年祭',3],['晒衣服',0],['中秋節賞月',1],['全家去花蓮玩',2],['倒垃圾',0],['端午節包粽子',1],['參加客家文化節',3]];
+let selItem=null,sortOk=0;
+document.getElementById('items').innerHTML=ITEMS.map((t,i)=>`<div class="item" data-i="${i}">${t[0]}</div>`).join('');
+document.getElementById('bins').innerHTML=BINS.map((b,i)=>`<div class="bin" data-i="${i}"><h3>${b[0]} ${b[1]}</h3><div class="in"></div></div>`).join('');
+document.querySelectorAll('.item').forEach(e=>e.onclick=()=>{document.querySelectorAll('.item').forEach(x=>x.classList.remove('sel'));e.classList.add('sel');selItem=+e.dataset.i;sfx('pop')});
+document.querySelectorAll('.bin').forEach(b=>b.onclick=()=>{if(selItem===null){document.getElementById('sfb').textContent='👆 先點左邊一個活動喔！';return}
+ const it=ITEMS[selItem],bi=+b.dataset.i,fb=document.getElementById('sfb');
+ if(it[1]===bi){const s=document.createElement('span');s.textContent=it[0];b.querySelector('.in').appendChild(s);document.querySelector(`.item[data-i="${selItem}"]`).classList.add('done');selItem=null;sortOk++;sfx('ok');fb.textContent='✅ 分對了！';
+  if(sortOk===ITEMS.length){fb.textContent='🎉 全部分類完成！這些活動都能增進家人的感情！';confetti(140);sfx('win')}}
+ else{sfx('bad');fb.textContent=`🤔「${it[0]}」不是「${BINS[bi][1]}」，再試一次！`}});
+
+/* chores */
+const CHO=[['🍽️','洗碗'],['🗑️','倒垃圾'],['👕','摺衣服'],['🧹','掃地'],['🪴','澆花'],['🛏️','整理床鋪']];
+let choreN=0;
+document.getElementById('chores').innerHTML=CHO.map(c=>`<div class="chore"><span class="e">${c[0]}</span>${c[1]}<div class="who"></div></div>`).join('');
+document.querySelectorAll('.chore').forEach(c=>c.onclick=()=>{const w=c.querySelector('.who');if(w.textContent)return;w.textContent='👨👩👦🧒';sfx('ok');choreN++;
+ if(choreN===CHO.length){document.getElementById('choreMsg').innerHTML='🙌 做家事是<u>每一位家庭成員</u>應盡的責任！';say('做家事是每一位家庭成員應盡的責任');confetti(100);sfx('win')}});
+
+/* planner */
+const MEM=[['👨','爸爸','週六上午要上班','喜歡騎腳踏車、爬山',t=>t!==0,a=>a===0||a===1],['👩','媽媽','週末都有空','想要在戶外曬太陽',t=>true,a=>a!==2],['👦','哥哥','週日上午要補習','喜歡運動流汗',t=>t!==2,a=>a!==2],['🧒','弟弟','週末都有空','體力比較差，爬山會太累；喜歡野餐',t=>true,a=>a!==0]];
+const TIMES=['週六上午','週六下午','週日上午','週日下午'],ACTS=['⛰️ 爬高山','🚲 公園騎車＋野餐','🎬 看電影','🏖️ 海邊玩水'];
+let pt=null,pa=null;
+document.getElementById('fam').innerHTML=MEM.map(m=>`<div class="mem"><div class="e">${m[0]}</div><b>${m[1]}</b>⏰ ${m[2]}<br>💛 ${m[3]}<div class="r"></div></div>`).join('');
+TIMES.forEach((t,i)=>{const b=document.createElement('button');b.textContent=t;b.onclick=()=>{pt=i;mark('#ptime',b);evalPlan()};document.getElementById('ptime').appendChild(b)});
+ACTS.forEach((t,i)=>{const b=document.createElement('button');b.textContent=t;b.onclick=()=>{pa=i;mark('#pact',b);evalPlan()};document.getElementById('pact').appendChild(b)});
+function mark(sel,b){document.querySelectorAll(sel+' button').forEach(x=>x.classList.remove('on'));b.classList.add('on');sfx('pop')}
+function evalPlan(){if(pt===null||pa===null){document.getElementById('pres').textContent='👉 時間和活動都要選喔！';return}
+ let ok=0;document.querySelectorAll('.mem').forEach((el,i)=>{const m=MEM[i],tOk=m[4](pt),aOk=m[5](pa);const good=tOk&&aOk;if(good)ok++;
+  el.className='mem '+(good?'ok':'no');el.querySelector('.e').textContent=good?'😀':'😢';el.querySelector('.r').textContent=good?'我可以！':(!tOk?'那時我沒空…':'這個我不喜歡…')});
+ const r=document.getElementById('pres');
+ if(ok===4){r.innerHTML='🎉 太棒了！'+TIMES[pt]+' 去'+ACTS[pa].slice(2)+'，全家人都滿意！';sfx('win');confetti(140);say('太棒了！全家人都滿意！')}
+ else{r.innerHTML=`😅 ${ok} / 4 位家人滿意。看看誰不開心，再調整一下！`;sfx('bad')}}
+
+/* quiz */
+const Q=[
+ {q:'家人努力工作賺錢，主要是為了什麼？',o:['提供全家日常生活所需','因為工作很好玩','只是為了買玩具','讓小孩不用上學'],a:0,e:'家人努力工作賺錢，讓我們不用為生活擔心。'},
+ {q:'小宇生病發燒時，家人會怎麼做？',o:['叫他自己去看醫生','細心照顧他','不理他','罵他不小心'],a:1,e:'生病時，家人會細心照顧我們，讓我們感受到關心。'},
+ {q:'下面哪一個是「做家事」的家庭活動？',o:['過年圍爐','全家去露營','洗碗、晒衣服','參加豐年祭'],a:2,e:'洗碗、晒衣服都是家事。圍爐是慶祝節日，露營是旅遊，豐年祭是文化活動。'},
+ {q:'做家事是誰的責任？',o:['只有媽媽','只有大人','每一位家庭成員','請別人做就好'],a:2,e:'做家事是每一位家庭成員應盡的責任，小朋友也可以幫忙！'},
+ {q:'全家一起參加家庭活動，有什麼好處？',o:['可以增進家人的情感','一定要花很多錢','只有小孩會開心','會讓家人吵架'],a:0,e:'家庭活動能增進家人情感、提升向心力，讓氣氛更和樂。'},
+ {q:'安排家庭活動之前，要先考量什麼？',o:['只看自己喜歡什麼','每位家人的時間和喜好','哪裡最貴','聽最大聲的人'],a:1,e:'要先考量每位家人的時間、喜好等。'},
+ {q:'爸爸想爬山、弟弟想玩水，怎麼做最好？',o:['爸爸說了算','弟弟哭了就聽弟弟的','大家說出想法，一起討論、共同規劃','乾脆都不要出門'],a:2,e:'透過充分討論、共同規劃，才能安排彼此都滿意的家庭活動。'}
+];
+let qi=0,qs=0,qstreak=0,qlock=false;
+function qRender(){const b=document.getElementById('qbody');qlock=false;
+ if(qi>=Q.length){b.innerHTML=`<div style="text-align:center;margin-top:30px"><div style="font-size:110px">${qs>=60?'🏆':'🎖️'}</div><h1>${qs} 分！</h1><div class="sub" style="font-size:26px;margin:12px 0">${qs>=60?'你是家庭小專家！🌟':'再挑戰一次拿滿分吧！'}</div><button class="btn gold" onclick="qi=0;qs=0;qstreak=0;qRender()">↺ 再玩一次</button></div>`;document.getElementById('qbar').style.width='100%';if(qs>=60){confetti(150);sfx('win')}return}
+ const q=Q[qi];document.getElementById('qbar').style.width=(qi/Q.length*100)+'%';
+ b.innerHTML=`<div class="qq">第 ${qi+1} 題　${q.q} <button class="speak" onclick="say(Q[qi].q)">🔊</button></div><div class="qa">${q.o.map((o,i)=>`<button data-i="${i}">${'ABCD'[i]}. ${o}</button>`).join('')}</div><div class="exp" id="exp"></div>`;
+ b.querySelectorAll('.qa button').forEach(btn=>btn.onclick=()=>{if(qlock)return;const i=+btn.dataset.i;
+  if(i===q.a){qlock=true;btn.classList.add('good');qs+=10;qstreak++;sfx('ok');confetti(30);document.getElementById('exp').innerHTML='✅ '+q.e+(qstreak>=3?` 🔥 ${qstreak} 連勝！`:'')+`<br><button class="btn small gold" style="margin-top:8px" onclick="qi++;qRender()">下一題 ▶</button>`;document.getElementById('qscore').textContent='⭐ '+qs}
+  else{btn.classList.add('bad');qstreak=0;sfx('bad');document.getElementById('exp').textContent='😜 差一點！再選一次～'}})}
+qRender();
+document.querySelectorAll('.star').forEach(s=>s.onclick=()=>{s.classList.toggle('on');sfx('pop');if(document.querySelectorAll('.star.on').length===9)confetti(120)});
+
+const fx=document.getElementById('fx'),fc=fx.getContext('2d');let P=[];
+function confetti(n=80){const s=P.length;for(let i=0;i<n;i++)P.push({x:640+(Math.random()-.5)*300,y:420,vx:(Math.random()-.5)*16,vy:-8-Math.random()*12,c:`hsl(${Math.random()*360},90%,60%)`,r:6+Math.random()*8,a:Math.random()*6,l:90+Math.random()*50});if(!s)loop()}
+function loop(){fc.clearRect(0,0,1280,720);P.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.45;p.a+=.2;p.l--;fc.save();fc.translate(p.x,p.y);fc.rotate(p.a);fc.fillStyle=p.c;fc.fillRect(-p.r,-p.r/2,p.r*2,p.r);fc.restore()});P=P.filter(p=>p.l>0&&p.y<760);if(P.length)requestAnimationFrame(loop);else fc.clearRect(0,0,1280,720)}
+
+const NT={
+ 0:['開場 2 分鐘','播放開場動畫，問學生：「你家有哪些人？」引起動機。'],
+ 1:['學習目標','三個任務對應課本第 52–55 頁：家庭的重要性、家庭活動的安排。'],
+ 2:['開場劇場（課本 p.52 情境）','逐句播放，請學生觀察：有的家人同住、有的住得遠。提問：「阿哲為什麼要等到寒假？」'],
+ 3:['思考小站 3 分鐘','先個人思考 30 秒，再兩兩分享，最後揭曉課本說法。可鼓勵學生舉自己家的例子。'],
+ 4:['家庭的重要性（p.53）','四張卡對應課本四張圖：工作賺錢、生病照顧、課業指導、休閒活動。翻卡後請學生說出關鍵詞。'],
+ 5:['家人幫幫我 5 分鐘','情境判斷，把生活例子連結到家庭的功能。可請學生補充自己家的例子。'],
+ 6:['家庭活動（p.54）','四類活動：做家事、慶祝節日、規劃旅遊、參與文化活動；好處：增進情感、提升向心力、氣氛和樂。'],
+ 7:['活動分類機 5 分鐘','可分組上台操作。注意：中秋節、端午節屬於「慶祝節日」；部落豐年祭、客家文化節屬於「參與文化活動」。'],
+ 8:['家事是誰的工作','澄清常見迷思「家事是媽媽的工作」。課本 p.54：做家事是每一位家庭成員應盡的責任。'],
+ 9:['漫畫劇場①（p.55）','提問：「爸爸這樣決定，家人的感受是什麼？」帶出：堅持己見無法滿足每位家人的喜好。'],
+ 10:['漫畫劇場②（p.55）','比較兩種做法的差別。重點：先考量每位家人的時間、喜好，再充分討論、共同規劃。'],
+ 11:['家庭活動規劃師 6 分鐘','素養導向模擬：答案是「週六下午或週日下午」＋「公園騎車＋野餐」。讓學生說明為什麼其他選項不行。'],
+ 12:['闖關測驗 6 分鐘','涵蓋本課重點與情境判斷，答錯可再試。'],
+ 13:['回家任務','與學習單 EP.5「家庭活動規劃表」呼應，可請家長協助完成。'],
+ 14:['總結','請學生說一件今天回家可以做的事。']};
+const TXT='<b>課綱對應（請依學校課程計畫核對）：</b>社-E-A1；學習內容 Aa-Ⅱ-1 個人在家庭、學校與社會中有各種不同的角色、Ac-Ⅱ-1 兒童的權利與責任、Bc-Ⅱ-2 每個家庭所重視的價值有其異同；學習表現 2c-Ⅱ-2 澄清及珍視自己的角色與權利，並具備責任感、3c-Ⅱ-1 聆聽他人的意見，並表達自己的看法；議題：家 E1 了解家庭的意義與功能。';
+function renderNotes(){const n=NT[ci];document.getElementById('notes').innerHTML=`<h4>📋 ${n[0]}</h4><ul><li>${n[1]}</li></ul><hr style="margin:8px 0;border:none;border-top:2px dashed #ffb703"><div style="font-size:14px">${TXT}</div>`}
+function toggleNotes(){document.getElementById('notes').classList.toggle('show');renderNotes()}
+
+const slides=[...document.querySelectorAll('.slide')];let ci=0;
+function go(i){ci=Math.max(0,Math.min(slides.length-1,i));slides.forEach((s,k)=>s.classList.toggle('active',k===ci));
+ document.getElementById('pbar').style.width=(ci/(slides.length-1)*100)+'%';document.getElementById('cnt').textContent=(ci+1)+'/'+slides.length;
+ const id='s'+ci;if(SCENES[id]&&state[id]===0)revealLine(id);updAdv();if(document.getElementById('notes').classList.contains('show'))renderNotes()}
+function updAdv(){const id='s'+ci;document.getElementById('adv').textContent=(SCENES[id]&&state[id]<SCENES[id].L.length)?'▶ 下一句':'▶ 下一頁'}
+function advance(){const id='s'+ci;if(SCENES[id]&&revealLine(id)){updAdv();return}next()}
+function next(){go(ci+1)}function prev(){go(ci-1)}
+function toggleSp(){autoSpeak=!autoSpeak;document.getElementById('tgSp').classList.toggle('on',autoSpeak);if(!autoSpeak&&window.speechSynthesis)speechSynthesis.cancel()}
+addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();advance()}else if(e.key==='ArrowLeft')prev();else if(e.key.toLowerCase()==='n')toggleNotes()});
+go(0);
+</script>
+</body>
+</html>

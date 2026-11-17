@@ -1,0 +1,410 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<script>(function(){try{if(localStorage.getItem("wb_ok")!=="1")location.replace("index.html");}catch(e){}})();</script>
+
+<title>土城英語聽力闖關</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Noto+Sans+TC:wght@500;700;900&display=swap">
+<style>
+/* Layout: a passport booklet — level "visa pages" as a stamp grid, one big play button per question */
+:root{
+  --paper:#eef4f1; --page:#ffffff; --ink:#1c2f55; --muted:#5d6b80; --line:#d6e0dc;
+  --navy:#1f3d73; --stamp:#d1463a; --gold:#eba22f; --ok:#22915f; --okbg:#e2f4ea; --bad:#c9403a; --badbg:#fbe6e3;
+  --chip:#e4ecf6; --shadow:0 2px 0 #c9d5d0;
+  --display:"Baloo 2","Noto Sans TC",system-ui,sans-serif;
+  --body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#111a2c; --page:#1a2540; --ink:#eef2f9; --muted:#a6b2c7; --line:#2c3a5a;
+  --navy:#8fb2f0; --stamp:#f0786c; --gold:#f2b94f; --ok:#4fcf8f; --okbg:#173a2c; --bad:#f07a70; --badbg:#3e1e22;
+  --chip:#24324f; --shadow:0 2px 0 #0b1120; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#111a2c; --page:#1a2540; --ink:#eef2f9; --muted:#a6b2c7; --line:#2c3a5a;
+  --navy:#8fb2f0; --stamp:#f0786c; --gold:#f2b94f; --ok:#4fcf8f; --okbg:#173a2c; --bad:#f07a70; --badbg:#3e1e22;
+  --chip:#24324f; --shadow:0 2px 0 #0b1120; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--paper)}
+body{color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;
+  background-image:repeating-radial-gradient(circle at 50% -20%, transparent 0 22px, color-mix(in srgb,var(--line) 45%,transparent) 22px 23px);}
+.wrap{max-width:880px;margin:0 auto;padding-inline:16px;padding-block:18px 48px}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+button:focus-visible,select:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.crest{width:52px;height:52px;border-radius:50%;background:var(--navy);color:var(--page);display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:15px;line-height:1;flex:none;text-align:center}
+.top h1{font-family:var(--display);font-size:clamp(22px,4.6vw,32px);line-height:1.15;margin:0;text-wrap:balance}
+.top p{margin:0;color:var(--muted);font-size:14px}
+.titles{min-width:0;flex:1}
+.back{padding:8px 14px;border-radius:999px;background:var(--chip);font-weight:700;font-size:15px}
+.panel{background:var(--page);border:1px solid var(--line);border-radius:18px;padding:16px}
+.voicebar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
+.voicebar label{font-weight:700;font-size:14px}
+.voicebar select{flex:1;min-width:0;max-width:100%;font:inherit;font-size:14px;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--paper);color:var(--ink)}
+.seg{display:inline-flex;background:var(--chip);border-radius:999px;padding:3px}
+.seg button{padding:6px 12px;border-radius:999px;font-size:14px;font-weight:700}
+.seg button[aria-pressed="true"]{background:var(--navy);color:var(--page)}
+.pill{padding:8px 14px;border-radius:999px;background:var(--navy);color:var(--page);font-weight:700;font-size:14px}
+.note{font-size:13px;color:var(--muted);margin:6px 0 0;flex-basis:100%}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.lv{position:relative;text-align:left;background:var(--page);border:1px solid var(--line);border-radius:16px;padding:12px 12px 10px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:2px;min-height:118px;overflow:hidden;transition:transform .12s}
+.lv:hover{transform:translateY(-2px)}
+.lv .no{font-family:var(--display);font-weight:800;font-size:13px;letter-spacing:.08em;color:var(--stamp)}
+.lv .zh{font-weight:900;font-size:17px;line-height:1.25}
+.lv .en{font-size:12px;color:var(--muted);line-height:1.3}
+.lv .meta{margin-top:auto;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted);padding-top:6px}
+.stars{color:var(--gold);letter-spacing:1px;font-size:14px}
+.stars .off{color:var(--line)}
+.stampmark{position:absolute;right:-6px;top:8px;transform:rotate(14deg);border:2.5px solid var(--stamp);color:var(--stamp);border-radius:8px;padding:0 6px;font-family:var(--display);font-weight:800;font-size:12px;letter-spacing:.1em;opacity:.85}
+.modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:4px}
+.mode{text-align:left;background:var(--page);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:4px}
+.mode .ic{font-family:var(--display);font-weight:800;font-size:13px;color:var(--page);background:var(--navy);border-radius:8px;padding:2px 8px;align-self:flex-start}
+.mode b{font-size:18px}
+.mode span{color:var(--muted);font-size:14px}
+.mode.learn .ic{background:var(--ok)}
+/* quiz */
+.bar{height:10px;border-radius:999px;background:var(--chip);overflow:hidden;margin:4px 0 16px}
+.bar i{display:block;height:100%;background:var(--gold);border-radius:999px;transition:width .3s}
+.qhead{display:flex;justify-content:space-between;font-weight:700;color:var(--muted);font-size:14px}
+.player{display:flex;flex-direction:column;align-items:center;gap:10px;padding:8px 0 18px}
+.big{width:128px;height:128px;border-radius:50%;background:var(--stamp);color:#fff;display:grid;place-items:center;box-shadow:0 6px 0 color-mix(in srgb,var(--stamp) 60%,#000);transition:transform .1s}
+.big:active{transform:translateY(4px);box-shadow:0 2px 0 color-mix(in srgb,var(--stamp) 60%,#000)}
+.big svg{width:62px;height:62px}
+.big.talking{animation:pulse 1s infinite}
+@keyframes pulse{50%{transform:scale(1.06)}}
+@media (prefers-reduced-motion:reduce){.big.talking{animation:none}.lv{transition:none}}
+.prompt{font-weight:700;font-size:15px;color:var(--muted)}
+.slow{padding:8px 16px;border-radius:999px;background:var(--chip);font-weight:700;font-size:15px}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.opts.long{grid-template-columns:1fr}
+.opt{background:var(--page);border:2px solid var(--line);border-radius:16px;padding:16px 12px;font-size:22px;font-weight:700;min-height:72px;box-shadow:var(--shadow);overflow-wrap:anywhere}
+.opt.en{font-family:var(--display);font-size:26px}
+.opts.long .opt{font-size:18px;text-align:left;min-height:60px}
+.opt.right{border-color:var(--ok);background:var(--okbg);color:var(--ok)}
+.opt.wrong{border-color:var(--bad);background:var(--badbg);color:var(--bad)}
+.opt:disabled{cursor:default}
+.fb{margin-top:16px;border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.fb.ok{background:var(--okbg)} .fb.no{background:var(--badbg)}
+.fb .v{font-weight:900;font-size:18px}
+.fb.ok .v{color:var(--ok)} .fb.no .v{color:var(--bad)}
+.fb .w{font-family:var(--display);font-weight:800;font-size:24px;line-height:1.2}
+.say{display:inline-flex;align-items:center;gap:6px;text-align:left;border-radius:10px;padding:2px 4px;margin-left:-4px}
+.say:hover{background:var(--chip)}
+.say svg{width:18px;height:18px;flex:none;color:var(--stamp)}
+.next{margin-top:14px;width:100%;padding:14px;border-radius:14px;background:var(--navy);color:var(--page);font-weight:900;font-size:19px}
+/* result */
+.result{text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;padding:24px 16px}
+.result .bigstars{font-size:54px;color:var(--gold);letter-spacing:6px;line-height:1}
+.result .bigstars .off{color:var(--line)}
+.result h2{font-family:var(--display);margin:0;font-size:28px}
+.result .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+.result .row button{padding:12px 20px;border-radius:999px;font-weight:900;font-size:16px;background:var(--chip)}
+.result .row button.primary{background:var(--navy);color:var(--page)}
+.missed{width:100%;text-align:left;margin-top:14px}
+.missed h3{font-size:15px;margin:0 0 6px}
+/* learn */
+.learnbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.cards{display:flex;flex-direction:column;gap:10px}
+.card{background:var(--page);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:grid;grid-template-columns:44px 1fr;gap:4px 10px;align-items:start}
+.card.now{border-color:var(--gold);box-shadow:0 0 0 3px color-mix(in srgb,var(--gold) 40%,transparent)}
+.card .n{font-family:var(--display);font-weight:800;color:var(--stamp);font-size:15px;font-variant-numeric:tabular-nums;padding-top:4px}
+.card .body{min-width:0;display:flex;flex-direction:column;gap:2px}
+.card .wd{font-family:var(--display);font-weight:800;font-size:24px;line-height:1.2}
+.card .cz{font-weight:700;color:var(--muted)}
+.card .st{font-size:16px}
+.card .sz{font-size:14px;color:var(--muted)}
+.warn{background:var(--badbg);color:var(--bad);border-radius:12px;padding:10px 14px;font-weight:700;margin-bottom:14px}
+.foot{margin-top:24px;font-size:12px;color:var(--muted);text-align:center}
+@media (max-width:420px){.opt{font-size:19px}.opt.en{font-size:22px}.big{width:112px;height:112px}}
+</style>
+
+<div class="wrap" id="app"></div>
+
+<script>
+const LV = [{"n":1,"en":"Animals · Transportation","zh":"動物·交通工具","items":[[1,"bird","鳥","The bird is singing.","鳥在唱歌。"],[2,"bear","熊","The bear is big.","熊很大。"],[3,"cat","貓","The cat is cute.","貓很可愛。"],[4,"dog","狗","The dog is barking.","狗在叫。"],[5,"duck","鴨","The duck is swimming.","鴨子在游泳。"],[6,"elephant","大象","The elephant is large.","大象很大。"],[7,"horse","馬","The horse is running.","馬在跑。"],[8,"monkey","猴子","The monkey is eating bananas.","猴子在吃香蕉。"],[9,"pig","豬","The pig is pink.","豬是粉紅色的。"],[10,"rabbit","兔子","The rabbit has long ears.","兔子有長耳朵。"],[11,"tiger","老虎","The tiger is strong.","老虎很強壯。"],[12,"turtle","烏龜","The turtle is slow.","烏龜很慢。"],[13,"zebra","斑馬","The zebra has stripes.","斑馬有條紋。"],[14,"lion","獅子","The lion is the king.","獅子是國王。"],[15,"boat","船","This is a small boat.","這是一艘小船。"],[16,"bike","腳踏車","I ride my bike to school.","我騎腳踏車上學。"],[17,"train","火車","The train is fast.","火車很快。"],[18,"taxi","計程車","We take a taxi home.","我們搭計程車回家。"],[19,"plane","飛機","The plane is in the sky.","飛機在天上。"],[20,"bus","公車","I wait for the bus every day.","我每天等公車。"],[21,"scooter","摩托車","He rides a scooter.","他騎機車。"],[22,"MRT","捷運","The MRT is very convenient.","捷運很方便。"],[23,"truck","卡車","The truck is big.","卡車很大。"]]},{"n":2,"en":"Family · Pronouns · Articles","zh":"家庭·代名詞·冠詞","items":[[24,"sister","姐妹","My sister is kind.","我的姐姐很善良。"],[25,"brother","兄弟","He has a brother.","他有一個兄弟。"],[26,"father","父親","My father is tall.","我的父親很高。"],[27,"mother","母親","My mother is beautiful.","我的母親很美麗。"],[28,"family","家庭","We are a happy family.","我們是一個幸福的家庭。"],[29,"mom","媽媽","My mom is cooking.","我的媽媽在煮飯。"],[30,"grandpa","爺爺","Grandpa tells stories.","爺爺講故事。"],[31,"dad","爸爸","My dad works hard.","我的爸爸很努力工作。"],[32,"grandma","奶奶","Grandma bakes cookies.","奶奶烤餅乾。"],[33,"she","她","She is my sister.","她是我的姐姐。"],[34,"you","你","You are my friend.","你是我的朋友。"],[35,"it","它","It is a dog.","它是一隻狗。"],[36,"he","他","He is my brother.","他是我的哥哥。"],[37,"I'm","我是","I'm happy.","我很開心。"],[38,"I","我","I am a student.","我是一個學生。"],[39,"your","你的","Your hat is nice.","你的帽子很好看。"],[40,"we","我們","We are friends.","我們是朋友。"],[41,"they","他們","They are playing.","他們在玩。"],[42,"my","我的","My bag is blue.","我的包包是藍色的。"],[43,"the","這","The cat is sleeping.","那隻貓在睡覺。"],[44,"a","一個","I have a car.","我有一輛車。"],[45,"an","一個（字首母音時）","She eats an apple.","她吃了一個蘋果。"]]},{"n":3,"en":"Body Parts & Conditions","zh":"身體部位與狀態","items":[[46,"hands","手","My hands are clean.","我的手很乾淨。"],[47,"nose","鼻子","My nose is stuffy.","我的鼻子塞住了。"],[48,"throat","喉嚨","My throat hurts.","我的喉嚨痛。"],[49,"foot","腳","My foot is sore.","我的腳痛。"],[50,"eyes","眼睛","My eyes are tired.","我的眼睛累了。"],[51,"teeth","牙齒","I brush my teeth.","我刷牙。"],[52,"ears","耳朵","My ears are ringing.","我的耳朵在響。"],[53,"arm","手臂","My arm is strong.","我的手臂很強壯。"],[54,"back","背部","My back hurts.","我的背部痛。"],[55,"feet","腳","My feet are cold.","我的腳很冷。"],[56,"leg","腿","My leg is tired.","我的腿累了。"],[57,"thirsty","渴","I am thirsty.","我口渴。"],[58,"stomachache","胃痛","I have a stomachache.","我胃痛。"],[59,"hungry","餓","I am hungry.","我餓了。"],[60,"sick","生病","I feel sick.","我感覺不舒服。"],[61,"sore","痛","My throat is sore.","我的喉嚨痛。"],[62,"runny","流鼻涕的","My nose is runny.","我流鼻涕。"],[63,"headache","頭痛","I have a headache.","我頭痛。"],[64,"toothache","牙痛","I have a toothache.","我牙痛了。"],[65,"head","頭","Touch your head.","摸摸你的頭。"],[66,"mouth","嘴巴","Open your mouth.","張開你的嘴巴。"]]},{"n":4,"en":"Verbs","zh":"動詞","items":[[67,"reuse","再利用","We reuse bags.","我們重複使用袋子。"],[68,"rest","休息","I rest after lunch.","我午飯後休息。"],[69,"repeat","重複","He repeats the words.","他重複那些詞。"],[70,"run","跑","She runs fast.","她跑得很快。"],[71,"put","放","I put it here.","我把它放在這裡。"],[72,"prepare","準備","We prepare food.","我們準備食物。"],[73,"pick","挑選","They pick flowers.","他們摘花。"],[74,"pay","付","He pays for the book.","他付書錢。"],[75,"write","寫","I write a story.","我寫故事。"],[76,"clean","清潔","She cleans the room.","她清潔房間。"],[77,"find","找到","We find the key.","我們找到鑰匙。"],[78,"hurt","傷害","Don't hurt yourself.","不要傷害自己。"],[79,"help","幫助","He helps his mom.","他幫助媽媽。"],[80,"miss","想念","I miss my friend.","我想念我的朋友。"],[81,"need","需要","She needs a pen.","她需要一支筆。"],[82,"want to","想要","I want to play.","我想玩。"],[83,"try","嘗試","Try again.","再試一次。"],[84,"have to","必須","I have to go.","我必須走了。"],[85,"wash hands","洗手","We wash our hands.","我們洗手。"],[86,"wear a mask","戴口罩","Wear a mask, please.","請戴口罩。"]]},{"n":5,"en":"Places · Weather · Seasons · People","zh":"地點·天氣·季節·人物","items":[[87,"airport","機場","We go to the airport.","我們去機場。"],[88,"classroom","教室","The students are in the classroom.","學生們在教室裡。"],[89,"street","街道","We walk on the street.","我們走在街上。"],[90,"hot","熱","Today is very hot.","今天很熱。"],[91,"sunny","晴朗","It is sunny outside.","外面天氣晴朗。"],[92,"cold","冷","It is cold in winter.","冬天很冷。"],[93,"rainy","下雨","It is rainy today.","今天下雨。"],[94,"weather","天氣","The weather is nice.","天氣很好。"],[95,"cloudy","多雲","It is cloudy today.","今天多雲。"],[96,"windy","風","It is windy at the beach.","海邊風很大。"],[97,"warm","溫暖","Spring is warm.","春天很溫暖。"],[98,"snow","雪","Snow is white.","雪是白色的。"],[99,"raining","下雨","It is raining now.","現在在下雨。"],[100,"cloud","雲","The sky has many clouds.","天空有很多雲。"],[101,"snowy","下雪","It is snowy in the mountains.","山上有雪。"],[102,"spring","春天","Flowers bloom in spring.","春天花開了。"],[103,"summer","夏天","We swim in summer.","我們夏天游泳。"],[104,"fall","秋天","Leaves fall in fall.","秋天落葉。"],[105,"winter","冬天","It snows in winter.","冬天下雪。"],[106,"Santa Claus","聖誕老人","Santa Claus brings gifts.","聖誕老人帶來禮物。"],[107,"lady","女士","The lady is kind.","那位女士很善良。"],[108,"girl","女孩","The girl has a red dress.","那個女孩穿紅色洋裝。"],[109,"children","孩子們","The children are playing.","孩子們在玩。"],[110,"boy","男孩","The boy is happy.","那個男孩很開心。"],[111,"friend","朋友","She is my friend.","她是我的朋友。"],[112,"Miss","小姐","Miss Lin is our teacher.","林小姐是我們的老師。"],[113,"Mr.","先生","Mr. Chen is very tall.","陳先生很高。"],[114,"Mrs.","太太","Mrs. Lee is a doctor.","李太太是一位醫生。"]]},{"n":6,"en":"Verbs","zh":"動詞","items":[[115,"sing","唱","She sings well.","她唱得很好。"],[116,"dance","跳舞","We dance together.","我們一起跳舞。"],[117,"see","看見","I can see the stars.","我能看到星星。"],[118,"go","去","She goes to school.","她去學校。"],[119,"eat","吃","He eats an apple.","他吃了一個蘋果。"],[120,"play","玩","They play with toys.","他們玩玩具。"],[121,"drink","喝","We drink water.","我們喝水。"],[122,"draw","畫","I draw a cat.","我畫一隻貓。"],[123,"read","讀","She reads a book.","她讀一本書。"],[124,"thank","感謝","They thank the teacher.","他們感謝老師。"],[125,"ride","騎","I ride a bike.","我騎腳踏車。"],[126,"welcome","歡迎","We welcome guests.","我們歡迎客人。"],[127,"walk","走","They walk to school.","他們走路上學。"],[128,"cook","煮","She cooks dinner.","她煮晚餐。"],[129,"watch","看","He watches TV.","他看電視。"],[130,"open","打開","I open the door.","我打開門。"],[131,"answer","回答","She answers the question.","她回答問題。"],[132,"wash","洗","We wash our hands.","我們洗手。"],[133,"listen","聽","I listen to music.","我聽音樂。"],[134,"can","可以","I can run fast.","我可以跑得很快。"],[135,"can't","不能","I can't swim.","我不能游泳。"],[136,"will","將","I will go home.","我將回家。"],[137,"should","應該","You should eat your food.","你應該吃你的食物。"],[138,"is","是","This is my book.","這是我的書。"],[139,"fly","飛","Birds can fly.","鳥會飛。"],[140,"climb","爬","Monkeys climb trees.","猴子爬樹。"]]},{"n":7,"en":"Numbers","zh":"數字","items":[[141,"zero","0","It is zero.","這是零。"],[142,"one","1","I see one dog.","我看到一隻狗。"],[143,"two","2","I have two brothers.","我有兩個哥哥。"],[144,"three","3","I see three cats.","我看到三隻貓。"],[145,"four","4","I have four candies.","我有四顆糖果。"],[146,"five","5","I have five books.","我有五本書。"],[147,"six","6","I see six balls.","我看到六顆球。"],[148,"seven","7","I am seven years old.","我七歲了。"],[149,"eight","8","I have eight pencils.","我有八支鉛筆。"],[150,"nine","9","It is nine o'clock.","現在是九點鐘。"],[151,"ten","10","I have ten friends.","我有十個朋友。"],[152,"eleven","11","It is eleven o'clock.","現在是十一點鐘。"],[153,"twelve","12","There are twelve months.","一年有十二個月。"],[154,"thirteen","13","I see thirteen stars.","我看到十三顆星星。"],[155,"fourteen","14","There are fourteen apples.","有十四顆蘋果。"],[156,"fifteen","15","We wait fifteen minutes.","我們等了十五分鐘。"],[157,"sixteen","16","She has sixteen stickers.","她有十六張貼紙。"],[158,"seventeen","17","He sees seventeen birds.","他看到十七隻鳥。"],[159,"eighteen","18","I have eighteen candies.","我有十八顆糖果。"],[160,"nineteen","19","She has nineteen balloons.","她有十九顆氣球。"],[161,"twenty","20","We play with twenty toys.","我們玩二十個玩具。"],[162,"thirty","30","We have thirty books.","我們有三十本書。"],[163,"forty","40","He is forty years old.","他四十歲了。"],[164,"fifty","50","She is fifty years old.","她五十歲了。"],[165,"seventy","70","My grandfather is seventy.","我的爺爺七十歲。"],[166,"eighty","80","There are eighty students.","有八十個學生。"],[167,"hundred","100","There are a hundred people.","有一百個人。"],[168,"thousand","1000","There are a thousand stars.","有一千顆星星。"],[169,"first","第一","She is the first student.","她是第一個學生。"],[170,"second","第二","He is the second runner.","他是第二名跑者。"],[171,"third","第三","The third book is mine.","第三本書是我的。"],[172,"number","數字","What is your favorite number?","你最喜歡的數字是什麼？"]]},{"n":8,"en":"Holidays","zh":"節日","items":[[173,"festival","節日","The festival is fun.","節日很好玩。"],[174,"Christmas","聖誕節","Christmas is in December.","聖誕節在十二月。"],[175,"moon","月亮","The moon is bright.","月亮很亮。"],[176,"day","日","Today is a sunny day.","今天是晴天。"],[177,"Halloween","萬聖節","Halloween is in October.","萬聖節在十月。"],[178,"Easter","復活節","We celebrate Easter.","我們慶祝復活節。"],[179,"dragon","龍","The dragon is big.","龍很大。"],[180,"trick","惡作劇","He plays a trick.","他玩了一個惡作劇。"],[181,"birthday","生日","Today is my birthday.","今天是我的生日。"],[182,"turkey","火雞","We eat turkey on Thanksgiving.","感恩節我們吃火雞。"],[183,"pumpkin","南瓜","The pumpkin is orange.","南瓜是橙色的。"],[184,"Mother's Day","母親節","We love Mother's Day.","我們喜歡母親節。"],[185,"Thanksgiving","感恩節","Thanksgiving is in November.","感恩節在十一月。"],[186,"lantern","燈籠","The lantern is red.","燈籠是紅色的。"],[187,"Father's Day","父親節","Father's Day is in June.","父親節在六月。"],[188,"eve","前夕","Christmas Eve is exciting.","聖誕前夕很令人興奮。"],[189,"costume","服裝","I wear a costume.","我穿著服裝。"],[190,"New Year's","新年","We celebrate New Year's.","我們慶祝新年。"],[191,"treat","招待","She gives me a treat.","她給我一個招待。"],[192,"party","派對","The party is fun.","派對很好玩。"],[193,"Chinese New Year","春節","Chinese New Year is important.","春節很重要。"],[194,"Dragon Boat Festival","端午節","We watch the Dragon Boat races.","我們看龍舟賽。"],[195,"Lantern Festival","元宵節","Lantern Festival is colorful.","元宵節很繽紛。"],[196,"Moon Festival","中秋節","Moon Festival is in autumn.","中秋節在秋天。"],[197,"mooncake","月餅","We eat mooncakes.","我們吃月餅。"],[198,"New Year's Eve","跨年夜","We watch fireworks on New Year's Eve.","跨年夜，我們看煙火。"],[199,"Teacher's Day","教師節","I thank my teacher on Teacher's Day.","教師節，我感謝我的老師。"],[200,"Christmas Eve","聖誕夜","I hang my stocking on Christmas Eve.","平安夜，我掛上聖誕襪。"],[201,"April Fool's Day","愚人節","We play jokes on April Fool's Day.","愚人節，我們開玩笑。"],[202,"red envelope","紅包","I get a red envelope.","我收到一個紅包。"],[203,"lion dance","醒獅","The lion dance is fun to watch.","看舞獅很好玩。"],[204,"firecracker","鞭炮","The firecracker is loud.","鞭炮聲很大。"],[205,"dragon boat","龍舟","The dragon boat is fast.","龍舟很快。"],[206,"trick-or-treat","不給糖就搗蛋","I say \"trick-or-treat\" on Halloween.","萬聖節，我說「不給糖就搗蛋」。"],[207,"reunion dinner","團圓飯","We eat a big meal at the reunion dinner.","年夜飯時，我們吃大餐。"],[208,"firework","煙花","The firework lights up the sky.","煙火照亮了天空。"],[209,"Christmas tree","聖誕樹","I decorate the Christmas tree.","我裝飾聖誕樹。"]]},{"n":9,"en":"Adjectives","zh":"形容詞","items":[[210,"new","新的","I have a new book.","我有一本新書。"],[211,"old","舊的","The house is old.","房子很舊。"],[212,"good","好的","The food is good.","食物很好吃。"],[213,"beautiful","美麗的","The flowers are beautiful.","花很美麗。"],[214,"short","短的","He is short.","他很矮。"],[215,"heavy","重的","The box is heavy.","這箱子很重。"],[216,"cool","涼的","The weather is cool.","天氣很涼爽。"],[217,"tall","高的","The tree is tall.","樹很高。"],[218,"lucky","幸運的","I feel lucky.","我感覺很幸運。"],[219,"big","大的","The elephant is big.","大象很大。"],[220,"thin","瘦的","The book is thin.","這本書很薄。"],[221,"sweet","甜的","The candy is sweet.","糖果很甜。"],[222,"sour","酸的","The lemon is sour.","檸檬很酸。"],[223,"small","小的","The cat is small.","這隻貓很小。"],[224,"nice","好的","She is a nice girl.","她是一個好女孩。"],[225,"hard","硬的","The rock is hard.","石頭很硬。"],[226,"delicious","美味的","The cake is delicious.","蛋糕很美味。"],[227,"bad","壞的","He feels bad.","他感覺不好。"],[228,"young","年輕的","The puppy is young.","小狗很年輕。"],[229,"strong","強壯的","He is strong.","他很強壯。"],[230,"soft","柔軟的","The pillow is soft.","枕頭很軟。"],[231,"safe","安全的","The park is safe.","公園很安全。"],[232,"rich","富有的","He is rich.","他很富有。"],[233,"long","長的","The river is long.","河很長。"],[234,"great","偉大的","You did a great job!","你做得很好！"],[235,"fried","油炸的","I like fried chicken.","我喜歡炸雞。"],[236,"free","自由的","The tickets are free.","門票是免費的。"],[237,"cute","可愛的","The baby is cute.","寶寶很可愛。"],[238,"amazing","驚人的","The view is amazing.","景色很驚人。"]]},{"n":10,"en":"Adjectives · Interjections","zh":"形容詞·感嘆詞","items":[[239,"wrong","錯的","That answer is wrong.","那個答案是錯的。"],[240,"wet","濕的","The ground is wet.","地面很濕。"],[241,"warmer","更溫暖的","The weather is getting warmer.","天氣變得更溫暖了。"],[242,"thick","厚的","The book is thick.","這本書很厚。"],[243,"terrible","可怕的","The movie was terrible.","電影很糟糕。"],[244,"super","超級的","The party was super fun.","派對超級有趣。"],[245,"spicy","辣的","The food is spicy.","食物很辣。"],[246,"smooth","光滑的","The surface is smooth.","表面很光滑。"],[247,"smart","聰明的","She is smart.","她很聰明。"],[248,"slow","慢的","The turtle is slow.","烏龜很慢。"],[249,"raw","生的","The fish is raw.","魚是生的。"],[250,"quiet","安靜的","The library is quiet.","圖書館很安靜。"],[251,"pretty","漂亮的","The flowers are pretty.","花很漂亮。"],[252,"popular","受歡迎的","The song is popular.","這首歌很受歡迎。"],[253,"poor","貧窮的","The family is poor.","這個家庭很貧窮。"],[254,"peaceful","和平的","The garden is peaceful.","花園很和平。"],[255,"happy","快樂的","She is happy.","她很快樂。"],[256,"angry","生氣的","He is angry.","他很生氣。"],[257,"sad","傷心的","The story is sad.","故事很悲傷。"],[258,"fine","好的","Everything is fine.","一切都好。"],[259,"excited","興奮的","The kids are excited.","孩子們很興奮。"],[260,"tired","累的","I am tired.","我很累。"],[261,"scared","害怕的","She is scared.","她很害怕。"],[262,"early","早","We wake up early.","我們早起。"],[263,"late","晚","She is late.","她遲到了。"],[264,"OK","好的","Are you OK?","你還好嗎？"],[265,"Great!","太棒了！","Great! Let's go!","太棒了！我們走吧！"],[266,"fast","快的","The rabbit is fast.","兔子很快。"],[267,"busy","忙碌的","Mom is busy.","媽媽很忙。"]]},{"n":11,"en":"Nouns · Places","zh":"名詞·地點","items":[[268,"question","問題","I have a question.","我有個問題。"],[269,"test","測驗","We have a test.","我們有考試。"],[270,"social","社會","We have social studies.","我們有社會課。"],[271,"season","季節","Summer is a hot season.","夏天是一個炎熱的季節。"],[272,"sea","海","The sea is blue.","海是藍色的。"],[273,"road","道路","The road is long.","路很長。"],[274,"tower","塔","The tower is tall.","塔很高。"],[275,"Tokyo","東京","Tokyo is a big city.","東京是個大城市。"],[276,"school","學校","We go to school.","我們上學。"],[277,"room","房間","This is my room.","這是我的房間。"],[278,"museum","博物館","We visit the museum.","我們參觀博物館。"],[279,"supermarket","超市","Let's go to the supermarket.","我們去超市吧。"],[280,"library","圖書館","I go to the library.","我去圖書館。"],[281,"home","家","She stays at home.","她待在家裡。"],[282,"zoo","動物園","We visit the zoo.","我們參觀動物園。"],[283,"post office","郵局","He goes to the post office.","他去郵局。"],[284,"city","城市","Taipei is a big city.","臺北是一個大城市。"],[285,"restaurant","餐廳","We eat at the restaurant.","我們在餐廳吃飯。"],[286,"office","辦公室","Dad works in an office.","爸爸在辦公室工作。"],[287,"bookstore","書店","I buy books at the bookstore.","我在書店買書。"],[288,"hospital","醫院","She visits the hospital.","她去醫院。"],[289,"bank","銀行","Mom works at a bank.","媽媽在銀行工作。"],[290,"theater","劇院","We watch a movie at the theater.","我們在劇院看電影。"]]},{"n":12,"en":"Nouns","zh":"名詞","items":[[291,"shop","商店","He goes shopping at the shop.","他去商店購物。"],[292,"park","公園","They play in the park.","他們在公園玩。"],[293,"mart","市場","We buy groceries at the mart.","我們在市場買菜。"],[294,"mall","購物中心","The mall is big.","購物中心很大。"],[295,"church","教堂","They go to church on Sunday.","他們星期天去教堂。"],[296,"beach","海灘","We play on the beach.","我們在海灘上玩。"],[297,"tomb","墓","The tomb is old.","墓是古老的。"],[298,"store","商店","I buy snacks at the store.","我在商店買零食。"],[299,"station","車站","We wait at the bus station.","我們在車站等公車。"],[300,"restroom","廁所","He goes to the restroom.","他去廁所。"],[301,"pool","泳池","They swim in the pool.","他們在泳池裡游泳。"],[302,"evening","晚上","Good evening!","晚上好！"],[303,"o'clock","點鐘","It is five o'clock.","現在是五點鐘。"],[304,"month","月","January is the first month.","一月是第一個月。"],[305,"rain","雨","The rain is heavy.","雨很大。"],[306,"fun","樂趣","We have fun at the park.","我們在公園玩得很開心。"],[307,"sale","出售","The sale is on now.","現在在打折。"],[308,"thing","物品","This is my favorite thing.","這是我最喜歡的東西。"],[309,"trash","垃圾","Throw the trash away.","把垃圾丟掉。"],[310,"way","方式","This is the way home.","這是回家的路。"],[311,"sport","運動","My favorite sport is soccer.","我最喜歡的運動是足球。"],[312,"time","時間","It is time to go.","該走了。"],[313,"fever","發燒","He has a fever.","他發燒了。"],[314,"cough","咳嗽","She has a cough.","她咳嗽了。"],[315,"runny nose","流鼻涕","I have a runny nose.","我流鼻涕。"],[316,"sore throat","喉嚨痛","He has a sore throat.","他喉嚨痛。"],[317,"bunny","小兔子","The bunny is cute.","小兔子很可愛。"],[318,"basket","籃子","She carries a basket.","她提著籃子。"],[319,"playground","操場","We play on the playground.","我們在操場上玩。"]]},{"n":13,"en":"Jobs · Languages · Money · Subjects","zh":"職業·語言·幣值·科目","items":[[320,"doctor","醫生","The doctor is kind.","醫生很親切。"],[321,"police","警察","The police are strong.","警察很強壯。"],[322,"officer","官員","The officer says hello.","警官說你好。"],[323,"nurse","護士","The nurse smiles.","護士微笑。"],[324,"job","工作","My job is fun.","我的工作很有趣。"],[325,"teacher","老師","The teacher reads a book.","老師在讀書。"],[326,"student","學生","I am a student.","我是一名學生。"],[327,"Chinese","中文","We learn Chinese.","我們學中文。"],[328,"Taiwanese","臺語","I am Taiwanese.","我是臺灣人。"],[329,"money","錢","I have some money.","我有一些錢。"],[330,"dollar","美元","One dollar is shiny.","一美元很亮。"],[331,"TWD","新臺幣","I have TWD.","我有臺幣。"],[332,"homework","作業","I do my homework.","我做我的作業。"],[333,"art","藝術","I draw in art class.","我在美術課畫畫。"],[334,"math","數學","Math is easy.","數學很簡單。"],[335,"music","音樂","I sing in music class.","我在音樂課唱歌。"],[336,"science","科學","We look at bugs in science.","我們在科學課看蟲子。"],[337,"English","英文","English is fun.","英文很好玩。"],[338,"subject","科目","I like every subject.","我喜歡每一個科目。"],[339,"PE","體育","We play in PE class.","我們在體育課玩耍。"],[340,"clock","時鐘","The clock ticks.","鐘在滴答作響。"],[341,"bathroom","浴室","The bathroom is clean.","浴室很乾淨。"],[342,"living room","客廳","The living room is big.","客廳很大。"],[343,"bedroom","臥室","My bedroom is cozy.","我的臥室很舒適。"],[344,"kitchen","廚房","The kitchen smells good.","廚房聞起來很好。"],[345,"bed","床","My bed is soft.","我的床很柔軟。"],[346,"dining room","餐廳","We eat in the dining room.","我們在餐廳吃飯。"],[347,"table","桌子","The table is round.","這張桌子是圓形的。"],[348,"chair","椅子","I sit on a chair.","我坐在椅子上。"]]},{"n":14,"en":"Months · Prepositions","zh":"月份·介系詞","items":[[349,"January","1月","January is the first month.","一月是第一個月。"],[350,"February","2月","February is the shortest month.","二月是最短的月份。"],[351,"March","3月","March comes after February.","三月在二月之後。"],[352,"April","4月","April is a spring month.","四月是春天的月份。"],[353,"May","5月","May is my favorite month.","五月是我最喜歡的月份。"],[354,"June","6月","June is the start of summer.","六月是夏天的開始。"],[355,"July","7月","July is hot.","七月很熱。"],[356,"August","8月","August is the eighth month.","八月是第八個月。"],[357,"September","9月","School starts in September.","九月開學。"],[358,"October","10月","October has Halloween.","十月有萬聖節。"],[359,"November","11月","November is cool.","十一月天氣涼爽。"],[360,"December","12月","December is the last month.","十二月是最後一個月。"],[361,"of","的","I drink a cup of water.","我喝一杯水。"],[362,"to","到","I go to school.","我去上學。"],[363,"in","在","The cat is in the box.","貓在盒子裡。"],[364,"yes","是","Yes, I like it.","是的，我喜歡它。"],[365,"at","在","I am at home.","我在家裡。"],[366,"under","在...下面","The ball is under the table.","球在桌子下面。"],[367,"with","和","I am with my friend.","我和我的朋友在一起。"],[368,"these","這些","These are my toys.","這些是我的玩具。"],[369,"some","一些","Some are red.","有些是紅色的。"],[370,"every","每個","Every child likes candy.","每個小孩都喜歡糖果。"],[371,"those","那些","Those are my shoes.","那些是我的鞋子。"],[372,"this","這","This is my book.","這是我的書。"],[373,"that","那","That is a cat.","那是一隻貓。"],[374,"on","在...上","The book is on the shelf.","書在書架上。"],[375,"from","從；來自","I am from Taiwan.","我來自臺灣。"]]},{"n":15,"en":"Clothing · Activities","zh":"衣物·活動","items":[[376,"jacket","夾克","I wear my jacket.","我穿我的外套。"],[377,"vest","背心","This is my vest.","這是我的背心。"],[378,"dress","洋裝","She likes her dress.","她喜歡她的洋裝。"],[379,"scarf","圍巾","I have a red scarf.","我有一條紅圍巾。"],[380,"hat","帽子","He puts on his hat.","他戴上帽子。"],[381,"cap","帽子","I pick a blue cap.","我選一頂藍帽子。"],[382,"stockings","長襪","My stockings are warm.","我的長襪很暖和。"],[383,"shirt","襯衫","I wear a shirt today.","我今天穿襯衫。"],[384,"sweater","毛衣","My sweater is soft.","我的毛衣很柔軟。"],[385,"sock","襪子","I like my white socks.","我喜歡我的白襪子。"],[386,"sneakers","運動鞋","I jump in my sneakers.","我穿著運動鞋跳躍。"],[387,"skirt","裙子","She spins in her skirt.","她在裙子裡轉圈。"],[388,"raincoat","雨衣","Take your raincoat with you.","帶上你的雨衣。"],[389,"shoes","鞋","My shoes are new.","我的鞋子是新的。"],[390,"shopping","購物","We buy toys.","我們買玩具。"],[391,"swimming","游泳","I swim in the pool.","我在游泳池游泳。"],[392,"camping","露營","We camp in a tent.","我們住在帳篷裡露營。"],[393,"fishing","釣魚","He fishes with a rod.","他用魚竿釣魚。"],[394,"swim","游泳","I can swim fast.","我游得很快。"],[395,"hunting","狩獵","They hunt in the forest.","他們在森林裡打獵。"],[396,"race","比賽","I run in a race.","我參加跑步比賽。"],[397,"jogging","慢跑","She jogs around the park.","她在公園裡慢跑。"],[398,"BBQ","烤肉","We cook at the BBQ.","我們在烤肉時煮東西。"],[399,"vacation","假期","We go on a vacation.","我們去度假。"],[400,"trip","旅行","We take a fun trip.","我們去一個有趣的旅行。"],[401,"skating","溜冰","He skates on ice.","他在冰上滑冰。"],[402,"card","卡片","I send a card to mom.","我寄卡片給媽媽。"],[403,"book","書","I read a big book.","我讀一本大書。"],[404,"ticket","票","I get a bus ticket.","我買一張公車票。"],[405,"name","名字","My name is Tim.","我的名字是提姆。"],[406,"list","清單","I write a list.","我寫了一張清單。"],[407,"contact","聯絡","I call my friend.","我打電話給朋友。"]]},{"n":16,"en":"Stationery · Time · Activities","zh":"文具·時間·活動","items":[[408,"pencil","鉛筆","I use a pencil.","我用鉛筆。"],[409,"pen","筆","I write with a pen.","我用筆寫字。"],[410,"eraser","橡皮擦","I have an eraser.","我有一個橡皮擦。"],[411,"spoon","湯匙","I eat with a spoon.","我用湯匙吃飯。"],[412,"scissors","剪刀","I cut paper with scissors.","我用剪刀剪紙。"],[413,"ruler","尺","I measure with a ruler.","我用尺量。"],[414,"year","年","It is a new year.","這是一個新的一年。"],[415,"Monday","星期一","Yesterday was Monday.","昨天是星期一。"],[416,"Tuesday","星期二","Today is Tuesday.","今天是星期二。"],[417,"Wednesday","星期三","We go to school on Wednesday.","我們星期三上學。"],[418,"Thursday","星期四","Tomorrow is Thursday.","明天是星期四。"],[419,"Friday","星期五","Friday is a fun day!","星期五是好玩的一天！"],[420,"Saturday","星期六","We play on Saturday.","我們星期六玩耍。"],[421,"Sunday","星期日","Sunday is a rest day.","星期天是休息日。"],[422,"weekend","週末","The weekend is here!","週末來了！"],[423,"morning","早晨","I wake up in the morning.","我早上起床。"],[424,"today","今天","Today is a good day.","今天是好日子。"],[425,"tomorrow","明天","I will go tomorrow.","我明天會去。"],[426,"yesterday","昨天","Yesterday was fun.","昨天很好玩。"],[427,"night","夜晚","We sleep at night.","我們晚上睡覺。"],[428,"afternoon","下午","I eat lunch in the afternoon.","我下午吃午餐。"],[429,"week","週","I go to school this week.","這週我去上學。"],[430,"noon","中午","We eat lunch at noon.","我們中午吃午餐。"]]},{"n":17,"en":"Objects","zh":"物品","items":[[431,"tree","樹","There is a tree.","那裡有一棵樹。"],[432,"price","價格","What is the price?","價格是多少？"],[433,"phone","電話","She uses the phone.","她用電話。"],[434,"word","字","Can you spell this word?","你能拼出這個字嗎？"],[435,"T-shirt","T恤","I wear a T-shirt.","我穿T恤。"],[436,"piano","鋼琴","He plays the piano.","他彈鋼琴。"],[437,"movie","電影","We watch a movie.","我們看電影。"],[438,"glasses","眼鏡","She wears glasses.","她戴眼鏡。"],[439,"favorite","最喜愛的","Blue is my favorite color.","藍色是我最喜歡的顏色。"],[440,"color","顏色","What color do you like?","你喜歡什麼顏色？"],[441,"circle","圓形","Draw a big circle.","畫一個大圓。"],[442,"bag","袋子","She has a bag.","她有一個袋子。"],[443,"window","窗戶","Open the window.","打開窗戶。"],[444,"umbrella","雨傘","Take an umbrella.","帶上雨傘。"],[445,"TV","電視","We watch TV.","我們看電視。"],[446,"sunglasses","太陽眼鏡","She wears sunglasses.","她戴太陽眼鏡。"],[447,"sun","太陽","The sun is bright.","太陽很亮。"],[448,"recorder","錄音機","He has a recorder.","他有一個錄音機。"],[449,"pot","鍋","The soup is in the pot.","湯在鍋裡。"],[450,"paper","紙","Write on the paper.","在紙上寫字。"],[451,"mask","口罩","Wear a mask.","戴口罩。"],[452,"light","燈","Turn off the light.","關燈。"],[453,"letter","信","I write a letter.","我寫一封信。"],[454,"kite","風箏","Let's fly a kite.","讓我們放風箏吧。"],[455,"gloves","手套","Wear gloves.","戴手套。"],[456,"gift","禮物","She gives me a gift.","她給我一份禮物。"],[457,"flute","長笛","He plays the flute.","他吹長笛。"],[458,"flag","旗幟","The flag is red.","旗子是紅色的。"],[459,"feelings","感情","She talks about her feelings.","她談論她的感情。"],[460,"envelope","信封","Put the letter in the envelope.","把信放進信封。"],[461,"door","門","Close the door.","關門。"],[462,"doll","玩偶","She has a doll.","她有一個玩偶。"]]},{"n":18,"en":"Objects","zh":"物品","items":[[463,"desk","書桌","He sits at his desk.","他坐在書桌前。"],[464,"COVID-19","新冠肺炎","COVID-19 is a virus.","新冠肺炎是一種病毒。"],[465,"class","班級","We are in class.","我們在上課。"],[466,"box","盒子","The box is on the table.","盒子在桌上。"],[467,"bottle","瓶子","This is a water bottle.","這是一個水瓶。"],[468,"bell","鈴","The bell rings.","鈴響了。"],[469,"ball","球","They play with the ball.","他們玩球。"],[470,"wall","牆","The wall is white.","牆是白色的。"],[471,"violin","小提琴","She plays the violin.","她拉小提琴。"],[472,"toy","玩具","He has a new toy.","他有一個新玩具。"],[473,"towel","毛巾","Use a towel to dry your hands.","用毛巾擦手。"],[474,"tap","水龍頭","Turn off the tap.","關掉水龍頭。"],[475,"step","步驟","Take one step.","邁一步。"],[476,"snowman","雪人","We make a snowman.","我們做一個雪人。"],[477,"seawater","海水","Seawater is salty.","海水是鹹的。"],[478,"seat","座位","This is your seat.","這是你的座位。"],[479,"picture","圖片","I draw a picture.","我畫了一幅畫。"],[480,"people","人們","Many people are here.","這裡有很多人。"],[481,"pea","豌豆","I like peas.","我喜歡豌豆。"],[482,"pearl","珍珠","The necklace has a pearl.","項鍊上有一顆珍珠。"],[483,"car","汽車","My dad drives a car.","我爸爸開車。"],[484,"marker","標記筆","She has a marker.","她有一支標記筆。"],[485,"key","鑰匙","I have a key.","我有一把鑰匙。"],[486,"coat","外套","She wears a coat.","她穿著外套。"],[487,"pants","褲子","He wears pants.","他穿著褲子。"],[488,"robot","機器人","The robot is small.","這個機器人很小。"],[489,"mail","郵件","I get mail.","我收到郵件。"],[490,"photo","照片","This is a photo of my family.","這是我的家庭照片。"],[491,"television","電視","We watch television.","我們看電視。"],[492,"computer","電腦","I use a computer.","我使用電腦。"],[493,"mouse","滑鼠","The mouse is on the desk.","滑鼠在桌子上。"],[494,"internet","網際網路","We use the internet.","我們使用網際網路。"],[495,"cellphone","手機","She has a cellphone.","她有一部手機。"],[496,"house","房子","This is my house.","這是我的房子。"],[497,"cup","杯子","This is my cup.","這是我的杯子。"],[498,"crayon","蠟筆","I draw with crayons.","我用蠟筆畫畫。"]]},{"n":19,"en":"Sports · Colors · Food","zh":"運動·顏色·食物","items":[[499,"and","和","I have a pen and an eraser.","我有一支筆和橡皮擦。"],[500,"or","或","Do you want tea or juice?","你想要茶還是果汁？"],[501,"basketball","籃球","We play basketball.","我們打籃球。"],[502,"baseball","棒球","They play baseball.","他們打棒球。"],[503,"tennis","網球","She plays tennis.","她打網球。"],[504,"song","歌曲","You sing a song.","你們唱一首歌。"],[505,"red","紅色","The apple is red.","蘋果是紅色的。"],[506,"green","綠色","His pants are green.","他的長褲是綠色的。"],[507,"blue","藍色","The sky is blue.","天空是藍色的。"],[508,"yellow","黃色","The sun is yellow.","太陽是黃色的。"],[509,"white","白色","The snow is white.","雪是白色的。"],[510,"pink","粉色","The flower is pink.","花是粉色的。"],[511,"black","黑色","The cat is black.","貓是黑色的。"],[512,"purple","紫色","The grape is purple.","葡萄是紫色的。"],[513,"rice","米","I eat rice.","我吃米飯。"],[514,"cream","奶油","I like cream on my cake.","我喜歡蛋糕上的奶油。"],[515,"egg","蛋","She cooks an egg.","她煮了一個蛋。"],[516,"hamburger","漢堡","He eats a hamburger.","他吃漢堡。"],[517,"cake","蛋糕","We have cake for dessert.","我們有蛋糕作為甜點。"],[518,"apple","蘋果","An apple a day keeps the doctor away.","一天一蘋果，醫生遠離我。"],[519,"noodles","麵條","She likes noodles.","她喜歡麵條。"],[520,"fish","魚","We eat fish for dinner.","我們晚餐吃魚。"],[521,"dumplings","餃子","I love dumplings.","我喜歡餃子。"],[522,"chicken","雞肉","He eats chicken.","他吃雞肉。"],[523,"brown","棕色","The bear is brown.","熊是棕色的。"]]},{"n":20,"en":"Food","zh":"食物","items":[[524,"salad","沙拉","She makes a salad.","她做沙拉。"],[525,"orange","橘子","The orange is sweet.","橘子是甜的。"],[526,"lemon","檸檬","Lemons are sour.","檸檬是酸的。"],[527,"pomelo","柚子","We eat pomelos during Moon Festival.","我們在中秋節吃柚子。"],[528,"pie","派","Apple pie is delicious.","蘋果派很好吃。"],[529,"cookie","餅乾","I bake cookies.","我烤餅乾。"],[530,"soup","湯","We have soup for lunch.","我們午餐吃湯。"],[531,"potato","馬鈴薯","Potatoes are tasty.","馬鈴薯很好吃。"],[532,"pizza","披薩","Pizza is my favorite food.","披薩是我最喜歡的食物。"],[533,"papaya","木瓜","Papaya is a tropical fruit.","木瓜是一種熱帶水果。"],[534,"guava","番石榴","Guava is rich in vitamin C.","番石榴富含維生素C。"],[535,"grape","葡萄","Grapes can be green or purple.","葡萄可以是綠色或紫色的。"],[536,"food","食物","We need food to live.","我們需要食物來生存。"],[537,"flower","花","The flower smells nice.","花聞起來很香。"],[538,"chocolate","巧克力","I love chocolate.","我愛巧克力。"],[539,"cheese","乳酪","Cheese is made from milk.","乳酪是用牛奶製成的。"],[540,"candy","糖果","Kids like candy.","孩子們喜歡糖果。"],[541,"bread","麵包","I eat bread for breakfast.","我早餐吃麵包。"],[542,"banana","香蕉","Bananas are yellow.","香蕉是黃色的。"],[543,"zongzi","粽子","We eat zongzi during Dragon Boat Festival.","我們在端午節吃粽子。"],[544,"watermelon","西瓜","Watermelon is refreshing.","西瓜很解渴。"],[545,"tomato","番茄","Tomatoes are red.","番茄是紅色的。"],[546,"strawberry","草莓","Strawberries are sweet.","草莓是甜的。"],[547,"pineapple","鳳梨","Pineapple is juicy.","鳳梨很多汁。"],[548,"pepper","辣椒","Peppers can be spicy.","辣椒可以很辣。"],[549,"pear","梨","Pears are juicy and sweet.","梨多汁且甜。"],[550,"peach","桃","Peaches are soft.","桃子很軟。"],[551,"fruit","水果","I eat fruit every day.","我每天吃水果。"],[552,"carrot","胡蘿蔔","Carrots are good for your eyes.","胡蘿蔔對眼睛有好處。"],[553,"carnation","康乃馨","We give carnations on Mother's Day.","我們在母親節送康乃馨。"],[554,"beef","牛肉","Beef is rich in protein.","牛肉富含蛋白質。"],[555,"vegetable","蔬菜","Eat your vegetables.","吃你的蔬菜。"],[556,"sushi","壽司","Sushi is a Japanese dish.","壽司是日本料理。"],[557,"steak","牛排","I like my steak well-done.","我喜歡全熟的牛排。"],[558,"soy","黃豆","Soy is used to make tofu.","黃豆用來做豆腐。"],[559,"shrimp","蝦","Shrimp is a type of seafood.","蝦是一種海鮮。"],[560,"sandwich","三明治","I have a sandwich for lunch.","我午餐吃三明治。"],[561,"corn","玉米","The corn is yellow.","玉米是黃色的。"]]},{"n":21,"en":"Food · Drinks","zh":"食物·飲料","items":[[562,"salty","鹹的","The chips are salty.","薯片是鹹的。"],[563,"roast","烤的","We eat roast chicken.","我們吃烤雞。"],[564,"pudding","布丁","Pudding is a soft dessert.","布丁是一種軟甜點。"],[565,"pork","豬肉","Pork comes from pigs.","豬肉來自豬。"],[566,"ice cream","冰淇淋","I love ice cream.","我愛冰淇淋。"],[567,"hot pot","火鍋","We eat hot pot in winter.","我們在冬天吃火鍋。"],[568,"rice dumpling","粽子","Rice dumplings are for Dragon Boat Festival.","粽子是端午節吃的。"],[569,"sweet dumpling","湯圓","We eat sweet dumplings on Lantern Festival.","我們在元宵節吃湯圓。"],[570,"rice cake","年糕","Rice cake is a traditional food.","年糕是一種傳統食物。"],[571,"juice","果汁","I drink orange juice.","我喝橙汁。"],[572,"ice","冰","The drink has ice.","飲料裡有冰。"],[573,"water","水","Water is important for life.","水對生命很重要。"],[574,"milk","牛奶","I drink milk every morning.","我每天早上喝牛奶。"],[575,"soda","汽水","She likes soda.","她喜歡汽水。"],[576,"tea","茶","Tea is a popular drink.","茶是一種流行的飲品。"],[577,"coffee","咖啡","Adults drink coffee.","大人喝咖啡。"],[578,"dinner","晚餐","We eat dinner at six.","我們六點吃晚餐。"],[579,"lunch","午餐","What do you have for lunch?","你午餐吃什麼？"],[580,"breakfast","早餐","I eat cereal for breakfast.","我早餐吃麥片。"]]},{"n":22,"en":"Verbs","zh":"動詞","items":[[581,"have","有","She has a dog.","她有一隻狗。"],[582,"do","做","He does his homework.","他做功課。"],[583,"call","打電話","They call a friend.","他們打電話給朋友。"],[584,"are","是","We are happy.","我們很快樂。"],[585,"want","想要","I want a toy.","我想要一個玩具。"],[586,"take","拿","She takes a book.","她拿一本書。"],[587,"paint","畫","He paints a picture.","他畫一幅畫。"],[588,"make","做","They make a cake.","他們做蛋糕。"],[589,"give","給","We give a gift.","我們送禮物。"],[590,"decorate","裝飾","I decorate the room.","我裝飾房間。"],[591,"works","工作","Dad works at a bank.","爸爸在銀行工作。"],[592,"study","學習","They study English.","他們學習英語。"],[593,"start","開始","We start the game.","我們開始遊戲。"],[594,"sleep","睡覺","He sleeps at 9 PM.","他晚上9點睡覺。"],[595,"sit","坐","Please sit here.","請坐這裡。"],[596,"send","送","I send a letter.","我寄信。"],[597,"say","說","She says hello.","她說你好。"],[598,"raise","舉","He raises his hand.","他舉手。"],[599,"please","請","Please help me.","請幫我。"],[600,"plan","計劃","We plan a trip.","我們計劃旅行。"],[601,"nap","小睡","The baby naps in the afternoon.","嬰兒下午小睡。"],[602,"mix","混合","She mixes colors.","她混合顏色。"],[603,"look","看","They look at the sky.","他們看天空。"],[604,"like","喜歡","I like apples.","我喜歡蘋果。"],[605,"know","知道","He knows the answer.","他知道答案。"],[606,"keep","保持","We keep the room clean.","我們保持房間整潔。"],[607,"jump","跳","She jumps high.","她跳得很高。"],[608,"hunt","狩獵","They hunt in the woods.","他們在森林裡狩獵。"],[609,"going","去","I am going home.","我要回家。"],[610,"feel","感覺","She feels happy.","她感到快樂。"]]},{"n":23,"en":"Verbs","zh":"動詞","items":[[611,"dye","染","He dyes his hair.","他染頭髮。"],[612,"cry","哭","The baby cries.","嬰兒哭泣。"],[613,"buy","買","We buy toys.","我們買玩具。"],[614,"borrow","借","I borrow a book.","我借一本書。"],[615,"wear","穿","She wears a hat.","她戴帽子。"],[616,"turn","轉","He turns left.","他向左轉。"],[617,"throw","丟","They throw the ball.","他們丟球。"],[618,"thought","想","I thought about it.","我想過了。"],[619,"tell","告訴","He tells a story.","他講故事。"],[620,"taste","嘗","She tastes the soup.","她嘗湯。"],[621,"talk","說話","We talk to friends.","我們和朋友說話。"],[622,"stand","站","They stand up.","他們站起來。"],[623,"spell","拼","I spell my name.","我拼寫我的名字。"],[624,"speak","說","She speaks English.","她說英語。"],[625,"smell","聞","He smells the flower.","他聞花。"],[626,"show","展示","They show their art.","他們展示藝術品。"],[627,"sell","賣","We sell fruit.","我們賣水果。"],[628,"seek","尋找","He seeks help.","他尋求幫助。"],[629,"row","划船","They row a boat.","他們划船。"]]},{"n":24,"en":"Adverbs · Auxiliary Verbs · Phrases","zh":"副詞·助動詞·片語","items":[[630,"not","不","I am not happy.","我不開心。"],[631,"true","真實的","That is true.","那是真的。"],[632,"no","不是","No, I don't like it.","不，我不喜歡。"],[633,"up","向上","The sun is up.","太陽在上面。"],[634,"too","太","It is too hot.","天氣太熱了。"],[635,"next","下一個","Next week is my birthday.","下週是我的生日。"],[636,"much","多","I have too much homework.","我有太多功課。"],[637,"here","這裡","I am here.","我在這裡。"],[638,"weekly","每週","We have a weekly meeting.","我們有每週的會議。"],[639,"usually","通常","I usually eat breakfast.","我通常吃早餐。"],[640,"total","總共","The total is ten dollars.","總共是十元。"],[641,"right","右邊","You are right.","你是對的。"],[642,"okay","好的","It's okay to go.","可以去。"],[643,"down","向下","The ball falls down.","球掉下來了。"],[644,"well","好的","I am feeling well.","我感覺很好。"],[645,"very","非常","I am very tired.","我很累。"],[646,"top","頂部","The top of the mountain.","山頂。"],[647,"together","一起","We work together.","我們一起工作。"],[648,"there","那裡","There is a cat.","那裡有一隻貓。"],[649,"then","然後","First read, then write.","先讀書，然後寫字。"],[650,"sure","確定","Are you sure?","你確定嗎？"],[651,"sorry","抱歉","I am sorry.","對不起。"],[652,"soon","很快","I will come soon.","我很快就來。"],[653,"sometimes","有時候","I sometimes play games.","我有時候玩遊戲。"],[654,"quite","相當","It is quite cold.","天氣很冷。"],[655,"now","現在","I am eating now.","我現在在吃東西。"],[656,"maybe","也許","Maybe we can go.","也許我們可以去。"],[657,"only","只有","I only have one.","我只有一個。"],[658,"every day","每天","I exercise every day.","我每天運動。"],[659,"at home","在家","I am at home.","我在家。"],[660,"again","再次","Try again.","再試一次。"],[661,"am","是","I am a student.","我是一個學生。"]]},{"n":25,"en":"Questions · Classroom English","zh":"疑問句·句型·感嘆詞·教室用語","items":[[662,"what","什麼","What is your name?","你的名字是什麼？"],[663,"who","誰","Who is she?","她是誰？"],[664,"where","哪裡","Where is the book?","書在哪裡？"],[665,"how","如何","How do you do that?","你怎麼做那件事？"],[666,"why","為什麼","Why is the sky blue?","為什麼天空是藍色的？"],[667,"which","哪一個","Which one do you like?","你喜歡哪一個？"],[668,"when","何時","When is your birthday?","你的生日是什麼時候？"],[669,"Stand up.","站起來","Please stand up.","請站起來。"],[670,"Sit down.","坐下","Please sit down.","請坐下。"],[671,"Raise your hand.","舉手","Raise your hand if you know.","如果你知道答案，請舉手。"],[672,"Listen carefully.","仔細聽","Listen carefully to the teacher.","仔細聽老師說。"],[673,"Line up.","排隊","Let's line up quietly.","我們安靜排隊。"],[674,"Look at the board.","看黑板","Look at the board, please.","請看黑板。"],[675,"Open your book.","打開書","Open your book to page 5.","打開書的第五頁。"],[676,"Close your book.","合上書","Close your book now.","現在合上書。"],[677,"Be quiet.","安靜","Be quiet, please.","請安靜。"],[678,"Come here.","過來","Come here, please.","請過來。"],[679,"Today is...","今天是...","Today is Monday.","今天是星期一。"],[680,"Clap your hands.","拍手","Clap your hands with me.","跟我一起拍手。"],[681,"Color the picture.","塗顏色","Color the picture with your crayons.","用蠟筆給圖片上色。"],[682,"Write your name.","寫下你的名字","Write your name on the paper.","在紙上寫下你的名字。"],[683,"Good morning!","早安","Good morning, everyone!","大家早安！"],[684,"Good night!","晚安","Good night, sleep tight!","晚安，好好睡覺！"],[685,"What time is it?","幾點了？","What time is the game?","比賽幾點開始？"],[686,"Open the door.","打開門","Open the door slowly.","慢慢打開門。"],[687,"Close the door.","關上門","Please close the door quietly.","請安靜關上門。"],[688,"Draw a picture.","畫一幅畫","Draw a picture of your family.","畫一幅你的家庭畫。"],[689,"Who wants...?","誰想要...?","Who wants an apple?","誰想要蘋果？"],[690,"Put it away.","收好","Put your toys away.","把玩具收好。"],[691,"Wash your hands.","洗手","Wash your hands before eating.","吃飯前洗手。"],[692,"Read a book.","讀書","Let's read a storybook.","我們來讀一本故事書。"],[693,"Good job!","做得好！","You did a good job!","你做得很好！"],[694,"Turn on the light.","開燈","Please turn on the light.","請開燈。"],[695,"Turn off the light.","關燈","Turn off the light, please.","請關燈。"],[696,"Try again.","再試一次","Let's try that again.","我們再試一次吧。"],[697,"Say cheese!","說「茄子」","Smile and say cheese!","微笑並說「茄子」！"],[698,"Wear your glasses.","戴上眼鏡","Please wear your glasses.","請戴上你的眼鏡。"],[699,"Look at the rainbow.","看彩虹","Look, there's a rainbow!","看，那裡有一道彩虹！"],[700,"Draw a sun.","畫一個太陽","Draw a big yellow sun.","畫一個大大的黃色太陽。"]]}];
+const SPK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z" fill="currentColor"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
+const MODES = {
+  w:{t:'聽單字・選英文', d:'聽發音，選出正確的英文拼字', p:'聽一聽，是哪個英文字？'},
+  m:{t:'聽單字・選中文', d:'聽發音，選出正確的中文意思', p:'聽一聽，是什麼意思？'},
+  s:{t:'聽句子・選中文', d:'聽整句英文，選出正確的中文句子', p:'聽一聽這句話是什麼意思？'}
+};
+const SPEAK_FIX = {"TWD":"T W D","PE":"P E","MRT":"M R T","BBQ":"barbecue","TV":"T V","Mr.":"Mister","Mrs.":"Missus","OK":"okay","COVID-19":"covid nineteen"};
+const $app = document.getElementById('app');
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const shuffle = a => { for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]} return a; };
+
+/* ---------- saved progress (this device only) ---------- */
+let prog = {};
+try { prog = JSON.parse(localStorage.getItem('tc-listen-v1') || '{}') || {}; } catch(e) { prog = {}; }
+prog.stars = prog.stars || {};
+function persist(){ try { localStorage.setItem('tc-listen-v1', JSON.stringify(prog)); } catch(e) {} }
+function starsOf(n, m){ return (prog.stars[n] && prog.stars[n][m]) || 0; }
+
+/* ---------- speech ---------- */
+const synth = window.speechSynthesis || null;
+let voices = [];
+const PREFER = [/Google US English/i, /\bAva\b.*(Premium|Enhanced)/i, /Samantha.*(Premium|Enhanced)/i, /(Jenny|Aria|Ava|Emma|Guy|Andrew).*Natural/i, /Natural/i, /(Premium|Enhanced)/i, /Samantha/i, /\bAva\b/i, /Google UK English Female/i, /Microsoft (Zira|Jenny|Aria)/i, /Karen|Daniel|Serena|Moira|Allison|Susan/i];
+function rankVoice(v){ for(let i=0;i<PREFER.length;i++) if(PREFER[i].test(v.name)) return i; return PREFER.length + (/en[-_]US/i.test(v.lang)?0:1); }
+const NOVELTY = /Albert|Bad News|Bahh|Bells|Boing|Bubbles|Cellos|Deranged|Good News|Hysterical|Jester|Organ|Superstar|Trinoids|Whisper|Wobble|Zarvox|Junior|Ralph|Fred|Kathy|Grandma|Grandpa|Eddy|Flo|Reed|Rocko|Sandy|Shelley/i;
+function loadVoices(){
+  if(!synth) return;
+  voices = synth.getVoices().filter(v => /^en([-_]|$)/i.test(v.lang) && !NOVELTY.test(v.name)).sort((a,b) => rankVoice(a)-rankVoice(b));
+  const sel = document.getElementById('voice');
+  if(sel) fillVoiceSelect(sel);
+}
+function currentVoice(){
+  if(prog.voice){ const v = voices.find(v => v.name === prog.voice); if(v) return v; }
+  return voices[0] || null;
+}
+function fillVoiceSelect(sel){
+  const cur = currentVoice();
+  sel.innerHTML = voices.length ? voices.map((v,i) => `<option value="${esc(v.name)}" ${cur && v.name===cur.name?'selected':''}>${i<3 && rankVoice(v)<PREFER.length?'★ ':''}${esc(v.name)} (${esc(v.lang)})</option>`).join('') : '<option>載入聲音中…</option>';
+}
+if(synth){ loadVoices(); if('onvoiceschanged' in synth) synth.onvoiceschanged = loadVoices; setTimeout(loadVoices, 600); setTimeout(loadVoices, 2000); }
+
+let talkingEl = null;
+function speak(text, opts={}){
+  if(!synth){ return; }
+  const clean = (SPEAK_FIX[text] || text).replace(/\.\.\./g,'').replace(/…/g,'');
+  synth.cancel();
+  const u = new SpeechSynthesisUtterance(clean);
+  const v = currentVoice();
+  if(v){ u.voice = v; u.lang = v.lang; } else u.lang = 'en-US';
+  u.rate = opts.slow ? 0.55 : (prog.rate || 0.85);
+  u.pitch = 1;
+  const el = opts.el || null;
+  u.onstart = () => { if(talkingEl) talkingEl.classList.remove('talking'); talkingEl = el; if(el) el.classList.add('talking'); };
+  u.onend = u.onerror = () => { if(el) el.classList.remove('talking'); if(opts.onend) opts.onend(); };
+  synth.speak(u);
+  if(synth.paused) synth.resume();
+}
+
+/* ---------- little sound effects ---------- */
+let actx = null;
+function beep(good){
+  try{
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    const notes = good ? [660, 880] : [300, 220];
+    notes.forEach((f,i) => {
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = good ? 'triangle' : 'sine'; o.frequency.value = f;
+      const t = actx.currentTime + i*0.12;
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.18, t+0.02); g.gain.exponentialRampToValueAtTime(0.0001, t+0.22);
+      o.connect(g).connect(actx.destination); o.start(t); o.stop(t+0.25);
+    });
+  }catch(e){}
+}
+
+/* ---------- screens ---------- */
+let S = {screen:'home'};
+function starRow(n, max=3){ let s=''; for(let i=0;i<max;i++) s += i<n ? '★' : '<span class="off">★</span>'; return s; }
+
+function renderHome(){
+  const total = LV.reduce((a,L) => a + ['w','m','s'].reduce((b,m)=>b+starsOf(L.n,m),0), 0);
+  $app.innerHTML = `
+  <div class="top">
+    <div class="crest">TC<br>EN</div>
+    <div class="titles"><h1>土城國小英語護照・聽力闖關</h1>
+    <p>25 關・700 個單字和句子｜已得 ${total} / ${LV.length*9} 顆星</p></div>
+  </div>
+  ${synth ? '' : '<div class="warn">這個瀏覽器不支援英文發音。請改用 Chrome、Safari 或 Edge 開啟。</div>'}
+  <div class="panel voicebar">
+    <label for="voice">發音聲音</label>
+    <select id="voice"></select>
+    <button class="pill" data-act="test">試聽</button>
+    <div class="seg" role="group" aria-label="說話速度">
+      <button data-act="rate" data-v="0.7" aria-pressed="${(prog.rate||0.85)==0.7}">慢</button>
+      <button data-act="rate" data-v="0.85" aria-pressed="${(prog.rate||0.85)==0.85}">標準</button>
+      <button data-act="rate" data-v="1" aria-pressed="${(prog.rate||0.85)==1}">快</button>
+    </div>
+    <p class="note">★ 是最清楚的聲音。iPad／iPhone 可到「設定 → 輔助使用 → 朗讀內容 → 聲音 → 英文」下載「Ava（高品質）」或「Samantha（高品質）」，發音會更自然。</p>
+  </div>
+  <div class="grid">
+    ${LV.map(L => {
+      const st = ['w','m','s'].map(m=>starsOf(L.n,m)); const sum = st.reduce((a,b)=>a+b,0);
+      const done = st.every(x=>x>=2);
+      return `<button class="lv" data-act="level" data-n="${L.n}">
+        ${done ? '<span class="stampmark">PASS</span>' : ''}
+        <span class="no">LEVEL ${String(L.n).padStart(2,'0')}</span>
+        <span class="zh">第${L.n}關 ${esc(L.zh)}</span>
+        <span class="en">${esc(L.en)}</span>
+        <span class="meta"><span>${L.items.length} 個</span><span class="stars">★ ${sum}/9</span></span>
+      </button>`; }).join('')}
+  </div>
+  <p class="foot">進度只存在這台裝置的瀏覽器裡。</p>`;
+  fillVoiceSelect(document.getElementById('voice'));
+}
+
+function renderLevel(){
+  const L = S.L;
+  $app.innerHTML = `
+  <div class="top">
+    <button class="back" data-act="home">‹ 關卡</button>
+    <div class="titles"><h1>第${L.n}關 ${esc(L.zh)}</h1><p>${esc(L.en)}｜No. ${L.items[0][0]}–${L.items[L.items.length-1][0]}，共 ${L.items.length} 個</p></div>
+  </div>
+  <div class="modes">
+    <button class="mode learn" data-act="learn"><span class="ic">LEARN</span><b>先聽先學</b><span>點單字或句子就會念出來，也可以全部依序播放</span></button>
+    ${Object.entries(MODES).map(([k,m]) => `<button class="mode" data-act="start" data-m="${k}"><span class="ic">GAME ${k==='w'?1:k==='m'?2:3}</span><b>${m.t}</b><span>${m.d}</span><span class="stars">${starRow(starsOf(L.n,k))}</span></button>`).join('')}
+  </div>`;
+}
+
+function renderLearn(){
+  const L = S.L;
+  $app.innerHTML = `
+  <div class="top">
+    <button class="back" data-act="level" data-n="${L.n}">‹ 返回</button>
+    <div class="titles"><h1>先聽先學・第${L.n}關</h1><p>點英文就會念出來</p></div>
+  </div>
+  <div class="learnbar">
+    <button class="pill" data-act="playall">${S.playing ? '■ 停止播放' : '▶ 依序播放全部單字和句子'}</button>
+  </div>
+  <div class="cards">
+    ${L.items.map((it,i) => `<div class="card" id="c${i}">
+      <span class="n">${it[0]}</span>
+      <div class="body">
+        <button class="say wd" data-act="say" data-t="${esc(it[1])}">${SPK}${esc(it[1])}</button>
+        <span class="cz">${esc(it[2])}</span>
+        <button class="say st" data-act="say" data-t="${esc(it[3])}">${SPK}${esc(it[3])}</button>
+        <span class="sz">${esc(it[4])}</span>
+      </div></div>`).join('')}
+  </div>`;
+}
+
+function playAll(i){
+  if(!S.playing || S.screen!=='learn') return;
+  const L = S.L;
+  document.querySelectorAll('.card.now').forEach(e=>e.classList.remove('now'));
+  if(i >= L.items.length){ S.playing=false; renderLearn(); return; }
+  const card = document.getElementById('c'+i);
+  if(card){ card.classList.add('now'); card.scrollIntoView({block:'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'}); }
+  const it = L.items[i];
+  speak(it[1], {onend: () => setTimeout(() => {
+    if(!S.playing) return;
+    speak(it[3], {onend: () => setTimeout(() => playAll(i+1), 900)});
+  }, 700)});
+}
+
+function keyOf(it, m){ return m==='w' ? it[1] : m==='m' ? it[2] : it[4]; }
+function makeQuiz(L, m){
+  const pick = shuffle(L.items.slice()).slice(0, Math.min(10, L.items.length));
+  return pick.map(it => {
+    const ans = keyOf(it, m), seen = new Set([ans]), opts = [];
+    for(const o of shuffle(L.items.slice())){
+      const k = keyOf(o, m);
+      if(!seen.has(k)){ seen.add(k); opts.push(k); }
+      if(opts.length === 3) break;
+    }
+    opts.push(ans);
+    return {it, ans, opts: shuffle(opts), audio: m==='s' ? it[3] : it[1]};
+  });
+}
+
+function renderQuiz(){
+  const L = S.L, q = S.qs[S.qi], m = S.mode;
+  const pct = Math.round(S.qi / S.qs.length * 100);
+  const isEn = m==='w', isLong = m==='s';
+  let fb = '';
+  if(S.picked != null){
+    const good = S.picked === q.ans;
+    fb = `<div class="fb ${good?'ok':'no'}">
+      <span class="v">${good ? '答對了！Great job!' : '再加油！正確答案是：'}</span>
+      <button class="say w" data-act="say" data-t="${esc(q.it[1])}">${SPK}${esc(q.it[1])}</button>
+      <span>${esc(q.it[2])}</span>
+      <button class="say" data-act="say" data-t="${esc(q.it[3])}">${SPK}${esc(q.it[3])}</button>
+      <span>${esc(q.it[4])}</span>
+    </div>
+    <button class="next" data-act="next">${S.qi+1 < S.qs.length ? '下一題 ›' : '看成績 ›'}</button>`;
+  }
+  $app.innerHTML = `
+  <div class="top">
+    <button class="back" data-act="level" data-n="${L.n}">‹ 離開</button>
+    <div class="titles"><h1>${MODES[m].t}</h1><p>第${L.n}關 ${esc(L.zh)}</p></div>
+  </div>
+  <div class="qhead"><span>第 ${S.qi+1} / ${S.qs.length} 題</span><span>答對 ${S.score} 題</span></div>
+  <div class="bar"><i style="width:${pct}%"></i></div>
+  <div class="player">
+    <button class="big" id="big" data-act="play" aria-label="再聽一次">${SPK}</button>
+    <span class="prompt">${MODES[m].p}</span>
+    <button class="slow" data-act="playslow">🐢 慢慢念</button>
+  </div>
+  <div class="opts ${isLong?'long':''}">
+    ${q.opts.map((o,i) => {
+      let cls = 'opt' + (isEn?' en':'');
+      if(S.picked != null){ if(o===q.ans) cls+=' right'; else if(o===S.picked) cls+=' wrong'; }
+      return `<button class="${cls}" data-act="pick" data-i="${i}" ${S.picked!=null?'disabled':''}>${esc(o)}</button>`; }).join('')}
+  </div>
+  ${fb}`;
+}
+
+function renderResult(){
+  const L = S.L, n = S.qs.length, sc = S.score, r = sc/n;
+  const stars = r >= 0.9 ? 3 : r >= 0.7 ? 2 : r >= 0.4 ? 1 : 0;
+  prog.stars[L.n] = prog.stars[L.n] || {};
+  if(stars > (prog.stars[L.n][S.mode]||0)){ prog.stars[L.n][S.mode] = stars; persist(); }
+  const msg = stars===3 ? 'Excellent! 太厲害了！' : stars===2 ? 'Great! 很棒喔！' : stars===1 ? 'Good try! 再練一次會更好！' : 'Keep going! 先去「先聽先學」練習看看！';
+  $app.innerHTML = `
+  <div class="top">
+    <button class="back" data-act="level" data-n="${L.n}">‹ 第${L.n}關</button>
+    <div class="titles"><h1>${MODES[S.mode].t}</h1><p>第${L.n}關 ${esc(L.zh)}</p></div>
+  </div>
+  <div class="panel result">
+    <div class="bigstars">${starRow(stars)}</div>
+    <h2>${sc} / ${n}</h2>
+    <p>${msg}</p>
+    <div class="row">
+      <button class="primary" data-act="start" data-m="${S.mode}">再玩一次</button>
+      <button data-act="level" data-n="${L.n}">換別的遊戲</button>
+      ${L.n < LV.length ? `<button data-act="level" data-n="${L.n+1}">下一關 ›</button>` : ''}
+    </div>
+    ${S.missed.length ? `<div class="missed"><h3>答錯的要多聽幾次：</h3><div class="cards">${S.missed.map(it => `<div class="card"><span class="n">${it[0]}</span><div class="body">
+      <button class="say wd" data-act="say" data-t="${esc(it[1])}">${SPK}${esc(it[1])}</button><span class="cz">${esc(it[2])}</span>
+      <button class="say st" data-act="say" data-t="${esc(it[3])}">${SPK}${esc(it[3])}</button><span class="sz">${esc(it[4])}</span></div></div>`).join('')}</div></div>` : ''}
+  </div>`;
+}
+
+function render(){
+  ({home:renderHome, level:renderLevel, learn:renderLearn, quiz:renderQuiz, result:renderResult})[S.screen]();
+}
+function go(state){ if(synth) synth.cancel(); S = Object.assign({}, state); render(); window.scrollTo(0,0); }
+
+$app.addEventListener('change', e => {
+  if(e.target.id === 'voice'){ prog.voice = e.target.value; persist(); speak('Hello! Let\'s learn English.'); }
+});
+$app.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if(!b) return;
+  const a = b.dataset.act;
+  if(a==='home') go({screen:'home'});
+  else if(a==='test') speak('Hello! The bird is singing.');
+  else if(a==='rate'){ prog.rate = parseFloat(b.dataset.v); persist(); renderHome(); speak('This is my book.'); }
+  else if(a==='level'){ const L = LV.find(x => x.n == b.dataset.n); go({screen:'level', L}); }
+  else if(a==='learn'){ go({screen:'learn', L:S.L, playing:false}); }
+  else if(a==='say'){ speak(b.dataset.t, {el:b}); }
+  else if(a==='playall'){
+    if(S.playing){ S.playing=false; if(synth) synth.cancel(); renderLearn(); }
+    else { S.playing=true; renderLearn(); playAll(0); }
+  }
+  else if(a==='start'){
+    const L = S.L, m = b.dataset.m;
+    go({screen:'quiz', L, mode:m, qs:makeQuiz(L,m), qi:0, score:0, picked:null, missed:[]});
+    speak(S.qs[0].audio, {el:document.getElementById('big')});
+  }
+  else if(a==='play'){ speak(S.qs[S.qi].audio, {el:b}); }
+  else if(a==='playslow'){ speak(S.qs[S.qi].audio, {slow:true, el:document.getElementById('big')}); }
+  else if(a==='pick'){
+    if(S.picked != null) return;
+    const q = S.qs[S.qi]; S.picked = q.opts[+b.dataset.i];
+    const good = S.picked === q.ans;
+    if(good) S.score++; else S.missed.push(q.it);
+    beep(good);
+    renderQuiz();
+    setTimeout(() => speak(S.screen==='quiz' && S.mode==='s' ? q.it[3] : q.it[1]), 450);
+  }
+  else if(a==='next'){
+    if(S.qi+1 < S.qs.length){
+      S.qi++; S.picked = null; renderQuiz(); window.scrollTo(0,0);
+      speak(S.qs[S.qi].audio, {el:document.getElementById('big')});
+    } else { S.screen='result'; renderResult(); window.scrollTo(0,0); }
+  }
+});
+render();
+</script>
+
+</body></html>

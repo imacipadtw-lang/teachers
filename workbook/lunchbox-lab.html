@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lunch Box Lab 便當實驗室｜Ankita’s Lunch Box</title>
+<style>
+  :root{--ink:#3B1E54;--plum:#5A2D6E;--cream:#FFF6E9;--sand:#F6DCC2;--gold:#F2A93B;--teal:#2BB3A3;--tealD:#1E8C7F;--rose:#E85D75;--brown:#8B4513;--purple:#7B2D8E;--line:#E7DCCB;--quiet:#7A6A86;--ok:#2E8B57;--bad:#C0392B}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%}
+  html{scroll-padding-bottom:130px}
+  body{background:var(--cream);color:var(--ink);font-family:"Nunito Sans","Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;font-size:20px;line-height:1.4;padding-bottom:110px}
+  header{background:var(--ink);color:var(--cream);padding:12px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  header h1{font-size:22px;margin:0;font-weight:800;letter-spacing:.3px}
+  header .sub{font-size:13px;opacity:.85}
+  .who{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .who select,.who button{font:inherit;font-size:17px;border-radius:10px;border:1.5px solid rgba(255,255,255,.4);background:var(--plum);color:#fff;padding:7px 10px}
+  main{max-width:980px;margin:0 auto;padding:16px}
+  .screen{display:none}.screen.on{display:block}
+  .card{background:#fff;border:1.5px solid var(--line);border-radius:18px;padding:18px 20px;margin-bottom:14px}
+  h2{font-size:26px;margin:0 0 6px;font-weight:800}
+  h3{font-size:20px;margin:0 0 6px;font-weight:800}
+  .zh{color:var(--quiet);font-size:15px}
+  .muted{color:var(--quiet);font-size:16px}
+  button{font:inherit;cursor:pointer;border-radius:14px;border:1.5px solid var(--line);background:#fff;color:var(--ink);padding:12px 18px;font-size:20px}
+  button:active{transform:scale(.97)}
+  button.primary{background:var(--teal);border-color:var(--teal);color:#fff;font-weight:800}
+  button.gold{background:var(--gold);border-color:var(--gold);color:var(--ink);font-weight:800}
+  button.rose{background:var(--rose);border-color:var(--rose);color:#fff;font-weight:800}
+  button.ghost{background:transparent}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .grow{flex:1}
+  nav{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1.5px solid var(--line);display:flex;justify-content:space-around;padding:8px 6px calc(8px + env(safe-area-inset-bottom));z-index:5}
+  nav button{border:none;background:transparent;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:13px;padding:6px 8px;border-radius:12px;min-width:60px;color:var(--quiet)}
+  nav button .ic{font-size:26px}
+  nav button.on{background:var(--sand);color:var(--ink);font-weight:800}
+  /* goal */
+  .chips{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{padding:9px 14px;border-radius:999px;border:1.5px solid var(--line);background:#fff;font-size:19px}
+  .chip.on{background:var(--gold);border-color:var(--gold);font-weight:800}
+  input[type=text]{font:inherit;font-size:20px;padding:10px 12px;border:1.5px solid var(--line);border-radius:12px;width:100%}
+  /* spin */
+  .stage{display:flex;flex-direction:column;align-items:center;gap:10px;padding:10px 0}
+  .emoji{font-size:150px;line-height:1;transition:transform .3s}
+  .big .emoji{font-size:260px}
+  .word{font-size:48px;font-weight:800;min-height:60px;letter-spacing:1px}
+  .big .word{font-size:84px}
+  .act{font-size:22px;color:var(--tealD);font-weight:800;min-height:30px}
+  .big .act{font-size:36px}
+  .hints{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+  .rate{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:6px}
+  .rate button{font-size:22px;padding:14px 20px}
+  .shelves{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
+  .shelf{background:var(--cream);border:1.5px solid var(--line);border-radius:14px;padding:10px;min-height:90px}
+  .shelf h4{margin:0 0 6px;font-size:15px;color:var(--quiet);font-weight:800}
+  .shelf .c{display:inline-block;margin:3px;padding:4px 9px;border-radius:999px;background:#fff;border:1px solid var(--line);font-size:15px}
+  .shelf.b3 .c{background:#E4F1EA;border-color:#9fd3bf}
+  .bar{height:16px;background:#eee;border-radius:999px;overflow:hidden;border:1px solid var(--line)}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--teal),var(--gold));width:0;transition:width .4s}
+  .spinning{animation:spin .6s ease}
+  @keyframes spin{0%{transform:rotate(0) scale(.6);opacity:.2}100%{transform:rotate(360deg) scale(1);opacity:1}}
+  /* build */
+  .foods{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:10px}
+  .food{border:2px solid var(--line);border-radius:16px;background:#fff;padding:10px 6px;text-align:center;font-size:17px;font-weight:800}
+  .food .e{font-size:44px;display:block}
+  .food.on{border-color:var(--gold);background:#FFF1D6}
+  .food .tag{display:block;font-size:12px;color:var(--quiet);font-weight:400}
+  .tray{background:var(--plum);border-radius:22px;padding:14px;display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:10px 0}
+  .slot{background:rgba(255,255,255,.12);border:2px dashed rgba(255,255,255,.4);border-radius:14px;height:86px;display:flex;align-items:center;justify-content:center;font-size:48px}
+  .slot.full{background:#fff;border-style:solid;border-color:#fff}
+  .badges{display:flex;gap:8px;flex-wrap:wrap}
+  .badge{padding:6px 12px;border-radius:999px;font-size:16px;font-weight:800;background:var(--cream);border:1.5px solid var(--line)}
+  .badge.ok{background:#E4F1EA;border-color:#9fd3bf;color:var(--ok)}
+  .sent{border:2px solid var(--line);border-radius:16px;padding:14px;margin-bottom:10px;background:#fff}
+  .sent.ok{border-color:var(--teal);background:#EEF9F7}
+  .sent .q{font-size:22px;margin-bottom:8px}
+  .opts{display:flex;gap:10px;flex-wrap:wrap}
+  .opts button{font-size:22px;flex:1;min-width:180px}
+  .hl{background:#FFE08A;border-radius:6px;padding:0 4px;font-weight:800}
+  .nope{background:#FBE3E3;border-radius:6px;padding:0 4px;text-decoration:line-through;color:var(--bad)}
+  .why{margin-top:8px;font-size:17px;color:var(--bad);font-weight:700;min-height:22px}
+  .why.ok{color:var(--ok)}
+  .shake{animation:shake .4s}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+  .sw{display:inline-block;width:40px;height:40px;border-radius:12px;border:2px solid var(--line);vertical-align:middle}
+  .final{font-size:26px;line-height:1.6}
+  textarea{width:100%;min-height:120px;font:inherit;font-size:16px;border:1.5px solid var(--line);border-radius:12px;padding:10px}
+  /* check */
+  .ck{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px dashed var(--line);font-size:19px}
+  .ck:last-child{border-bottom:none}
+  .ck button{font-size:18px;padding:8px 14px}
+  .ck button.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+  /* theory */
+  .th{border-left:6px solid var(--gold);background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:12px}
+  .th h3{display:flex;gap:10px;align-items:center}
+  .th .ref{font-size:14px;color:var(--quiet)}
+  .num{font-size:30px;font-weight:800;color:var(--tealD)}
+  /* games */
+  .arena{position:relative;height:300px;border-radius:18px;background:linear-gradient(180deg,#FFF1D6,#FFE2B8);border:1.5px solid var(--line);overflow:hidden;margin-top:10px}
+  .fly{position:absolute;width:120px;height:120px;border-radius:24px;background:#fff;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:70px;box-shadow:0 8px 20px rgba(59,30,84,.15);cursor:pointer;animation:bob 1.6s ease-in-out infinite;user-select:none}
+  .fly:active{transform:scale(.92)}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+  .fly.hit{animation:pop .5s ease-out forwards;border-color:var(--teal);background:#EEF9F7}
+  @keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.25) rotate(-6deg)}100%{transform:scale(0);opacity:0}}
+  .fly.miss{animation:shake .4s}
+  .hud{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px;font-weight:800}
+  .hud .sc{background:var(--ink);color:var(--cream);border-radius:999px;padding:6px 14px}
+  .hud .combo{background:var(--gold);border-radius:999px;padding:6px 14px}
+  .tbar{height:12px;background:var(--line);border-radius:999px;overflow:hidden;flex:1;min-width:120px}
+  .tbar i{display:block;height:100%;background:var(--rose);width:100%;transition:width .1s linear}
+  .tokens{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:14px 0}
+  .tok{font-size:34px;font-weight:800;padding:10px 18px;border-radius:16px;background:#fff;border:2px solid var(--line);cursor:pointer}
+  .tok.sus{animation:eject .8s ease-in forwards;background:#FBE3E3;border-color:var(--bad)}
+  @keyframes eject{0%{transform:translate(0,0) rotate(0)}100%{transform:translate(400px,-300px) rotate(540deg);opacity:0}}
+  .tok.wrong{animation:shake .4s;background:#FFF1D6}
+  .big .fly{width:170px;height:170px;font-size:100px}
+  .big .arena{height:420px}
+  .big .tok{font-size:54px}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;z-index:9;padding:20px}
+  .modal.on{display:flex}
+  .modal .card{max-width:440px;width:100%}
+  @media(max-width:560px){.emoji{font-size:120px}.word{font-size:40px}.tray{grid-template-columns:repeat(5,1fr)}.slot{height:64px;font-size:34px}}
+</style>
+</head>
+<body>
+<script>(function(){try{if(localStorage.getItem("wb_ok")!=="1")location.replace("index.html");}catch(e){}})();</script>
+
+<header>
+  <div>
+    <h1>🍱 Lunch Box Lab <span style="font-weight:400">便當實驗室</span></h1>
+    <div class="sub">Ankita’s Lunch Box · Grade 5 · 四學 × SRL · 13 food words</div>
+  </div>
+  <div class="who">
+    <select id="seat" aria-label="Seat number"></select>
+    <select id="grp" aria-label="Group"><option value="A">Group A</option><option value="B">Group B</option></select>
+    <button id="bigBtn" title="Big screen for projection">🖥 Big</button>
+    <button id="resetBtn">↺</button>
+  </div>
+</header>
+
+<main>
+<!-- GOAL -->
+<section class="screen on" id="s-goal">
+  <div class="card">
+    <h2>🎯 My Goal <span class="zh">定標</span></h2>
+    <p>Today I want to say <b>________</b> in English.<br><span class="zh">今天我想學會用英語說出……（點一個字，或自己打）</span></p>
+    <div class="chips" id="goalChips"></div>
+    <div class="row" style="margin-top:10px"><input type="text" id="goalText" placeholder="or type your own goal / 或自己打一句" maxlength="60"><button class="primary" id="goalSave">Save ✔</button></div>
+    <p class="muted" id="goalShow"></p>
+  </div>
+  <div class="card">
+    <h3>How to play 怎麼玩</h3>
+    <p>1️⃣ <b>Word Spin</b>: spin, listen, say it, do the action, then tell the app how you feel: ✔ △ ?<br>2️⃣ <b>Catch</b> 🎧: listen and tap the right food — combos!<br>3️⃣ <b>Impostor</b> 🕵️: find the wrong word in the sentence and eject it.<br>4️⃣ <b>Build It</b>: make your lunch box and build the sentences.<br>5️⃣ <b>Check</b>: did you reach your goal? Copy your result card to Padlet.</p>
+  </div>
+</section>
+
+<!-- SPIN -->
+<section class="screen" id="s-spin">
+  <div class="card" id="spinCard">
+    <div class="row"><h2 class="grow">🎡 Word Spin <span class="zh">字詞轉盤</span></h2><span class="muted" id="roundLbl">Round 1</span></div>
+    <div class="stage">
+      <div class="emoji" id="emoji">🎡</div>
+      <div class="word" id="wordLbl"></div>
+      <div class="act" id="actLbl"></div>
+      <div class="hints" id="hints">
+        <button class="gold" id="spinBtn">🎡 Spin!</button>
+        <button id="hearBtn" disabled>🔊 Listen</button>
+        <button id="letterBtn" disabled>Aa First letter</button>
+        <button id="showBtn" disabled>👀 Show word</button>
+      </div>
+      <div class="rate" id="rateRow">
+        <button class="primary" id="rOk" disabled>✔ I know it</button>
+        <button class="gold" id="rMid" disabled>△ Not sure</button>
+        <button class="rose" id="rNo" disabled>? Help me</button>
+      </div>
+      <p class="muted" id="spinMsg">Spin to start. 說出單字、做出動作，再告訴 App 你的感覺。</p>
+    </div>
+  </div>
+  <div class="card">
+    <div class="row"><h3 class="grow">Mastery 熟練度</h3><b id="masteryLbl">0%</b></div>
+    <div class="bar"><i id="masteryBar"></i></div>
+    <div class="shelves">
+      <div class="shelf b1"><h4>Box 1 · every round 每回</h4><div id="box1"></div></div>
+      <div class="shelf b2"><h4>Box 2 · every 2nd round 隔回</h4><div id="box2"></div></div>
+      <div class="shelf b3"><h4>Box 3 · every 4th round 已熟</h4><div id="box3"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- BUILD -->
+<section class="screen" id="s-build">
+  <div class="card" id="pickCard">
+    <h2>🍱 Build It <span class="zh">便當實驗</span></h2>
+    <p>Pick up to <b>5 foods</b>. At least 1 from 🇮🇳 and 1 from 🇹🇼 makes a <b>Friendship Lunch Box</b>.<br><span class="zh">選最多 5 種食物；至少一種印度、一種臺灣，就是友誼便當。</span></p>
+    <div class="tray" id="tray"></div>
+    <div class="badges" id="badges"></div>
+    <div class="foods" id="foods" style="margin-top:12px"></div>
+    <div class="row" style="margin-top:12px"><button class="primary" id="toSent" disabled>Next: make sentences →</button></div>
+  </div>
+  <div class="card" id="sentCard" style="display:none">
+    <h2>✍️ Sentences <span class="zh">造句</span></h2>
+    <p class="muted">Tap the correct sentence. Watch the <span class="hl">-s</span> and the <span class="nope">a</span>. 數得出來的加 -s，數不出來的不加 a。</p>
+    <div id="sentList"></div>
+    <div class="row"><button class="ghost" id="backPick">← Change foods</button><button class="primary" id="toWant" disabled>Next: I want some… →</button></div>
+  </div>
+  <div class="card" id="wantCard" style="display:none">
+    <h2>🍽️ I want some… <span class="zh">午餐想吃什麼</span></h2>
+    <p class="muted">Tap the correct sentence. <b>some</b> works for rice AND for apples — but apples still need the <span class="hl">-s</span>. 「some」兩種都能用，可數的還是要加 -s。</p>
+    <div id="wantList"></div>
+    <div class="row"><button class="ghost" id="backSent">← Back</button><button class="primary" id="toFinal" disabled>Finish my lunch box ✔</button></div>
+  </div>
+  <div class="card" id="finalCard" style="display:none">
+    <h2>🍱 My Lunch Box <span class="zh">我的便當</span></h2>
+    <div class="badges" id="finalBadges"></div>
+    <div class="final" id="finalText" style="margin:10px 0"></div>
+    <div class="row"><button class="gold" id="sayAll">🔊 Say it</button><button class="primary" id="copySent">📋 Copy for Padlet</button><button class="ghost" id="redo">↺ Build again</button><span class="muted" id="copyMsg"></span></div>
+  </div>
+</section>
+
+<!-- CATCH (listening game) -->
+<section class="screen" id="s-catch">
+  <div class="card">
+    <div class="row"><h2 class="grow">🎧 Food Catch <span class="zh">聽力接接樂</span></h2><span class="muted" id="catchRound">—</span></div>
+    <p class="muted">Listen 🔊, then tap that food before the bar runs out. Fast taps = combo! <span class="zh">聽到哪個字，在時間條跑完前點它；連續答對有連擊。</span></p>
+    <div class="hud"><span class="sc">Score <b id="catchScore">0</b></span><span class="combo">Combo ×<b id="catchCombo">0</b></span><div class="tbar"><i id="catchBar"></i></div><button class="gold" id="catchHear">🔊 Again</button></div>
+    <div class="arena" id="arena"></div>
+    <div class="row" style="margin-top:10px"><button class="primary" id="catchStart">▶ Start (10 rounds)</button><span class="muted" id="catchMsg">Best: <b id="catchBest">0</b></span></div>
+  </div>
+</section>
+
+<!-- IMPOSTOR (noticing game) -->
+<section class="screen" id="s-imp">
+  <div class="card">
+    <div class="row"><h2 class="grow">🕵️ Impostor <span class="zh">抓內鬼</span></h2><span class="muted" id="impRound">—</span></div>
+    <p class="muted">One word in the sentence is an impostor. Tap it to eject it! Then say the fixed sentence. <span class="zh">句子裡有一個字是內鬼（多了 a、少了 -s…），點它丟出去，再唸正確的句子。</span></p>
+    <div class="tokens" id="tokens"><span class="muted">Press Start.</span></div>
+    <div class="why" id="impWhy"></div>
+    <div class="hud"><span class="sc">Found <b id="impScore">0</b></span><span class="muted" id="impMsg"></span></div>
+    <div class="row" style="margin-top:10px"><button class="primary" id="impStart">▶ Start (8 sentences)</button><button class="gold" id="impSay" disabled>🔊 Say the fixed sentence</button></div>
+  </div>
+</section>
+
+<!-- RATE -->
+<section class="screen" id="s-rate">
+  <div class="card">
+    <h2>⭐ Group Rating <span class="zh">組內評分</span></h2>
+    <p>One iPad per group. Pass it around. Stars for your friends, not for yourself. Be fair, be kind.<br><span class="zh">一組一台，輪流評分，不評自己。</span></p>
+    <p><a href="https://claude.ai/artifact/Jtm4YTYKA114nEN9hxP3YG" style="font-size:22px;font-weight:800;color:var(--tealD)">Open the Group Rating app →</a></p>
+    <p class="muted">4 items: Sentences · Sounds · Talking · Helping. The app finds what your group should work on next.</p>
+  </div>
+</section>
+
+<!-- CHECK -->
+<section class="screen" id="s-check">
+  <div class="card">
+    <h2>✅ Check <span class="zh">自我檢核</span></h2>
+    <p id="ckGoal" class="muted"></p>
+    <div id="ckList"></div>
+  </div>
+  <div class="card">
+    <h3>🎫 Exit ticket 離場任務</h3>
+    <p class="muted">Pick ONE sentence to say to Teacher Ankita, then high-five! 選一句對 Ankita 老師說。</p>
+    <div class="chips" id="exitChips"></div>
+  </div>
+  <div class="card">
+    <h3>📋 My result card 結果卡（貼到 Padlet）</h3>
+    <textarea id="resultCard" readonly></textarea>
+    <div class="row" style="margin-top:8px"><button class="primary" id="copyCard">📋 Copy</button><button class="ghost" id="refreshCard">↻ Refresh</button><span class="muted" id="cardMsg"></span></div>
+  </div>
+</section>
+
+<!-- THEORY -->
+<section class="screen" id="s-theory">
+  <div class="card" style="background:var(--ink);color:var(--cream);border-color:var(--ink)">
+    <h2>📖 Why it works <span class="zh" style="color:var(--sand)">給觀課老師：每一站背後的理論與即時證據</span></h2>
+    <p style="margin:0">Live evidence from this iPad · 本機即時數據</p>
+    <div class="row" style="margin-top:10px;gap:22px">
+      <div><div class="num" id="evRetr" style="color:var(--gold)">0</div><div class="zh" style="color:var(--sand)">retrievals 提取次數</div></div>
+      <div><div class="num" id="evHint" style="color:var(--gold)">0</div><div class="zh" style="color:var(--sand)">hints used 使用鷹架</div></div>
+      <div><div class="num" id="evMast" style="color:var(--gold)">0%</div><div class="zh" style="color:var(--sand)">mastery 熟練度</div></div>
+      <div><div class="num" id="evAcc" style="color:var(--gold)">–</div><div class="zh" style="color:var(--sand)">first-try grammar 文法首答正確</div></div>
+      <div><div class="num" id="evCatch" style="color:var(--gold)">–</div><div class="zh" style="color:var(--sand)">listening 聽力答對</div></div>
+      <div><div class="num" id="evImp" style="color:var(--gold)">–</div><div class="zh" style="color:var(--sand)">impostors found 抓到內鬼</div></div>
+    </div>
+  </div>
+  <div id="theoryList"></div>
+</section>
+</main>
+
+<nav>
+  <button data-s="goal" class="on"><span class="ic">🎯</span>Goal</button>
+  <button data-s="spin"><span class="ic">🎡</span>Spin</button>
+  <button data-s="catch"><span class="ic">🎧</span>Catch</button>
+  <button data-s="imp"><span class="ic">🕵️</span>Impostor</button>
+  <button data-s="build"><span class="ic">🍱</span>Build</button>
+  <button data-s="rate"><span class="ic">⭐</span>Rate</button>
+  <button data-s="check"><span class="ic">✅</span>Check</button>
+  <button data-s="theory"><span class="ic">📖</span>Theory</button>
+</nav>
+
+<div class="modal" id="modal"><div class="card"><h3 id="mTitle"></h3><p id="mBody" class="muted"></p><div class="row"><button class="rose" id="mYes">Yes</button><button id="mNo">Cancel</button></div></div></div>
+
+<script>
+(function(){
+'use strict';
+const WORDS=[
+ {w:'rice',zh:'米飯',e:'🍚',type:'uncount',act:'scoop with a spoon',tw:true},
+ {w:'noodles',zh:'麵條',e:'🍜',type:'plural',act:'slurp!',tw:true},
+ {w:'dumplings',zh:'餃子',e:'🥟',type:'plural',act:'pinch, pinch',tw:true},
+ {w:'chicken',zh:'雞肉',e:'🍗',type:'uncount',act:'flap your wings'},
+ {w:'fish',zh:'魚',e:'🐟',type:'uncount',act:'swim, swim',tw:true},
+ {w:'egg',zh:'蛋',e:'🥚',type:'count',pl:'eggs',act:'crack it'},
+ {w:'apple',zh:'蘋果',e:'🍎',type:'count',pl:'apples',act:'crunch!'},
+ {w:'hamburger',zh:'漢堡',e:'🍔',type:'count',pl:'hamburgers',act:'big bite'},
+ {w:'cake',zh:'蛋糕',e:'🍰',type:'count',pl:'cakes',act:'blow the candle'},
+ {w:'cream',zh:'奶油',e:'🥛',type:'uncount',act:'lick your lips'},
+ {w:'naan',zh:'印度烤餅',e:'🫓',type:'uncount',act:'tear and dip',india:true},
+ {w:'curry',zh:'咖哩',e:'🍛',type:'uncount',act:'stir the pot',india:true},
+ {w:'samosa',zh:'咖哩餃',e:'🥙',type:'count',pl:'samosas',act:'fold a triangle',india:true},
+];
+const byW=Object.fromEntries(WORDS.map(x=>[x.w,x]));
+const likeForm=x=>x.type==='count'?x.pl:x.w;            // apples / rice / noodles
+const wrongForm=x=>x.type==='count'?x.w:(x.type==='uncount'?'a '+x.w:x.w.replace(/s$/,''));
+const someForm=x=>'some '+(x.type==='count'?x.pl:x.w);                 // some apples / some rice / some noodles
+const someWrong=x=>x.type==='count'?'some '+x.w:(x.type==='uncount'?'a '+x.w:'a '+x.w.replace(/s$/,''));
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+
+/* ---------- state ---------- */
+let seat='1',grp='A';
+const KEY=()=>'lunchboxlab.v1.'+seat;
+function fresh(){const boxes={};WORDS.forEach(x=>boxes[x.w]=1);return{goal:'',boxes,round:1,due:[],cur:null,hintLvl:0,retr:0,hints:0,picked:[],like:{},want:{},firstTry:{},checks:[false,false,false,false,false,false],exit:'',big:false,catch:{played:0,right:0,best:0},imp:{played:0,right:0}};}
+let S=fresh();
+function save(){try{localStorage.setItem(KEY(),JSON.stringify(S));localStorage.setItem('lunchboxlab.seat',seat);localStorage.setItem('lunchboxlab.grp',grp);}catch(e){}}
+function load(){try{const t=localStorage.getItem(KEY());S=t?Object.assign(fresh(),JSON.parse(t)):fresh();}catch(e){S=fresh();}}
+
+/* ---------- speech ---------- */
+let voice=null;
+function pickVoice(){try{const vs=speechSynthesis.getVoices();voice=vs.find(v=>/en-IN/i.test(v.lang))||vs.find(v=>/en-US/i.test(v.lang))||vs.find(v=>/^en/i.test(v.lang))||null;}catch(e){}}
+function say(t){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='en-US';u.rate=.85;if(voice)u.voice=voice;speechSynthesis.speak(u);}catch(e){}}
+try{pickVoice();speechSynthesis.onvoiceschanged=pickVoice;}catch(e){}
+
+/* ---------- nav ---------- */
+const $=id=>document.getElementById(id);
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id==='s-'+id));document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.s===id));if(id==='check')renderCheck();if(id==='theory')renderTheory();if(id==='spin')renderShelves();window.scrollTo(0,0);}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>show(b.dataset.s));
+
+/* ---------- header ---------- */
+for(let i=1;i<=6;i++){const o=document.createElement('option');o.value=String(i);o.textContent='Seat '+i+' 號';$('seat').appendChild(o);}
+try{seat=localStorage.getItem('lunchboxlab.seat')||'1';grp=localStorage.getItem('lunchboxlab.grp')||'A';}catch(e){}
+$('seat').value=seat;$('grp').value=grp;
+$('seat').onchange=()=>{seat=$('seat').value;load();renderAll();save();};
+$('grp').onchange=()=>{grp=$('grp').value;save();};
+$('bigBtn').onclick=()=>{S.big=!S.big;document.body.classList.toggle('big',S.big);$('bigBtn').textContent=S.big?'🖥 Normal':'🖥 Big';save();};
+function confirmBox(title,body,yes){$('mTitle').textContent=title;$('mBody').textContent=body;$('modal').classList.add('on');$('mYes').onclick=()=>{$('modal').classList.remove('on');yes();};$('mNo').onclick=()=>$('modal').classList.remove('on');}
+$('resetBtn').onclick=()=>confirmBox('Reset this seat? 清除這位同學的紀錄？','Goal, Word Spin and Build It for Seat '+seat+' will be cleared.',()=>{S=fresh();save();renderAll();show('goal');});
+
+/* ---------- goal ---------- */
+function renderGoal(){const c=$('goalChips');c.innerHTML='';WORDS.forEach(x=>{const b=document.createElement('button');b.className='chip'+(S.goal===x.w?' on':'');b.textContent=x.e+' '+x.w;b.onclick=()=>{S.goal=x.w;save();renderGoal();};c.appendChild(b);});['I like ___.','I want some ___.','Do you like ___?'].forEach(g=>{const b=document.createElement('button');b.className='chip'+(S.goal===g?' on':'');b.textContent=g;b.onclick=()=>{S.goal=g;save();renderGoal();};c.appendChild(b);});$('goalShow').textContent=S.goal?'✔ Today I want to say “'+S.goal+'” in English.':'';}
+$('goalSave').onclick=()=>{const t=$('goalText').value.trim();if(t){S.goal=t;$('goalText').value='';save();renderGoal();}};
+
+/* ---------- spin (Leitner) ---------- */
+function dueList(){const r=S.round;return WORDS.filter(x=>{const b=S.boxes[x.w]||1;return b===1||(b===2&&r%2===0)||(b===3&&r%4===0);}).map(x=>x.w);}
+function nextDue(){if(!S.due.length){S.round++;S.due=shuffle(dueList());if(!S.due.length){S.due=shuffle(WORDS.map(x=>x.w));}}return S.due.shift();}
+function setBtns(spinOn,hintOn,rateOn){$('spinBtn').disabled=!spinOn;['hearBtn','letterBtn','showBtn'].forEach(i=>$(i).disabled=!hintOn);['rOk','rMid','rNo'].forEach(i=>$(i).disabled=!rateOn);}
+function spin(){if(S.round===1&&!S.due.length&&!S.cur){S.due=shuffle(dueList());}const w=nextDue();S.cur=w;S.hintLvl=0;S.retr++;const x=byW[w];const em=$('emoji');em.classList.remove('spinning');void em.offsetWidth;em.classList.add('spinning');em.textContent=x.e;$('wordLbl').textContent='';$('actLbl').textContent='';$('spinMsg').textContent='Say it! Do the action! 說出來、做動作，再按 ✔ △ ?';$('roundLbl').textContent='Round '+S.round+' · '+(S.due.length+1)+' to go';setBtns(false,true,true);save();}
+function hint(l){const x=byW[S.cur];if(!x)return;S.hints++;S.hintLvl=Math.max(S.hintLvl,l);if(l===1){say(x.w);$('spinMsg').textContent='Listen… now say it. 聽一次，再說一次。';}if(l===2){$('wordLbl').textContent=x.w[0].toUpperCase()+' _ _ _';$('spinMsg').textContent='First letter: '+x.w[0].toUpperCase()+'. Can you finish it?';}if(l===3){$('wordLbl').textContent=x.w;$('actLbl').textContent='👉 '+x.act+' · '+x.zh;say(x.w);}save();}
+function rate(v){const x=byW[S.cur];if(!x)return;let b=S.boxes[x.w]||1;if(v==='ok'){b=Math.min(3,b+1);$('spinMsg').textContent='✔ '+x.w+' moves to Box '+b+'. Great!';}else if(v==='mid'){$('spinMsg').textContent='△ '+x.w+' stays in Box '+b+'. You will see it again soon.';}else{b=1;$('wordLbl').textContent=x.w;$('actLbl').textContent='👉 '+x.act+' · '+x.zh;say(x.w);$('spinMsg').textContent='? '+x.w+' → Box 1. Listen, say it, do the action. 再來一次沒關係！';}S.boxes[x.w]=b;S.cur=null;setBtns(true,false,false);save();renderShelves();}
+$('spinBtn').onclick=spin;$('hearBtn').onclick=()=>hint(1);$('letterBtn').onclick=()=>hint(2);$('showBtn').onclick=()=>hint(3);
+$('rOk').onclick=()=>rate('ok');$('rMid').onclick=()=>rate('mid');$('rNo').onclick=()=>rate('no');
+function mastery(){const t=WORDS.reduce((a,x)=>a+((S.boxes[x.w]||1)-1),0);return Math.round(100*t/(2*WORDS.length));}
+function renderShelves(){[1,2,3].forEach(b=>{$('box'+b).innerHTML=WORDS.filter(x=>(S.boxes[x.w]||1)===b).map(x=>'<span class="c">'+x.e+' '+esc(x.w)+'</span>').join('')||'<span class="muted">—</span>';});const m=mastery();$('masteryLbl').textContent=m+'%';$('masteryBar').style.width=m+'%';$('roundLbl').textContent='Round '+S.round;}
+
+/* ---------- build ---------- */
+function renderFoods(){const f=$('foods');f.innerHTML='';WORDS.forEach(x=>{const b=document.createElement('button');b.className='food'+(S.picked.includes(x.w)?' on':'');b.innerHTML='<span class="e">'+x.e+'</span>'+esc(x.w)+'<span class="tag">'+(x.india?'🇮🇳 India':x.tw?'🇹🇼 Taiwan':'🌍')+'</span>';b.onclick=()=>{const i=S.picked.indexOf(x.w);if(i>=0)S.picked.splice(i,1);else if(S.picked.length<5)S.picked.push(x.w);else{$('badges').classList.add('shake');setTimeout(()=>$('badges').classList.remove('shake'),400);return;}S.like={};S.want={};S.firstTry={};save();renderFoods();};f.appendChild(b);});renderTray();}
+function renderTray(){const t=$('tray');t.innerHTML='';for(let i=0;i<5;i++){const w=S.picked[i];const d=document.createElement('div');d.className='slot'+(w?' full':'');d.textContent=w?byW[w].e:'';t.appendChild(d);}const ind=S.picked.filter(w=>byW[w].india).length,tw=S.picked.filter(w=>byW[w].tw).length;$('badges').innerHTML='<span class="badge">'+S.picked.length+' / 5 foods</span><span class="badge'+(ind?' ok':'')+'">🇮🇳 India: '+ind+'</span><span class="badge'+(tw?' ok':'')+'">🇹🇼 Taiwan: '+tw+'</span>'+((ind&&tw)?'<span class="badge ok">🤝 Friendship Lunch Box!</span>':'');$('toSent').disabled=S.picked.length<2;}
+$('toSent').onclick=()=>{$('pickCard').style.display='none';$('sentCard').style.display='';renderSent();};
+$('backPick').onclick=()=>{$('sentCard').style.display='none';$('pickCard').style.display='';};
+function renderSent(){const l=$('sentList');l.innerHTML='';S.picked.forEach(w=>{const x=byW[w];const d=document.createElement('div');d.className='sent'+(S.like[w]?' ok':'');const right=likeForm(x),wrong=wrongForm(x);if(S.like[w]){d.innerHTML='<div class="q">'+x.e+' I like <span class="hl">'+esc(right)+'</span>.</div><div class="why ok">'+esc(rule(x))+'</div>';}else{const o=shuffle([right,wrong]);d.innerHTML='<div class="q">'+x.e+' I like ______.</div><div class="opts"><button data-v="'+esc(o[0])+'">I like '+esc(o[0])+'.</button><button data-v="'+esc(o[1])+'">I like '+esc(o[1])+'.</button></div><div class="why"></div>';d.querySelectorAll('.opts button').forEach(b=>b.onclick=()=>{if(S.firstTry[w]===undefined)S.firstTry[w]=(b.dataset.v===right);if(b.dataset.v===right){S.like[w]=true;save();renderSent();say('I like '+right+'.');}else{d.classList.add('shake');setTimeout(()=>d.classList.remove('shake'),400);d.querySelector('.why').textContent=whyWrong(x);}});}l.appendChild(d);});$('toWant').disabled=!S.picked.every(w=>S.like[w]);}
+function rule(x){if(x.type==='count')return'✔ You can count '+x.pl+' → add -s. 數得出來，加 -s。';if(x.type==='uncount')return'✔ You can’t count '+x.w+' → no “a”. 數不出來，不加 a。';return'✔ '+x.w+' is always plural. 永遠用複數。';}
+function whyWrong(x){if(x.type==='count')return'Hmm — one '+x.w+', two '+x.pl+'… you like MANY. Add -s! 一個？很多個？';if(x.type==='uncount')return'Can you count '+x.w+'? One '+x.w+', two '+x.w+'…? No! So no “a”. 數不出來就不加 a。';return'We say '+x.w+' — always with -s. 這個字永遠是複數。';}
+$('toWant').onclick=()=>{$('sentCard').style.display='none';$('wantCard').style.display='';renderWant();};
+$('backSent').onclick=()=>{$('wantCard').style.display='none';$('sentCard').style.display='';};
+function renderWant(){const l=$('wantList');l.innerHTML='';S.picked.forEach(w=>{const x=byW[w];const d=document.createElement('div');d.className='sent'+(S.want[w]?' ok':'');const right=someForm(x),wrong=someWrong(x);if(S.want[w]){d.innerHTML='<div class="q">'+x.e+' I want <span class="hl">'+esc(right)+'</span> for lunch.</div><div class="why ok">'+esc(ruleSome(x))+'</div>';}else{const o=shuffle([right,wrong]);d.innerHTML='<div class="q">'+x.e+' I want ______ for lunch.</div><div class="opts"><button data-v="'+esc(o[0])+'">I want '+esc(o[0])+'.</button><button data-v="'+esc(o[1])+'">I want '+esc(o[1])+'.</button></div><div class="why"></div>';d.querySelectorAll('.opts button').forEach(b=>b.onclick=()=>{const k='want:'+w;if(S.firstTry[k]===undefined)S.firstTry[k]=(b.dataset.v===right);if(b.dataset.v===right){S.want[w]=true;save();renderWant();say('I want '+right+' for lunch.');}else{d.classList.add('shake');setTimeout(()=>d.classList.remove('shake'),400);d.querySelector('.why').textContent=whyWrongSome(x);}});}l.appendChild(d);});$('toFinal').disabled=!S.picked.every(w=>S.want[w]);}
+function ruleSome(x){if(x.type==='count')return'✔ some + '+x.pl+' — still add -s! some 後面可數的還是加 -s。';if(x.type==='uncount')return'✔ some '+x.w+' — no “a” for things you can’t count. 數不出來用 some，不用 a。';return'✔ some '+x.w+' — always plural. 永遠複數。';}
+function whyWrongSome(x){if(x.type==='count')return'some + one '+x.w+'? You want MANY — add -s. some 後面還是要加 -s！';if(x.type==='uncount')return'“a '+x.w+'”? Can you count it? No — say some '+x.w+'. 數不出來的用 some。';return'We never say a '+x.w.replace(/s$/,'')+'. Say some '+x.w+'.';}
+function sentences(){return S.picked.flatMap(w=>{const x=byW[w];return['I like '+likeForm(x)+'.','I want '+someForm(x)+' for lunch.'];});}
+$('toFinal').onclick=()=>{$('wantCard').style.display='none';$('finalCard').style.display='';renderFinal();};
+function renderFinal(){const ind=S.picked.filter(w=>byW[w].india).length,tw=S.picked.filter(w=>byW[w].tw).length;$('finalBadges').innerHTML='<span class="badge">'+S.picked.map(w=>byW[w].e).join(' ')+'</span>'+((ind&&tw)?'<span class="badge ok">🤝 Friendship Lunch Box</span>':'');$('finalText').innerHTML=sentences().map(s=>esc(s).replace(/\b(some)\b/,'<span class="hl">$1</span>')).join('<br>');}
+$('sayAll').onclick=()=>say(sentences().join(' '));
+async function copyText(t,msgEl){try{await navigator.clipboard.writeText(t);msgEl.textContent='Copied ✔ 已複製';}catch(e){msgEl.textContent='Long-press to copy 請長按複製';}setTimeout(()=>msgEl.textContent='',2500);}
+$('copySent').onclick=()=>copyText('Seat '+seat+' · Group '+grp+'\n'+sentences().join('\n'),$('copyMsg'));
+$('redo').onclick=()=>{S.picked=[];S.like={};S.want={};S.firstTry={};save();$('finalCard').style.display='none';$('pickCard').style.display='';renderFoods();};
+
+/* ---------- check ---------- */
+const CK=['I reached my goal 我達成目標','I can tell which foods take -s 我能分辨可數／不可數食物','I can say I like ___. and I want some ___.','I spoke English in my group 我在小組用英語說話','I fixed one sentence after feedback 我依回饋修正了一句','I know one Indian food or festival custom 我知道一個印度飲食或節慶習俗'];
+function renderCheck(){$('ckGoal').textContent=S.goal?'My goal: “'+S.goal+'”':'No goal yet — go to 🎯 Goal.';const l=$('ckList');l.innerHTML='';CK.forEach((t,i)=>{const d=document.createElement('div');d.className='ck';d.innerHTML='<span class="grow">'+(i+1)+'. '+esc(t)+'</span>';const y=document.createElement('button');y.textContent='Yes';y.className=S.checks[i]?'on':'';y.onclick=()=>{S.checks[i]=!S.checks[i];save();renderCheck();};d.appendChild(y);l.appendChild(d);});const e=$('exitChips');e.innerHTML='';const ss=sentences();if(!ss.length)e.innerHTML='<span class="muted">Build your lunch box first. 先完成便當。</span>';ss.forEach(s=>{const b=document.createElement('button');b.className='chip'+(S.exit===s?' on':'');b.textContent=s;b.onclick=()=>{S.exit=s;save();renderCheck();say(s);};e.appendChild(b);});$('resultCard').value=resultCard();}
+function firstTryStats(){const v=Object.values(S.firstTry);return v.length?v.filter(Boolean).length+'/'+v.length:'–';}
+function resultCard(){const weak=WORDS.filter(x=>(S.boxes[x.w]||1)===1).map(x=>x.w);return['🍱 Lunch Box Lab · Seat '+seat+' · Group '+grp,'🎯 Goal: '+(S.goal||'—')+(S.checks[0]?' ✔':''),'🎡 Word Spin: mastery '+mastery()+'% · '+S.retr+' retrievals · '+S.hints+' hints'+(weak.length?' · practice: '+weak.join(', '):' · all words in Box 2–3!'),'🎧 Catch: '+(S.catch.played?S.catch.right+'/'+S.catch.played+' · best '+S.catch.best:'—')+' · 🕵️ Impostor: '+(S.imp.played?S.imp.right+'/'+S.imp.played:'—'),'🍱 Build It: '+(sentences().join(' ')||'—')+' (first-try grammar '+firstTryStats()+')','🎫 Exit ticket: '+(S.exit||'—'),'✅ Self-check: '+S.checks.filter(Boolean).length+'/6'].join('\n');}
+$('copyCard').onclick=()=>copyText(resultCard(),$('cardMsg'));$('refreshCard').onclick=()=>{$('resultCard').value=resultCard();};
+
+/* ---------- theory ---------- */
+const TH=[
+ {s:'🎯 Goal 定標',t:'Self-regulated learning — forethought phase (Zimmerman, 2002)',zh:'自我調節學習：預慮階段（定標）',how:'A one-word goal makes the learning target concrete; the Check station closes the loop by asking “Did I reach it?”.',hz:'一個字的目標讓學習有具體對象；檢核站回頭問「達成了嗎」，形成循環。'},
+ {s:'🎡 Word Spin 字詞轉盤',t:'Retrieval practice & spacing (Roediger & Karpicke, 2006; Leitner, 1972) · TPR (Asher, 1977) · Dual coding (Paivio, 1986)',zh:'提取練習與間隔重複、全身反應法、雙碼理論',how:'Students recall the word from the picture BEFORE seeing it (retrieval). Words rated ✔ move to a box that returns less often; △ and ? come back sooner (Leitner spacing). The action links the word to the body; picture + sound + word use two memory channels.',hz:'先看圖回想再看字（提取）；✔ 的字進入較少出現的盒子，△ ? 的字很快再來（間隔重複）；動作連結身體，圖＋音＋字雙通道編碼。'},
+ {s:'🎡 Hint ladder 鷹架階梯',t:'Zone of proximal development & scaffolding (Vygotsky, 1978; Wood, Bruner & Ross, 1976)',zh:'近側發展區與鷹架',how:'Three hints in increasing strength: listen → first letter → show the word. Students take only as much help as they need, and the app counts it — so the teacher can see scaffolds fading over rounds.',hz:'三層提示由弱到強，學生只拿需要的那一層；App 記錄使用次數，老師看得到鷹架逐漸撤除。'},
+ {s:'🎡 ✔ △ ? self-rating 自我標記',t:'Metacognitive monitoring (Flavell, 1979; Zimmerman, 2002)',zh:'後設認知監控',how:'Judging “do I really know this?” is itself a skill. The rating drives the schedule, so honest self-assessment is rewarded with better practice.',hz:'判斷「我真的會了嗎」本身就是能力；標記決定複習排程，誠實的自評會得到更好的練習。'},
+ {s:'🎧 Food Catch 聽力接接樂',t:'Listening as input processing (VanPatten, 2004) · Game-based learning: challenge, feedback, time pressure (Plass, Homer & Kinzer, 2015)',zh:'聽力輸入處理、遊戲式學習（挑戰、回饋、時間壓力）',how:'The word is heard, not shown; the student maps sound → meaning under a short timer. Combos reward fast, accurate recognition; a miss shows the word and replays it, so every round ends with the correct pairing.',hz:'只聽不看字，在時間壓力下把聲音連到圖；連擊獎勵快又準的辨識；答錯會顯示並重播，每回合都以正確配對收尾。'},
+ {s:'🕵️ Impostor 抓內鬼',t:'Noticing hypothesis (Schmidt, 1990) · Error detection as consciousness-raising (Rutherford, 1987)',zh:'注意假說、錯誤偵測式的意識提升',how:'Instead of producing a sentence, the student hunts the one wrong word (a rice / apple). Finding the impostor forces attention to -s and “a”, and the fixed sentence is spoken aloud right after.',hz:'不是造句而是找出句子裡唯一錯的字；抓內鬼逼學生注意 -s 和 a，抓到後馬上唸出正確句子。'},
+ {s:'🍱 Build It 便當實驗',t:'Noticing hypothesis (Schmidt, 1990) · Focus on form (Long, 1991) · Output hypothesis (Swain, 1985)',zh:'注意假說、形式聚焦、輸出假說',how:'Students build a meaningful product (their lunch box) first; the grammar choice (apples / a rice) appears inside that task, and the correct form is highlighted so the -s and the missing “a” are noticed, not just told.',hz:'先做有意義的任務（便當），文法選擇出現在任務裡；正確形式反白，讓學生「注意到」-s 和不加 a，而不是被告知。'},
+ {s:'🍱 Immediate feedback 即時回饋',t:'Feedback that answers “where to next?” (Hattie & Timperley, 2007)',zh:'回饋三問：目標、進度、下一步',how:'A wrong tap gets a question (“Can you count it?”), not an X. The student retries at once; first-try accuracy is recorded as evidence for the teacher’s wrap-up.',hz:'答錯得到的是追問，不是打叉；馬上再試，首答正確率成為導學的證據。'},
+ {s:'⭐ Rate 組內評分',t:'Peer assessment (Topping, 1998) · Co-regulation (Hadwin & Oshige, 2011)',zh:'同儕互評、共同調節',how:'Group members rate each other on four observable behaviours; the group sees its weakest item and sets a target before the gallery visit.',hz:'組員依四個可觀察行為互評，看見全組最弱的一項，互學前先定下調節目標。'},
+ {s:'✅ Check 檢核',t:'Self-regulated learning — self-reflection phase (Zimmerman, 2002) · Fluency strand (Nation, 2007)',zh:'自我調節學習：反思階段、流暢練習',how:'Students compare the result with the goal, choose one sentence for the exit ticket (fluency), and post a result card to Padlet so the evidence is visible to the class and the observers.',hz:'對照目標自評，選一句當離場任務（流暢），結果卡貼到 Padlet，證據全班與觀課者都看得到。'},
+];
+function renderTheory(){$('evRetr').textContent=S.retr;$('evHint').textContent=S.hints;$('evMast').textContent=mastery()+'%';$('evAcc').textContent=firstTryStats();$('evCatch').textContent=S.catch.played?S.catch.right+'/'+S.catch.played:'–';$('evImp').textContent=S.imp.played?S.imp.right+'/'+S.imp.played:'–';const l=$('theoryList');l.innerHTML=TH.map(t=>'<div class="th"><h3>'+esc(t.s)+'</h3><div><b>'+esc(t.t)+'</b></div><div class="zh">'+esc(t.zh)+'</div><p style="margin:8px 0 4px">'+esc(t.how)+'</p><p class="zh" style="margin:0">'+esc(t.hz)+'</p></div>').join('')+'<p class="ref" style="color:var(--quiet);font-size:14px">References: Asher (1977); Flavell (1979); Plass, Homer & Kinzer (2015); Rutherford (1987); VanPatten (2004); Hadwin & Oshige (2011); Hattie & Timperley (2007); Leitner (1972); Long (1991); Nation (2007); Paivio (1986); Roediger & Karpicke (2006); Schmidt (1990); Swain (1985); Topping (1998); Vygotsky (1978); Wood, Bruner & Ross (1976); Zimmerman (2002).</p>';}
+
+/* ---------- game 1: Food Catch (listening) ---------- */
+let cg=null;
+function catchStart(){cg={round:0,score:0,combo:0,right:0,timer:null,target:null,t0:0,dur:6000};$('catchScore').textContent='0';$('catchCombo').textContent='0';$('catchMsg').textContent='';catchNext();}
+function catchNext(){if(!cg)return;if(cg.round>=10){catchEnd();return;}cg.round++;$('catchRound').textContent='Round '+cg.round+'/10';const pool=shuffle(WORDS.slice()).slice(0,4);cg.target=pool[Math.floor(Math.random()*4)];cg.dur=Math.max(3000,6000-cg.round*300);const a=$('arena');a.innerHTML='';const W=a.clientWidth||600,H=a.clientHeight||300;pool.forEach((x,i)=>{const d=document.createElement('div');d.className='fly';d.textContent=x.e;d.style.left=(20+i*((W-160)/3))+'px';d.style.top=(40+Math.random()*(H-180))+'px';d.style.animationDelay=(-i*0.4)+'s';d.onclick=()=>catchTap(x,d);a.appendChild(d);});cg.t0=Date.now();say(cg.target.w);clearInterval(cg.timer);cg.timer=setInterval(()=>{const p=1-(Date.now()-cg.t0)/cg.dur;$('catchBar').style.width=Math.max(0,p*100)+'%';if(p<=0){clearInterval(cg.timer);catchMiss(null);}},50);}
+function catchTap(x,d){if(!cg||!cg.target)return;if(x.w===cg.target.w){clearInterval(cg.timer);const fast=(Date.now()-cg.t0)<cg.dur*0.5;cg.combo++;cg.right++;const pts=10*(cg.combo>=3?2:1)+(fast?5:0);cg.score+=pts;d.classList.add('hit');$('catchScore').textContent=cg.score;$('catchCombo').textContent=cg.combo;$('catchMsg').textContent=(cg.combo>=3?'🔥 COMBO ×'+cg.combo+'! ':'✔ ')+x.w+' +'+pts;cg.target=null;setTimeout(catchNext,700);}else{d.classList.add('miss');setTimeout(()=>d.classList.remove('miss'),400);cg.combo=0;$('catchCombo').textContent='0';$('catchMsg').textContent='Not '+x.w+' — listen again 🔊';say(cg.target.w);}}
+function catchMiss(){if(!cg)return;const t=cg.target;cg.target=null;cg.combo=0;$('catchCombo').textContent='0';$('catchMsg').textContent='⏰ It was '+t.e+' '+t.w+'. Say it!';const a=$('arena');a.innerHTML='<div class="fly hit" style="left:40%;top:30%;animation:none;border-color:var(--rose)">'+t.e+'</div><div style="position:absolute;left:0;right:0;bottom:16px;text-align:center;font-weight:800;font-size:28px">'+esc(t.w)+'</div>';say(t.w);setTimeout(catchNext,1500);}
+function catchEnd(){S.catch.played+=10;S.catch.right+=cg.right;S.catch.best=Math.max(S.catch.best||0,cg.score);save();$('arena').innerHTML='<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px"><div style="font-size:60px">'+(cg.right>=9?'🏆':cg.right>=7?'🌟':'💪')+'</div><div style="font-size:30px;font-weight:800">'+cg.right+'/10 · Score '+cg.score+'</div><div class="muted">Best '+S.catch.best+' · 再玩一次可以更快！</div></div>';$('catchBest').textContent=S.catch.best;$('catchRound').textContent='Done';cg=null;}
+$('catchStart').onclick=catchStart;$('catchHear').onclick=()=>{if(cg&&cg.target)say(cg.target.w);};
+
+/* ---------- game 2: Impostor (noticing) ---------- */
+let ig=null;
+function impMake(){const x=WORDS[Math.floor(Math.random()*WORDS.length)];const kind=Math.random()<0.5?'like':'want';let toks,bad,fixed;if(x.type==='count'){if(kind==='like'){toks=['I','like',x.w+'.'];bad=2;fixed='I like '+x.pl+'.';}else{toks=['I','want','some',x.w+'.'];bad=3;fixed='I want some '+x.pl+'.';}}else if(x.type==='uncount'){if(kind==='like'){toks=['I','like','a',x.w+'.'];bad=2;fixed='I like '+x.w+'.';}else{toks=['I','want','a',x.w+'.'];bad=2;fixed='I want some '+x.w+'.';}}else{const sg=x.w.replace(/s$/,'');if(kind==='like'){toks=['I','like','a',sg+'.'];bad=2;fixed='I like '+x.w+'.';}else{toks=['I','want','some',sg+'.'];bad=3;fixed='I want some '+x.w+'.';}}return{x,toks,bad,fixed};}
+function impStart(){ig={round:0,right:0,cur:null,done:false};$('impScore').textContent='0';$('impMsg').textContent='';impNext();}
+function impNext(){if(!ig)return;if(ig.round>=8){impEnd();return;}ig.round++;ig.cur=impMake();ig.tried=false;$('impRound').textContent='Sentence '+ig.round+'/8';$('impWhy').textContent='';$('impWhy').className='why';$('impSay').disabled=true;const t=$('tokens');t.innerHTML='';ig.cur.toks.forEach((w,i)=>{const b=document.createElement('button');b.className='tok';b.textContent=w;b.onclick=()=>impTap(i,b);t.appendChild(b);});}
+function impTap(i,b){if(!ig||!ig.cur||ig.cur.done)return;const c=ig.cur;if(i===c.bad){c.done=true;if(!ig.tried)ig.right++;b.classList.add('sus');$('impScore').textContent=ig.right;$('impWhy').textContent='🚀 Ejected! → '+c.fixed;$('impWhy').className='why ok';$('impSay').disabled=false;say(c.fixed);setTimeout(impNext,1800);}else{ig.tried=true;b.classList.add('wrong');setTimeout(()=>b.classList.remove('wrong'),400);$('impWhy').textContent=(c.x.type==='uncount'?'Can you count '+c.x.w+'? 數得出來嗎？':'One or many? 一個還是很多個？');}}
+function impEnd(){S.imp.played+=8;S.imp.right+=ig.right;save();$('tokens').innerHTML='<div style="font-size:30px;font-weight:800">'+(ig.right>=7?'🏆':ig.right>=5?'🌟':'💪')+' '+ig.right+'/8 impostors found</div>';$('impRound').textContent='Done';$('impMsg').textContent='Play again to beat it!';ig=null;}
+$('impStart').onclick=impStart;$('impSay').onclick=()=>{if(ig&&ig.cur)say(ig.cur.fixed);};
+
+/* ---------- init ---------- */
+function renderAll(){renderGoal();renderShelves();renderFoods();document.body.classList.toggle('big',!!S.big);$('bigBtn').textContent=S.big?'🖥 Normal':'🖥 Big';setBtns(true,false,false);$('emoji').textContent='🎡';$('wordLbl').textContent='';$('actLbl').textContent='';S.cur=null;$('pickCard').style.display='';$('sentCard').style.display='none';$('wantCard').style.display='none';$('finalCard').style.display='none';$('catchBest').textContent=S.catch.best||0;}
+load();renderAll();
+})();
+</script>
+</body>
+</html>

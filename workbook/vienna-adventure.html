@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>維也納時空冒險・六年級英語互動簡報</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#1b1340;overflow:hidden;font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;color:#2b2150;user-select:none}
+#wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+#stage{width:1280px;height:720px;position:relative;transform-origin:center center;flex:none;overflow:hidden;border-radius:18px;
+ background:linear-gradient(160deg,#ffd6e8 0%,#c9d8ff 45%,#d8f5ff 100%);box-shadow:0 20px 80px #0008}
+#bg{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.note{position:absolute;bottom:-60px;font-size:34px;opacity:.5;animation:floatUp linear infinite}
+@keyframes floatUp{to{transform:translateY(-820px) rotate(30deg);opacity:0}}
+.slide{position:absolute;inset:0;padding:34px 48px 78px;display:none;flex-direction:column}
+.slide.active{display:flex;animation:slideIn .55s cubic-bezier(.2,1.3,.4,1)}
+@keyframes slideIn{from{opacity:0;transform:translateX(80px) scale(.96)}to{opacity:1;transform:none}}
+h1{font-size:60px;line-height:1.1;font-weight:900}
+h2{font-size:38px;font-weight:900;margin-bottom:6px;display:flex;align-items:center;gap:12px}
+h2 small{font-size:18px;font-weight:700;color:#7b6fb5;background:#fff9;border-radius:20px;padding:3px 14px}
+.sub{font-size:20px;color:#6a5fa0;margin-bottom:10px}
+.btn{border:none;cursor:pointer;font:inherit;font-weight:800;border-radius:30px;padding:10px 26px;font-size:22px;background:#ff5d8f;color:#fff;box-shadow:0 6px 0 #c23468;transition:.12s}
+.btn:active{transform:translateY(5px);box-shadow:0 1px 0 #c23468}
+.btn.alt{background:#5b7cff;box-shadow:0 6px 0 #3149c2}
+.btn.gold{background:#ffb703;color:#4a3000;box-shadow:0 6px 0 #c98900}
+.btn.small{font-size:16px;padding:6px 16px;box-shadow:0 4px 0 #c23468}
+.card{background:#fffc;border-radius:26px;box-shadow:0 8px 24px #4a3a9020;padding:18px 24px}
+.speak{cursor:pointer;display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:#5b7cff;color:#fff;font-size:17px;flex:none;border:none}
+.speak:hover{transform:scale(1.15)}
+.zh{color:#7b6fb5;font-size:19px}
+body.nozh .zh.hideable{visibility:hidden}
+
+/* title */
+#s0{align-items:center;justify-content:center;text-align:center}
+#s0 .sky{position:absolute;inset:0;background:linear-gradient(#7b5cff,#ff8fb8 70%,#ffd89e);z-index:-1}
+.city{position:absolute;bottom:0;left:0;right:0;height:210px;display:flex;align-items:flex-end;justify-content:center;gap:6px;font-size:96px;z-index:0}
+.city span{animation:bob 3s ease-in-out infinite}
+.city span:nth-child(2n){animation-delay:-1s}
+@keyframes bob{50%{transform:translateY(-14px)}}
+.tram{position:absolute;bottom:24px;font-size:90px;animation:drive 9s linear infinite;z-index:2}
+@keyframes drive{from{left:-140px}to{left:1300px}}
+#s0 .t{position:relative;z-index:3;color:#fff;text-shadow:0 5px 0 #4b2aa8,0 12px 24px #0006}
+#s0 h1{font-size:76px}
+#s0 .en{font-size:30px;font-weight:700;margin:12px 0 26px;color:#fff6c9}
+#s0 .badge{display:inline-block;background:#fff;color:#4b2aa8;border-radius:30px;padding:6px 20px;font-weight:800;font-size:20px;margin-bottom:18px;animation:wob 2s ease-in-out infinite}
+@keyframes wob{50%{transform:rotate(-3deg) scale(1.05)}}
+.wiggle{animation:wob 1.6s infinite}
+
+/* mission */
+.missions{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:14px;flex:1}
+.mission{background:#fff;border-radius:28px;padding:22px;text-align:center;box-shadow:0 10px 0 #b9a8ff;cursor:pointer;transition:.2s;position:relative}
+.mission:hover{transform:translateY(-8px) rotate(-1deg)}
+.mission .ic{font-size:84px;display:block;animation:bob 2.4s infinite}
+.mission b{font-size:26px;display:block;margin:6px 0}
+.mission .q{font-size:22px;color:#e0357a;font-weight:800;margin-top:8px}
+.mission.done::after{content:"✅";position:absolute;top:10px;right:14px;font-size:34px}
+
+/* vocab */
+.vgrid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;flex:1;margin-top:8px;align-content:start}
+.fc{height:150px;perspective:800px;cursor:pointer}
+.fc>div{position:relative;width:100%;height:100%;transition:transform .6s;transform-style:preserve-3d}
+.fc.flip>div{transform:rotateY(180deg)}
+.fc .f,.fc .b{position:absolute;inset:0;backface-visibility:hidden;border-radius:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6px;box-shadow:0 6px 0 #0002}
+.fc .f{background:#fff;font-size:44px}
+.fc .f span{font-size:19px;font-weight:800;margin-top:2px}
+.fc .b{background:linear-gradient(135deg,#ffb703,#ff7aa8);color:#fff;transform:rotateY(180deg);font-weight:800;font-size:25px}
+.fc .b small{font-size:14px;font-weight:600;margin-top:4px;line-height:1.2}
+
+/* dialogue */
+.scene{height:210px;border-radius:28px;position:relative;overflow:hidden;margin:4px 0 10px;box-shadow:0 8px 0 #0002;flex:none}
+.scene .deco{position:absolute;font-size:46px;animation:bob 4s infinite}
+.cast{position:absolute;bottom:6px;left:0;right:0;display:flex;justify-content:space-around;padding:0 30px}
+.av{display:flex;flex-direction:column;align-items:center;transition:.3s;opacity:.85}
+.av .face{width:104px;height:104px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:66px;border:6px solid #fff;box-shadow:0 6px 0 #0003}
+.av .nm{background:#fff;border-radius:14px;padding:0 12px;font-weight:900;font-size:18px;margin-top:6px}
+.av.talk{opacity:1;animation:jump .5s ease 2;transform:scale(1.18)}
+@keyframes jump{40%{transform:translateY(-26px) scale(1.22)}}
+.chat{flex:1;display:flex;flex-direction:column;gap:8px;overflow:hidden;justify-content:flex-end}
+.ln{display:flex;gap:12px;align-items:center;animation:pop .45s cubic-bezier(.2,1.6,.4,1)}
+.ln.R{flex-direction:row-reverse}
+@keyframes pop{from{transform:scale(.3);opacity:0}}
+.ln .mini{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:34px;border:4px solid #fff;flex:none}
+.bub{background:#fff;border-radius:22px;padding:8px 18px;box-shadow:0 4px 0 #0002;display:flex;gap:12px;align-items:center;max-width:900px}
+.bub .en{font-size:28px;font-weight:800}
+.bub .en b{color:#e0357a}
+.hint{position:absolute;right:56px;bottom:84px;font-weight:800;color:#fff;background:#ff5d8f;border-radius:20px;padding:4px 16px;animation:wob 1.2s infinite;z-index:5;font-size:17px}
+
+/* transport */
+.tp{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin:10px 0}
+.tp button{background:#fff;border:none;border-radius:24px;padding:12px;font:inherit;cursor:pointer;box-shadow:0 7px 0 #b9a8ff;font-size:60px;transition:.15s}
+.tp button span{display:block;font-size:20px;font-weight:800}
+.tp button:hover{transform:translateY(-6px)}
+.road{height:140px;border-radius:24px;background:linear-gradient(#9fe3ff 0 55%,#6b6b80 55% 100%);position:relative;overflow:hidden;margin-top:6px}
+.road::after{content:"";position:absolute;left:0;right:0;top:92px;border-top:6px dashed #fff8}
+.road .goal{position:absolute;right:20px;top:10px;font-size:76px}
+.road .veh{position:absolute;left:10px;top:44px;font-size:70px;transition:left 2.2s cubic-bezier(.5,0,.3,1)}
+.bigS{font-size:40px;font-weight:900;text-align:center;margin:10px 0}
+.bigS u{color:#e0357a;text-decoration:none;border-bottom:5px dashed #e0357a;padding:0 8px}
+
+/* piano */
+.piano{display:flex;justify-content:center;gap:6px;margin-top:14px}
+.key{width:112px;height:230px;background:#fff;border-radius:0 0 18px 18px;box-shadow:0 8px 0 #0003;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;padding-bottom:14px;font-weight:900;font-size:26px;cursor:pointer;transition:.08s;border:3px solid #eee}
+.key small{font-size:15px;color:#999}
+.key.on{transform:translateY(6px);background:#ffe27a}
+.key.next{animation:glow .7s infinite alternate;border-color:#ff5d8f}
+@keyframes glow{to{background:#ffc2da;transform:translateY(-6px)}}
+.seqbar{display:flex;justify-content:center;gap:8px;margin:10px 0;font-size:34px;min-height:46px}
+.seqbar span.ok{filter:drop-shadow(0 0 8px gold)}
+.seqbar span{opacity:.35}
+.seqbar span.ok{opacity:1}
+
+/* wheel */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:24px;flex:1;align-items:center}
+#wheelWrap{position:relative;width:420px;height:420px;margin:auto}
+#wheel{width:420px;height:420px;border-radius:50%;box-shadow:0 0 0 12px #fff,0 12px 0 12px #0002;transition:transform 4.2s cubic-bezier(.1,.7,.1,1)}
+#wheelWrap::after{content:"▼";position:absolute;left:50%;top:-30px;transform:translateX(-50%);font-size:52px;color:#e0357a;z-index:2}
+.gram{font-size:30px;font-weight:800;line-height:1.55}
+.gram b{color:#e0357a}
+.gram em{font-style:normal;background:#ffe27a;border-radius:10px;padding:0 8px}
+.res{font-size:30px;font-weight:900;min-height:120px}
+
+/* TV */
+.tvbox{width:420px;height:300px;background:#6a4a30;border-radius:34px;padding:22px;position:relative;box-shadow:0 12px 0 #0003;margin:auto}
+.tvbox .scr{width:100%;height:100%;background:#0d1b2a;border-radius:20px;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;font-size:90px}
+.tvbox .scr::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(#0000 0 3px,#0003 3px 4px);animation:scan 1s linear infinite}
+@keyframes scan{to{background-position:0 8px}}
+.tvbox .ant{position:absolute;top:-52px;left:150px;font-size:60px}
+.ball{position:absolute;font-size:50px;animation:fly 2.2s linear infinite}
+@keyframes fly{0%{left:5%;top:80%}50%{left:50%;top:5%}100%{left:90%;top:75%}}
+
+/* sentence builder */
+.slots{min-height:84px;background:#fff;border-radius:22px;padding:12px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;box-shadow:inset 0 4px 0 #0001;margin:8px 0}
+.pool{display:flex;flex-wrap:wrap;gap:12px;min-height:80px;margin:8px 0}
+.w{background:#5b7cff;color:#fff;font-size:28px;font-weight:800;padding:8px 20px;border-radius:18px;cursor:pointer;box-shadow:0 5px 0 #3149c2;animation:pop .3s}
+.w.in{background:#ffb703;color:#4a3000;box-shadow:0 5px 0 #c98900}
+.fb{font-size:30px;font-weight:900;min-height:44px}
+
+/* quiz */
+.qtop{display:flex;justify-content:space-between;align-items:center;font-weight:900;font-size:22px}
+.bar{height:18px;background:#fff9;border-radius:10px;overflow:hidden;flex:1;margin:0 18px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#ff5d8f,#ffb703);width:0;transition:.5s}
+.qq{font-size:36px;font-weight:900;margin:8px 0 4px}
+.qa{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:10px}
+.qa button{background:#fff;border:none;border-radius:22px;padding:16px;font:inherit;font-weight:800;font-size:28px;cursor:pointer;box-shadow:0 7px 0 #b9a8ff;transition:.12s;text-align:left}
+.qa button:hover{transform:translateY(-4px)}
+.qa button.good{background:#7be495;box-shadow:0 7px 0 #2f9e4f;animation:jump .5s}
+.qa button.bad{background:#ffb3b3;box-shadow:0 7px 0 #c23a3a;animation:shake .4s}
+@keyframes shake{25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+.exp{font-size:22px;font-weight:700;margin-top:12px;min-height:60px;color:#4b2aa8}
+
+/* task */
+.tasks{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;flex:1;margin-top:8px}
+.task{background:#fff;border-radius:26px;padding:20px;box-shadow:0 8px 0 #b9a8ff;font-size:20px;line-height:1.5}
+.task h3{font-size:26px;margin-bottom:6px}
+.task .fr{background:#fff3b0;border-radius:14px;padding:8px 12px;margin:8px 0;font-weight:800;font-size:21px}
+.star{display:inline-block;font-size:30px;cursor:pointer;filter:grayscale(1);opacity:.5}
+.star.on{filter:none;opacity:1;animation:jump .4s}
+
+/* hud */
+#hud{position:absolute;left:0;right:0;bottom:0;height:62px;display:flex;align-items:center;gap:10px;padding:0 20px;background:#2b2150ee;z-index:20;color:#fff}
+#hud .btn{font-size:17px;padding:6px 18px;box-shadow:0 4px 0 #c23468}
+#hud .btn.alt{box-shadow:0 4px 0 #3149c2}
+#prog{flex:1;height:10px;background:#fff3;border-radius:6px;overflow:hidden}
+#prog i{display:block;height:100%;background:linear-gradient(90deg,#ff5d8f,#ffb703);width:0;transition:.4s}
+#cnt{font-weight:800;min-width:60px;text-align:center}
+.tg{background:#ffffff22;border:none;color:#fff;font:inherit;font-weight:800;border-radius:20px;padding:6px 14px;cursor:pointer;font-size:16px}
+.tg.on{background:#ffb703;color:#4a3000}
+#notes{position:absolute;right:16px;bottom:74px;width:470px;max-height:480px;overflow:auto;background:#fffffa;border:4px solid #ffb703;border-radius:22px;padding:16px 20px;z-index:30;display:none;font-size:16px;line-height:1.55;box-shadow:0 10px 40px #0006}
+#notes.show{display:block}
+#notes h4{font-size:20px;margin-bottom:6px;color:#e0357a}
+#notes li{margin-left:18px;margin-bottom:4px}
+canvas#fx{position:absolute;inset:0;pointer-events:none;z-index:40}
+</style>
+</head>
+<body>
+<script>(function(){try{if(localStorage.getItem("wb_ok")!=="1")location.replace("index.html");}catch(e){}})();</script>
+
+<div id="wrap"><div id="stage">
+<div id="bg"></div>
+
+<!-- 0 title -->
+<section class="slide" id="s0" data-title="開場">
+ <div class="sky"></div>
+ <div class="t">
+  <div class="badge">🎓 六年級英語 ・ 時空冒險任務</div>
+  <h1>Welcome to Vienna!</h1>
+  <div class="en">Let's travel with Mozart &amp; Beethoven 🎹</div>
+  <button class="btn gold" onclick="next()" style="font-size:30px;padding:14px 44px">▶ 出發！Start</button>
+ </div>
+ <div class="city"><span>🏰</span><span>⛪</span><span>🎭</span><span>🏛️</span><span>🎻</span><span>🏰</span><span>🎭</span></div>
+ <div class="tram">🚋</div>
+</section>
+
+<!-- 1 mission -->
+<section class="slide" id="s1" data-title="任務">
+ <h2>🎯 今日三大任務 <small>Today's Missions</small></h2>
+ <div class="sub">點一點每張任務卡，看看你要完成什麼！（課堂結束要全部打勾 ✅）</div>
+ <div class="missions">
+  <div class="mission" onclick="this.classList.add('done');sfx('ok')"><span class="ic">🚋</span><b>Mission 1 問路・交通</b><div class="zh">學會說怎麼去一個地方</div><div class="q">How can we go there?<br>We can go there by tram.</div></div>
+  <div class="mission" onclick="this.classList.add('done');sfx('ok')"><span class="ic">🎹</span><b>Mission 2 聊休閒</b><div class="zh">問答別人的休閒時間</div><div class="q">What do you do in your free time?<br>I play the piano.</div></div>
+  <div class="mission" onclick="this.classList.add('done');sfx('ok')"><span class="ic">🌍</span><b>Mission 3 介紹台灣</b><div class="zh">跟維也納的大師分享我們的生活</div><div class="q">Let me show you!<br>Wow! Magic!</div></div>
+ </div>
+</section>
+
+<!-- 2 vocab -->
+<section class="slide" id="s2" data-title="單字翻翻卡">
+ <h2>🃏 魔法單字卡 <small>Click to flip · 點卡片翻面，再聽聲音</small></h2>
+ <div class="vgrid" id="vgrid"></div>
+</section>
+
+<!-- dialogue slides generated by JS -->
+<section class="slide" id="s3" data-title="場景1"></section>
+<section class="slide" id="s4" data-title="場景2"></section>
+
+<!-- 5 transport -->
+<section class="slide" id="s5" data-title="交通遊戲">
+ <h2>🚦 Transport Challenge <small>選一個交通工具，造句送大家去歌劇院！</small></h2>
+ <div class="bigS" id="tpS">We can go there by <u>_____</u>.</div>
+ <div class="tp" id="tp"></div>
+ <div class="road"><div class="goal">🎭</div><div class="veh" id="veh">🚋</div></div>
+ <div class="zh" style="margin-top:8px" id="tpZh">點下面的圖，車子就會開向歌劇院！（記得：<b>by + 交通工具</b>，不加 a / the）</div>
+</section>
+
+<section class="slide" id="s6" data-title="場景3"></section>
+
+<!-- 7 piano -->
+<section class="slide" id="s7" data-title="莫札特鋼琴">
+ <h2>🎹 Mozart's Magic Piano <small>點琴鍵或按鍵盤 A S D F G H J K</small></h2>
+ <div class="sub">跟著發光的琴鍵彈：這首「小星星」的旋律，莫札特也寫過變奏曲喔！(Do Do Sol Sol La La Sol)</div>
+ <div class="seqbar" id="seqbar"></div>
+ <div class="piano" id="piano"></div>
+ <div style="text-align:center;margin-top:18px"><button class="btn alt" onclick="startSeq()">✨ 帶我彈 Guide me</button> <button class="btn gold" onclick="freeMode()">🎶 自由彈 Free play</button></div>
+</section>
+
+<section class="slide" id="s8" data-title="場景4"></section>
+
+<!-- 9 wheel -->
+<section class="slide" id="s9" data-title="休閒轉盤">
+ <h2>🎡 Free Time Wheel <small>轉轉看，用英文回答！</small></h2>
+ <div class="two">
+  <div id="wheelWrap"><canvas id="wheel" width="420" height="420"></canvas></div>
+  <div>
+   <div class="card gram">
+    <div>Q: What do you do in your free time?</div>
+    <div>A: <b>I</b> <em>play</em> the piano in my free time.</div>
+    <div>A: <b>He / She</b> <em>writes</em> music in my free time.</div>
+    <div class="zh" style="font-size:18px;margin-top:4px">👀 小發現：我 I → 動詞原形；他 He → 動詞加 s（write<b>s</b>）</div>
+   </div>
+   <div class="res" id="wres">👈 按下面按鈕轉轉看！</div>
+   <button class="btn" onclick="spin()">🎡 SPIN!</button>
+   <button class="btn alt" id="wasked" style="display:none" onclick="askSay()">🔊 聽問答</button>
+  </div>
+ </div>
+</section>
+
+<section class="slide" id="s10" data-title="場景5"></section>
+
+<!-- 11 builder -->
+<section class="slide" id="s11" data-title="句子重組">
+ <h2>🧩 Sentence Builder <small>點單字，排成正確句子</small></h2>
+ <div class="zh" id="bzh" style="font-size:24px;font-weight:800"></div>
+ <div class="slots" id="slots"></div>
+ <div class="pool" id="pool"></div>
+ <div class="fb" id="bfb"></div>
+ <div><button class="btn small alt" onclick="bReset()">↺ 重排</button> <button class="btn small gold" onclick="bNext()">下一句 ▶</button> <button class="btn small" onclick="bHear()">🔊 聽正確答案</button></div>
+</section>
+
+<!-- 12 quiz -->
+<section class="slide" id="s12" data-title="闖關測驗">
+ <div class="qtop"><span>🏆 Vienna Quiz Show</span><div class="bar"><i id="qbar"></i></div><span id="qscore">⭐ 0</span></div>
+ <div id="qbody"></div>
+</section>
+
+<!-- 13 tasks -->
+<section class="slide" id="s13" data-title="素養任務">
+ <h2>🌟 真實任務 <small>用英文解決真實的事（小組 3 分鐘）</small></h2>
+ <div class="tasks">
+  <div class="task"><h3>📰 小記者訪問</h3>兩人一組，扮演記者與音樂大師。問 3 個問題、記下答案。
+   <div class="fr">What do you do in your free time?<br>I ______ in my free time.</div>
+   <div>完成後自評：<span class="star">⭐</span><span class="star">⭐</span><span class="star">⭐</span></div></div>
+  <div class="task"><h3>🧋 讓大師驚嘆！</h3>莫札特沒看過電視，如果他來台灣，你要「展示」什麼？（珍奶？手機？棒球？）
+   <div class="fr">Let me show you!<br>Look! I ______ on weekends.</div>
+   <div>完成後自評：<span class="star">⭐</span><span class="star">⭐</span><span class="star">⭐</span></div></div>
+  <div class="task"><h3>🚋 設計旅行路線</h3>你的班級要去一個地方，選交通工具並說明。
+   <div class="fr">How can we go there?<br>We can go there by ______.</div>
+   <div>完成後自評：<span class="star">⭐</span><span class="star">⭐</span><span class="star">⭐</span></div></div>
+ </div>
+</section>
+
+<!-- 14 end -->
+<section class="slide" id="s14" data-title="結束" style="align-items:center;justify-content:center;text-align:center">
+ <div style="font-size:120px;animation:bob 2s infinite">🏆</div>
+ <h1>Great job, Time Travelers!</h1>
+ <div class="sub" style="font-size:28px;margin:14px 0">你已經會：搭車去哪裡 ✔ 問休閒時間 ✔ 介紹自己的生活 ✔</div>
+ <div style="font-size:60px;letter-spacing:10px">🎹 🚋 📺 ⚾ ✨</div>
+ <div style="margin-top:22px"><button class="btn gold" onclick="go(0)">↺ 再玩一次</button> <button class="btn alt" onclick="confetti(160)">🎉 放煙火</button></div>
+</section>
+
+<div id="notes"></div>
+<div id="hud">
+ <button class="btn alt" onclick="prev()">◀</button>
+ <button class="btn" onclick="advance()" id="adv">▶ 下一句 / Next</button>
+ <div id="prog"><i id="pbar"></i></div><div id="cnt">1/15</div>
+ <button class="tg" id="tgZh" onclick="toggleZh()">中文 ON</button>
+ <button class="tg on" id="tgSp" onclick="toggleSp()">🔊 自動朗讀</button>
+ <button class="tg" onclick="toggleNotes()">📋 教師筆記 N</button>
+</div>
+<canvas id="fx" width="1280" height="720"></canvas>
+</div></div>
+
+<script>
+/* ---------- scale ---------- */
+const stage=document.getElementById('stage');
+function fit(){const s=Math.min(innerWidth/1280,innerHeight/720)*0.98;stage.style.transform='scale('+s+')'}
+addEventListener('resize',fit);fit();
+
+/* ---------- background notes ---------- */
+(()=>{const bg=document.getElementById('bg');const ns=['🎵','🎶','♪','♫','✨'];
+for(let i=0;i<14;i++){const e=document.createElement('div');e.className='note';e.textContent=ns[i%5];e.style.left=Math.random()*1240+'px';e.style.animationDuration=(9+Math.random()*9)+'s';e.style.animationDelay=(-Math.random()*14)+'s';e.style.fontSize=(24+Math.random()*30)+'px';bg.appendChild(e)}})();
+
+/* ---------- audio ---------- */
+let AC;function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}return AC}
+function tone(f,d=.5,type='triangle',vol=.25,when=0){const c=ac();if(!c)return;const t=c.currentTime+when;const o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.02);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(c.destination);o.start(t);o.stop(t+d+.05)}
+function sfx(k){if(k==='ok'){tone(659,.2,'triangle',.25);tone(880,.3,'triangle',.25,.12)}
+ else if(k==='bad'){tone(220,.25,'sawtooth',.15);tone(165,.3,'sawtooth',.15,.12)}
+ else if(k==='win'){[523,659,784,1047].forEach((f,i)=>tone(f,.4,'triangle',.25,i*.12))}
+ else if(k==='pop'){tone(520,.1,'sine',.15)}}
+let autoSpeak=true,voice=null;
+function pickVoice(){const vs=speechSynthesis.getVoices();voice=vs.find(v=>/en[-_]US/i.test(v.lang)&&/(Samantha|Google US|Aria|Jenny|Natural|Female)/i.test(v.name))||vs.find(v=>/en[-_]US/i.test(v.lang))||vs.find(v=>/^en/i.test(v.lang))||null}
+if('speechSynthesis' in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
+const __TL='en';const __TR=0.9;
+let CT=null;(async()=>{try{if(window.claude&&window.claude.use){CT=await window.claude.use('tts')}}catch(e){CT=null}})();
+let CTsid=0;
+function say(t,pitch=1,rate){
+ if(CT){try{window.speechSynthesis&&speechSynthesis.cancel()}catch(e){}
+  const sid=++CTsid;
+  let s=String(t).replace(/_+/g,__TL==='zh-TW'?'什麼':' blank ').replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{FE0F}\u{200D}↱➡]/gu,'').trim();
+  if(!s)return;
+  const v=pitch>=1.3?'airy':pitch<=0.85?'rounded':pitch>=1.1?'glassy':'buttery';
+  CT.speak(s,{voice:v,language:__TL,rate:__TR}).catch(e=>{const c=e&&e.code;if(c==='not_granted')CT=null;if(sid===CTsid&&c!=='viewer_stopped')sayWeb(t,pitch,rate)});
+  return}
+ sayWeb(t,pitch,rate)}
+
+function sayWeb(txt,pitch=1,rate=.85){if(!('speechSynthesis' in window))return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(txt);u.lang='en-US';if(voice)u.voice=voice;u.rate=rate;u.pitch=pitch;speechSynthesis.speak(u)}
+
+/* ---------- characters ---------- */
+const CH={Amber:['👧','#ff8fb8'],Teddy:['👦','#6ea8ff'],Mia:['👩','#b68cff'],Rocky:['🧒','#ffa94d'],Edison:['🤖','#4ed1c0'],Abu:['🧑‍🚀','#8ad66b'],Mozart:['🤴','#ffd166'],Beethoven:['👴','#c9a27a']};
+const PITCH={Amber:1.3,Teddy:1,Mia:1.4,Rocky:.9,Edison:.8,Abu:1.1,Mozart:1.15,Beethoven:.6};
+
+/* ---------- scenes ---------- */
+const SCENES={
+ s3:{t:'Scene 1 ・ Arrive in Vienna',zh:'抵達維也納',bg:'linear-gradient(#ffd0e0,#cde4ff)',deco:['🏰','☁️','🎻','⛪'],cast:['Amber','Teddy','Mia'],L:[
+  ['Amber','Oh, <b>Vienna</b>!','喔，維也納！'],
+  ['Teddy','It’s the city of <b>music</b>!','它是音樂之都！'],
+  ['Mia','Let’s go to the <b>opera house</b>.','我們去歌劇院吧。']]},
+ s4:{t:'Scene 2 ・ Take the tram',zh:'搭電車',bg:'linear-gradient(#bfe9ff,#e9ffd9)',deco:['🚋','🌳','☁️','🚏'],cast:['Rocky','Edison','Amber'],L:[
+  ['Rocky','<b>How</b> can we go there?','我們要如何去那裡？'],
+  ['Edison','We can go there <b>by tram</b>. Look!','我們可以搭電車去那裡。看！'],
+  ['Amber','The music is beautiful. I love Mozart!','這音樂很美。我愛莫札特！']]},
+ s6:{t:'Scene 3 ・ Meet Mozart',zh:'拜訪莫札特',bg:'linear-gradient(#ffe9a8,#ffd0e0)',deco:['🎼','🎹','🎻','✨'],cast:['Abu','Mia','Mozart','Beethoven'],L:[
+  ['Abu','Let’s visit Mozart.','我們去拜訪莫札特吧。'],
+  ['Mia','Hi, Mr. Mozart. We’re your <b>fans</b>.','嗨，莫札特先生。我們是你的粉絲。'],
+  ['Mozart','Oh, welcome! This is Beethoven.','喔，歡迎！這是貝多芬。']]},
+ s8:{t:'Scene 4 ・ Free time!',zh:'休閒時間',bg:'linear-gradient(#d8c8ff,#c6f3ff)',deco:['🎹','🎵','📜','🕯️'],cast:['Abu','Beethoven','Edison','Teddy'],L:[
+  ['Abu','What do you do <b>in your free time</b>?','你休閒時間做什麼？'],
+  ['Beethoven','I <b>play</b> the piano in my free time.','我休閒時間彈鋼琴。'],
+  ['Edison','What does Mozart do in his free time?','莫札特休閒時間做什麼？'],
+  ['Beethoven','He <b>writes</b> music in his free time.','他休閒時間作曲。'],
+  ['Teddy','I <b>watch TV</b> in my free time.','我休閒時間看電視。']]},
+ s10:{t:'Scene 5 ・ TV Magic!',zh:'電視魔法',bg:'linear-gradient(#a8f0ff,#ffe2f1)',deco:['📺','⚾','✨','🌟'],cast:['Beethoven','Abu','Rocky','Mozart'],L:[
+  ['Beethoven','What is TV?','什麼是電視？'],
+  ['Abu','Let me show you.','讓我展示給你看。'],
+  ['Rocky','Look! I play baseball on <b>weekends</b>.','看！我週末打棒球。'],
+  ['Mozart','Wow! <b>Magic</b>!','哇！真神奇！']]}
+};
+const state={};
+function buildScenes(){
+ for(const id in SCENES){const S=SCENES[id],el=document.getElementById(id);
+  el.innerHTML=`<h2>🎬 ${S.t} <small>${S.zh}</small></h2>
+  <div class="scene" style="background:${S.bg}">${S.deco.map((d,i)=>`<div class="deco" style="left:${90+i*300}px;top:${12+(i%2)*30}px;animation-delay:${-i}s">${d}</div>`).join('')}
+   <div class="cast">${S.cast.map(n=>`<div class="av" data-n="${n}"><div class="face" style="background:${CH[n][1]}">${CH[n][0]}</div><div class="nm">${n}</div></div>`).join('')}</div>
+   ${id==='s10'?'<div style="position:absolute;right:70px;top:20px;font-size:80px;animation:wob 1s infinite">📺</div>':''}
+  </div>
+  <div class="chat"></div>`;
+  state[id]=0}
+}
+buildScenes();
+function html2text(h){return h.replace(/<[^>]+>/g,'').replace(/&amp;/g,'&')}
+function revealLine(id){
+ const S=SCENES[id],i=state[id];if(i>=S.L.length)return false;
+ const [n,en,zh]=S.L[i],el=document.getElementById(id),chat=el.querySelector('.chat');
+ const row=document.createElement('div');row.className='ln '+(i%2?'R':'');
+ row.innerHTML=`<div class="mini" style="background:${CH[n][1]}">${CH[n][0]}</div><div class="bub"><div><div class="en">${en}</div><div class="zh hideable">${zh}</div></div><button class="speak">🔊</button></div>`;
+ const txt=html2text(en);
+ row.querySelector('.speak').onclick=e=>{e.stopPropagation();say(txt,PITCH[n])};
+ chat.appendChild(row);while(chat.children.length>4)chat.removeChild(chat.firstChild);
+ el.querySelectorAll('.av').forEach(a=>{a.classList.remove('talk');if(a.dataset.n===n){void a.offsetWidth;a.classList.add('talk')}});
+ sfx('pop');if(autoSpeak)say(txt,PITCH[n]);
+ state[id]++;
+ if(id==='s10'&&state[id]===S.L.length){setTimeout(()=>{confetti(90);sfx('win')},600)}
+ return true}
+
+/* ---------- vocab ---------- */
+const V=[['🏰','Vienna','維也納','Oh, Vienna!'],['🎵','music','音樂','I love music.'],['🎭','opera house','歌劇院','Let’s go to the opera house.'],['🚋','tram','電車','We can go there by tram.'],['🤩','fans','粉絲','We’re your fans.'],['🛋️','free time','休閒時間','I play in my free time.'],['🎹','piano','鋼琴','I play the piano.'],['📺','TV','電視','I watch TV.'],['⚾','baseball','棒球','I play baseball.'],['📅','weekends','週末','On weekends!'],['✨','magic','魔法','Wow! Magic!'],['✍️','write','寫；作曲','He writes music.']];
+const vg=document.getElementById('vgrid');
+V.forEach(v=>{const d=document.createElement('div');d.className='fc';d.innerHTML=`<div><div class="f">${v[0]}<span>${v[1]}</span></div><div class="b">${v[2]}<small>${v[3]}</small></div></div>`;
+ d.onclick=()=>{d.classList.toggle('flip');say(v[1],1.1,.8);sfx('pop')};vg.appendChild(d)});
+
+/* ---------- transport ---------- */
+const TP=[['🚋','tram'],['🚌','bus'],['🚲','bike'],['🚕','taxi'],['🚇','MRT']];
+const tp=document.getElementById('tp');
+TP.forEach(t=>{const b=document.createElement('button');b.innerHTML=`${t[0]}<span>${t[1]}</span>`;
+ b.onclick=()=>{const veh=document.getElementById('veh');veh.textContent=t[0];veh.style.transition='none';veh.style.left='10px';void veh.offsetWidth;veh.style.transition='';
+  veh.style.left='1000px';
+  document.getElementById('tpS').innerHTML=`We can go there by <u>${t[1]}</u>.`;
+  say('We can go there by '+t[1]+'.');sfx('ok');
+  document.getElementById('tpZh').innerHTML=`✅ 對！<b>by ${t[1]}</b>（搭乘/騎${t[1]}）。課文裡是 by tram 喔！`;
+  if(t[1]==='tram')confetti(40)};
+ tp.appendChild(b)});
+
+/* ---------- piano ---------- */
+const NOTES=[['C','Do',262],['D','Re',294],['E','Mi',330],['F','Fa',349],['G','Sol',392],['A','La',440],['B','Si',494],['C','Do',523]];
+const KEYS='asdfghjk';
+const pi=document.getElementById('piano');
+NOTES.forEach((n,i)=>{const k=document.createElement('div');k.className='key';k.dataset.i=i;k.innerHTML=`${n[1]}<small>${n[0]} ・ ${KEYS[i].toUpperCase()}</small>`;
+ k.onmousedown=k.ontouchstart=e=>{e.preventDefault();press(i)};pi.appendChild(k)});
+const SEQ=[0,0,4,4,5,5,4,3,3,2,2,1,1,0];let seqPos=-1;
+function press(i){tone(NOTES[i][2],.9,'triangle',.35);const k=pi.children[i];k.classList.add('on');setTimeout(()=>k.classList.remove('on'),180);
+ if(seqPos>=0){if(i===SEQ[seqPos]){const s=document.getElementById('seqbar').children[seqPos];s.classList.add('ok');seqPos++;if(seqPos>=SEQ.length){seqPos=-1;clearNext();sfx('win');confetti(120);say('Wow! You are a little Mozart!')}else showNext()}else sfx('bad')}}
+function clearNext(){[...pi.children].forEach(k=>k.classList.remove('next'))}
+function showNext(){clearNext();if(seqPos>=0)pi.children[SEQ[seqPos]].classList.add('next')}
+function startSeq(){const sb=document.getElementById('seqbar');sb.innerHTML=SEQ.map(()=>'<span>🎵</span>').join('');seqPos=0;showNext()}
+function freeMode(){seqPos=-1;clearNext();document.getElementById('seqbar').innerHTML=''}
+addEventListener('keydown',e=>{if(cur()===7){const i=KEYS.indexOf(e.key.toLowerCase());if(i>=0){press(i);return}}});
+
+/* ---------- wheel ---------- */
+const WH=[['play the piano','🎹','plays the piano'],['write music','✍️','writes music'],['watch TV','📺','watches TV'],['play baseball','⚾','plays baseball'],['read books','📚','reads books'],['ride a bike','🚲','rides a bike'],['play games','🎮','plays games'],['draw pictures','🎨','draws pictures']];
+const COL=['#ff8fb8','#ffd166','#6ea8ff','#8ad66b','#b68cff','#ffa94d','#4ed1c0','#ff6b6b'];
+const wc=document.getElementById('wheel'),wx=wc.getContext('2d');let wrot=0,wsel=null;
+(function drawW(){const a=Math.PI*2/WH.length;wx.clearRect(0,0,420,420);
+ WH.forEach((w,i)=>{wx.beginPath();wx.moveTo(210,210);wx.arc(210,210,208,i*a,(i+1)*a);wx.fillStyle=COL[i];wx.fill();
+  wx.save();wx.translate(210,210);wx.rotate(i*a+a/2);wx.textAlign='right';wx.fillStyle='#fff';wx.font='bold 21px sans-serif';wx.fillText(w[0],180,-4);wx.font='38px serif';wx.fillText(w[1],132,40);wx.restore()})})();
+function spin(){const a=360/WH.length;const idx=Math.floor(Math.random()*WH.length);
+ // pointer at top (270deg in canvas). segment i center angle = i*a+a/2 ; need rotate so that center lands at -90deg
+ const target=270-(idx*a+a/2);wrot+=360*5+((target-wrot)%360+360)%360;
+ wc.style.transform=`rotate(${wrot}deg)`;wsel=idx;sfx('pop');
+ document.getElementById('wres').innerHTML='🥁 ...';
+ setTimeout(()=>{const w=WH[idx];document.getElementById('wres').innerHTML=`${w[1]} I <b style="color:#e0357a">${w[0]}</b> in my free time.<br><span style="font-size:22px">He/She <b style="color:#4b2aa8">${w[2]}</b> in his/her free time.</span>`;
+  document.getElementById('wasked').style.display='inline-block';sfx('ok');askSay()},4300)}
+function askSay(){if(wsel===null)return;const w=WH[wsel];say(`What do you do in your free time? I ${w[0]} in my free time.`)}
+
+/* ---------- builder ---------- */
+const BS=[['我們可以搭電車去那裡。','We can go there by tram.'],['你休閒時間做什麼？','What do you do in your free time?'],['他休閒時間作曲。','He writes music in his free time.'],['我週末打棒球。','I play baseball on weekends.']];
+let bi=0,bpick=[];
+function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function bReset(){bpick=[];const [zh,en]=BS[bi];document.getElementById('bzh').textContent='🇹🇼 '+zh;
+ const ws=en.replace(/[.?]/g,m=>' '+m).split(' ').filter(Boolean);
+ const pool=document.getElementById('pool'),slots=document.getElementById('slots');slots.innerHTML='';pool.innerHTML='';document.getElementById('bfb').textContent='';
+ shuffle(ws.map((w,i)=>({w,i}))).forEach(o=>{const b=document.createElement('div');b.className='w';b.textContent=o.w;
+  b.onclick=()=>{if(b.parentNode===pool){slots.appendChild(b);b.classList.add('in');bpick.push(o.w);sfx('pop')}else{pool.appendChild(b);b.classList.remove('in');bpick.splice(bpick.indexOf(o.w),1)}check(ws.length)};pool.appendChild(b)})}
+function check(n){const [, en]=BS[bi];const fb=document.getElementById('bfb');
+ if(bpick.length===n){const ans=bpick.join(' ').replace(/ ([.?])/g,'$1');if(ans===en){fb.textContent='🎉 Perfect! '+en;sfx('win');confetti(70);say(en)}else{fb.textContent='🤔 再想想順序～';sfx('bad')}}else fb.textContent=''}
+function bNext(){bi=(bi+1)%BS.length;bReset()}
+function bHear(){say(BS[bi][1])}
+bReset();
+
+/* ---------- quiz ---------- */
+const Q=[
+ {q:'Vienna is the city of ____ !',zh:'維也納是什麼之都？',o:['music 🎵','pizza 🍕','robots 🤖','snow ⛄'],a:0,e:'Teddy: “It’s the city of music!” 🎶'},
+ {q:'How can they go to the opera house?',zh:'他們怎麼去歌劇院？',o:['By plane ✈️','By tram 🚋','By boat 🚤','By rocket 🚀'],a:1,e:'Edison: “We can go there by tram.” 記得 by + 交通工具！'},
+ {q:'What does Beethoven do in his free time?',zh:'貝多芬休閒時間做什麼？',o:['He watches TV.','He plays baseball.','He plays the piano.','He sleeps.'],a:2,e:'Beethoven: “I play the piano in my free time.”'},
+ {q:'Mozart ____ music in his free time.',zh:'選出正確動詞（他 → 加 s）',o:['write','writes','writing','to write'],a:1,e:'主詞是 He，動詞要加 s：writes ✍️'},
+ {q:'Who says “I play baseball on weekends”?',zh:'誰週末打棒球？',o:['Mia','Abu','Rocky','Amber'],a:2,e:'Rocky: “Look! I play baseball on weekends.”'},
+ {q:'Beethoven asks: “What is ____?” Why is it magic?',zh:'貝多芬問什麼東西？',o:['a tram','a piano','TV 📺','a fan'],a:2,e:'他第一次看到電視，所以大喊 “Wow! Magic!” ✨'},
+ {q:'你想問朋友的休閒活動，你會問：',zh:'生活情境題',o:['Where is your free time?','What do you do in your free time?','How is your free time?','Who is free time?'],a:1,e:'What do you do in your free time? 就是「你休閒時間做什麼？」'}
+];
+let qi=0,qs=0,qstreak=0,qlock=false;
+function qRender(){const b=document.getElementById('qbody');qlock=false;
+ if(qi>=Q.length){const tot=Q.length;b.innerHTML=`<div style="text-align:center;margin-top:30px"><div style="font-size:110px">${qs>=tot*10-10?'🏆':'🎖️'}</div><h1>${qs} points!</h1><div class="sub" style="font-size:26px;margin:12px 0">${qs>=60?'You are a Vienna superstar! 🌟':'Nice try! 再玩一次拿滿分吧！'}</div><button class="btn gold" onclick="qi=0;qs=0;qstreak=0;qRender()">↺ Play again</button></div>`;
+  document.getElementById('qbar').style.width='100%';if(qs>=60){confetti(150);sfx('win')}return}
+ const q=Q[qi];document.getElementById('qbar').style.width=(qi/Q.length*100)+'%';
+ b.innerHTML=`<div class="qq">Q${qi+1}. ${q.q} <button class="speak" onclick="say(Q[qi].q.replace('____','blank'))">🔊</button></div><div class="zh">${q.zh}</div><div class="qa">${q.o.map((o,i)=>`<button data-i="${i}">${'ABCD'[i]}. ${o}</button>`).join('')}</div><div class="exp" id="exp"></div>`;
+ b.querySelectorAll('.qa button').forEach(btn=>btn.onclick=()=>{if(qlock)return;const i=+btn.dataset.i;
+  if(i===q.a){qlock=true;btn.classList.add('good');qs+=10;qstreak++;sfx('ok');confetti(30);document.getElementById('exp').innerHTML='✅ '+q.e+(qstreak>=3?` 🔥 ${qstreak} 連勝！`:'')+`<br><button class="btn small gold" style="margin-top:8px" onclick="qi++;qRender()">下一題 ▶</button>`;document.getElementById('qscore').textContent='⭐ '+qs}
+  else{btn.classList.add('bad');qstreak=0;sfx('bad');document.getElementById('exp').textContent='😜 差一點！再選一次～'}})}
+qRender();
+
+/* ---------- tasks stars ---------- */
+document.querySelectorAll('.star').forEach(s=>s.onclick=()=>{s.classList.toggle('on');sfx('pop');if(document.querySelectorAll('.star.on').length===9)confetti(120)});
+
+/* ---------- confetti ---------- */
+const fx=document.getElementById('fx'),fc=fx.getContext('2d');let P=[];
+function confetti(n=80){for(let i=0;i<n;i++)P.push({x:640+(Math.random()-.5)*300,y:420,vx:(Math.random()-.5)*16,vy:-8-Math.random()*12,c:`hsl(${Math.random()*360},90%,60%)`,r:6+Math.random()*8,a:Math.random()*6,l:90+Math.random()*50});if(P.length===n)loop()}
+function loop(){fc.clearRect(0,0,1280,720);P.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.45;p.a+=.2;p.l--;fc.save();fc.translate(p.x,p.y);fc.rotate(p.a);fc.fillStyle=p.c;fc.fillRect(-p.r,-p.r/2,p.r*2,p.r);fc.restore()});P=P.filter(p=>p.l>0&&p.y<760);if(P.length)requestAnimationFrame(loop);else fc.clearRect(0,0,1280,720)}
+
+/* ---------- teacher notes ---------- */
+const NOTES_T={
+ 0:['開場 2 分鐘','讓學生先看動畫、猜猜「今天要去哪個城市？」，用英文複誦 “Welcome to Vienna!”。'],
+ 1:['學習目標 2 分鐘','三個任務對應：交通方式問答、休閒活動問答、跨文化分享。學生點完任務卡可口頭複述目標。'],
+ 2:['單字暖身 4 分鐘','先看圖猜意思→點卡片聽發音→全班跟讀。建議 3 輪：聽讀、看圖說、比賽搶答。'],
+ 3:['場景 1：聽讀對話','每次點「下一句」出現一句，先請學生「聽」再跟讀，最後遮中文（右下按鈕）做回憶。'],
+ 4:['場景 2：重點句型','How can we go there? / We can go there by ___. 教學重點：by + 交通工具（不加冠詞）。'],
+ 5:['交通遊戲 5 分鐘','請學生到台前點選交通工具，並說完整句子。可延伸到校外教學路線討論，連結生活情境。'],
+ 6:['場景 3：拜訪莫札特','融入音樂與藝術人文：Vienna 為音樂之都。可追問：Who is your favorite singer?'],
+ 7:['音樂律動 3 分鐘','Do Re Mi 的跨領域連結（音樂）。莫札特確實寫過〈小星星〉主題的變奏曲，可作為文化小知識。'],
+ 8:['場景 4：核心句型','What do you do in your free time? I ___ in my free time. 第三人稱單數 He writes / plays：請學生自己發現加 s。'],
+ 9:['休閒轉盤 6 分鐘','轉到什麼就用句型回答，再請同桌回答 “What does he/she do…?”，練習第三人稱。'],
+ 10:['場景 5：電視魔法','透過「貝多芬不認識電視」的幽默情境，讓學生理解 Let me show you. 與 on weekends 的使用。'],
+ 11:['句子重組 4 分鐘','練習語序與句子架構，可分組比賽。學生完成後請聽正確答案並跟讀。'],
+ 12:['闖關測驗 6 分鐘','涵蓋聽、讀、文法、情境題。答錯不扣分，鼓勵再試，答對看解析。'],
+ 13:['素養任務 8 分鐘','小記者訪問、介紹台灣生活、規劃交通路線。對應：溝通互動、跨文化理解、生活情境運用。'],
+ 14:['總結','請學生各說一句今天學會的句子。可作為出口卡（exit ticket）。']
+};
+const TXT='<b>課綱對應提示：</b>本簡報偏重 108 課綱英語領域核心素養「英-E-A1 主動學習、英-E-B1 基礎聽說讀寫能力、英-E-C3 跨文化理解」的方向。具體學習表現代碼請老師依所用版本課本與課綱再核對後填寫。';
+function renderNotes(){const n=NOTES_T[cur()];document.getElementById('notes').innerHTML=`<h4>📋 ${n[0]}</h4><ul><li>${n[1]}</li></ul><hr style="margin:8px 0;border:none;border-top:2px dashed #ffb703"><div style="font-size:14px">${TXT}</div>`}
+function toggleNotes(){const n=document.getElementById('notes');n.classList.toggle('show');renderNotes()}
+
+/* ---------- navigation ---------- */
+const slides=[...document.querySelectorAll('.slide')];let ci=0;
+function cur(){return ci}
+function go(i){ci=Math.max(0,Math.min(slides.length-1,i));slides.forEach((s,k)=>s.classList.toggle('active',k===ci));
+ document.getElementById('pbar').style.width=(ci/(slides.length-1)*100)+'%';document.getElementById('cnt').textContent=(ci+1)+'/'+slides.length;
+ const id='s'+ci;if(SCENES[id]&&state[id]===0)revealLine(id);
+ updAdv();if(document.getElementById('notes').classList.contains('show'))renderNotes();
+ if(ci===0||ci===14){speechSynthesis&&speechSynthesis.cancel()}}
+function updAdv(){const id='s'+ci,b=document.getElementById('adv');if(SCENES[id]&&state[id]<SCENES[id].L.length)b.textContent='▶ 下一句 Next line';else b.textContent='▶ 下一頁 Next';}
+function advance(){const id='s'+ci;if(SCENES[id]&&revealLine(id)){updAdv();return}next()}
+function next(){go(ci+1)}function prev(){go(ci-1)}
+function toggleZh(){document.body.classList.toggle('nozh');const on=!document.body.classList.contains('nozh');const b=document.getElementById('tgZh');b.textContent='中文 '+(on?'ON':'OFF');b.classList.toggle('on',!on)}
+function toggleSp(){autoSpeak=!autoSpeak;const b=document.getElementById('tgSp');b.classList.toggle('on',autoSpeak);if(!autoSpeak&&window.speechSynthesis)speechSynthesis.cancel()}
+addEventListener('keydown',e=>{if(ci===7&&KEYS.includes(e.key.toLowerCase()))return;
+ if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();advance()}else if(e.key==='ArrowLeft')prev();else if(e.key.toLowerCase()==='n')toggleNotes()});
+go(0);
+</script>
+</body>
+</html>

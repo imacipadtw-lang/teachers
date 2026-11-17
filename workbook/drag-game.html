@@ -1,0 +1,258 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<script>(function(){try{if(localStorage.getItem("wb_ok")!=="1")location.replace("index.html");}catch(e){}})();</script>
+
+<title>英語拖拖樂</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Noto+Sans+TC:wght@500;700;900&display=swap">
+<style>
+/* Layout: classroom projector stage. A big target card in the middle, word cards in a row below, one action per screen. Single bright look on purpose: projectors wash out dark themes. */
+:root{
+  --sky:#e8f3ff; --ink:#14284b; --muted:#4f6386; --paper:#ffffff;
+  --go:#14a05a; --go-soft:#dff6e9; --no:#e0383e; --no-soft:#fde4e4;
+  --sun:#ffc531; --blue:#2b6fe0; --line:#c7d8f0;
+  --en:"Fredoka","Arial Rounded MT Bold","Segoe UI",system-ui,sans-serif;
+  --zh:"Noto Sans TC","Microsoft JhengHei","PingFang TC",system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--sky);color:var(--ink);font-family:var(--zh);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  -webkit-user-select:none;user-select:none}
+button{font:inherit;color:inherit;cursor:pointer;border:0}
+button:focus-visible{outline:4px solid var(--blue);outline-offset:3px}
+.app{max-width:1200px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;padding-block:18px 24px;gap:18px}
+h1{font-size:clamp(34px,5vw,60px);margin:0;font-weight:900;text-wrap:balance;line-height:1.15}
+h1 .en{font-family:var(--en);color:var(--blue);font-weight:700}
+.lab{font-size:clamp(20px,2.4vw,28px);font-weight:700;margin:0 0 10px}
+.chips{display:flex;flex-wrap:wrap;gap:12px}
+.chip{background:var(--paper);border:4px solid var(--line);border-radius:18px;padding:12px 20px;font-size:clamp(20px,2.4vw,28px);font-weight:700;display:flex;align-items:center;gap:10px;min-height:72px}
+.chip small{font-family:var(--en);font-weight:600;color:var(--muted);font-size:.75em}
+.chip[aria-pressed="true"]{border-color:var(--blue);background:#dbe8ff;box-shadow:0 5px 0 var(--blue)}
+.chip .ic{font-size:1.3em}
+.big{background:var(--go);color:#fff;border-radius:22px;padding:18px 40px;font-size:clamp(26px,3.2vw,40px);font-weight:900;box-shadow:0 7px 0 #0b6b3b;min-height:84px}
+.big:active{transform:translateY(5px);box-shadow:0 2px 0 #0b6b3b}
+.big.alt{background:var(--blue);box-shadow:0 7px 0 #1a4aa0}
+.note{color:var(--muted);font-size:18px;line-height:1.6;margin:0}
+.panel{background:var(--paper);border-radius:26px;padding:22px;display:flex;flex-direction:column;gap:22px}
+/* game */
+.bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.pill{background:var(--paper);border-radius:999px;padding:8px 18px;font-size:clamp(20px,2.4vw,30px);font-weight:900;font-variant-numeric:tabular-nums;border:3px solid var(--line)}
+.pill b{font-family:var(--en);color:var(--blue)}
+.pill.ok b{color:var(--go)}
+.sp{flex:1}
+.tool{background:var(--paper);border:3px solid var(--line);border-radius:16px;min-width:64px;min-height:64px;font-size:28px;padding:0 14px;font-weight:700}
+.tool span{font-size:20px;margin-left:6px}
+.stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(18px,3vh,34px)}
+.target{position:relative;width:min(400px,80vw);aspect-ratio:1;max-width:100%;background:var(--paper);border:6px dashed var(--line);border-radius:36px;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:border-color .15s,background .15s}
+.target.hot{border-color:var(--blue);background:#eef4ff;border-style:solid}
+.target.good{border-color:var(--go);background:var(--go-soft);border-style:solid}
+.pic{font-size:min(200px,40vw);line-height:1}
+.dot{width:min(210px,42vw);aspect-ratio:1;border-radius:50%;border:5px solid #00000022}
+.hint{position:absolute;bottom:10px;font-size:18px;color:var(--muted);font-weight:700}
+.say{position:absolute;top:12px;right:12px;width:70px;height:70px;border-radius:50%;background:var(--sun);font-size:34px;box-shadow:0 5px 0 #c99500}
+.say:active{transform:translateY(4px);box-shadow:0 1px 0 #c99500}
+.cards{display:flex;flex-wrap:wrap;justify-content:center;gap:clamp(12px,2vw,24px);width:100%}
+.card{touch-action:none;background:var(--paper);border:5px solid var(--ink);border-radius:24px;padding:16px 26px;min-width:min(220px,40vw);min-height:96px;font-family:var(--en);font-size:clamp(36px,5vw,62px);font-weight:600;box-shadow:0 8px 0 var(--ink);position:relative;z-index:1}
+.card.drag{z-index:20;box-shadow:0 16px 30px #14284b55;transition:none;cursor:grabbing}
+.card.back{transition:transform .25s ease}
+.card.wrong{border-color:var(--no);color:var(--no);background:var(--no-soft);box-shadow:0 8px 0 var(--no);opacity:.55;animation:shake .45s}
+.card.right{border-color:var(--go);background:var(--go);color:#fff;box-shadow:0 8px 0 #0b6b3b}
+.card:disabled{cursor:default}
+@keyframes shake{20%,60%{translate:-14px 0}40%,80%{translate:14px 0}}
+/* feedback */
+.fb{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:40;pointer-events:none}
+.fb .mark{font-family:var(--en);font-weight:700;font-size:min(260px,50vw);line-height:1;animation:pop .5s cubic-bezier(.2,1.6,.4,1)}
+.fb.ok .mark{color:var(--go);text-shadow:0 8px 0 #0b6b3b33}
+.fb.no .mark{color:var(--no)}
+@keyframes pop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+.boom{position:fixed;top:45%;left:50%;width:16px;height:16px;border-radius:4px;z-index:39;pointer-events:none;animation:fly 1s ease-out forwards}
+@keyframes fly{to{transform:translate(var(--x),var(--y)) rotate(540deg);opacity:0}}
+.next{display:flex;gap:16px;align-items:center;justify-content:center;flex-wrap:wrap;min-height:84px}
+.answer{font-family:var(--en);font-size:clamp(30px,4vw,50px);font-weight:700;color:var(--go)}
+/* end */
+.score{font-size:clamp(40px,7vw,86px);font-weight:900;margin:0;text-align:center;line-height:1.2}
+.score b{font-family:var(--en);color:var(--go);font-size:1.3em}
+.stars{text-align:center;font-size:clamp(50px,8vw,90px);letter-spacing:10px;color:var(--sun)}
+.stars .off{color:var(--line)}
+.miss{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
+.miss button{background:var(--no-soft);border:3px solid var(--no);border-radius:16px;padding:10px 18px;font-family:var(--en);font-size:30px;font-weight:600;display:flex;gap:10px;align-items:center}
+.center{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.warn{background:#fff3cd;border:3px solid var(--sun);border-radius:16px;padding:12px 16px;font-size:18px}
+@media (max-width:600px){.card{min-width:42%;padding:12px}.tool span{display:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="app" id="app"></div>
+<div class="fb" id="fb" hidden><div class="mark" id="mark"></div></div>
+
+<script>
+const TOPICS=[
+ {id:'animal',zh:'動物',en:'Animals',ic:'🐶',items:[
+  ['cat','🐱',"It's a cat."],['dog','🐶',"It's a dog."],['bird','🐦',"It's a bird."],['fish','🐟',"It's a fish."],
+  ['pig','🐷',"It's a pig."],['rabbit','🐰',"It's a rabbit."],['monkey','🐵',"It's a monkey."],['tiger','🐯',"It's a tiger."],
+  ['lion','🦁',"It's a lion."],['elephant','🐘',"It's an elephant."]]},
+ {id:'traffic',zh:'交通工具',en:'Transportation',ic:'🚌',items:[
+  ['bus','🚌',"It's a bus."],['car','🚗',"It's a car."],['bike','🚲',"It's a bike."],['train','🚆',"It's a train."],
+  ['plane','✈️',"It's a plane."],['boat','⛵',"It's a boat."],['taxi','🚕',"It's a taxi."],['truck','🚚',"It's a truck."]]},
+ {id:'school',zh:'文具',en:'School Supplies',ic:'✏️',items:[
+  ['pencil','✏️',"It's a pencil."],['pen','🖊️',"It's a pen."],['book','📕',"It's a book."],['ruler','📏',"It's a ruler."],
+  ['scissors','✂️',"They're scissors."],['crayon','🖍️',"It's a crayon."],['notebook','📓',"It's a notebook."],['bag','🎒',"It's a bag."]]},
+ {id:'weather',zh:'天氣',en:'Weather',ic:'⛅',items:[
+  ['sunny','☀️',"It's sunny."],['rainy','🌧️',"It's rainy."],['cloudy','☁️',"It's cloudy."],['windy','🌬️',"It's windy."],
+  ['snowy','🌨️',"It's snowy."],['hot','🥵',"It's hot."],['cold','🥶',"It's cold."]]},
+ {id:'color',zh:'顏色',en:'Colors',ic:'🎨',items:[
+  ['red','#e53935',"It's red."],['orange','#fb8c00',"It's orange."],['yellow','#fdd835',"It's yellow."],['green','#43a047',"It's green."],
+  ['blue','#1e63d6',"It's blue."],['purple','#8e24aa',"It's purple."],['pink','#f48fb1',"It's pink."],['brown','#795548',"It's brown."],
+  ['black','#111111',"It's black."],['white','#ffffff',"It's white."]]},
+ {id:'fruit',zh:'水果',en:'Fruits',ic:'🍎',items:[
+  ['apple','🍎',"It's an apple."],['banana','🍌',"It's a banana."],['grapes','🍇',"They're grapes."],['lemon','🍋',"It's a lemon."],
+  ['orange','🍊',"It's an orange."],['watermelon','🍉',"It's a watermelon."],['strawberry','🍓',"It's a strawberry."],['peach','🍑',"It's a peach."],
+  ['pineapple','🍍',"It's a pineapple."],['cherry','🍒',"It's a cherry."]]}
+];
+const GRADES=[
+ {id:'g12',zh:'1–2 年級',opts:3,rate:.75,say:'word',note:'3 個選項，念單字，念得慢'},
+ {id:'g34',zh:'3–4 年級',opts:4,rate:.85,say:'word',note:'4 個選項，念單字'},
+ {id:'g56',zh:'5–6 年級',opts:4,rate:.95,say:'sentence',note:'4 個選項，念整句，例如 It\'s a tiger.'}
+];
+const ROUND=8;
+let pick={topic:'animal',grade:'g34'};
+try{const s=JSON.parse(localStorage.getItem('dragGame')||'{}');if(s.topic)pick.topic=s.topic;if(s.grade)pick.grade=s.grade}catch(e){}
+let G=null;
+const $app=document.getElementById('app');
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const isColor=v=>v[0]==='#';
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ---------- voice ---------- */
+const synth=window.speechSynthesis;let voice=null;
+function pickVoice(){if(!synth)return;const v=synth.getVoices().filter(x=>/^en[-_]/i.test(x.lang));
+ const pref=['Samantha','Ava','Google US English','Microsoft Aria','Microsoft Jenny','Microsoft Zira','Allison','Karen'];
+ voice=null;for(const p of pref){voice=v.find(x=>x.name.includes(p));if(voice)break}
+ if(!voice)voice=v.find(x=>/en[-_]US/i.test(x.lang))||v[0]||null}
+if(synth){pickVoice();synth.onvoiceschanged=pickVoice}
+function speak(t,rate){if(!synth)return;try{synth.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='en-US';if(voice)u.voice=voice;u.rate=rate||.85;synth.speak(u)}catch(e){}}
+
+/* ---------- sound ---------- */
+let ac=null;
+function tone(good){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();
+ const seq=good?[[523,0],[659,.1],[784,.2],[1047,.3]]:[[220,0],[175,.18]];
+ seq.forEach(([f,t])=>{const o=ac.createOscillator(),g=ac.createGain(),s=ac.currentTime+t;
+  o.type=good?'triangle':'sawtooth';o.frequency.value=f;g.gain.setValueAtTime(.0001,s);
+  g.gain.exponentialRampToValueAtTime(good?.25:.18,s+.02);g.gain.exponentialRampToValueAtTime(.0001,s+(good?.3:.35));
+  o.connect(g).connect(ac.destination);o.start(s);o.stop(s+.4)})}catch(e){}}
+function flash(good){const fb=document.getElementById('fb');fb.className='fb '+(good?'ok':'no');
+ document.getElementById('mark').textContent=good?'✓':'✗';fb.hidden=false;
+ const m=document.getElementById('mark');m.style.animation='none';m.offsetHeight;m.style.animation='';
+ clearTimeout(flash.t);flash.t=setTimeout(()=>fb.hidden=true,good?900:650);
+ if(good&&!matchMedia('(prefers-reduced-motion: reduce)').matches){const cs=['#14a05a','#ffc531','#2b6fe0','#e0383e','#8e24aa'];
+  for(let i=0;i<40;i++){const d=document.createElement('div');d.className='boom';const a=Math.random()*Math.PI*2,r=180+Math.random()*320;
+   d.style.background=cs[i%5];d.style.setProperty('--x',Math.cos(a)*r+'px');d.style.setProperty('--y',Math.sin(a)*r+'px');
+   document.body.appendChild(d);setTimeout(()=>d.remove(),1100)}}}
+
+/* ---------- home ---------- */
+function home(){G=null;
+ const T=TOPICS,gr=GRADES;
+ $app.innerHTML=`
+ <h1>英語拖拖樂 <span class="en">Drag &amp; Say</span></h1>
+ ${synth?'':'<div class="warn">這個瀏覽器不能念英文，請改用 Chrome 或 Edge 開啟。</div>'}
+ <div class="panel">
+  <div><p class="lab">① 選主題</p><div class="chips">${T.map(t=>`<button class="chip" data-t="${t.id}" aria-pressed="${pick.topic===t.id}"><span class="ic">${t.ic}</span>${t.zh}<small>${t.en}</small></button>`).join('')}</div></div>
+  <div><p class="lab">② 選年級</p><div class="chips">${gr.map(g=>`<button class="chip" data-g="${g.id}" aria-pressed="${pick.grade===g.id}">${g.zh}</button>`).join('')}</div>
+   <p class="note" id="gnote" style="margin-top:10px">${GRADES.find(g=>g.id===pick.grade).note}</p></div>
+  <div class="center"><button class="big" id="go">開始 Start ▶</button></div>
+ </div>
+ <p class="note">玩法：看圖、聽英文，把正確的英文字卡拖到圖片上（點一下字卡也可以）。全班第一次就答對才算分。<br>講台鍵盤：空白鍵＝再念一次、1–4＝選字卡、Enter＝下一題。</p>`;
+ $app.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{pick.topic=b.dataset.t;save();home()});
+ $app.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{pick.grade=b.dataset.g;save();home()});
+ document.getElementById('go').onclick=start;
+}
+function save(){try{localStorage.setItem('dragGame',JSON.stringify(pick))}catch(e){}}
+
+/* ---------- game ---------- */
+function start(){const t=TOPICS.find(x=>x.id===pick.topic),g=GRADES.find(x=>x.id===pick.grade);
+ const qs=shuffle(t.items).slice(0,Math.min(ROUND,t.items.length));
+ G={t,g,qs,i:0,ok:0,miss:[],tries:0,done:false};q()}
+function prompt(it){return G.g.say==='sentence'?it[2]:it[0]}
+function q(){const it=G.qs[G.i];G.tries=0;G.done=false;
+ const others=shuffle(G.t.items.filter(x=>x[0]!==it[0])).slice(0,G.g.opts-1);
+ G.opts=shuffle([it,...others]);
+ $app.innerHTML=`
+ <div class="bar">
+  <button class="tool" id="home" aria-label="回主畫面">🏠<span>主畫面</span></button>
+  <div class="pill">第 <b>${G.i+1}</b> / ${G.qs.length} 題</div>
+  <div class="pill ok">全班答對 <b>${G.ok}</b></div>
+  <div class="sp"></div>
+  <button class="tool" id="fs" aria-label="全螢幕">⛶<span>全螢幕</span></button>
+ </div>
+ <div class="stage">
+  <div class="target" id="target">
+   ${isColor(it[1])?`<div class="dot" style="background:${it[1]}"></div>`:`<div class="pic">${it[1]}</div>`}
+   <button class="say" id="say" aria-label="再念一次">🔊</button>
+   <div class="hint" id="hint">把答案拖到這裡</div>
+  </div>
+  <div class="cards" id="cards">${G.opts.map((o,k)=>`<button class="card" data-k="${k}">${esc(o[0])}</button>`).join('')}</div>
+  <div class="next" id="next"></div>
+ </div>`;
+ document.getElementById('home').onclick=home;
+ document.getElementById('fs').onclick=()=>{try{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()}catch(e){}};
+ document.getElementById('say').onclick=()=>speak(prompt(it),G.g.rate);
+ document.querySelectorAll('.card').forEach(drag);
+ setTimeout(()=>speak(prompt(it),G.g.rate),350);
+}
+function drag(el){let sx,sy,moved=false,id=null;
+ el.addEventListener('pointerdown',e=>{if(el.disabled||G.done)return;id=e.pointerId;sx=e.clientX;sy=e.clientY;moved=false;
+  el.setPointerCapture(id);el.classList.remove('back')});
+ el.addEventListener('pointermove',e=>{if(e.pointerId!==id)return;const dx=e.clientX-sx,dy=e.clientY-sy;
+  if(!moved&&Math.hypot(dx,dy)>10){moved=true;el.classList.add('drag')}
+  if(moved){el.style.transform=`translate(${dx}px,${dy}px) scale(1.06)`;
+   document.getElementById('target').classList.toggle('hot',over(e))}});
+ const end=e=>{if(e.pointerId!==id)return;id=null;const tg=document.getElementById('target');tg.classList.remove('hot');
+  el.classList.remove('drag');
+  if(!moved){el.style.transform='';choose(el);return}
+  if(over(e)){el.style.transform='';choose(el)}else{el.classList.add('back');el.style.transform=''}};
+ el.addEventListener('pointerup',end);el.addEventListener('pointercancel',e=>{if(e.pointerId!==id)return;id=null;el.classList.remove('drag');el.style.transform='';});
+ el.addEventListener('click',e=>{if(e.detail===0)choose(el)}); // keyboard Enter/Space
+}
+function over(e){const r=document.getElementById('target').getBoundingClientRect();
+ return e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom}
+function choose(el){if(!G||G.done||el.disabled)return;const it=G.qs[G.i],o=G.opts[+el.dataset.k];
+ if(o[0]===it[0]){G.done=true;if(G.tries===0)G.ok++;else G.miss.push(it);
+  el.classList.add('right');document.querySelectorAll('.card').forEach(c=>c.disabled=true);
+  const tg=document.getElementById('target');tg.classList.add('good');document.getElementById('hint').textContent='';
+  tone(true);flash(true);setTimeout(()=>speak(it[2],G.g.rate),500);
+  document.querySelector('.pill.ok b').textContent=G.ok;
+  const last=G.i===G.qs.length-1;
+  document.getElementById('next').innerHTML=`<span class="answer">${esc(it[2])}</span><button class="big alt" id="nx">${last?'看成績 🏆':'下一題 ▶'}</button>`;
+  document.getElementById('nx').onclick=nextQ;document.getElementById('nx').focus({preventScroll:true});
+ }else{G.tries++;el.classList.add('wrong');el.disabled=true;tone(false);flash(false)}}
+function nextQ(){if(!G)return;G.i++;G.i<G.qs.length?q():end()}
+
+/* ---------- end ---------- */
+function end(){const n=G.qs.length,ok=G.ok,r=ok/n,st=r===1?3:r>=.7?2:r>=.4?1:0;
+ tone(true);if(st>=2)flash(true);
+ $app.innerHTML=`
+ <div class="bar"><button class="tool" id="home">🏠<span>主畫面</span></button><div class="pill">${G.t.zh} ${G.t.en}・${G.g.zh}</div></div>
+ <div class="panel" style="flex:1;justify-content:center">
+  <div class="stars">${[0,1,2].map(i=>i<st?'★':'<span class="off">★</span>').join('')}</div>
+  <p class="score">全班答對 <b>${ok}</b> / ${n} 題</p>
+  ${G.miss.length?`<p class="lab" style="text-align:center">再聽一次這些字 👂</p><div class="miss">${G.miss.map(m=>`<button data-w="${esc(m[0])}" data-s="${esc(m[2])}">🔊 ${esc(m[0])}</button>`).join('')}</div>`
+   :`<p class="lab" style="text-align:center">全部第一次就答對，太厲害了！ Excellent!</p>`}
+  <div class="center"><button class="big" id="again">再玩一次 🔄</button><button class="big alt" id="change">換主題</button></div>
+ </div>`;
+ document.getElementById('home').onclick=home;document.getElementById('change').onclick=home;
+ document.getElementById('again').onclick=start;
+ $app.querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>speak(b.dataset.s,G.g.rate));
+ setTimeout(()=>speak(st===3?'Excellent!':st>=2?'Great job!':'Good try!',.9),700);
+}
+
+/* ---------- teacher keyboard ---------- */
+document.addEventListener('keydown',e=>{if(!G||!document.getElementById('cards'))return;
+ const it=G.qs[G.i];
+ if(e.key===' '&&e.target===document.body){e.preventDefault();speak(prompt(it),G.g.rate)}
+ else if(/^[1-4]$/.test(e.key)){const c=document.querySelector(`.card[data-k="${+e.key-1}"]`);if(c)choose(c)}
+ else if(e.key==='Enter'&&G.done&&e.target.id!=='nx'){e.preventDefault();nextQ()}});
+home();
+</script>
+
+</body></html>

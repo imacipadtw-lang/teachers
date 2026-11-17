@@ -1,0 +1,600 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<script>(function(){try{if(localStorage.getItem("wb_ok")!=="1")location.replace("index.html");}catch(e){}})();</script>
+
+<title>喵喵老師講考卷</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bpmf+Huninn&family=Huninn&display=swap">
+<style>
+/* Layout: sticker-book classroom — chunky outlined cards with offset shadows, mascot column beside the question card */
+:root{
+  --bg:#E6F4FA; --dot:#CFE7F2; --card:#FFFFFF; --ink:#26344F; --muted:#5D6B85;
+  --line:#26344F; --sun:#FFC83D; --sun-soft:#FFF3CC; --pink:#FF7AA2; --pink-soft:#FFE3EC;
+  --sky:#4D9DE0; --sky-soft:#DDEEFC; --mint:#22B98F; --mint-soft:#D6F5EA; --coral:#F25F5C; --coral-soft:#FDE1E0;
+  --tf:#4D9DE0; --mc:#FF7AA2; --vx:#22B98F;
+  --f-zh:"Huninn","PingFang TC","Microsoft JhengHei","Noto Sans TC",system-ui,sans-serif;
+  --f-bpmf:"Bpmf Huninn","Huninn","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --shadow:0 5px 0 var(--line);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#172133; --dot:#1F2B42; --card:#22304A; --ink:#EEF3FB; --muted:#A9B6CC; --line:#0B111C;
+  --sun:#FFC83D; --sun-soft:#3A3420; --pink:#FF8DB0; --pink-soft:#43263A; --sky:#6DB2EC; --sky-soft:#1D3552;
+  --mint:#3CD3A6; --mint-soft:#173F37; --coral:#FF7B78; --coral-soft:#472628; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#172133; --dot:#1F2B42; --card:#22304A; --ink:#EEF3FB; --muted:#A9B6CC; --line:#0B111C;
+  --sun:#FFC83D; --sun-soft:#3A3420; --pink:#FF8DB0; --pink-soft:#43263A; --sky:#6DB2EC; --sky-soft:#1D3552;
+  --mint:#3CD3A6; --mint-soft:#173F37; --coral:#FF7B78; --coral-soft:#472628; color-scheme:dark}
+
+[hidden]{display:none!important}
+html,body{height:100%}
+body{background:var(--bg);background-image:radial-gradient(var(--dot) 2.5px,transparent 2.5px);background-size:26px 26px;
+  color:var(--ink);font-family:var(--f-zh);font-size:18px;line-height:1.6;padding-inline:16px;padding-block:16px 28px;box-sizing:border-box}
+body.bpmf{font-family:var(--f-bpmf);line-height:1.9}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:4px solid var(--sky);outline-offset:3px}
+.app{max-width:1120px;margin:0 auto}
+mark{background:linear-gradient(transparent 55%,var(--sun) 55%);color:inherit;padding:0 2px;border-radius:3px}
+
+.chip{display:inline-flex;align-items:center;gap:6px;border:3px solid var(--line);background:var(--card);border-radius:999px;padding:4px 14px;font-size:16px;box-shadow:0 3px 0 var(--line)}
+.btn{border:3px solid var(--line);border-radius:18px;background:var(--card);padding:10px 18px;box-shadow:var(--shadow);transition:transform .08s,box-shadow .08s;font-size:18px}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--line)}
+.btn.sun{background:var(--sun);color:#26344F}
+.btn.pink{background:var(--pink);color:#26344F}
+.btn.small{padding:6px 12px;font-size:15px;border-radius:14px;box-shadow:0 3px 0 var(--line)}
+.btn[aria-pressed="true"]{background:var(--sun);color:#26344F}
+
+/* HOME */
+.home{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:28px;align-items:center;padding-block:12px}
+.home-cat{max-width:340px;margin:0 auto;animation:bob 3s ease-in-out infinite}
+.home h1{font-size:clamp(34px,6vw,58px);line-height:1.25;margin:0 0 8px;text-wrap:balance;letter-spacing:.02em}
+.home h1 span{color:var(--pink);-webkit-text-stroke:0}
+.paper{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.lead{color:var(--muted);margin:0 0 20px}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px}
+.mode{text-align:left;display:flex;flex-direction:column;gap:2px;padding:16px 18px}
+.mode b{font-size:22px}
+.mode small{font-size:15px;opacity:.85}
+.secs{display:grid;gap:10px}
+.sec-row{display:flex;align-items:center;gap:12px;text-align:left;width:100%;padding:10px 14px}
+.sec-row .sw{width:16px;height:16px;border-radius:50%;border:3px solid var(--line);flex:none}
+.sec-row .t{flex:1;min-width:0}
+.sec-row .c{color:var(--muted);font-size:15px;font-variant-numeric:tabular-nums}
+
+/* QUIZ */
+.topbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:14px}
+.topbar .grow{flex:1}
+.tools{display:flex;gap:8px;flex-wrap:wrap}
+.dots{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.dot{width:26px;height:26px;border-radius:50%;border:2.5px solid var(--line);background:var(--card);font-size:12px;line-height:1;padding:0;display:grid;place-items:center;font-family:var(--f-zh);font-variant-numeric:tabular-nums}
+.dot.cur{transform:scale(1.25);background:var(--sun);color:#26344F}
+.dot.ok{background:var(--mint);color:#fff}
+.dot.no{background:var(--coral);color:#fff}
+.dot.seen{background:var(--sky-soft)}
+.dot.gap{margin-left:8px}
+
+.stage{display:grid;grid-template-columns:230px minmax(0,1fr);gap:24px;align-items:start}
+.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 12px);display:flex;flex-direction:column;align-items:center;gap:6px}
+.bubble{position:relative;background:var(--card);border:3px solid var(--line);border-radius:22px;padding:12px 16px;font-size:18px;box-shadow:0 4px 0 var(--line);width:100%;text-align:center;min-height:64px}
+.bubble::after{content:"";position:absolute;left:50%;bottom:-14px;width:22px;height:22px;background:var(--card);border-right:3px solid var(--line);border-bottom:3px solid var(--line);transform:translateX(-50%) rotate(45deg)}
+.mascot{width:190px;max-width:100%}
+.mascot.jump{animation:jump .6s ease}
+.mascot.shake{animation:shake .5s ease}
+
+.card{background:var(--card);border:3px solid var(--line);border-radius:28px;box-shadow:0 7px 0 var(--line);padding:22px 26px 26px;min-width:0}
+.qhead{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:10px}
+.badge{font-size:15px;border:3px solid var(--line);border-radius:999px;padding:2px 12px;color:#26344F}
+.qno{font-size:22px}
+.pts{margin-left:auto;color:var(--muted);font-size:15px}
+.group{background:var(--sky-soft);border:2.5px dashed var(--sky);border-radius:16px;padding:8px 14px;margin-bottom:12px;font-size:18px}
+.qtext{font-size:clamp(22px,2.6vw,30px);line-height:1.6;margin:4px 0 18px;text-wrap:pretty}
+body.bpmf .qtext{line-height:1.95}
+
+.opts{display:grid;gap:12px}
+.opts.two{grid-template-columns:1fr 1fr}
+.opts.four{grid-template-columns:1fr 1fr}
+.opt{display:flex;align-items:center;gap:12px;text-align:left;border:3px solid var(--line);border-radius:20px;background:var(--card);padding:12px 16px;box-shadow:var(--shadow);transition:transform .08s,box-shadow .08s,background .2s;font-size:clamp(18px,2vw,23px);min-width:0;position:relative}
+.opt:not(:disabled):hover{background:var(--sun-soft)}
+.opt:not(:disabled):active{transform:translateY(4px);box-shadow:0 1px 0 var(--line)}
+.opt:disabled{cursor:default}
+.opt .mk{flex:none;width:52px;height:52px;border-radius:50%;border:3px solid var(--line);display:grid;place-items:center;font-size:28px;background:var(--sun-soft);font-family:var(--f-zh);line-height:1}
+.opt .lb{min-width:0}
+.two .opt{justify-content:center;flex-direction:column;padding:16px;text-align:center}
+.two .opt .mk{width:72px;height:72px;font-size:42px}
+.opt.is-correct{background:var(--mint-soft);border-color:var(--mint);box-shadow:0 5px 0 var(--mint)}
+.opt.is-correct .mk{background:var(--mint);color:#fff;border-color:var(--mint)}
+.opt.is-correct::after{content:"★ 正確答案";position:absolute;top:-14px;right:12px;background:var(--mint);color:#fff;font-size:13px;padding:1px 10px;border-radius:999px;font-family:var(--f-zh)}
+.opt.is-wrong{background:var(--coral-soft);border-color:var(--coral);box-shadow:0 5px 0 var(--coral);animation:shake .45s}
+.opt.is-wrong .mk{background:var(--coral);color:#fff;border-color:var(--coral)}
+.opt.is-wrong::after{content:"你選的";position:absolute;top:-14px;right:12px;background:var(--coral);color:#fff;font-size:13px;padding:1px 10px;border-radius:999px;font-family:var(--f-zh)}
+.opt.dim{opacity:.55}
+
+.peek{margin-top:16px;display:flex;justify-content:flex-end}
+.explain{margin-top:22px;border:3px dashed var(--sun);background:var(--sun-soft);border-radius:24px;padding:18px;display:grid;grid-template-columns:150px minmax(0,1fr);gap:18px;align-items:start;animation:pop .35s ease}
+.scene{aspect-ratio:1;max-width:100%;border:3px solid var(--line);background:var(--card);border-radius:22px;display:grid;place-items:center;font-size:44px;line-height:1.15;text-align:center;font-family:var(--f-zh);padding:6px;word-break:break-all}
+.scene span{display:inline-block;animation:float 2.6s ease-in-out infinite}
+.ans{font-size:22px;margin:0 0 6px}
+.ans b{color:var(--mint)}
+.why{margin:0 0 12px;font-size:20px}
+.why-t{display:inline-block;background:var(--pink);color:#26344F;border-radius:10px;padding:0 10px;font-size:16px;margin-bottom:4px;border:2px solid var(--line)}
+.tip{display:flex;gap:10px;align-items:center;background:var(--card);border:2.5px solid var(--line);border-radius:16px;padding:8px 12px;font-size:17px}
+.tip svg{width:44px;height:44px;flex:none}
+
+.nav{display:flex;justify-content:space-between;gap:12px;margin-top:22px}
+.nav .btn{font-size:20px;padding:12px 22px}
+
+/* END */
+.end{text-align:center;max-width:620px;margin:0 auto;padding-block:20px}
+.end .mascot{width:220px}
+.end h2{font-size:clamp(30px,5vw,44px);margin:6px 0}
+.score{font-size:clamp(64px,12vw,110px);line-height:1;color:var(--pink);font-variant-numeric:tabular-nums;font-family:var(--f-zh);-webkit-text-stroke:3px var(--line);paint-order:stroke fill}
+.stars{font-size:52px;letter-spacing:6px;margin:8px 0}
+.stars .off{filter:grayscale(1);opacity:.3}
+.tally{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:14px 0 22px}
+.end-btns{display:flex;flex-wrap:wrap;justify-content:center;gap:12px}
+
+#fx{position:fixed;inset:0;pointer-events:none;z-index:50;width:100%;height:100%}
+.hint-keys{color:var(--muted);font-size:14px;text-align:center;margin-top:18px;font-family:var(--f-zh)}
+
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes float{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-6px) rotate(3deg)}}
+@keyframes jump{0%{transform:translateY(0)}35%{transform:translateY(-26px) scale(1.05)}70%{transform:translateY(0) scale(.97)}100%{transform:none}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}50%{transform:translateX(7px)}75%{transform:translateX(-4px)}}
+@keyframes pop{from{transform:scale(.96);opacity:.4}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+@media (max-width:820px){
+  .home{grid-template-columns:1fr;gap:8px}
+  .home-cat{max-width:200px}
+  .stage{grid-template-columns:1fr;gap:12px}
+  .side{position:static;flex-direction:row;align-items:center}
+  .side .mascot{width:96px;flex:none;order:-1}
+  .bubble{text-align:left;font-size:16px;min-height:0}
+  .bubble::after{left:-14px;top:50%;bottom:auto;transform:translateY(-50%) rotate(135deg)}
+  .card{padding:18px 16px 20px}
+  .explain{grid-template-columns:1fr}
+  .scene{width:120px;font-size:36px}
+}
+@media (max-width:520px){
+  .modes{grid-template-columns:1fr}
+  .opts.four{grid-template-columns:1fr}
+  .two .opt .mk{width:58px;height:58px;font-size:34px}
+  .nav .btn{font-size:17px;padding:10px 14px}
+  .dot{width:22px;height:22px;font-size:10px}
+}
+</style>
+
+<canvas id="fx" aria-hidden="true"></canvas>
+<div class="app">
+
+  <!-- HOME -->
+  <section id="home" class="home">
+    <div class="home-cat" id="homeCat"></div>
+    <div>
+      <div class="paper">
+        <span class="chip">3上 社會</span>
+        <span class="chip">第一單元 我的新學習</span>
+        <span class="chip">1. 多元的學習活動</span>
+      </div>
+      <h1>喵喵老師<span>講考卷</span></h1>
+      <p class="lead">28 題，每一題都有喵喵老師的解說。先自己作答，再看為什麼！</p>
+      <div class="modes">
+        <button class="btn sun mode" id="goQuiz"><b>🎮 開始闖關</b><small>先作答，答完馬上看解說，最後算分數</small></button>
+        <button class="btn mode" id="goTeach"><b>📺 上課模式</b><small>直接顯示答案和解說，適合投影講解</small></button>
+      </div>
+      <div class="secs" id="secList"></div>
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="quiz" hidden>
+    <div class="topbar">
+      <button class="btn small" id="toHome">🏠 首頁</button>
+      <span class="chip" id="modeChip"></span>
+      <span class="grow"></span>
+      <div class="tools">
+        <button class="btn small" id="bpmfBtn" aria-pressed="true">ㄅㄆㄇ 注音</button>
+        <button class="btn small" id="speakBtn">🔊 唸給我聽</button>
+        <button class="btn small" id="fsBtn">⛶ 全螢幕</button>
+      </div>
+    </div>
+    <div class="dots" id="dots"></div>
+    <div class="stage">
+      <aside class="side">
+        <div class="bubble" id="bubble"></div>
+        <div class="mascot" id="mascot"></div>
+      </aside>
+      <article class="card">
+        <div class="qhead">
+          <span class="badge" id="secBadge"></span>
+          <span class="qno" id="qno"></span>
+          <span class="pts" id="pts"></span>
+        </div>
+        <div class="group" id="group" hidden></div>
+        <div class="qtext" id="qtext"></div>
+        <div class="opts" id="opts"></div>
+        <div class="peek" id="peekWrap"><button class="btn small" id="peekBtn">👀 偷看答案</button></div>
+        <div class="explain" id="explain" hidden>
+          <div class="scene" id="scene"></div>
+          <div>
+            <p class="ans" id="ansLine"></p>
+            <span class="why-t">為什麼？</span>
+            <p class="why" id="why"></p>
+            <div class="tip" id="tip"></div>
+          </div>
+        </div>
+      </article>
+    </div>
+    <div class="nav">
+      <button class="btn" id="prevBtn">◀ 上一題</button>
+      <button class="btn sun" id="nextBtn">下一題 ▶</button>
+    </div>
+    <p class="hint-keys">電腦上可以用 ← → 換題，按 1 2 3 4 或 O / X / V 作答</p>
+  </section>
+
+  <!-- END -->
+  <section id="end" class="end" hidden>
+    <div class="mascot" id="endCat" style="margin:0 auto"></div>
+    <h2 id="endTitle"></h2>
+    <div id="endBody"></div>
+    <div class="end-btns">
+      <button class="btn sun" id="againBtn">🔁 再玩一次</button>
+      <button class="btn" id="reviewBtn" hidden>📌 看答錯的題目</button>
+      <button class="btn" id="endHome">🏠 回首頁</button>
+    </div>
+  </section>
+</div>
+
+<script>
+/* ---------- 題目資料（依考卷原題） ---------- */
+const SECS={
+  tf:{name:'一、是非題',pts:4,color:'var(--tf)',hint:'對的選 ○，錯的選 ✕。你覺得呢？'},
+  mc:{name:'二、選擇題',pts:5,color:'var(--mc)',hint:'從四個答案裡選一個。慢慢看喔！'},
+  vx:{name:'三、依題意回答',pts:2,color:'var(--vx)',hint:'適當的打 ✔，不適當的打 ✕。'}
+};
+const GA='參加戶外教育，應該怎麼做較適當？';
+const GB='自我介紹時，應該怎麼做較適當？';
+const Q=[
+ {sec:'tf',n:1,q:'多姿多采的學校活動，提供我們豐富的學習機會。',ans:'O',scene:'🏫🎨⚽',
+  why:'學校有好多活動：運動會、社團、朝會、戶外教育……每一種活動都能學到不一樣的東西，所以這句話是對的！',
+  tip:'「多姿多采」就是種類很多、很精彩的意思。'},
+ {sec:'tf',n:2,q:'**只有**選擇可以複習課業的社團，才能學到新的知識。',ans:'X',scene:'🥁🎨🏓',
+  why:'社團不是只能複習功課喔！參加複習課業以外的社團，像打擊樂、美術、桌球，也有機會學到很多課外知識。',
+  tip:'看到「只有」要特別小心，常常是陷阱！'},
+ {sec:'tf',n:3,q:'戶外教育能夠讓我們的學習過程更加豐富精采。',ans:'O',scene:'🌳🔍🦋',
+  why:'走出教室，用眼睛看、用耳朵聽、親手摸一摸，可以學到課本裡學不到的東西，學習就更豐富精采了！',
+  tip:'戶外教育就像把教室搬到大自然或博物館裡。'},
+ {sec:'tf',n:4,q:'從三年級開始，學生們參加學校活動的機會，會變得比以前**少**。',ans:'X',scene:'📈🎉',
+  why:'剛好相反！升上三年級以後，可以參加社團等更多活動，機會是變「多」，不是變少。',
+  tip:'把「少」換成「多」，這句話就對了。'},
+ {sec:'tf',n:5,q:'因為老師會點名，所以自我介紹時，**不用**說姓名。',ans:'X',scene:'🙋📛',
+  why:'自我介紹最重要的第一步，就是說出自己的名字！這樣同學才能認識你、記住你。',
+  tip:'自我介紹一定要說：我的名字＋我的興趣或專長。'},
+ {sec:'tf',n:6,q:'學生們可以在學校朝會的宣導活動中，學習到保護自己的方法。',ans:'O',scene:'🚸🛡️',
+  why:'朝會時，學校常常會宣導交通安全、防災、保護自己的方法。專心聽，就能學會怎麼保護自己。',
+  tip:'朝會不只是升旗，也是學習的好時間。'},
+ {sec:'tf',n:7,q:'走訪臺南市台江國家公園，可以觀察豐富的自然生態，提升我們對環境的認識。',ans:'O',scene:'🦢🌿🦀',
+  why:'台江國家公園在臺南市，有紅樹林、招潮蟹，冬天還有黑面琵鷺飛來過冬。親眼觀察大自然，就會更認識、也更愛護環境。',
+  tip:'「生態」就是生物和牠們生活的環境。'},
+ {sec:'tf',n:8,q:'因為每位同學的專長和興趣不同，所以想參加的活動不一定會相同。',ans:'O',scene:'🎹⚽🎨',
+  why:'有人喜歡畫畫，有人喜歡運動，每個人的專長和興趣都不一樣，想參加的活動當然也不一定相同。',
+  tip:'每個人都不一樣，這樣才有趣！'},
+ {sec:'tf',n:9,q:'參加戶外教育活動時，如果對導覽沒有興趣，可以**大聲**和旁邊的同學聊天。',ans:'X',scene:'🤫👂',
+  why:'導覽員在說明的時候，要專心聽、保持安靜，這是禮貌。大聲聊天會吵到別人，自己也會錯過重要的知識。',
+  tip:'就算沒興趣，也要尊重正在說話的人。'},
+ {sec:'tf',n:10,q:'自我介紹時，**只要**保持微笑就好，站姿不需要端正。',ans:'X',scene:'😊🧍',
+  why:'微笑很好，但站姿也要端正！抬頭挺胸、站穩，看起來更有自信，大家也會更專心聽你說。',
+  tip:'看到「只要……就好」也要小心陷阱。'},
+
+ {sec:'mc',n:1,q:'下列哪一項**不是**升上三年級可能會遇到的事？',opts:['班上有新同學','換新的老師','要上的課變少','換新班級'],ans:3,scene:'🏫📚',
+  why:'升上三年級，可能會換新班級、遇到新同學和新老師。但是要上的課不會變少，反而多了社會、自然這些新科目喔！',
+  tip:'題目問「不是」，要找出「不會發生」的那一個。'},
+ {sec:'mc',n:2,q:'做下列哪一件事可以學習到**團隊合作**的精神？',opts:['寫作文','學生朝會','運動會','自我介紹'],ans:3,scene:'🏃🤝🏆',
+  why:'運動會有大隊接力、拔河，需要全班一起努力、互相加油，最能學到團隊合作。寫作文和自我介紹都是一個人完成的事。',
+  tip:'「團隊」＝很多人一起。找需要大家合作的活動。'},
+ {sec:'mc',n:3,q:'參加學校活動較**不可能**學習到下列哪一項？',opts:['新的知識','良好的生活規範','互相合作的態度','不正確的生活習慣'],ans:4,scene:'🌟📖',
+  why:'參加學校活動可以學到新知識、好的規矩，還有和別人合作。「不正確的生活習慣」是不好的，學校活動不會教我們這個。',
+  tip:'「不可能」＝找出不會發生的那一個。'},
+ {sec:'mc',n:4,q:'下列哪一項是自我介紹應該要介紹的內容？',opts:['鄰居的姓名','自己的興趣','有趣的笑話','當天的天氣'],ans:2,scene:'🙋💬',
+  why:'自我介紹是介紹「自己」，所以要說自己的名字、興趣、專長。鄰居的名字、笑話和天氣，都不是在介紹你自己。',
+  tip:'自我介紹的主角是「我」！'},
+ {sec:'mc',n:5,q:'做下列哪一件事，可以讓自己在自我介紹時表現更好？',opts:['事先練習','請老師幫忙介紹','穿上最漂亮的衣服','要好朋友幫忙歡呼'],ans:1,scene:'🪞🗣️',
+  why:'上臺前先對著鏡子或家人練習幾次，就比較不會緊張，也不會忘記要說什麼。請別人幫你介紹，就不是「自我」介紹了。',
+  tip:'熟能生巧：練習越多，表現越好！'},
+ {sec:'mc',n:6,q:'選擇課後社團應該考慮什麼條件？',opts:['自己的專長','同學喜不喜歡','媽媽有沒有興趣','能不能得到讚美'],ans:1,scene:'🎯🙂',
+  why:'社團是自己要參加的，所以要先想想自己擅長什麼、喜歡什麼。只看同學、媽媽或能不能被稱讚，自己可能會玩得不開心。',
+  tip:'選社團，先問問自己：我擅長什麼？'},
+ {sec:'mc',n:7,q:'參加戶外教育時的行為，下列哪項較**不適當**？',opts:['留意服裝穿著','事先準備要攜帶的物品','做好分配到的工作','玩到忘記集合的時間'],ans:4,scene:'⏰🚌',
+  why:'戶外教育要守時！玩到忘記集合時間，會讓全班一直等你，還可能走失，很危險。其他三個都是好行為。',
+  tip:'題目問「不適當」，要找出「做錯」的那一個。'},
+ {sec:'mc',n:8,q:'參加戶外教育時，攜帶下列哪一項物品較**不適當**？',opts:['遮陽帽','昂貴的玩具','水壺','雨具'],ans:2,scene:'🧢💧☂️',
+  why:'遮陽帽防晒、水壺補充水分、雨具防下雨，都是戶外教育用得到的。昂貴的玩具用不到，還可能弄丟或弄壞。',
+  tip:'想一想：這個東西出門學習時用得到嗎？'},
+
+ {sec:'vx',n:1,g:'甲',gq:GA,q:'出發前蒐集相關資料。',ans:'V',scene:'📖🔎',
+  why:'出發前先查資料，到了現場就知道要看什麼、聽什麼，可以學到更多！',tip:'先準備，學得更多。'},
+ {sec:'vx',n:2,g:'甲',gq:GA,q:'獨自離隊去採買名產。',ans:'X',scene:'🚫🛍️',
+  why:'一個人離開隊伍很危險，老師和同學也會找不到你。戶外教育一定要跟著隊伍一起行動喔！',tip:'跟緊隊伍，不脫隊。'},
+ {sec:'vx',n:3,g:'甲',gq:GA,q:'返校後與同學互相分享心得。',ans:'V',scene:'💬🧒👧',
+  why:'回到學校後，和同學分享看到什麼、學到什麼，大家可以互相學習，記得更清楚。',tip:'分享讓學習加倍！'},
+ {sec:'vx',n:4,g:'甲',gq:GA,q:'帶遊戲機向同學炫耀。',ans:'X',scene:'🎮🙅',
+  why:'戶外教育是去學習的，遊戲機用不到，還可能弄丟。拿東西向同學炫耀，也是不禮貌的行為。',tip:'帶「用得到」的東西就好。'},
+ {sec:'vx',n:5,g:'甲',gq:GA,q:'導覽時將重點記錄下來。',ans:'V',scene:'📝✨',
+  why:'把導覽員說的重點寫下來，回家後也不會忘記，寫學習單也更容易！',tip:'好記性不如寫下來。'},
+ {sec:'vx',n:1,g:'乙',gq:GB,q:'事先寫下要說的關鍵字。',ans:'V',scene:'🗒️🔑',
+  why:'先寫下關鍵字，像「名字、興趣、專長」，上臺時就不怕忘記要說什麼。',tip:'關鍵字＝最重要的幾個詞。'},
+ {sec:'vx',n:2,g:'乙',gq:GB,q:'介紹完，謝謝大家聆聽。',ans:'V',scene:'🙇💐',
+  why:'說完記得說「謝謝大家」，這是有禮貌的表現，大家也會給你掌聲！',tip:'有禮貌，大家都喜歡。'},
+ {sec:'vx',n:3,g:'乙',gq:GB,q:'只介紹家人，不介紹自己。',ans:'X',scene:'👨‍👩‍👧❓',
+  why:'自我介紹的主角是「自己」！可以提到家人，但一定要介紹自己的名字和興趣。',tip:'自我介紹＝介紹「我」。'},
+ {sec:'vx',n:4,g:'乙',gq:GB,q:'下臺時注意下臺動線。',ans:'V',scene:'🚶➡️',
+  why:'上臺、下臺都要注意走的路線，才不會撞到同學或跌倒，也讓下一位同學順利上臺。',tip:'「動線」就是走路的路線。'},
+ {sec:'vx',n:5,g:'乙',gq:GB,q:'講話很小聲，只要老師聽得見就可以。',ans:'X',scene:'📢👂',
+  why:'自我介紹是要讓全班同學都認識你，所以聲音要大聲、清楚，讓坐在最後面的同學也聽得到。',tip:'聲音大聲，大家才聽得見。'}
+];
+const NUMZH=['一','二','三','四'];
+const PRAISE=['答對了！你好棒！','喵～完全正確！','太厲害了！給你一顆星 ⭐','答對啦！繼續加油！','好聰明喔！'];
+const CHEER=['差一點點！我們一起看為什麼～','沒關係，看完解說就會了！','喵～再想一想，看看下面的說明！'];
+
+/* ---------- 原創角色：喵喵老師 & 小啾 ---------- */
+function catSVG(expr){
+  const ink='#3A2A2A';
+  const open=`<g fill="${ink}"><ellipse cx="72" cy="98" rx="10.5" ry="13.5"/><ellipse cx="128" cy="98" rx="10.5" ry="13.5"/></g><g fill="#fff"><circle cx="75.5" cy="92.5" r="4.2"/><circle cx="131.5" cy="92.5" r="4.2"/><circle cx="69" cy="104" r="2"/><circle cx="125" cy="104" r="2"/></g>`;
+  const up=`<g fill="${ink}"><ellipse cx="72" cy="98" rx="10.5" ry="13.5"/><ellipse cx="128" cy="98" rx="10.5" ry="13.5"/></g><g fill="#fff"><circle cx="76" cy="90" r="4.6"/><circle cx="132" cy="90" r="4.6"/></g>`;
+  const happy=`<g fill="none" stroke="${ink}" stroke-width="5.5" stroke-linecap="round"><path d="M60 101 Q72 85 84 101"/><path d="M116 101 Q128 85 140 101"/></g>`;
+  const eyes={normal:open,think:up,happy,oops:open}[expr]||open;
+  const mouth = expr==='happy'
+    ? `<path d="M88 121 Q100 140 112 121 Z" fill="#E8607A" stroke="${ink}" stroke-width="3" stroke-linejoin="round"/>`
+    : expr==='oops'
+    ? `<path d="M92 127 q8 -6 16 0" fill="none" stroke="${ink}" stroke-width="3.2" stroke-linecap="round"/>`
+    : `<path d="M88 120 q6 7 12 0 q6 7 12 0" fill="none" stroke="${ink}" stroke-width="3.2" stroke-linecap="round"/>`;
+  const extra = expr==='oops'
+    ? `<path d="M164 62 q10 14 0 21 q-10 -7 0 -21z" fill="#7CC8F0" stroke="${ink}" stroke-width="2"/><g stroke="${ink}" stroke-width="3.5" stroke-linecap="round"><path d="M60 84 l20 -7"/><path d="M140 84 l-20 -7"/></g>`
+    : expr==='think'
+    ? `<g font-family="Huninn,sans-serif" font-size="34" fill="#4D9DE0" font-weight="700"><text x="160" y="40">?</text></g>`
+    : expr==='happy'
+    ? `<g fill="#FFC83D" stroke="${ink}" stroke-width="2"><path d="M22 40 l4 9 9 1 -7 6 2 9 -8 -5 -8 5 2 -9 -7 -6 9 -1z"/><path d="M172 26 l3 7 7 1 -5 5 1 7 -6 -4 -6 4 1 -7 -5 -5 7 -1z"/></g>`
+    : '';
+  return `<svg viewBox="0 0 200 228" role="img" aria-label="喵喵老師">
+  <path d="M142 196 Q194 196 184 146 Q180 124 166 132" fill="none" stroke="${ink}" stroke-width="22" stroke-linecap="round"/>
+  <path d="M142 196 Q194 196 184 146 Q180 124 166 132" fill="none" stroke="#F4A340" stroke-width="15" stroke-linecap="round"/>
+  <ellipse cx="100" cy="184" rx="50" ry="37" fill="#F4A340" stroke="${ink}" stroke-width="3.5"/>
+  <ellipse cx="100" cy="192" rx="27" ry="21" fill="#FFF6E8"/>
+  <ellipse cx="74" cy="216" rx="17" ry="9.5" fill="#FFF6E8" stroke="${ink}" stroke-width="3"/>
+  <ellipse cx="126" cy="216" rx="17" ry="9.5" fill="#FFF6E8" stroke="${ink}" stroke-width="3"/>
+  <path d="M30 74 Q32 16 50 12 Q62 14 92 44 Z" fill="#F4A340" stroke="${ink}" stroke-width="3.5" stroke-linejoin="round"/>
+  <path d="M170 74 Q168 16 150 12 Q138 14 108 44 Z" fill="#F4A340" stroke="${ink}" stroke-width="3.5" stroke-linejoin="round"/>
+  <path d="M42 60 Q45 30 53 27 Q62 31 78 45 Z" fill="#FFB3C4"/>
+  <path d="M158 60 Q155 30 147 27 Q138 31 122 45 Z" fill="#FFB3C4"/>
+  <ellipse cx="100" cy="102" rx="75" ry="63" fill="#F4A340" stroke="${ink}" stroke-width="3.5"/>
+  <g stroke="#D9822B" stroke-width="5" stroke-linecap="round"><path d="M100 42 v15"/><path d="M85 45 l3 12"/><path d="M115 45 l-3 12"/></g>
+  <ellipse cx="100" cy="126" rx="32" ry="20" fill="#FFF6E8"/>
+  ${eyes}
+  <ellipse cx="50" cy="122" rx="12" ry="7" fill="#FF8FA8" opacity=".6"/>
+  <ellipse cx="150" cy="122" rx="12" ry="7" fill="#FF8FA8" opacity=".6"/>
+  <path d="M94 112 h12 l-6 7z" fill="#FF7A93" stroke="${ink}" stroke-width="2" stroke-linejoin="round"/>
+  ${mouth}
+  <g stroke="${ink}" stroke-width="2.5" stroke-linecap="round"><path d="M36 118 l-22 -4"/><path d="M36 127 l-22 4"/><path d="M164 118 l22 -4"/><path d="M164 127 l22 4"/></g>
+  <path d="M100 156 l-19 -10 v20z M100 156 l19 -10 v20z" fill="#4D9DE0" stroke="${ink}" stroke-width="2.5" stroke-linejoin="round"/>
+  <circle cx="100" cy="156" r="5.5" fill="#2F7FC4" stroke="${ink}" stroke-width="2.5"/>
+  ${extra}
+  </svg>`;
+}
+const CHICK=`<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M50 26 q-6 -16 9 -19 q-1 12 -9 19" fill="#5CC98A" stroke="#3A2A2A" stroke-width="2.5"/><ellipse cx="50" cy="60" rx="37" ry="34" fill="#FFD84D" stroke="#3A2A2A" stroke-width="3"/><path d="M16 62 q-10 8 3 16" fill="#FFC21A" stroke="#3A2A2A" stroke-width="2.5"/><circle cx="38" cy="54" r="5.5" fill="#3A2A2A"/><circle cx="62" cy="54" r="5.5" fill="#3A2A2A"/><circle cx="40" cy="52" r="2" fill="#fff"/><circle cx="64" cy="52" r="2" fill="#fff"/><path d="M43 64 l7 8 l7 -8z" fill="#FF9A3C" stroke="#3A2A2A" stroke-width="2" stroke-linejoin="round"/><ellipse cx="27" cy="66" rx="6" ry="4" fill="#FF9FB2" opacity=".7"/><ellipse cx="73" cy="66" rx="6" ry="4" fill="#FF9FB2" opacity=".7"/></svg>`;
+
+/* ---------- 狀態 ---------- */
+const $=s=>document.querySelector(s);
+let st={mode:'quiz',idx:0,ans:Array(Q.length).fill(null),peek:Array(Q.length).fill(false),screen:'home'};
+const fmt=s=>s.replace(/\*\*(.+?)\*\*/g,'<mark>$1</mark>');
+const plain=s=>s.replace(/\*\*/g,'');
+const CIRC=['①','②','③','④'];
+
+function optionsOf(q){
+  if(q.sec==='tf') return [{v:'O',mk:'○',lb:'對'},{v:'X',mk:'✕',lb:'錯'}];
+  if(q.sec==='vx') return [{v:'V',mk:'✔',lb:'適當'},{v:'X',mk:'✕',lb:'不適當'}];
+  return q.opts.map((t,i)=>({v:i+1,mk:CIRC[i],lb:t}));
+}
+function ansText(q){
+  if(q.sec==='tf') return q.ans==='O'?'○（對）':'✕（錯）';
+  if(q.sec==='vx') return q.ans==='V'?'✔（適當）':'✕（不適當）';
+  return CIRC[q.ans-1]+' '+q.opts[q.ans-1];
+}
+const isRev=i=>st.mode==='teach'||st.ans[i]!==null||st.peek[i];
+
+/* ---------- 首頁 ---------- */
+function buildHome(){
+  $('#homeCat').innerHTML=catSVG('happy');
+  const groups=[['tf','一、是非題','每題 4 分，共 40 分',10,0],['mc','二、選擇題','每題 5 分，共 40 分',8,10],['vx','三、打 ✔ 或 ✕','每答 2 分，共 20 分',10,18]];
+  $('#secList').innerHTML=groups.map(([k,t,d,c,start])=>
+    `<button class="btn sec-row" data-start="${start}"><span class="sw" style="background:${SECS[k].color}"></span><span class="t">${t}<br><small style="color:var(--muted)">${d}</small></span><span class="c">${c} 題 ▶</span></button>`).join('');
+  $('#secList').querySelectorAll('button').forEach(b=>b.onclick=()=>{start('teach',+b.dataset.start)});
+}
+
+/* ---------- 題目頁 ---------- */
+function render(){
+  const i=st.idx,q=Q[i],s=SECS[q.sec],chosen=st.ans[i],rev=isRev(i);
+  $('#modeChip').textContent=st.mode==='quiz'?'🎮 闖關模式':'📺 上課模式';
+  const b=$('#secBadge');b.textContent=s.name;b.style.background=s.color;
+  $('#qno').textContent=(q.g?q.g+'－':'')+'第 '+q.n+' 題';
+  $('#pts').textContent=(q.sec==='vx'?'每答 ':'每題 ')+s.pts+' 分';
+  const g=$('#group');
+  if(q.gq){g.hidden=false;g.innerHTML='<b>'+q.g+'、</b>'+q.gq}else g.hidden=true;
+  $('#qtext').innerHTML=fmt(q.q);
+
+  const opts=optionsOf(q);
+  const box=$('#opts');
+  box.className='opts '+(opts.length===2?'two':'four');
+  box.innerHTML=opts.map(o=>{
+    let c='opt';
+    if(rev&&o.v===q.ans) c+=' is-correct';
+    else if(chosen===o.v) c+=' is-wrong';
+    else if(rev) c+=' dim';
+    return `<button class="${c}" data-v="${o.v}" ${rev?'disabled':''}><span class="mk">${o.mk}</span><span class="lb">${o.lb}</span></button>`;
+  }).join('');
+  box.querySelectorAll('.opt').forEach(btn=>btn.onclick=()=>answer(btn.dataset.v));
+
+  $('#peekWrap').hidden=rev||st.mode==='teach';
+  const ex=$('#explain');
+  ex.hidden=!rev;
+  if(rev){
+    $('#scene').innerHTML='<span>'+q.scene+'</span>';
+    $('#ansLine').innerHTML='答案：<b>'+ansText(q)+'</b>';
+    $('#why').textContent=q.why;
+    $('#tip').innerHTML=CHICK+'<span><b>小啾的小撇步：</b>'+q.tip+'</span>';
+  }
+
+  let expr='think',msg=s.hint;
+  if(q.gq&&!rev) msg='想一想：「'+q.gq.replace('，應該怎麼做較適當？','')+'」時這樣做好不好？';
+  if(rev){
+    if(st.mode==='teach'){expr='normal';msg='答案是 '+ansText(q)+'！聽我說為什麼～'}
+    else if(chosen===null){expr='normal';msg='我們一起看答案～下次自己挑戰看看！'}
+    else if(chosen===q.ans){expr='happy';msg=PRAISE[i%PRAISE.length]}
+    else{expr='oops';msg=CHEER[i%CHEER.length]}
+  }
+  $('#mascot').innerHTML=catSVG(expr);
+  $('#bubble').textContent=msg;
+
+  const dots=$('#dots');
+  dots.innerHTML=Q.map((qq,k)=>{
+    let c='dot';
+    if(k===i)c+=' cur';
+    else if(st.ans[k]!==null)c+=st.ans[k]===qq.ans?' ok':' no';
+    else if(st.peek[k]||(st.mode==='teach'&&k<i))c+=' seen';
+    if(k===10||k===18)c+=' gap';
+    return `<button class="${c}" data-k="${k}" aria-label="第 ${k+1} 題">${k+1}</button>`;
+  }).join('');
+  dots.querySelectorAll('.dot').forEach(d=>d.onclick=()=>go(+d.dataset.k));
+
+  $('#prevBtn').disabled=i===0;$('#prevBtn').style.visibility=i===0?'hidden':'visible';
+  $('#nextBtn').textContent=i===Q.length-1?(st.mode==='quiz'?'看成績 🏆':'講解完畢 🎉'):'下一題 ▶';
+}
+
+function answer(raw){
+  const i=st.idx,q=Q[i];
+  if(isRev(i))return;
+  const v=q.sec==='mc'?+raw:raw;
+  st.ans[i]=v;
+  if(window.speechSynthesis)speechSynthesis.cancel();
+  render();
+  const m=$('#mascot');
+  m.classList.remove('jump','shake');void m.offsetWidth;
+  if(v===q.ans){m.classList.add('jump');burst(60)}else m.classList.add('shake');
+  if(innerWidth<820)$('#explain').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function go(k){
+  if(k<0)return;
+  if(window.speechSynthesis)speechSynthesis.cancel();
+  if(k>=Q.length){showEnd();return}
+  st.idx=k;render();window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ---------- 結算 ---------- */
+function showEnd(){
+  st.screen='end';show('end');
+  const right=Q.filter((q,k)=>st.ans[k]===q.ans);
+  if(st.mode==='teach'||st.ans.every(a=>a===null)){
+    $('#endCat').innerHTML=catSVG('happy');
+    $('#endTitle').textContent='28 題全部講解完畢！';
+    $('#endBody').innerHTML='<p class="lead">大家都聽懂了嗎？換你們用「闖關模式」自己挑戰看看！</p>';
+    $('#reviewBtn').hidden=true;
+    burst(160);return;
+  }
+  const score=right.reduce((a,q)=>a+SECS[q.sec].pts,0);
+  const stars=score>=90?3:score>=70?2:1;
+  const cnt=k=>Q.filter((q,j)=>q.sec===k&&st.ans[j]===q.ans).length;
+  const done=st.ans.filter(a=>a!==null).length;
+  $('#endCat').innerHTML=catSVG(stars>=2?'happy':'normal');
+  $('#endTitle').textContent=stars===3?'超級厲害！社會小博士！':stars===2?'很棒喔！再加油一點點！':'有進步的空間，一起再練習！';
+  $('#endBody').innerHTML=`<div class="score">${score}<small style="font-size:.35em"> 分</small></div>
+    <div class="stars">${[1,2,3].map(n=>`<span class="${n<=stars?'':'off'}">⭐</span>`).join('')}</div>
+    <div class="tally"><span class="chip">是非題 ${cnt('tf')}/10</span><span class="chip">選擇題 ${cnt('mc')}/8</span><span class="chip">打勾打叉 ${cnt('vx')}/10</span></div>
+    ${done<Q.length?`<p class="lead">還有 ${Q.length-done} 題沒有自己作答（偷看或跳過的不算分）。</p>`:''}`;
+  const firstWrong=Q.findIndex((q,k)=>st.ans[k]!==null&&st.ans[k]!==q.ans);
+  $('#reviewBtn').hidden=firstWrong<0;
+  $('#reviewBtn').onclick=()=>{st.screen='quiz';show('quiz');go(firstWrong)};
+  burst(stars*80);
+}
+
+/* ---------- 畫面切換 ---------- */
+function show(id){['home','quiz','end'].forEach(s=>$('#'+s).hidden=s!==id);window.scrollTo({top:0})}
+function start(mode,idx=0){
+  if(mode!==st.mode||mode==='quiz'&&idx===0){st.ans=Array(Q.length).fill(null);st.peek=Array(Q.length).fill(false)}
+  st.mode=mode;st.idx=idx;st.screen='quiz';show('quiz');render();
+}
+
+/* ---------- 注音 / 朗讀 / 全螢幕 ---------- */
+function setBpmf(on){
+  document.body.classList.toggle('bpmf',on);
+  $('#bpmfBtn').setAttribute('aria-pressed',on?'true':'false');
+  try{localStorage.setItem('miao-bpmf',on?'1':'0')}catch(e){}
+}
+function speak(){
+  if(!('speechSynthesis' in window))return;
+  const q=Q[st.idx];
+  let t=(q.gq?q.gq+'。':'')+plain(q.q);
+  if(q.opts)t+='。'+q.opts.map((o,k)=>'第'+NUMZH[k]+'個，'+o).join('。');
+  if(isRev(st.idx)){
+    const a=q.sec==='mc'?'第'+NUMZH[q.ans-1]+'個，'+q.opts[q.ans-1]:(q.ans==='O'?'對':q.ans==='V'?'適當，打勾':q.sec==='vx'?'不適當，打叉':'錯');
+    t+='。答案是：'+a+'。為什麼呢？'+q.why+'。小撇步：'+q.tip;
+  }
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(t);u.lang='zh-TW';u.rate=.9;u.pitch=1.15;
+  const v=speechSynthesis.getVoices().find(v=>/zh[-_]TW/i.test(v.lang))||speechSynthesis.getVoices().find(v=>/^zh/i.test(v.lang));
+  if(v)u.voice=v;
+  speechSynthesis.speak(u);
+}
+
+/* ---------- 彩帶 ---------- */
+const cv=$('#fx'),cx=cv.getContext('2d');let parts=[],raf=0;
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function burst(n){
+  if(reduce)return;
+  cv.width=innerWidth*devicePixelRatio;cv.height=innerHeight*devicePixelRatio;
+  const cols=['#FFC83D','#FF7AA2','#4D9DE0','#22B98F','#F4A340'];
+  for(let k=0;k<n;k++)parts.push({x:innerWidth*(.2+Math.random()*.6),y:innerHeight*.35,vx:(Math.random()-.5)*12,vy:-Math.random()*12-4,r:Math.random()*6+4,c:cols[k%5],a:Math.random()*6,life:90+Math.random()*40,s:Math.random()<.5});
+  if(!raf)raf=requestAnimationFrame(tick);
+}
+function tick(){
+  const d=devicePixelRatio;cx.setTransform(d,0,0,d,0,0);cx.clearRect(0,0,innerWidth,innerHeight);
+  parts=parts.filter(p=>p.life-->0);
+  for(const p of parts){p.vy+=.35;p.vx*=.99;p.x+=p.vx;p.y+=p.vy;p.a+=.2;
+    cx.save();cx.translate(p.x,p.y);cx.rotate(p.a);cx.fillStyle=p.c;cx.globalAlpha=Math.min(1,p.life/30);
+    if(p.s){cx.fillRect(-p.r/2,-p.r/4,p.r,p.r/2)}else{cx.beginPath();cx.arc(0,0,p.r/2,0,7);cx.fill()}cx.restore()}
+  raf=parts.length?requestAnimationFrame(tick):0;
+  if(!raf)cx.clearRect(0,0,innerWidth,innerHeight);
+}
+
+/* ---------- 綁定 ---------- */
+function boot(data){
+  if(data&&data.st)st=data.st;
+  buildHome();
+  let bp=true;try{const s=localStorage.getItem('miao-bpmf');if(s!==null)bp=s==='1'}catch(e){}
+  setBpmf(bp);
+  if(!('speechSynthesis' in window))$('#speakBtn').hidden=true;
+  if(!document.documentElement.requestFullscreen)$('#fsBtn').hidden=true;
+  $('#goQuiz').onclick=()=>start('quiz',0);
+  $('#goTeach').onclick=()=>start('teach',0);
+  $('#toHome').onclick=$('#endHome').onclick=()=>{st.screen='home';show('home');if(window.speechSynthesis)speechSynthesis.cancel()};
+  $('#againBtn').onclick=()=>{st.ans=Array(Q.length).fill(null);st.peek=Array(Q.length).fill(false);start(st.mode,0)};
+  $('#prevBtn').onclick=()=>go(st.idx-1);
+  $('#nextBtn').onclick=()=>go(st.idx+1);
+  $('#peekBtn').onclick=()=>{st.peek[st.idx]=true;render()};
+  $('#bpmfBtn').onclick=()=>setBpmf(!document.body.classList.contains('bpmf'));
+  $('#speakBtn').onclick=speak;
+  $('#fsBtn').onclick=()=>{if(document.fullscreenElement)document.exitFullscreen?.().catch(()=>{});else document.documentElement.requestFullscreen?.().catch(()=>{})};
+  document.addEventListener('keydown',e=>{
+    if(st.screen!=='quiz'||e.metaKey||e.ctrlKey||e.altKey)return;
+    const k=e.key.toUpperCase(),q=Q[st.idx];
+    if(e.key==='ArrowRight'){go(st.idx+1);e.preventDefault()}
+    else if(e.key==='ArrowLeft'){go(st.idx-1);e.preventDefault()}
+    else if(q.sec==='mc'&&/^[1-4]$/.test(k))answer(k);
+    else if(q.sec==='tf'&&(k==='O'||k==='X'))answer(k);
+    else if(q.sec==='vx'&&(k==='V'||k==='X'))answer(k);
+  });
+  window.claude?.hot?.snapshot?.(()=>({st}));
+  show(st.screen);if(st.screen==='quiz')render();if(st.screen==='end')showEnd();
+}
+window.claude?.hot?.ready ? window.claude.hot.ready(boot) : boot(window.claude?.hot?.data ?? {});
+</script>
+
+</body></html>

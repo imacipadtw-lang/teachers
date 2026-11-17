@@ -1,0 +1,254 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<script>(function(){try{if(localStorage.getItem("wb_ok")!=="1")location.replace("index.html");}catch(e){}})();</script>
+
+<title>Word Sound Park</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;800&family=Noto+Sans+TC:wght@500;700;900&display=swap">
+<style>
+/* Layout: a candy-colored playground. Big 3D "jelly" buttons in a wrapping grid, a sticky toolbar on top, a quiz panel that slides over. */
+:root{
+  --bg:#fff7e6; --bg2:#ffe9c2; --fg:#3b2a5a; --muted:#7b6a9a;
+  --card:#ffffff; --line:#f1dfb8;
+  --accent:#ff6b9d; --accent2:#ffd166; --good:#06d6a0; --bad:#ff6b6b; --ink:#2b1d47;
+  --shadow:rgba(59,42,90,.18);
+  --font-display:"Fredoka","Noto Sans TC","Nunito",system-ui,sans-serif;
+  --font-zh:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  --font-body:"Nunito","Noto Sans TC",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#1f1838; --bg2:#2a2050; --fg:#fff3d6; --muted:#c3b3e8; --card:#2d2454; --line:#4a3d7a;
+  --accent:#ff7bab; --accent2:#ffd97a; --good:#2ee6b3; --bad:#ff7a7a; --ink:#140d2b; --shadow:rgba(0,0,0,.45); color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#1f1838; --bg2:#2a2050; --fg:#fff3d6; --muted:#c3b3e8; --card:#2d2454; --line:#4a3d7a;
+  --accent:#ff7bab; --accent2:#ffd97a; --good:#2ee6b3; --bad:#ff7a7a; --ink:#140d2b; --shadow:rgba(0,0,0,.45); color-scheme:dark }
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);background-image:radial-gradient(circle at 10% 10%,var(--bg2) 0,transparent 35%),radial-gradient(circle at 90% 80%,var(--bg2) 0,transparent 35%);color:var(--fg);font-family:var(--font-body);font-size:16px;min-height:100%;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 40px;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+button{font-family:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+button:focus-visible{outline:4px solid var(--accent2);outline-offset:3px}
+
+/* Header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:12px 10px;display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px}
+h1{font-family:var(--font-display);font-size:clamp(26px,5vw,38px);margin:0;letter-spacing:.5px;line-height:1;text-wrap:balance}
+h1 span{display:block;font-family:var(--font-zh);font-size:.5em;font-weight:700;color:var(--muted);margin-top:4px;letter-spacing:2px}
+.tools{display:flex;flex-wrap:wrap;gap:8px;margin-left:auto;align-items:center}
+.chip{border:0;border-radius:999px;padding:9px 14px;font-weight:800;font-size:14px;background:var(--card);box-shadow:0 3px 0 var(--line);font-family:var(--font-zh)}
+.chip:active{transform:translateY(2px);box-shadow:0 1px 0 var(--line)}
+.chip.on{background:var(--accent2);color:var(--ink);box-shadow:0 3px 0 #d9a93a}
+.stars{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-display);font-size:20px;font-variant-numeric:tabular-nums;background:var(--card);border-radius:999px;padding:6px 14px;box-shadow:0 3px 0 var(--line)}
+
+.status{font-family:var(--font-zh);font-size:13px;color:var(--muted);margin:4px 0 10px;min-height:18px}
+.status b{color:var(--fg)}
+.warn{background:#ffe3e3;color:#8a1c1c;border-radius:14px;padding:12px 14px;font-family:var(--font-zh);margin:8px 0 14px;font-weight:700}
+
+/* Word grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:16px;perspective:900px}
+@media (min-width:700px){.grid{gap:20px}}
+.w{position:relative;border:0;border-radius:26px;padding:16px 10px 18px;min-height:168px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.18);
+  background:linear-gradient(160deg,var(--c1) 0%,var(--c2) 100%);
+  box-shadow:0 8px 0 var(--c3),0 14px 22px var(--shadow),inset 0 2px 0 rgba(255,255,255,.55),inset 0 -6px 0 rgba(0,0,0,.08);
+  transform:translateY(0) rotateX(0);transition:transform .12s ease,box-shadow .12s ease}
+.w::after{content:"";position:absolute;left:14%;right:14%;top:8px;height:34%;border-radius:999px;background:linear-gradient(180deg,rgba(255,255,255,.45),rgba(255,255,255,0));pointer-events:none}
+.w:hover{transform:translateY(-3px) rotateX(4deg)}
+.w:active,.w.pressed{transform:translateY(7px);box-shadow:0 1px 0 var(--c3),0 4px 10px var(--shadow),inset 0 2px 0 rgba(255,255,255,.4)}
+.w.playing{animation:jelly .6s ease}
+.w.playing .emo{animation:bounce .6s ease}
+@keyframes jelly{0%{transform:scale(1,1)}25%{transform:scale(1.08,.92)}50%{transform:scale(.95,1.06)}75%{transform:scale(1.03,.98)}100%{transform:scale(1,1)}}
+@keyframes bounce{0%,100%{transform:translateY(0) rotate(0)}30%{transform:translateY(-14px) rotate(-10deg) scale(1.2)}60%{transform:translateY(0) rotate(8deg)}}
+.emo{font-size:46px;line-height:1;filter:drop-shadow(0 4px 2px rgba(0,0,0,.2))}
+.en{font-family:var(--font-display);font-weight:700;font-size:clamp(20px,2.6vw,26px);line-height:1.05;text-align:center;letter-spacing:.3px}
+.zh{font-family:var(--font-zh);font-weight:900;font-size:17px;opacity:.95}
+.spk{position:absolute;right:10px;top:10px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.3);display:grid;place-items:center;font-size:15px;text-shadow:none}
+.w.playing .spk{animation:ring .5s linear infinite}
+@keyframes ring{0%{box-shadow:0 0 0 0 rgba(255,255,255,.8)}100%{box-shadow:0 0 0 12px rgba(255,255,255,0)}}
+@media (prefers-reduced-motion:reduce){.w,.w .emo,.spk,.pop{animation:none!important;transition:none!important}}
+
+/* Quiz */
+.quiz{display:none;margin-top:14px;background:var(--card);border-radius:28px;padding:18px;box-shadow:0 8px 0 var(--line),0 14px 30px var(--shadow)}
+.quiz.show{display:block}
+.qhead{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-bottom:14px}
+.qhead h2{font-family:var(--font-zh);margin:0;font-size:20px}
+.qbig{border:0;border-radius:999px;background:linear-gradient(160deg,#7c5cff,#5a3fe0);color:#fff;font-family:var(--font-zh);font-weight:900;font-size:18px;padding:14px 22px;box-shadow:0 6px 0 #3b2a9e}
+.qbig:active{transform:translateY(5px);box-shadow:0 1px 0 #3b2a9e}
+.qscore{margin-left:auto;font-family:var(--font-display);font-size:18px;font-variant-numeric:tabular-nums;color:var(--muted)}
+.opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
+.opts .w{min-height:140px}
+.w.right{background:linear-gradient(160deg,#2ee6b3,#06b88a);box-shadow:0 8px 0 #058a67,0 14px 22px var(--shadow)}
+.w.wrong{background:linear-gradient(160deg,#ff8a8a,#e04b4b);box-shadow:0 8px 0 #9e2f2f,0 14px 22px var(--shadow);animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.qmsg{font-family:var(--font-zh);font-weight:900;font-size:20px;text-align:center;margin-top:14px;min-height:28px}
+
+/* settings */
+details{margin-top:18px;font-family:var(--font-zh);color:var(--muted);font-size:13px}
+summary{cursor:pointer;font-weight:700}
+select{font:inherit;padding:8px 10px;border-radius:10px;border:2px solid var(--line);background:var(--card);color:var(--fg);max-width:100%}
+details p{margin:8px 0}
+
+/* confetti */
+.pop{position:fixed;width:10px;height:10px;border-radius:3px;pointer-events:none;z-index:20;animation:fly .9s ease-out forwards}
+@keyframes fly{to{transform:translate(var(--dx),var(--dy)) rotate(540deg);opacity:0}}
+</style>
+
+<header class="top">
+  <h1>Word Sound Park <span>單字發音樂園</span></h1>
+  <div class="tools">
+    <span class="stars" id="stars" title="已聽次數">⭐ <span id="starN">0</span></span>
+    <button class="chip" id="slowBtn" aria-pressed="false">🐢 慢速</button>
+    <button class="chip" id="allBtn">▶️ 全部播放</button>
+    <button class="chip" id="quizBtn">🎧 聽音找字</button>
+  </div>
+</header>
+<div class="status" id="status">正在準備聲音…</div>
+<div id="warn" class="warn" hidden></div>
+
+<div class="grid" id="grid"></div>
+
+<section class="quiz" id="quiz" aria-live="polite">
+  <div class="qhead">
+    <h2>🎧 聽聽看，是哪一個單字？</h2>
+    <button class="qbig" id="qPlay">🔊 再聽一次</button>
+    <span class="qscore">答對 <span id="qRight">0</span> / <span id="qTotal">0</span></span>
+  </div>
+  <div class="opts" id="opts"></div>
+  <div class="qmsg" id="qmsg"></div>
+</section>
+
+<details>
+  <summary>⚙️ 老師設定：選擇聲音</summary>
+  <p>目前聲音：<b id="voiceName">—</b></p>
+  <p><label for="voiceSel">更換聲音：</label> <select id="voiceSel"><option>載入中…</option></select></p>
+  <p>聲音來自這台裝置內建的英文語音。iPad／iPhone／Mac 的「Samantha」「Ava」最自然；Windows 的 Chrome／Edge 請選名稱含「Natural」或「Google」的聲音。</p>
+</details>
+
+<script>
+const WORDS=[
+ ["reuse","再利用","♻️"],["rest","休息","😴"],["repeat","重複","🔁"],["run","跑","🏃"],
+ ["put","放","📦"],["prepare","準備","🎒"],["pick","挑選","🍎"],["pay","付","💰"],
+ ["write","寫","✏️"],["clean","清潔","🧽"],["find","找到","🔍"],["hurt","傷害","🤕"],
+ ["help","幫助","🤝"],["miss","想念","💌"],["need","需要","🙏"],["want to","想要","🌟"],
+ ["try","嘗試","💪"],["have to","必須","📣"],["wash hands","洗手","🧼"],["wear a mask","戴口罩","😷"]
+];
+const PAL=[["#ff8fb1","#ff5c8a","#c2366a"],["#ffb86b","#ff8c42","#c45a1e"],["#ffe36b","#ffc93c","#c9971a"],["#7ee081","#3cc47c","#1f8a52"],
+ ["#6fd6ff","#2fb2ea","#1a7eb0"],["#a594ff","#7c5cff","#4d35c4"],["#ff9ad5","#f05fb5","#b23b84"],["#8ef0d7","#2ec4a6","#1a8a74"]];
+
+const grid=document.getElementById('grid'),statusEl=document.getElementById('status'),warn=document.getElementById('warn');
+let slow=false,stars=0,voice=null,ready=false;
+
+/* ---------- speech ---------- */
+const synth=window.speechSynthesis;
+function scoreVoice(v){
+  const n=v.name.toLowerCase();let s=0;
+  if(/natural|neural|premium|enhanced|hd\b/.test(n))s+=60;
+  if(/google/.test(n))s+=35;
+  if(/samantha|ava|allison|zoe|nicky|aria|jenny|emma|michelle|guy|evan|joelle/.test(n))s+=30;
+  if(/^en[-_]us/i.test(v.lang))s+=12; else if(/^en/i.test(v.lang))s+=6;
+  if(/compact|espeak|eloquence|fred|whisper|bells|bad news|zarvox|trinoids|cellos|albert|bubbles|boing|deranged|good news|hysterical|junior|kathy|organ|pipe|ralph|superstar|wobble|grandma|grandpa|rocko|shelley|sandy|flo|eddy|reed/.test(n))s-=200;
+  return s;
+}
+function loadVoices(){
+  const all=synth?synth.getVoices():[];
+  const en=all.filter(v=>/^en/i.test(v.lang)).sort((a,b)=>scoreVoice(b)-scoreVoice(a));
+  if(!en.length)return false;
+  let saved=null;try{saved=localStorage.getItem('wsp-voice')}catch(e){}
+  voice=en.find(v=>v.name===saved)||en[0];
+  const sel=document.getElementById('voiceSel');sel.innerHTML='';
+  en.forEach(v=>{const o=document.createElement('option');o.value=v.name;o.textContent=v.name+' ('+v.lang+')';if(v===voice)o.selected=true;sel.appendChild(o)});
+  sel.onchange=()=>{voice=en.find(v=>v.name===sel.value)||voice;try{localStorage.setItem('wsp-voice',voice.name)}catch(e){};showVoice();say('Hello!')};
+  ready=true;showVoice();return true;
+}
+function showVoice(){document.getElementById('voiceName').textContent=voice?voice.name:'—';statusEl.innerHTML='按下按鈕就會唸出來 👇　聲音：<b>'+(voice?voice.name:'')+'</b>'}
+if(!synth||!window.SpeechSynthesisUtterance){
+  warn.hidden=false;warn.textContent='這個瀏覽器沒有語音功能。請改用 Safari、Chrome 或 Edge 開啟這個頁面。';statusEl.textContent='';
+}else{
+  if(!loadVoices()){
+    synth.onvoiceschanged=()=>loadVoices();
+    let tries=0;const t=setInterval(()=>{if(loadVoices()||++tries>20){clearInterval(t);if(!ready){statusEl.textContent='';warn.hidden=false;warn.textContent='找不到英文語音。請到裝置的「設定 → 輔助使用 → 語音內容」下載英文聲音後重新整理。'}}},300);
+  }
+}
+let onEnd=null;
+function say(text,rate){
+  if(!synth)return;
+  try{synth.cancel()}catch(e){}
+  const u=new SpeechSynthesisUtterance(text);
+  if(voice)u.voice=voice;
+  u.lang=voice?voice.lang:'en-US';
+  u.rate=rate!=null?rate:(slow?0.6:0.85);
+  u.pitch=1;u.volume=1;
+  u.onend=()=>{const f=onEnd;onEnd=null;if(f)f()};
+  u.onerror=()=>{const f=onEnd;onEnd=null;if(f)f()};
+  synth.speak(u);
+  if(synth.paused)synth.resume();
+  /* Chrome can stall long utterances; keep it awake */
+  const keep=setInterval(()=>{if(!synth.speaking){clearInterval(keep)}else{synth.pause();synth.resume()}},8000);
+}
+
+/* ---------- cards ---------- */
+function makeCard(i,opts){
+  const [en,zh,emo]=WORDS[i];const p=PAL[i%PAL.length];
+  const b=document.createElement('button');b.className='w';b.type='button';b.dataset.i=i;
+  b.style.setProperty('--c1',p[0]);b.style.setProperty('--c2',p[1]);b.style.setProperty('--c3',p[2]);
+  b.innerHTML='<span class="spk">🔊</span><span class="emo">'+emo+'</span><span class="en">'+en+'</span>'+(opts&&opts.hideZh?'':'<span class="zh">'+zh+'</span>');
+  b.setAttribute('aria-label',en+' '+zh);
+  return b;
+}
+function confetti(x,y){
+  const cols=['#ff6b9d','#ffd166','#06d6a0','#7c5cff','#2fb2ea','#ff8c42'];
+  for(let k=0;k<14;k++){const d=document.createElement('i');d.className='pop';d.style.left=x+'px';d.style.top=y+'px';d.style.background=cols[k%cols.length];
+    const a=Math.random()*Math.PI*2,r=60+Math.random()*90;d.style.setProperty('--dx',Math.cos(a)*r+'px');d.style.setProperty('--dy',(Math.sin(a)*r-40)+'px');
+    document.body.appendChild(d);setTimeout(()=>d.remove(),950)}
+}
+function playCard(b){
+  const i=+b.dataset.i;
+  document.querySelectorAll('.w.playing').forEach(x=>x.classList.remove('playing'));
+  b.classList.remove('playing');void b.offsetWidth;b.classList.add('playing');
+  say(WORDS[i][0]);
+  stars++;document.getElementById('starN').textContent=stars;
+  const r=b.getBoundingClientRect();confetti(r.left+r.width/2,r.top+r.height/2);
+  setTimeout(()=>b.classList.remove('playing'),900);
+}
+WORDS.forEach((_,i)=>grid.appendChild(makeCard(i)));
+grid.addEventListener('click',e=>{const b=e.target.closest('.w');if(b)playCard(b)});
+
+/* slow */
+const slowBtn=document.getElementById('slowBtn');
+slowBtn.onclick=()=>{slow=!slow;slowBtn.classList.toggle('on',slow);slowBtn.setAttribute('aria-pressed',slow);slowBtn.textContent=slow?'🐢 慢速中':'🐢 慢速'};
+
+/* play all */
+let playingAll=false;const allBtn=document.getElementById('allBtn');
+allBtn.onclick=()=>{
+  if(playingAll){playingAll=false;onEnd=null;synth.cancel();allBtn.textContent='▶️ 全部播放';return}
+  playingAll=true;allBtn.textContent='⏹ 停止';let i=0;
+  const cards=grid.querySelectorAll('.w');
+  const next=()=>{if(!playingAll||i>=cards.length){playingAll=false;allBtn.textContent='▶️ 全部播放';return}
+    const b=cards[i++];b.scrollIntoView({block:'center',behavior:'smooth'});b.classList.add('playing');say(WORDS[b.dataset.i][0]);
+    onEnd=()=>{b.classList.remove('playing');setTimeout(next,600)}};
+  next();
+};
+
+/* ---------- quiz ---------- */
+const quiz=document.getElementById('quiz'),opts=document.getElementById('opts'),qmsg=document.getElementById('qmsg');
+let qAnswer=-1,qRight=0,qTotal=0,qLocked=false;
+document.getElementById('quizBtn').onclick=()=>{quiz.classList.toggle('show');if(quiz.classList.contains('show')){quiz.scrollIntoView({behavior:'smooth'});newQ()}else synth.cancel()};
+document.getElementById('qPlay').onclick=()=>{if(qAnswer>=0)say(WORDS[qAnswer][0])};
+function newQ(){
+  qLocked=false;qmsg.textContent='';opts.innerHTML='';
+  const pool=[...WORDS.keys()];qAnswer=pool.splice(Math.floor(Math.random()*pool.length),1)[0];
+  const picks=[qAnswer];while(picks.length<4){picks.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0])}
+  picks.sort(()=>Math.random()-.5).forEach(i=>opts.appendChild(makeCard(i,{hideZh:true})));
+  setTimeout(()=>say(WORDS[qAnswer][0]),350);
+}
+opts.addEventListener('click',e=>{
+  const b=e.target.closest('.w');if(!b||qLocked)return;qLocked=true;qTotal++;
+  const i=+b.dataset.i;
+  if(i===qAnswer){qRight++;b.classList.add('right');qmsg.textContent='🎉 答對了！'+WORDS[i][0]+' = '+WORDS[i][1];const r=b.getBoundingClientRect();confetti(r.left+r.width/2,r.top+r.height/2);stars+=3;document.getElementById('starN').textContent=stars;
+    say(WORDS[i][0]);setTimeout(newQ,1600)}
+  else{b.classList.add('wrong');qmsg.textContent='再試一次！聽聽看 🔊';opts.querySelectorAll('.w').forEach(x=>{if(+x.dataset.i===qAnswer)x.classList.add('right')});
+    say(WORDS[qAnswer][0]);setTimeout(newQ,2200)}
+  document.getElementById('qRight').textContent=qRight;document.getElementById('qTotal').textContent=qTotal;
+});
+</script>
+
+</body></html>
