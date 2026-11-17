@@ -1,0 +1,1434 @@
+<title>Lunch Box Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Noto+Sans+TC:wght@500;700;900&display=swap">
+<style>
+/* Layout: a lunch box seen from above. Thick tray dividers, one oversized "main dish" compartment, side dishes around it. */
+:root{
+  --rice:#F1F4EE; --tray:#FFFFFF; --tray2:#E7ECE4; --nori:#1D2A22; --muted:#56665C; --line:#C9D2C5;
+  --lacquer:#B23A28; --lacquer-ink:#FFFFFF; --egg:#EFB024; --leaf:#2E7D50; --sky:#2563A8;
+  --good:#2A7149; --good-bg:#DDF0E3; --warn:#8A5A00; --warn-bg:#FBEBC6; --bad:#B42318; --bad-bg:#FBE0DC;
+  --display:'Baloo 2','Noto Sans TC',system-ui,sans-serif;
+  --body:'Noto Sans TC',system-ui,-apple-system,'PingFang TC','Microsoft JhengHei',sans-serif;
+  --r:14px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --rice:#121814; --tray:#1C241F; --tray2:#26302A; --nori:#ECF1EA; --muted:#A3B2A8; --line:#38443C;
+  --lacquer:#E0644F; --lacquer-ink:#1A0C08; --egg:#F4C24E; --leaf:#5FBF85; --sky:#7CB1EE;
+  --good:#6FD09A; --good-bg:#183A26; --warn:#F2C25A; --warn-bg:#3B2E10; --bad:#FF8A7A; --bad-bg:#43201B;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --rice:#121814; --tray:#1C241F; --tray2:#26302A; --nori:#ECF1EA; --muted:#A3B2A8; --line:#38443C;
+  --lacquer:#E0644F; --lacquer-ink:#1A0C08; --egg:#F4C24E; --leaf:#5FBF85; --sky:#7CB1EE;
+  --good:#6FD09A; --good-bg:#183A26; --warn:#F2C25A; --warn-bg:#3B2E10; --bad:#FF8A7A; --bad-bg:#43201B;
+  color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-padding-top:80px}
+body{background:var(--rice);color:var(--nori);font-family:var(--body);font-size:16px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top,0px);z-index:10;background:var(--lacquer)}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.15}
+p{margin:0}
+button,input,select{font:inherit;color:inherit}
+select{background:var(--tray);color:var(--nori);border:2px solid var(--line);border-radius:8px;padding:3px 8px}
+:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+a{color:var(--sky)}
+
+/* top bar */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;margin:0 calc(-1 * max(16px,env(safe-area-inset-left,0px))) 0 calc(-1 * max(16px,env(safe-area-inset-right,0px)));
+  background:var(--lacquer);color:var(--lacquer-ink);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-top:8px;padding-bottom:8px}
+.bar-in{max-width:1240px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.brand{font-family:var(--display);font-weight:800;font-size:20px;text-decoration:none;color:inherit;white-space:nowrap}
+.nav{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;flex:1;min-width:0}
+.nav::-webkit-scrollbar{display:none}
+.nav a{color:inherit;text-decoration:none;padding:6px 8px;border-radius:999px;white-space:nowrap;font-weight:700;font-size:14px;opacity:.85}
+.nav a.on{background:var(--lacquer-ink);color:var(--lacquer);opacity:1}
+@media (max-width:720px){.bar-in{flex-wrap:wrap;row-gap:4px}.nav{order:3;flex-basis:100%}.mini{margin-left:auto}}
+@media (max-width:480px){.mini .mn{display:none}.brand{font-size:18px}}
+.mini{font-variant-numeric:tabular-nums;font-weight:700;font-size:14px;background:var(--lacquer-ink);color:var(--lacquer);padding:4px 10px;border-radius:999px;white-space:nowrap;text-decoration:none}
+
+main{max-width:1100px;margin:0 auto;padding-top:24px;padding-bottom:64px}
+.view{display:flex;flex-direction:column;gap:20px;overflow-x:clip;margin-left:-16px;margin-right:-16px;padding-left:16px;padding-right:16px}
+@supports not (overflow:clip){body{overflow-x:hidden}}
+.vhead{display:flex;flex-direction:column;gap:6px}
+.vhead h1{font-size:clamp(30px,5vw,44px);font-weight:800}
+.vhead p{color:var(--muted);max-width:62ch}
+.muted{color:var(--muted)}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.center{justify-content:center;text-align:center}
+
+/* buttons */
+.btn{border:2px solid var(--line);background:var(--tray);border-radius:12px;padding:10px 16px;font-weight:700;cursor:pointer;min-height:48px}
+@media (hover:hover){.btn:hover{border-color:var(--nori)}}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.primary{background:var(--lacquer);border-color:var(--lacquer);color:var(--lacquer-ink)}
+.btn.big{font-size:22px;padding:12px 32px;font-family:var(--display)}
+.btn.ghost{background:transparent}
+.btn.good{background:var(--good-bg);border-color:var(--good);color:var(--good)}
+.btn.warn{background:var(--warn-bg);border-color:var(--warn);color:var(--warn)}
+.btn.bad{background:var(--bad-bg);border-color:var(--bad);color:var(--bad)}
+.btn.sel{outline:3px solid var(--nori);outline-offset:2px}
+
+.panel{background:var(--tray);border:3px solid var(--line);border-radius:var(--r);padding:20px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.note{background:var(--warn-bg);color:var(--warn);border:2px solid var(--warn);border-radius:12px;padding:10px 14px;font-weight:700}
+.note a{color:inherit}
+
+/* home bento */
+.hero{display:flex;flex-direction:column;gap:6px;padding-top:8px;padding-bottom:4px}
+.eyebrow{font-weight:700;letter-spacing:.06em;color:var(--lacquer);font-size:14px}
+.hero h1{font-size:clamp(44px,9vw,84px);font-weight:800;letter-spacing:-.01em}
+.hero .lede{color:var(--muted);font-size:18px}
+.bento{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;background:var(--nori);padding:10px;border-radius:22px}
+.cell{background:var(--tray);border-radius:12px;padding:16px;text-decoration:none;color:var(--nori);display:flex;flex-direction:column;gap:6px;min-width:0;min-height:150px;position:relative;transition:transform .15s}
+@media (hover:hover){.cell:hover{transform:translateY(-2px)}}
+.cell .pic{font-size:38px;line-height:1}
+.cell h2{font-size:26px;font-weight:800}
+.cell p{color:var(--muted);font-size:14px}
+.cell .who{position:absolute;top:12px;right:12px;font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--tray2);color:var(--muted)}
+.cell.main{grid-column:span 2;grid-row:span 2;background:var(--egg);color:#24190A}
+.cell.main p{color:#3E2F12}
+.cell.main .who{background:#24190A;color:var(--egg)}
+.cell.main .pic{font-size:88px;margin-top:auto}
+.cell.main h2{font-size:44px}
+.cell.wide{grid-column:span 2}
+.cell.rice{background:var(--tray2)}
+@media (max-width:720px){.bento{grid-template-columns:repeat(2,1fr)}.cell.main{grid-row:span 1}.cell.main .pic{font-size:60px}}
+
+/* spin */
+.stage{background:var(--tray);border:6px solid var(--nori);border-radius:28px;padding:clamp(12px,2.5vh,28px) 16px;text-align:center;display:flex;flex-direction:column;gap:4px;align-items:center}
+.stage-pic{font-size:clamp(72px,min(18vw,14vh),170px);line-height:1.1}
+.stage-pic .ico{width:clamp(110px,min(22vw,24vh),230px);margin:0 auto}
+/* icons: real photos (default), clay characters (inline SVG) or emoji */
+.ico img{width:100%;height:100%;object-fit:contain;display:block;filter:drop-shadow(0 5px 5px rgba(0,0,0,.24));user-select:none;-webkit-user-drag:none;pointer-events:none}
+.tileimg{display:block;object-fit:contain;filter:drop-shadow(0 4px 4px rgba(0,0,0,.22))}
+.cell .pic img{width:58px;height:58px;animation:bob 3.4s ease-in-out infinite}
+.cell.main .pic img{width:128px;height:128px}
+.cell:nth-child(3n) .pic img{animation-delay:-1.2s}.cell:nth-child(3n+1) .pic img{animation-delay:-2.3s}
+.cell:hover .pic img{animation-duration:1.1s}
+.stage-pic .ico img{animation:bob 3s ease-in-out infinite}
+.hf img{width:100%;height:auto;display:block;animation:bob 3.6s ease-in-out infinite;animation-delay:calc(var(--i)*-500ms)}
+.ico-chip img{filter:none}
+button,a{touch-action:manipulation}
+.ico{display:block;line-height:0;aspect-ratio:1}
+.ico svg{width:100%;height:100%;display:block}
+.emo{line-height:1}
+.ico-chip{display:inline-block;width:24px;height:24px;vertical-align:-6px;margin-right:2px}
+.emo.ico-chip{font-size:18px;vertical-align:0}
+.qpic .ico{width:clamp(96px,16vw,170px);margin:0 auto}
+.opt .ico{width:min(72%,150px)}
+.opt .emo{font-size:clamp(52px,11vw,96px)}
+.cell .pic svg{width:58px;height:58px}
+.cell.main .pic svg{width:128px;height:128px}
+/* spin wheel */
+.spinwrap{display:grid;grid-template-columns:auto minmax(0,1fr);gap:24px;align-items:center}
+@media (max-width:820px){.spinwrap{grid-template-columns:1fr;justify-items:center}}
+.wheelbox{--wsz:min(54vh,86vw,560px);--wr:calc(var(--wsz)*0.37);position:relative;width:var(--wsz);height:var(--wsz);margin:14px auto 6px}
+.wheel{width:100%;height:100%;border-radius:50%;border:8px solid var(--nori);box-shadow:0 12px 30px rgba(0,0,0,.2),inset 0 0 0 5px rgba(255,255,255,.7);position:relative;will-change:transform}
+.wseg{position:absolute;left:50%;top:50%;width:calc(var(--wsz)*.15);height:calc(var(--wsz)*.15);margin:calc(var(--wsz)*-.075) 0 0 calc(var(--wsz)*-.075);display:grid;place-items:center}
+.wseg .ico{width:100%}
+.wseg .emo{font-size:calc(var(--wsz)*.09)}
+.pointer{position:absolute;top:-16px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;border-top:38px solid var(--lacquer);filter:drop-shadow(0 3px 2px rgba(0,0,0,.3));z-index:3}
+.hub{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:calc(var(--wsz)*.2);height:calc(var(--wsz)*.2);border-radius:50%;border:6px solid var(--nori);background:var(--egg);color:#24190A;font:800 clamp(16px,calc(var(--wsz)*.055),30px) var(--display);cursor:pointer;z-index:2;box-shadow:0 6px 0 rgba(0,0,0,.25);transition:transform .1s}
+.hub:active{transform:translate(-50%,-50%) scale(.95)}
+.hub:disabled{cursor:default}
+.spinv .stage{min-width:0}
+button[data-del]{white-space:nowrap}
+.sronly{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.confetti{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:50}
+@keyframes toastin{0%{transform:translateX(-50%) scale(.6);opacity:0}70%{transform:translateX(-50%) scale(1.06)}100%{transform:translateX(-50%) scale(1);opacity:1}}
+@media (max-width:720px){.toast{top:calc(env(safe-area-inset-top,0px) + 112px)!important}}
+.toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 70px);transform:translateX(-50%);background:var(--nori);color:var(--tray);padding:10px 20px;border-radius:999px;font:800 18px var(--display);z-index:70;animation:toastin .4s both;box-shadow:0 8px 20px rgba(0,0,0,.3);max-width:92vw;text-align:center}
+.stamps{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+@media (max-width:520px){.stamps{grid-template-columns:repeat(3,1fr)}}
+.stampwrap{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
+.stampwrap span{font:700 12px var(--body);color:var(--muted);text-align:center}
+.stamp{width:100%;aspect-ratio:1;border:3px dashed var(--line);border-radius:50%;display:grid;place-items:center;font:800 26px var(--display);color:var(--line);overflow:hidden}
+.stamp.on{border:4px solid var(--egg);background:var(--tray2);color:var(--nori);box-shadow:0 3px 0 rgba(0,0,0,.18);transform:rotate(-6deg)}
+.stampwrap:nth-child(2n) .stamp.on{transform:rotate(5deg)}
+.stamp img{width:68%;height:68%;object-fit:contain}.stamp svg{width:68%;height:68%}
+.celebrate{background:var(--good-bg);border-color:var(--good);text-align:center}
+.celebrate h2{color:var(--good)}
+/* motion polish */
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes viewin{from{opacity:0}to{opacity:1}}
+.view.enter{animation:viewin .3s ease backwards}
+.cell .pic svg,.stage-pic .ico svg{animation:bob 3.4s ease-in-out infinite}
+.cell:nth-child(3n) .pic svg{animation-delay:-1.2s}.cell:nth-child(3n+1) .pic svg{animation-delay:-2.3s}
+.cell:hover .pic svg{animation-duration:1.1s}
+.btn{transition:transform .12s ease,box-shadow .12s ease,border-color .12s}
+@media (hover:hover){.btn:not(:disabled):hover{transform:translateY(-1px)}}
+.btn:not(:disabled):active{transform:translateY(1px) scale(.98)}
+.btn.primary{box-shadow:0 4px 0 rgba(0,0,0,.22)}
+.btn.primary:not(:disabled):active{box-shadow:0 1px 0 rgba(0,0,0,.22)}
+.opt{transition:transform .12s ease,border-color .12s,background .15s}
+@media (hover:hover){.opt:not(:disabled):hover{transform:translateY(-3px) rotate(-1deg)}}
+.opt:not(:disabled):active{transform:scale(.96)}
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:center}
+.hero-art{position:relative;width:min(34vw,360px);aspect-ratio:1.15}
+.hf{position:absolute;display:block;line-height:0;animation:popin .7s cubic-bezier(.2,.9,.3,1.3) both;animation-delay:calc(var(--i)*110ms)}
+.hf svg{width:100%;height:auto;display:block;animation:bob 3.6s ease-in-out infinite;animation-delay:calc(var(--i)*-500ms)}
+.hf0{width:54%;left:23%;bottom:0}.hf1{width:30%;left:0;top:8%}.hf2{width:26%;right:2%;top:0}
+.hf3{width:28%;left:3%;bottom:7%}.hf4{width:30%;right:0;bottom:12%}.hf5{width:22%;left:39%;top:0}
+@media (max-width:820px){.hero{grid-template-columns:1fr}.hero-art{width:min(78vw,300px);margin:0 auto;order:-1}}
+/* speed round */
+.speedstage{position:relative;gap:6px}
+.seatbadge{font:800 clamp(26px,5vw,48px) var(--display);background:var(--nori);color:var(--tray);border-radius:999px;padding:2px 26px}
+.speedstage .frame{font:800 clamp(30px,6vw,72px)/1.1 var(--display);min-height:1.2em;text-wrap:balance}
+.ringwrap{position:relative;width:clamp(76px,13vh,116px);aspect-ratio:1;margin:2px auto 0}
+.ringwrap svg{width:100%;height:100%;transform:rotate(-90deg);display:block}
+.rbg{fill:none;stroke:var(--tray2);stroke-width:10}
+.rfg{fill:none;stroke:var(--lacquer);stroke-width:10;stroke-linecap:round;stroke-dasharray:276.46;stroke-dashoffset:0;transition:stroke-dashoffset .25s linear}
+.rfg.low{stroke:var(--bad)}
+.ringwrap span{position:absolute;top:0;left:0;right:0;bottom:0;display:grid;place-items:center;font:800 clamp(24px,5vh,38px) var(--display);font-variant-numeric:tabular-nums}
+.sr-board{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media (max-width:620px){.sr-board{grid-template-columns:repeat(2,1fr)}}
+.sr-seat{background:var(--tray2);border-radius:12px;padding:10px;text-align:center;display:flex;flex-direction:column;gap:2px}
+.sr-seat b{font:800 26px var(--display)}
+.sr-seat.off{opacity:.4}
+.sr-seat.now{outline:3px solid var(--egg)}
+@media (max-height:900px){.speedv .vhead p{display:none}}
+/* Pack the Box */
+.packwrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:820px){.packwrap{grid-template-columns:1fr}}
+.lunchbox{background:linear-gradient(160deg,#ff7bb0,#ff4fa3 60%,#e8358f);border-radius:28px;padding:14px;box-shadow:0 12px 0 #b3186c,0 18px 30px rgba(0,0,0,.18);width:min(100%,520px);margin:0 auto;position:relative}
+.lunchbox::before{content:"";position:absolute;left:50%;top:-10px;transform:translateX(-50%);width:34%;height:22px;border-radius:12px 12px 0 0;background:#ff4fa3;box-shadow:inset 0 -4px 0 #b3186c}
+.lb-in{background:#fff6e9;border-radius:20px;padding:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.pslot{aspect-ratio:1;border-radius:16px;display:grid;place-items:center;border:3px dashed rgba(179,24,108,.35);background:rgba(255,255,255,.55);position:relative;min-width:0}
+.pslot:nth-child(1),.pslot:nth-child(4){background:#ffe4ee}.pslot:nth-child(2),.pslot:nth-child(5){background:#e4fbff}.pslot:nth-child(3),.pslot:nth-child(6){background:#fff5d6}
+.pslot.filled{border-style:solid;border-color:rgba(179,24,108,.25)}
+.pslot .ico{width:74%}.pslot .emo{font-size:clamp(28px,6vw,52px)}
+.pslot .n{position:absolute;right:6px;bottom:4px;font:800 12px var(--display);color:#b3186c;opacity:.7}
+.shelf{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.shelf .opt{aspect-ratio:1.15}
+.listen{display:flex;align-items:center;justify-content:center;gap:10px;min-height:64px;font-family:var(--display);font-weight:800;font-size:clamp(20px,3.6vw,30px);text-align:center}
+.listen .ear{font-size:34px;animation:wiggle 1.2s ease-in-out infinite}
+@keyframes wiggle{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
+.flyghost{position:fixed;z-index:60;pointer-events:none;will-change:transform}
+.stars{font-size:26px;letter-spacing:2px}
+.menu-list{display:flex;flex-direction:column;gap:8px;width:100%;max-width:520px;margin:0 auto}
+.menu-item{display:flex;align-items:center;gap:10px;background:var(--tray);border:3px solid var(--line);border-radius:14px;padding:8px 12px;font-family:var(--display);font-weight:800;font-size:clamp(18px,3vw,24px);cursor:pointer;text-align:left}
+.menu-item .ico{width:44px;height:44px;flex:none}.menu-item .emo{font-size:30px}
+
+@keyframes popin{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+.pop{animation:popin .45s cubic-bezier(.2,.9,.3,1.2) both}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.shake{animation:shake .35s ease-in-out}
+@media (max-height:900px){.spinv .vhead p{display:none}.spinv{gap:14px}}
+.stage-word{font-family:var(--display);font-weight:800;font-size:clamp(40px,min(9vw,9vh),90px);line-height:1}
+.stage-zh{color:var(--muted);font-size:20px;min-height:1.6em}
+.boxes{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media (max-width:720px){.boxes{grid-template-columns:1fr}}
+.box{border-radius:var(--r);padding:14px;border:3px solid;display:flex;flex-direction:column;gap:8px;min-width:0}
+.box h3{font-size:20px;display:flex;justify-content:space-between}
+.box.b1{background:var(--bad-bg);border-color:var(--bad);color:var(--bad)}
+.box.b2{background:var(--warn-bg);border-color:var(--warn);color:var(--warn)}
+.box.b3{background:var(--good-bg);border-color:var(--good);color:var(--good)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{background:var(--tray);color:var(--nori);border:2px solid var(--line);border-radius:999px;padding:2px 10px;font-weight:700}
+button.chip{cursor:pointer;min-height:40px}
+button.chip.on{background:var(--nori);color:var(--tray);border-color:var(--nori)}
+.empty{font-size:14px}
+
+/* games */
+.hud{display:flex;flex-wrap:wrap;gap:8px 20px;font-weight:700;font-variant-numeric:tabular-nums;font-size:18px}
+.hud b{font-family:var(--display);font-size:24px}
+.timebar{height:12px;background:var(--tray2);border-radius:999px;overflow:hidden}
+.timebar i{display:block;height:100%;width:100%;background:var(--egg)}
+.opts{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media (max-width:620px){.opts{grid-template-columns:repeat(2,1fr)}}
+.opt{aspect-ratio:1;max-width:100%;font-size:clamp(52px,11vw,96px);background:var(--tray);border:4px solid var(--line);border-radius:22px;cursor:pointer;display:grid;place-items:center}
+@media (hover:hover){.opt:hover{border-color:var(--nori)}}
+.opt.right{background:var(--good-bg);border-color:var(--good)}
+.opt.wrong{background:var(--bad-bg);border-color:var(--bad)}
+.feedback{font-weight:800;font-size:22px;text-align:center;min-height:1.6em;font-family:var(--display)}
+.feedback.good{color:var(--good)} .feedback.bad{color:var(--bad)}
+.big-emoji{font-size:72px;line-height:1}
+
+.qpic{font-size:clamp(70px,14vw,120px);text-align:center;line-height:1.1}
+.prompt{text-align:center;font-size:22px;font-weight:700}
+.tokens{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:flex-end;font-family:var(--display)}
+.tok{font-family:var(--display);font-size:clamp(28px,6vw,46px);font-weight:800;background:var(--tray);border:3px solid var(--line);border-radius:14px;padding:4px 18px;cursor:pointer;min-height:56px}
+@media (hover:hover){.tok:hover{border-color:var(--nori)}}
+.tok.impostor{background:var(--bad-bg);border-color:var(--bad);color:var(--bad);text-decoration:line-through}
+.tok.miss{border-style:dashed}
+.dot{font-size:46px;font-weight:800}
+.explain{background:var(--tray);border:3px solid var(--line);border-radius:var(--r);padding:16px;display:flex;flex-direction:column;gap:10px;align-items:center;text-align:center}
+.explain .say{font-family:var(--display);font-weight:800;font-size:clamp(28px,6vw,40px)}
+.slot{min-height:76px;border:3px dashed var(--line);border-radius:16px;padding:8px;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;background:var(--tray)}
+.slot .hint{color:var(--muted)}
+.tray{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+
+/* card */
+.card{background:var(--tray);border:6px solid var(--nori);border-radius:24px;overflow:hidden;max-width:640px;width:100%;margin:0 auto}
+.card-top{background:var(--egg);color:#24190A;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.card-top h2{font-size:30px;font-weight:800}
+.card-body{padding:20px;display:flex;flex-direction:column;gap:16px}
+.stats{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+@media (max-width:620px){.stats{grid-template-columns:repeat(3,1fr)}}
+.stat{background:var(--tray2);border-radius:12px;padding:10px;text-align:center}
+.stat b{display:block;font-family:var(--display);font-size:30px;font-variant-numeric:tabular-nums;line-height:1.1}
+.stat span{font-size:13px;color:var(--muted);font-weight:700}
+.card h3{font-size:18px}
+
+/* teacher */
+.tgrid{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}
+@media (max-width:820px){.tgrid{grid-template-columns:1fr}}
+.tgrid .timer{grid-row:span 3}
+.clock{font-family:var(--display);font-weight:800;font-size:clamp(64px,12vw,120px);line-height:1;font-variant-numeric:tabular-nums;text-align:center}
+.clock.low{color:var(--bad)}
+.phase-name{font-size:26px;font-weight:900;text-align:center}
+.phases{display:flex;flex-direction:column;gap:6px}
+.ph{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:8px 10px;border-radius:10px;background:var(--tray2)}
+.ph.cur{background:var(--egg);color:#24190A}
+.ph.cur small{color:#3E2F12}
+.ph.cur input{background:#fff;color:#24190A;border-color:#24190A}
+.ph small{display:block;color:var(--muted);font-size:13px;line-height:1.4}
+.ph input{width:64px;text-align:center;border:2px solid var(--line);border-radius:8px;padding:4px;background:var(--tray);font-variant-numeric:tabular-nums}
+.groups{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grp{text-align:center;background:var(--tray2);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:6px}
+.grp b{font-family:var(--display);font-size:56px;line-height:1;font-variant-numeric:tabular-nums}
+.seats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.seat{min-height:56px;border:3px solid var(--line);border-radius:12px;background:var(--tray);font-family:var(--display);font-weight:800;font-size:24px;cursor:pointer}
+.seat.off{opacity:.35;text-decoration:line-through}
+.seat.hit{background:var(--egg);border-color:var(--egg);color:#24190A}
+
+/* words */
+.tablewrap{overflow-x:auto;border:3px solid var(--line);border-radius:var(--r);background:var(--tray)}
+table{border-collapse:collapse;width:100%;min-width:760px}
+th,td{padding:8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+th{font-size:13px;color:var(--muted);letter-spacing:.04em}
+td input[type=text]{width:100%;border:2px solid var(--line);border-radius:8px;padding:6px 8px;background:var(--tray)}
+td input[type=text]{min-width:100px}
+td input.picin{width:60px;min-width:0;text-align:center;font-size:22px}
+td .pv{font-size:14px;color:var(--muted);white-space:nowrap}
+@media (max-width:1100px){td .pv{white-space:normal;min-width:150px}}
+@media (max-width:800px){.tablewrap table{min-width:640px}.tablewrap th,.tablewrap td{padding:8px 5px}.tablewrap td input[type=text]{min-width:70px}.tablewrap td input[id^=w-en-],.tablewrap td input[id^=w-pl-]{min-width:112px}.tablewrap td input.picin{min-width:0}.tablewrap td .pv{min-width:100px}}
+kbd{font-family:ui-monospace,Menlo,monospace;font-size:12px;border:1.5px solid currentColor;border-radius:5px;padding:0 5px;margin-left:4px;opacity:.9}
+.kbdhint{font-size:14px}
+.opt{flex-direction:column;gap:4px}
+.opt .lbl{font-family:var(--display);font-weight:800;font-size:clamp(16px,3vw,22px);color:var(--nori);line-height:1}
+.btn.model{font-family:var(--display);font-size:20px}
+.mute{border:0;background:var(--lacquer-ink);color:var(--lacquer);border-radius:999px;min-width:40px;min-height:36px;font-size:18px;cursor:pointer}
+.guide{overflow-x:auto;border:3px solid var(--line);border-radius:var(--r);background:var(--tray)}
+.guide table{min-width:0}
+@media (max-width:640px){.guide table{min-width:760px}}
+.guide td{vertical-align:top;font-size:15px}
+.guide .en{font-family:var(--display);font-size:17px;font-weight:600;color:var(--sky)}
+.guide th{background:var(--tray2)}
+.min{font-variant-numeric:tabular-nums;font-weight:800;white-space:nowrap}
+textarea{width:100%;min-height:150px;border:2px solid var(--line);border-radius:12px;padding:10px;background:var(--tray);font:16px/1.6 ui-monospace,Menlo,monospace;color:var(--nori)}
+.errs{color:var(--bad);font-weight:700}
+details.panel>summary{cursor:pointer;font-weight:800;font-size:18px}
+.qr{background:#fff;padding:12px;border-radius:14px;width:min(260px,100%);margin:0 auto;line-height:0}
+.qr svg{width:100%;height:auto;display:block}
+.qr svg path{fill:#000}
+.url{font:14px/1.5 ui-monospace,Menlo,monospace;word-break:break-all;text-align:center;user-select:all}
+.seg{display:inline-flex;border:3px solid var(--nori);border-radius:999px;overflow:hidden}
+.seg button{border:0;background:var(--tray);padding:8px 16px;font-weight:800;cursor:pointer;min-height:44px}
+.seg button[aria-pressed="true"]{background:var(--nori);color:var(--tray)}
+.ev-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+@media (max-width:620px){.ev-grid{grid-template-columns:1fr}}
+.ev-bar{display:flex;height:34px;border-radius:10px;overflow:hidden;background:var(--tray2);font-weight:800;font-size:14px}
+.ev-bar span{display:grid;place-items:center;min-width:0;white-space:nowrap;overflow:hidden}
+.ev-bar .s3{background:var(--good-bg);color:var(--good)} .ev-bar .s2{background:var(--warn-bg);color:var(--warn)} .ev-bar .s1{background:var(--bad-bg);color:var(--bad)} .ev-bar .s0{color:var(--muted)}
+.ev-legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:14px;color:var(--muted)}
+.ev-table{overflow-x:auto;border:3px solid var(--line);border-radius:var(--r);background:var(--tray)}
+.ev-table table{min-width:520px}
+@media (max-width:540px){.ev-table table{min-width:0}.ev-table th,.ev-table td{padding:6px 4px}}
+.mk{display:inline-block;min-width:2.2em;text-align:center;border-radius:8px;padding:0 6px;font-weight:800}
+.mk.b1{background:var(--bad-bg);color:var(--bad)} .mk.b2{background:var(--warn-bg);color:var(--warn)} .mk.b3{background:var(--good-bg);color:var(--good)} .mk.b0{color:var(--muted)}
+.up{color:var(--good);font-weight:800} .down{color:var(--bad);font-weight:800}
+.bignum{font-family:var(--display);font-size:44px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+/* lesson-order home + Party Menu station */
+.sec{font-size:20px;font-weight:800}
+.cell h2 .no{display:inline-grid;place-items:center;width:1.3em;height:1.3em;border-radius:50%;background:var(--nori);color:var(--tray);font-size:.66em;margin-right:8px;vertical-align:.14em;font-variant-numeric:tabular-nums}
+.cell.main h2 .no{background:#24190A;color:var(--egg)}
+.cell.full{grid-column:1/-1;min-height:0}
+.pm-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+@media (max-width:900px){.pm-grid{grid-template-columns:repeat(5,1fr)}}
+@media (max-width:560px){.pm-grid{grid-template-columns:repeat(3,1fr)}}
+.pm-food{position:relative;aspect-ratio:1;max-width:100%;min-width:0;background:var(--tray);border:4px solid var(--line);border-radius:18px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:6px;transition:transform .12s ease,border-color .12s,background .15s}
+.pm-food:active{transform:scale(.96)}
+.pm-food .ico{width:60%}
+.pm-food .emo{font-size:clamp(30px,6vw,52px)}
+.pm-food .lbl{font-family:var(--display);font-weight:800;font-size:clamp(13px,1.9vw,18px);line-height:1.1;color:var(--nori)}
+.pm-food.on{border-color:var(--good);background:var(--good-bg)}
+.pm-food .tag{position:absolute;top:5px;left:5px;font:800 10px/1.5 var(--body);letter-spacing:.06em;background:var(--egg);color:#24190A;border-radius:999px;padding:0 6px}
+.pm-many{display:flex;gap:10px;justify-content:center;align-items:center}
+.pm-many .ico{width:clamp(56px,9vw,84px)}
+.pm-many .emo{font-size:48px}
+.pm-no{display:inline-grid;place-items:center;flex:none;width:30px;height:30px;border-radius:50%;background:var(--nori);color:var(--tray);font-size:16px}
+.pm-reply{font-family:var(--display);font-weight:800;font-size:clamp(22px,3.6vw,32px);text-align:center;color:var(--sky)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<header class="bar"><div class="bar-in">
+  <a class="brand" href="#home">🍱 Lunch Box Lab</a>
+  <nav class="nav" id="nav">
+    <a href="#home">首頁</a><a href="#spin">Spin</a><a href="#catch">Catch</a><a href="#party">Party Menu</a><a href="#pack">Pack</a><a href="#impostor">Impostor</a><a href="#speed">Speed</a>
+    <a href="#build">Build It</a><a href="#check">Check</a><a href="#card">結果卡</a><a href="#teacher">教師工具</a><a href="#evidence">學習證據</a><a href="#words">單字設定</a><a href="#guide">使用說明</a>
+  </nav>
+  <a class="mini" id="mini" href="#teacher" hidden></a>
+  <button class="mute" id="mute" aria-label="關閉聲音" title="聲音開關">🔊</button>
+</div></header>
+<main id="app"></main>
+
+<!--CLIPS-->
+<script>
+(function(){
+'use strict';
+try{document.documentElement.setAttribute('lang','zh-Hant');}catch(e){}
+/* ---------- data ---------- */
+const DEFAULT_WORDS=[
+  /* 土城國小英語護照 512–523 的 10 個食物字（purple、brown 兩個顏色字不在本課範圍）＋ Ankita 的 3 個印度食物字 */
+  {pic:'🍚',en:'rice',zh:'米飯',count:false,pl:''},
+  {pic:'🍦',en:'cream',zh:'奶油',count:false,pl:''},
+  {pic:'🥚',en:'egg',zh:'蛋',count:true,pl:'eggs'},
+  {pic:'🍔',en:'hamburger',zh:'漢堡',count:true,pl:'hamburgers'},
+  {pic:'🍰',en:'cake',zh:'蛋糕',count:false,pl:''},
+  {pic:'🍎',en:'apple',zh:'蘋果',count:true,pl:'apples'},
+  {pic:'🍜',en:'noodle',zh:'麵',count:true,pl:'noodles'},
+  {pic:'🐟',en:'fish',zh:'魚',count:false,pl:''},
+  {pic:'🥟',en:'dumpling',zh:'水餃',count:true,pl:'dumplings'},
+  {pic:'🍗',en:'chicken',zh:'雞肉',count:false,pl:''},
+  {pic:'🫓',en:'naan',zh:'印度烤餅',count:false,pl:''},
+  {pic:'🍛',en:'curry',zh:'咖哩',count:false,pl:''},
+  {pic:'🔺',en:'samosa',zh:'咖哩角',count:true,pl:'samosas'}
+];
+const DEFAULT_PHASES=[
+  /* 教案 v2：Ankita 簡報 20 分 → 中師四學 15 分 → Ankita 遊戲 5 分 */
+  {name:'導學・Diwali（Ankita）',min:20,note:'Ankita 簡報 1–24 頁：India、Diwali、9 個節慶字、和元宵節比一比'},
+  {name:'導學・定標（中師）',min:2,note:'揭示派對任務；大螢幕 Spin 轉 4 個字，全班唸兩次，比 ✔ △ ?'},
+  {name:'自學',min:4,note:'每人一台 iPad：Catch 一輪；護照 p.27 會說的字塗星星'},
+  {name:'共學',min:4,note:'一組一台 iPad：Party Menu，三人各選一種食物，至少一種印度食物'},
+  {name:'互學',min:3,note:'兩組舉起 iPad 互唸菜單；回答 Yummy! I like your ___.'},
+  {name:'導學・點撥（中師）',min:2,note:'大螢幕 Impostor 抓 2 句；一句規則；交棒給 Ankita'},
+  {name:'導學・統整（Ankita）',min:5,note:'Ankita’s Game（簡報 25–35 頁 Quiz）；離場句 I want some ___!'}
+];
+const KEY='lunchboxlab.v1';
+const APP_URL='https://claude.ai/artifact/5CrCV1GGNXaZYRqdmocLRZ';
+const fresh=()=>({words:DEFAULT_WORDS.map(w=>({...w})),example:false,boxes:{},post:{},speed:{},stamps:{},mode:'pre',icons:'photo',iconsV:2,scores:{},groups:[0,0],seat:'',mywords:[],self:'',next:'',absent:[],party:null,planV:2,phases:DEFAULT_PHASES.map(p=>({...p}))});
+function load(){
+  try{const s=JSON.parse(localStorage.getItem(KEY)||'null');
+    if(s&&typeof s==='object'&&!Array.isArray(s)){const f=fresh();const o=Object.assign(f,s);
+      if(!Array.isArray(o.phases)||!o.phases.length)o.phases=fresh().phases;
+      if(!Array.isArray(o.words)||!o.words.length){o.words=fresh().words;o.example=true;}
+      ['boxes','post','scores','speed','stamps'].forEach(k=>{if(!o[k]||typeof o[k]!=='object'||Array.isArray(o[k]))o[k]={};});
+      ['mywords','absent'].forEach(k=>{if(!Array.isArray(o[k]))o[k]=[];});
+      if(!Array.isArray(o.groups))o.groups=[0,0];
+      if(s.iconsV!==2){o.icons='photo';o.iconsV=2;}
+      /* devices that saved the old six-phase timer get the lesson-plan v2 phases once */
+      if(s.planV!==2){o.phases=fresh().phases;delete o.timer;o.planV=2;}
+      return o;}
+  }catch(e){}
+  return fresh();
+}
+const S=load();
+/* devices that still hold the pre-passport sample list get the passport words once */
+if(S.example){S.words=DEFAULT_WORDS.map(w=>({...w}));S.example=false;S.boxes={};S.post={};save();}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+
+/* ---------- helpers ---------- */
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+/* one entry per English word (case-insensitive), blank rows ignored */
+const words=()=>{const seen=new Set();return S.words.filter(w=>{const k=(w.en||'').trim().toLowerCase();if(!k||seen.has(k))return false;seen.add(k);return true;});};
+/* regular English plurals: cherry→cherries, sandwich→sandwiches, potato→potatoes, apple→apples */
+function autoPlural(en){en=(en||'').trim();if(!en)return '';
+  if(/[^aeiou]y$/i.test(en))return en.slice(0,-1)+'ies';
+  if(/(s|x|z|ch|sh)$/i.test(en))return en+'es';
+  if(/(^|\s)(potato|tomato|mango)$/i.test(en))return en+'es';
+  return en+'s';}
+const form=w=>w.count?((w.pl||'').trim()||autoPlural(w.en)):w.en.trim();
+const art=t=>/^[aeiou]/i.test(String(t).trim())?'an':'a';
+function suffix(w){const en=w.en.trim(),f=form(w);
+  if(f===en+'s')return '-s';if(f===en+'es')return '-es';if(/y$/i.test(en)&&f===en.slice(0,-1)+'ies')return '-ies';return '複數';}
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const app=$('#app');
+let viewTimers=[];
+const later=(fn,ms)=>{const id=setTimeout(fn,ms);viewTimers.push(id);return id;};
+const clearView=()=>{viewTimers.forEach(clearTimeout);viewTimers=[];};
+const head=(t,sub)=>`<div class="vhead"><h1>${t}</h1>${sub?`<p>${sub}</p>`:''}</div>`;
+/* food pictures: the original clay-style characters from chars.js for the 13 lesson words, emoji for anything else */
+const PHOTOS=window.LBL_PHOTOS||{};
+/* very old Safari cannot show WebP: the first failed photo switches the whole app to the clay characters */
+let noWebp=false;
+document.addEventListener('error',e=>{const t=e.target;if(!noWebp&&t&&t.tagName==='IMG'&&/^data:image\/webp/.test(t.src||'')){noWebp=true;if(typeof route==='function')route();}},true);
+const CHARKEY={noodle:'noodles',dumpling:'dumplings'};
+const photoKey=w=>{if(!w)return 'box';const k=(w.en||'').trim().toLowerCase();return CHARKEY[k]||k;};
+const charKey=w=>{if(!w)return 'box';const k=(w.en||'').trim().toLowerCase();const c=CHARKEY[k]||k;return (window.CHARS||[]).includes(c)?c:null;};
+function pic(w,kind,face){
+  const pk=photoKey(w);
+  if((S.icons||'photo')==='photo'&&PHOTOS[pk]&&!noWebp)return `<span class="ico ico-${kind} pimg"><img src="${PHOTOS[pk]}" alt="" draggable="false"></span>`;
+  const k=S.icons!=='emoji'&&window.CHAR?charKey(w):null;
+  if(k)return `<span class="ico ico-${kind}">${window.CHAR(k,{size:400,face})}</span>`;
+  return `<span class="emo ico-${kind}">${esc(w?w.pic:'🍱')}</span>`;
+}
+const tile=(k,emoji)=>{if(S.icons==='emoji'&&emoji)return emoji;if(S.icons!=='clay'&&PHOTOS[k]&&!noWebp)return `<img class="tileimg" src="${PHOTOS[k]}" alt="" draggable="false">`;
+  return window.CHAR&&(window.CHARS||[]).includes(k)?window.CHAR(k,{size:400}):emoji;};
+function setFace(container,w,mouth){try{const el=container.querySelector('.ico,.emo');if(!el)return;
+  if(el.classList.contains('pimg')){/* photos have no face: react with a little motion instead */el.classList.remove('pop','shake');void el.offsetWidth;el.classList.add(mouth==='flat'?'shake':'pop');return;}
+  el.outerHTML=pic(w,el.className.match(/ico-(\w+)/)[1],{mouth});}catch(e){}}
+const STAMPS=[['catch','Catch','fish','🎧'],['party','Party Menu','samosa','🎉'],['pack','Pack the Box','box','🍱'],['impostor','Impostor','samosa','🕵️'],['build','Build It','hamburger','🧱'],['check','Check','egg','✅']];
+function toast(t){try{const d=document.createElement('div');d.className='toast';d.setAttribute('role','status');d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),2600);}catch(e){}}
+function stamp(k){if(S.stamps[k])return;S.stamps[k]=1;save();const n=Object.keys(S.stamps).length;toast(`🏅 新印章：${(STAMPS.find(x=>x[0]===k)||[,k])[1]}！（${n}/${STAMPS.length}）`);}
+function confetti(n=150){
+  if(reduce)return;
+  try{const c=document.createElement('canvas');c.className='confetti';document.body.appendChild(c);const x=c.getContext('2d');
+    const W=c.width=innerWidth,H=c.height=innerHeight;const cols=['#B23A28','#EFB024','#2E7D50','#2563A8','#F3A5C0','#8E5BFF'];
+    const ps=Array.from({length:n},()=>({x:Math.random()*W,y:-20-Math.random()*H*.4,vx:(Math.random()-.5)*3,vy:2+Math.random()*4,r:5+Math.random()*7,c:pick(cols),a:Math.random()*6.28,va:(Math.random()-.5)*.3}));
+    const t0=performance.now();
+    const f=now=>{const t=(now-t0)/1000;x.clearRect(0,0,W,H);
+      ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.a+=p.va;p.vy+=.05;x.save();x.translate(p.x,p.y);x.rotate(p.a);x.fillStyle=p.c;x.fillRect(-p.r/2,-p.r/4,p.r,p.r/2);x.restore();});
+      if(t<3)requestAnimationFrame(f);else c.remove();};
+    requestAnimationFrame(f);}catch(e){}
+}
+const rule=w=>w.count?`${esc(w.en)} 數得出來，要說 <b>${esc(form(w))}</b>（${suffix(w)==='複數'?'用複數':'加 '+suffix(w)}）。`:`${esc(w.en)} 數不出來，不加 a／an，也不加 -s。`;
+const oldBrowser=!(window.CSS&&CSS.supports&&CSS.supports('aspect-ratio','1')&&CSS.supports('gap','1px'));
+const compatNote=()=>oldBrowser?`<p class="note">這台裝置的瀏覽器較舊，畫面可能跑版。建議用 iPadOS 15 以上，或改用電腦。</p>`:'';
+const exampleNote=()=>S.example?`<p class="note">單字已是英語護照 512–523 的食物字＋naan／curry／samosa，全部都有真人錄音。</p>`:'';
+
+/* ---------- audio ----------
+   Recorded ElevenLabs clips are keyed by exact text ("Rice." / "I like rice." / "Great job!").
+   iPad Safari blocks media that starts outside a tap, and the games speak after timers, so clips are
+   decoded once into Web Audio buffers when the first tap unlocks the AudioContext; after that they can
+   play at any time. Before unlock (or if decoding fails) a single reused <audio> element is tried, then
+   the device voice as the last resort (only for words that have no recording). */
+const CLIPS=window.LBL_CLIPS||{};
+let muted=false;try{muted=sessionStorage.getItem('lbl.mute')==='1';}catch(e){}
+const buffers={};
+let actx=null,decoding=null,curSrc=null,clipEl=null;
+function clipKey(t){t=String(t).trim();if(!/[.!?]$/.test(t))t+='.';return t.charAt(0).toUpperCase()+t.slice(1);}
+const CLIPLOW={};Object.keys(CLIPS).forEach(k=>{CLIPLOW[k.toLowerCase()]=k;});
+const clipFor=t=>{const k=clipKey(t);return CLIPS[k]?k:(CLIPLOW[k.toLowerCase()]||k);};
+const hasClip=t=>!!CLIPS[clipFor(t)];
+function ctx(){
+  try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();if(actx.state!=='running'){const r=actx.resume();if(r&&r.catch)r.catch(()=>{});}}catch(e){actx=null;}
+  return actx;
+}
+function b64ToBuf(uri){const b=atob(uri.slice(uri.indexOf(',')+1));const u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u.buffer;}
+function decodeAll(){
+  if(decoding)return decoding;const c=ctx();if(!c)return Promise.resolve();
+  decoding=Promise.all(Object.entries(CLIPS).map(([k,uri])=>new Promise(res=>{
+    try{c.decodeAudioData(b64ToBuf(uri),buf=>{buffers[k]=buf;res();},()=>res());}catch(e){res();}
+  })));
+  return decoding;
+}
+let ttsPrimed=false,silentDone=false;
+const SILENT='data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA//NwwAAAAAAAAAAAAEluZm8AAAAPAAAACgAAAsEAVFRUVFRUVFRUaGhoaGhoaGhoaHt7e3t7e3t7e3uNjY2NjY2NjY2NoKCgoKCgoKCgoLS0tLS0tLS0tLTGxsbGxsbGxsbG2dnZ2dnZ2dnZ2ezs7Ozs7Ozs7Oz/////////////AAAAAExhdmM2MC4zMQAAAAAAAAAAAAAAACQDBgAAAAAAAALBumiUJQAAAAAAAAAAAAAAAAD/8yDEAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVVVMQU1FMy4xMDBVVVVVVVVVVVVV//MixCcAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVX/8yDETwAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVV//MgxHYAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVf/zIMSdAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/8yLExAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zIMTYAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/8yDE2AAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//MgxNgAAANIAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVf/zIsTXAAADSAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV';
+function unlock(e){const c=ctx();decodeAll();if(!clipEl){clipEl=new Audio();clipEl.preload='auto';}
+  /* iPad: Web Audio obeys the side mute switch unless the page also plays media; playing a silent clip once inside a tap fixes that */
+  try{if(navigator.audioSession)navigator.audioSession.type='playback';}catch(_){}
+  if(!silentDone&&e&&e.type!=='pointerdown'&&e.type!=='keydown'){silentDone=true;try{const a=new Audio(SILENT);a.play().catch(()=>{});}catch(_){}}
+  /* touch pointerdown does not count as a user activation on iOS: prime speech only on touchend/click */
+  if(!ttsPrimed&&e&&(e.type==='touchend'||e.type==='click')&&'speechSynthesis' in window){ttsPrimed=true;try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u);}catch(_){}}
+  if(c){try{const b=c.createBuffer(1,1,22050),s=c.createBufferSource();s.buffer=b;s.connect(c.destination);s.start(0);}catch(e){}}}
+document.addEventListener('pointerdown',unlock,{capture:true});
+document.addEventListener('keydown',unlock,{capture:true});
+document.addEventListener('touchend',unlock,{capture:true});
+document.addEventListener('click',unlock,{capture:true});
+function stopVoice(){try{if(curSrc)curSrc.stop();}catch(e){}curSrc=null;try{if(clipEl)clipEl.pause();}catch(e){}try{speechSynthesis.cancel();}catch(e){}}
+/* say(text, {slow}) — slow uses the <audio> element so pitch is kept; it is only offered on buttons (a tap). */
+function say(t,o={}){
+  if(muted)return;
+  const k=clipFor(t),uri=CLIPS[k];stopVoice();
+  if(uri){
+    const buf=buffers[k];
+    if(buf&&actx&&actx.state==='running'&&!o.slow){
+      try{const s=actx.createBufferSource();s.buffer=buf;s.connect(actx.destination);s.start(0);curSrc=s;return;}catch(e){}
+    }
+    try{clipEl=clipEl||new Audio();clipEl.src=uri;clipEl.defaultPlaybackRate=o.slow?.75:1;clipEl.playbackRate=o.slow?.75:1;
+      if('preservesPitch' in clipEl)clipEl.preservesPitch=true;if('webkitPreservesPitch' in clipEl)clipEl.webkitPreservesPitch=true;
+      const p=clipEl.play();if(p&&p.catch)p.catch(()=>{});return;}catch(e){}
+  }
+  try{
+    if(!('speechSynthesis' in window))return;
+    const u=new SpeechSynthesisUtterance(t);u.lang='en-US';u.rate=o.slow?.6:.85;
+    const vs=speechSynthesis.getVoices().filter(v=>/^en[-_]US/i.test(v.lang));
+    const v=vs.find(v=>/samantha|aaron|nicky|ava|allison|susan|google us/i.test(v.name))||vs.find(v=>v.default)||vs[0];if(v)u.voice=v;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+/* short synthesized effects, no files needed */
+function tone(seq){
+  if(muted)return;const c=ctx();if(!c||c.state!=='running')return;
+  try{seq.forEach(([f,d,len,type,vol])=>{const o=c.createOscillator(),g=c.createGain();o.type=type||'sine';o.frequency.value=f;o.connect(g);g.connect(c.destination);
+    const t=c.currentTime+d;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol||.25,t+.015);g.gain.exponentialRampToValueAtTime(.0001,t+len);o.start(t);o.stop(t+len+.02);});}catch(e){}
+}
+const sfx={
+  good:()=>tone([[784,0,.14],[1175,.09,.22]]),
+  bad:()=>tone([[196,0,.28,'square',.12],[147,.12,.3,'square',.1]]),
+  tick:()=>tone([[1400,0,.04,'triangle',.08]]),
+  win:()=>tone([[523,0,.15],[659,.12,.15],[784,.24,.15],[1047,.36,.35]])
+};
+function beep(){tone([[660,0,.22,'sine',.3],[880,.25,.22,'sine',.3],[990,.5,.22,'sine',.3]]);}
+const PRAISE=['Great job!','Awesome!','You got it!'];
+const praise=()=>say(pick(PRAISE.filter(hasClip).length?PRAISE.filter(hasClip):['Great job!']));
+/* screen wake lock for the projector views */
+let wakeLock=null;
+async function keepAwake(on){
+  try{if(on&&!wakeLock&&navigator.wakeLock){wakeLock=await navigator.wakeLock.request('screen');wakeLock.addEventListener('release',()=>{wakeLock=null;});}
+    else if(!on&&wakeLock){await wakeLock.release();wakeLock=null;}}catch(e){wakeLock=null;}
+}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){ctx();if(['spin','teacher','speed'].includes(curView))keepAwake(true);}});
+let curView='home';
+const slowBtn=id=>`<button class="btn" id="${id}" aria-label="慢速再聽一次">🐢 慢速</button>`;
+let viewKeys=null;
+document.addEventListener('keydown',e=>{if(viewKeys&&!e.target.closest('input,textarea,select'))viewKeys(e);});
+
+/* ---------- home ---------- */
+function home(){
+  app.innerHTML=`<div class="view">
+  ${compatNote()}${exampleNote()}
+  <section class="hero"><div class="hero-text"><p class="eyebrow">五甲英語・FOOD FOR ANKITA’S DIWALI PARTY</p><h1>Lunch Box Lab</h1>
+    <p class="lede">Ankita 的排燈節派對要開始了！幫派對準備食物：聽、選、說。句型 I want some ___.</p></div>
+    <div class="hero-art" aria-hidden="true">${['diya','noodles','apple','dumplings','curry','samosa'].map((k,i)=>`<span class="hf hf${i}" style="--i:${i}">${tile(k,'')}</span>`).join('')}</div></section>
+  <h2 class="sec">今天上課：照 1 → 4 走</h2>
+  <div class="bento">
+    <a class="cell main" href="#spin"><span class="who">導學・大螢幕</span><h2><span class="no">1</span>Spin</h2><p>轉輪盤抽一個食物，全班唸兩次，比 ✔ △ ?。不熟的字留在 Box 1，這就是今天的目標。</p><span class="pic">${tile('rice','🍱')}</span></a>
+    <a class="cell" href="#catch"><span class="who">自學・iPad</span><span class="pic">${tile('fish','🎧')}</span><h2><span class="no">2</span>Catch</h2><p>只聽不看字，點對的食物。做完在護照 p.27 塗星星。</p></a>
+    <a class="cell" href="#party"><span class="who">共學・一組一台</span><span class="pic">${tile('samosa','🎉')}</span><h2><span class="no">3</span>Party Menu</h2><p>三人各選一種食物帶去派對，再唸給另一組聽。</p></a>
+    <a class="cell wide" href="#impostor"><span class="who">導學・大螢幕</span><span class="pic">${tile('egg','🕵️')}</span><h2><span class="no">4</span>Impostor</h2><p>全班一起抓內鬼：多了 a／an，或 -s 用錯的字。</p></a>
+  </div>
+  <h2 class="sec">延伸練習與老師工具</h2>
+  <div class="bento">
+    <a class="cell rice" href="#pack"><span class="who">延伸・iPad</span><span class="pic">${tile('box','🍱')}</span><h2>Pack the Box</h2><p>聽整句，把食物裝進便當。</p></a>
+    <a class="cell rice" href="#build"><span class="who">延伸・iPad</span><span class="pic">${tile('hamburger','🧱')}</span><h2>Build It</h2><p>點字卡組出正確句子。</p></a>
+    <a class="cell rice" href="#check"><span class="who">延伸・iPad</span><span class="pic">${tile('cake','✅')}</span><h2>Check</h2><p>6 題小檢核：數得出來嗎？選對句子。</p></a>
+    <a class="cell rice" href="#speed"><span class="who">延伸・大螢幕</span><span class="pic">${tile('chicken','⚡')}</span><h2>Speed Round</h2><p>抽座號＋抽字，10 秒說一句。</p></a>
+    <a class="cell rice" href="#card"><span class="who">iPad</span><span class="pic">${tile('tangyuan','🪪')}</span><h2>結果卡</h2><p>分數、印章、自評、下一步。</p></a>
+    <a class="cell rice" href="#evidence"><span class="who">老師</span><span class="pic">${tile('naan','📈')}</span><h2>學習證據</h2><p>課前課後 ✔△? 與每人開口次數。</p></a>
+    <a class="cell rice" href="#words"><span class="who">老師</span><span class="pic">${tile('apple','✏️')}</span><h2>單字設定</h2><p>換字、可數不可數、角色或 emoji。</p></a>
+    <a class="cell rice" href="#guide"><span class="who">老師</span><span class="pic">${tile('curry','📖')}</span><h2>使用說明</h2><p>Ankita 與中師的分工和英文提示句。</p></a>
+    <a class="cell full rice" href="#teacher"><span class="who">老師</span><span class="pic">${tile('diya','⏱️')}</span><h2>教師工具</h2><p>40 分鐘分段計時（20＋15＋5）、兩組計分、抽座號、學生 QR code。</p></a>
+  </div>
+  <p class="muted">13 個預設單字、兩個句型和所有鼓勵語都是 ElevenLabs 真人錄音；只有自己新加的字會改用裝置語音。分數和設定只存在這台裝置的瀏覽器。中師與 Ankita 的分工在 <a href="#guide">使用說明</a>。</p>
+  </div>`;
+}
+
+/* ---------- spin ---------- */
+const BOXNAME={1:'Box 1 ? 不熟',2:'Box 2 △ 有點熟',3:'Box 3 ✔ 會了'};
+function spin(){
+  app.innerHTML=`<div class="view spinv">
+  ${head('Spin 轉一轉','大螢幕用。任務：Bring food to Ankita’s Diwali party! 轉到的字全班唸兩次，學生比手勢 ✔ △ ?，老師點對應的按鈕。Box 1 的字就是今天的目標。')}
+  ${exampleNote()}
+  <div class="row"><div class="seg" role="group" aria-label="這一輪是">
+    <button id="sp-pre" aria-pressed="${S.mode!=='post'}">課前定標</button><button id="sp-post" aria-pressed="${S.mode==='post'}">課後再測</button></div>
+    <span class="muted">課後再轉一輪，<a href="#evidence">學習證據</a> 會比較前後變化。</span></div>
+  <div class="spinwrap">
+    <div class="wheelbox"><div class="pointer"></div><div class="wheel" id="sp-wheel" aria-hidden="true"></div><button class="hub" id="sp-hub" aria-label="轉">GO</button></div>
+    <div class="stage"><div class="stage-pic" id="sp-pic">${pic(null,'stage')}</div><div class="stage-word" id="sp-word">Ready?</div><div class="stage-zh" id="sp-zh">&nbsp;</div></div>
+  </div>
+  <div class="row center"><button class="btn primary big" id="sp-go">轉！</button><button class="btn" id="sp-say" disabled>🔊 再聽一次</button><button class="btn" id="sp-slow" disabled aria-label="慢速再聽一次">🐢 慢速</button></div>
+  <div class="row center" id="sp-models" hidden></div>
+  <div class="row center" id="sp-mark" hidden>
+    <button class="btn good" data-b="3">✔ 會了 <kbd>3</kbd></button><button class="btn warn" data-b="2">△ 有點熟 <kbd>2</kbd></button><button class="btn bad" data-b="1">? 不熟 <kbd>1</kbd></button>
+  </div>
+  <div class="row center kbdhint"><span class="muted">投影時可用鍵盤：空白鍵轉，1／2／3 分盒子。</span><button class="btn ghost" id="sp-full">⛶ 全螢幕</button></div>
+  <div class="boxes" id="sp-boxes"></div>
+  <div class="row"><span class="muted" id="sp-left"></span><button class="btn ghost" id="sp-reset">清空這一輪的盒子</button><button class="btn ghost" id="sp-new">🆕 新的一節課</button></div>
+  </div>`;
+  let cur=null;
+  const B=()=>S.mode==='post'?S.post:S.boxes;
+  const draw=()=>{
+    const ws=words();
+    $('#sp-boxes').innerHTML=[1,2,3].map(b=>{const list=ws.filter(w=>B()[w.en]===b);
+      return `<div class="box b${b}"><h3 aria-level="2">${BOXNAME[b]}<span>${list.length}</span></h3><div class="chips">${list.map(w=>`<span class="chip">${pic(w,'chip')}${esc(w.en)}</span>`).join('')||'<span class="empty">還沒有</span>'}</div></div>`;}).join('');
+    const left=ws.filter(w=>!B()[w.en]).length;
+    $('#sp-left').textContent=left?`還有 ${left} 個字沒轉到`:'全部轉過了，再轉會從所有字裡抽';
+  };
+  const show=w=>{$('#sp-pic').innerHTML=pic(w,'stage',{mouth:'open'});$('#sp-pic').classList.remove('pop');void $('#sp-pic').offsetWidth;$('#sp-pic').classList.add('pop');$('#sp-word').textContent=w.en;$('#sp-zh').textContent=w.zh;};
+  let wheelRot=0;
+  const buildWheel=()=>{const ws=words();const el=$('#sp-wheel');if(!ws.length){el.innerHTML='';return;}const n=ws.length,seg=360/n;
+    const cols=['#FFD9D0','#FFEBB8','#D9F2E3','#D6E8FF','#F3DDFF','#FFF1D6','#E3F4FF'];
+    let P=6;for(const q of [6,5,7,4]){if(n%q!==1){P=q;break;}}
+    el.style.background=`conic-gradient(from ${-seg/2}deg, ${ws.map((w,i)=>`${cols[i%P]} ${i*seg}deg ${(i+1)*seg}deg`).join(',')})`;
+    el.innerHTML=ws.map((w,i)=>`<div class="wseg" style="transform:rotate(${i*seg-90}deg) translate(var(--wr)) rotate(90deg)">${pic(w,'wheel')}</div>`).join('');
+    el.style.transform=`rotate(${wheelRot}deg)`;};
+  /* turn the wheel so that word #idx stops under the pointer; ticks once per segment crossed */
+  const spinWheel=(idx,n,done)=>{const el=$('#sp-wheel');if(!el||!n){done();return;}
+    const seg=360/n;const want=((360-idx*seg)%360+360)%360;const start=wheelRot;const startMod=((start%360)+360)%360;
+    let delta=want-startMod;if(delta<0)delta+=360;const total=start+360*4+delta;
+    const dur=reduce?0:4200;const t0=performance.now();let lastSeg=-1;const ease=t=>1-Math.pow(1-t,3);
+    const frame=now=>{if(!el.isConnected)return;const pr=dur?Math.min(1,(now-t0)/dur):1;const rot=start+(total-start)*ease(pr);el.style.transform=`rotate(${rot}deg)`;
+      const sIdx=Math.floor((((360-rot%360)%360)+360)%360/seg);if(sIdx!==lastSeg){lastSeg=sIdx;sfx.tick();}
+      if(pr<1)requestAnimationFrame(frame);else{wheelRot=total;done();}};
+    requestAnimationFrame(frame);};
+  draw();buildWheel();
+  $('#sp-go').onclick=()=>{
+    const ws=words();if(!ws.length)return;
+    /* post round: re-test the words that were rated before the lesson first, so each word gets a before/after pair */
+    const unrated=ws.filter(w=>!B()[w.en]);const pri=S.mode==='post'?unrated.filter(w=>S.boxes[w.en]):[];
+    const pool=pri.length?pri:unrated;const target=pick(pool.length?pool:ws);
+    $('#sp-go').disabled=true;$('#sp-hub').disabled=true;$('#sp-mark').hidden=true;$('#sp-zh').innerHTML='&nbsp;';
+    $('#sp-models').hidden=true;$('#sp-word').textContent='…';
+    spinWheel(ws.indexOf(target),ws.length,()=>{
+      if(curView!=='spin')return;
+      cur=target;show(target);$('#sp-go').disabled=false;$('#sp-hub').disabled=false;$('#sp-say').disabled=false;$('#sp-slow').disabled=false;$('#sp-mark').hidden=false;
+      const f=form(target);const m=$('#sp-models');m.hidden=false;
+      m.innerHTML=[`I like ${f}.`,`I want some ${f}.`].map(t=>`<button class="btn model" data-say="${esc(t)}">🔊 ${esc(t)}</button>`).join('');
+      $$('#sp-models [data-say]').forEach(b=>b.onclick=()=>say(b.dataset.say));
+      sfx.good();later(()=>say(target.en),220);
+      try{$('#sp-mark').scrollIntoView({block:'nearest',behavior:reduce?'auto':'smooth'});}catch(e){}
+    });
+  };
+  $('#sp-hub').onclick=()=>{if(!$('#sp-go').disabled)$('#sp-go').click();};
+  $('#sp-say').onclick=()=>cur&&say(cur.en);
+  $('#sp-slow').onclick=()=>cur&&say(cur.en,{slow:true});
+  const mark=b=>{if(!cur||$('#sp-mark').hidden)return;B()[cur.en]=b;save();draw();$('#sp-mark').hidden=true;};
+  const setMode=m=>{if($('#sp-go').disabled)return;S.mode=m;save();$('#sp-pre').setAttribute('aria-pressed',String(m!=='post'));$('#sp-post').setAttribute('aria-pressed',String(m==='post'));$('#sp-mark').hidden=true;$('#sp-models').hidden=true;cur=null;
+    $('#sp-pic').innerHTML=pic(null,'stage');$('#sp-word').textContent='Ready?';$('#sp-zh').innerHTML='&nbsp;';$('#sp-say').disabled=true;$('#sp-slow').disabled=true;draw();};
+  $('#sp-pre').onclick=()=>setMode('pre');$('#sp-post').onclick=()=>setMode('post');
+  const nl=$('#sp-new');
+  nl.onclick=()=>{if($('#sp-go').disabled)return;if(nl.dataset.armed){delete nl.dataset.armed;S.boxes={};S.post={};S.speed={};S.stamps={};S.groups=[0,0];S.mode='pre';save();spin();}
+    else{nl.dataset.armed='1';nl.textContent='再按一次：清空課前、課後、開口次數、印章和兩組分數';later(()=>{nl.textContent='🆕 新的一節課';delete nl.dataset.armed;},4000);}};
+  $$('#sp-mark button').forEach(b=>b.onclick=()=>mark(+b.dataset.b));
+  const noFull=()=>{$('#sp-full').textContent='這台裝置不支援全螢幕';$('#sp-full').disabled=true;};
+  $('#sp-full').onclick=()=>{try{const d=document,el=d.documentElement;const rf=el.requestFullscreen||el.webkitRequestFullscreen,ex=d.exitFullscreen||d.webkitExitFullscreen;
+    if(d.fullscreenElement||d.webkitFullscreenElement){if(ex)ex.call(d);}else{if(!rf)return noFull();const pr=rf.call(el);if(pr&&pr.catch)pr.catch(noFull);}}catch(e){noFull();}};
+  viewKeys=e=>{const onCtl=e.target.closest&&e.target.closest('button,a,summary');
+    if(e.key===' '||(e.key==='Enter'&&!onCtl)){e.preventDefault();if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();if(!$('#sp-go').disabled)$('#sp-go').click();}
+    else if(['1','2','3'].includes(e.key))mark(+e.key);};
+  app.querySelector('.view').addEventListener('click',e=>{const b=e.target.closest('button');if(b)setTimeout(()=>b.blur(),0);});
+  keepAwake(true);
+  const rs=$('#sp-reset');
+  rs.onclick=()=>{if(rs.dataset.armed){if(S.mode==='post')S.post={};else S.boxes={};save();draw();rs.textContent='清空這一輪的盒子';delete rs.dataset.armed;}else{rs.dataset.armed='1';rs.textContent='再按一次確認清空';later(()=>{rs.textContent='清空這一輪的盒子';delete rs.dataset.armed;},4000);}};
+}
+
+/* ---------- catch ---------- */
+function catchView(){
+  const ROUNDS=10,LIMIT=6000;
+  let r=0,score=0,combo=0,hits=0,missed=[],target=null,opts=[],locked=false;
+  if(words().length<4){app.innerHTML=`<div class="view">${head('Catch 聽力接接樂','')}<p class="note">至少要有 4 個單字才能玩。請到 <a href="#words">單字設定</a> 加字。</p></div>`;return;}
+  const start=()=>{
+    app.innerHTML=`<div class="view">${head('Catch 聽力接接樂','只聽不看字。聽到哪個食物，就點那張圖。連對 3 題以上，每題分數 ×2。')}
+    <div class="panel center"><p class="big-emoji">🎧</p><p>先把 iPad 音量打開。按下開始後馬上會念第一個字。</p>
+    <div class="row center"><button class="btn primary big" id="c-start">開始（10 題）</button></div>
+    <p class="note" id="mute-note" ${muted?'':'hidden'}>聲音目前關閉，Catch 需要聲音。<button class="btn" id="c-unmute">🔊 打開聲音</button></p>
+    <p class="muted">這台 iPad 最高分：${S.scores.catchBest??'—'}</p></div></div>`;
+    $('#c-unmute').onclick=()=>setMuted(false);
+    $('#c-start').onclick=()=>{say('Listen and catch!');next(1400);};
+  };
+  const next=(delay=0)=>{
+    if(r>=ROUNDS)return end();
+    r++;locked=false;const ws=words();target=pick(ws);
+    /* distractors must look and sound different from the target and from each other */
+    const pics=new Set([target.pic]),ens=new Set([target.en.trim().toLowerCase()]),others=[];
+    shuffle(ws).forEach(w=>{const e=w.en.trim().toLowerCase();if(others.length<3&&!pics.has(w.pic)&&!ens.has(e)){pics.add(w.pic);ens.add(e);others.push(w);}});
+    const showLabels=others.length<3;/* not enough different pictures: show the words so the round is still answerable */
+    if(showLabels)shuffle(ws).forEach(w=>{const e=w.en.trim().toLowerCase();if(others.length<3&&!ens.has(e)){ens.add(e);others.push(w);}});
+    opts=shuffle([target,...others]);
+    app.innerHTML=`<div class="view">${head('Catch 聽力接接樂','')}
+    <div class="hud"><span>第 ${r}/${ROUNDS} 題</span><span>分數 <b>${score}</b></span><span>${combo>=3?'🔥 連擊 ×2':'連擊 '+combo}</span></div>
+    <div class="timebar"><i id="c-bar"></i></div>
+    <div class="row center"><button class="btn" id="c-again">🔊 再聽一次</button>${slowBtn('c-slow')}</div>
+    <div class="opts">${opts.map((w,i)=>`<button class="opt" data-i="${i}" aria-label="選項 ${i+1}" disabled>${pic(w,'opt')}<span class="lbl" ${showLabels?'':'hidden'}>${esc(w.en)}</span></button>`).join('')}</div>
+    <p class="feedback" id="c-fb" aria-live="polite">&nbsp;</p></div>`;
+    $('#c-again').onclick=()=>say(target.en);
+    $('#c-slow').onclick=()=>say(target.en,{slow:true});
+    $$('.opt').forEach(b=>b.onclick=()=>answer(+b.dataset.i));
+    const go=()=>{$$('.opt').forEach(b=>b.disabled=false);const bar=$('#c-bar');
+      if(bar&&!reduce){bar.style.transition='none';bar.style.width='100%';void bar.offsetWidth;bar.style.transition=`width ${LIMIT}ms linear`;bar.style.width='0%';}
+      say(target.en);later(()=>answer(-1),LIMIT);};
+    if(delay)later(go,delay);else go();
+  };
+  const answer=i=>{
+    if(locked)return;locked=true;clearView();
+    const btns=$$('.opt');const ti=opts.indexOf(target);const fb=$('#c-fb');
+    const bar=$('#c-bar');if(bar){const w=getComputedStyle(bar).width;bar.style.transition='none';bar.style.width=w;}
+    btns.forEach(b=>{b.disabled=true;const l=b.querySelector('.lbl');if(l)l.hidden=false;});
+    setFace(btns[ti],target,'open');if(i>=0&&i!==ti)setFace(btns[i],opts[i],'flat');
+    if(i===ti){combo++;hits++;const pts=combo>=3?20:10;score+=pts;btns[ti].classList.add('right','pop');fb.className='feedback good';fb.textContent=`✅ ${target.en}！ +${pts}`;sfx.good();later(praise,250);later(()=>next(),1600);}
+    else{combo=0;missed.push(target);if(i>=0)btns[i].classList.add('wrong','shake');btns[ti].classList.add('right');fb.className='feedback bad';fb.textContent=(i<0?'⏰ 時間到！':'❌ ')+`答案是 ${target.en}`;sfx.bad();later(()=>say(target.en),450);later(()=>next(),2000);}
+  };
+  const end=()=>{
+    S.scores.catchLast=score;S.scores.catchBest=Math.max(S.scores.catchBest||0,score);save();
+    const uniq=[...new Set(missed)];if(hits>=7){sfx.win();confetti();stamp('catch');}
+    app.innerHTML=`<div class="view">${head('Catch 結果','')}
+    <div class="panel center"><p class="big-emoji">${hits>=8?'🏆':hits>=5?'👍':'💪'}</p>
+      <div class="hud center" style="justify-content:center"><span>分數 <b>${score}</b></span><span>答對 <b>${hits}/${ROUNDS}</b></span><span>最高分 <b>${S.scores.catchBest}</b></span></div>
+      ${uniq.length?`<p>這幾個字要再聽一次：</p><div class="chips" style="justify-content:center">${uniq.map(w=>`<button class="chip" data-en="${esc(w.en)}">🔊 ${pic(w,'chip')}${esc(w.en)}</button>`).join('')}</div>`:'<p>全部都聽對了！</p>'}
+      <p class="note">下一步：打開英語護照 p.27，會說的字把星星塗滿 ⭐</p>
+      <div class="row center"><button class="btn primary" id="c-re">再玩一次</button><a class="btn" href="#party" style="text-decoration:none;display:inline-flex;align-items:center">下一站 Party Menu →</a></div>
+    </div></div>`;
+    $$('[data-en]').forEach(b=>b.onclick=()=>say(b.dataset.en));
+    $('#c-re').onclick=()=>{r=0;score=0;combo=0;hits=0;missed=[];say("Let's go!");next(1100);};
+  };
+  start();
+}
+
+/* ---------- pack the box ---------- */
+function pack(){
+  const ws0=words();
+  if(ws0.length<4){app.innerHTML=`<div class="view">${head('Pack the Box 裝便當','')}<p class="note">至少要有 4 個單字才能玩。請到 <a href="#words">單字設定</a> 加字。</p></div>`;return;}
+  const ROUNDS=Math.min(6,ws0.length);let r=0,stars=0,target=null,opts=[],locked=false,tries=0,order=[];const packed=[];
+  const sentence=w=>`I want some ${form(w)}.`;
+  const slots=()=>Array.from({length:ROUNDS},(_,i)=>`<div class="pslot ${packed[i]?'filled':''}">${packed[i]?pic(packed[i],'slot'):`<span class="n">${i+1}</span>`}</div>`).join('');
+  const start=()=>{
+    app.innerHTML=`<div class="view">${head('Pack the Box 裝便當',`聽一句 I want some ___.，點對的食物，它就會跳進便當盒。裝滿 ${ROUNDS} 格，便當就完成了。`)}
+    <div class="panel center"><div class="lunchbox"><div class="lb-in">${slots()}</div></div>
+    <p>先把 iPad 音量打開。第一次點對有 3 顆星，第二次 2 顆，第三次 1 顆。</p>
+    <div class="row center"><button class="btn primary big" id="pk-start">開始裝便當</button></div>
+    <p class="muted">這台 iPad 最高：${S.scores.packBest!=null?S.scores.packBest+' ★':'—'}</p></div></div>`;
+    $('#pk-start').onclick=e=>{e.currentTarget.disabled=true;order=shuffle(ws0).slice(0,ROUNDS);say("Let's go!");later(next,1000);};
+  };
+  const next=()=>{
+    if(r>=ROUNDS)return end();
+    target=order[r];r++;tries=0;locked=false;
+    const pics=new Set([target.pic]),ens=new Set([target.en.trim().toLowerCase()]),others=[];
+    shuffle(ws0).forEach(w=>{const e=w.en.trim().toLowerCase();if(others.length<3&&!pics.has(w.pic)&&!ens.has(e)){pics.add(w.pic);ens.add(e);others.push(w);}});
+    const showLabels=others.length<3;
+    if(showLabels)shuffle(ws0).forEach(w=>{const e=w.en.trim().toLowerCase();if(others.length<3&&!ens.has(e)){ens.add(e);others.push(w);}});
+    opts=shuffle([target,...others]);
+    app.innerHTML=`<div class="view">${head('Pack the Box 裝便當','')}
+    <div class="hud"><span>第 ${r}/${ROUNDS} 格</span><span>星星 <b class="stars" style="color:var(--egg)">★ ${stars}</b> / ${ROUNDS*3}</span></div>
+    <div class="packwrap">
+      <div><div class="lunchbox"><div class="lb-in" id="pk-slots">${slots()}</div></div>
+        <p class="listen" id="pk-listen"><span class="ear">👂</span><span id="pk-text">Listen…</span></p>
+        <div class="row center"><button class="btn" id="pk-again">🔊 再聽一次</button>${slowBtn('pk-slow')}</div></div>
+      <div class="shelf">${opts.map((w,i)=>`<button class="opt" data-i="${i}" aria-label="選項 ${i+1}" disabled>${pic(w,'opt')}${showLabels?`<span class="lbl">${esc(w.en)}</span>`:''}</button>`).join('')}</div>
+    </div></div>`;
+    const sent=sentence(target);
+    $('#pk-again').onclick=()=>say(sent);$('#pk-slow').onclick=()=>say(sent,{slow:true});
+    $$('.shelf .opt').forEach(b=>b.onclick=()=>choose(+b.dataset.i,b));
+    later(()=>{say(sent);$$('.shelf .opt').forEach(b=>b.disabled=false);},350);
+  };
+  const choose=(i,btn)=>{
+    if(locked)return;
+    if(opts[i]!==target){
+      tries++;sfx.bad();btn.classList.remove('shake');void btn.offsetWidth;btn.classList.add('shake');setFace(btn,opts[i],'flat');
+      later(()=>say('Try again!'),250);
+      if(tries>=2){const ti=opts.indexOf(target);const tb=$$('.shelf .opt')[ti];tb.classList.add('right','pop');}
+      return;
+    }
+    locked=true;const got=tries===0?3:tries===1?2:1;stars+=got;
+    $$('.shelf .opt').forEach(b=>b.disabled=true);btn.classList.add('right');setFace(btn,target,'open');sfx.good();
+    $('#pk-text').textContent=sentence(target);$('#pk-listen').querySelector('.ear').textContent='✅';
+    const slot=$$('#pk-slots .pslot')[r-1];
+    fly(btn,slot,()=>{packed[r-1]=target;slot.classList.add('filled');slot.innerHTML=pic(target,'slot');slot.classList.add('pop');});
+    later(praise,350);later(next,1700);
+  };
+  const fly=(from,to,done)=>{
+    const ic=from.querySelector('.ico,.emo');
+    if(reduce||!ic){done();return;}
+    try{const a=ic.getBoundingClientRect(),b=to.getBoundingClientRect();const g=ic.cloneNode(true);g.className=(ic.classList.contains('ico')?'ico':'emo')+' flyghost';g.style.fontSize=getComputedStyle(ic).fontSize;
+      g.style.left=a.left+'px';g.style.top=a.top+'px';g.style.width=a.width+'px';g.style.height=a.height+'px';document.body.appendChild(g);
+      const dx=(b.left+b.width/2)-(a.left+a.width/2),dy=(b.top+b.height/2)-(a.top+a.height/2);const sc=(b.width*.74)/a.width;
+      const an=g.animate([{transform:'translate(0,0) scale(1)'},{transform:`translate(${dx*.5}px,${dy*.5-80}px) scale(${(1+sc)/2})`,offset:.5},{transform:`translate(${dx}px,${dy}px) scale(${sc})`}],{duration:700,easing:'cubic-bezier(.2,.8,.2,1)'});
+      an.onfinish=()=>{g.remove();done();};}catch(e){done();}
+  };
+  const end=()=>{
+    S.scores.packLast=stars;S.scores.packBest=Math.max(S.scores.packBest||0,stars);save();sfx.win();confetti();say('Great job!');stamp('pack');
+    app.innerHTML=`<div class="view">${head('便當完成！Your lunch box is ready!','')}
+    <div class="panel center"><div class="lunchbox pop"><div class="lb-in">${slots()}</div></div>
+      <div class="hud" style="justify-content:center"><span>星星 <b>${stars}</b> / ${ROUNDS*3}</span><span>最高 <b>${S.scores.packBest}</b></span></div>
+      <p>現在換你說。點一句，跟著念：</p>
+      <div class="menu-list">${packed.map(w=>`<button class="menu-item" data-say="${esc(sentence(w))}">${pic(w,'chip')}<span>${esc(sentence(w))}</span><span style="margin-left:auto">🔊</span></button>`).join('')}</div>
+      <div class="row center"><button class="btn primary" id="pk-re">再裝一次</button><a class="btn" href="#build" style="text-decoration:none;display:inline-flex;align-items:center">下一站 Build It →</a></div>
+    </div></div>`;
+    $$('[data-say]').forEach(b=>b.onclick=()=>say(b.dataset.say));
+    $('#pk-re').onclick=e=>{e.currentTarget.disabled=true;r=0;stars=0;packed.length=0;order=shuffle(ws0).slice(0,ROUNDS);say("Let's go!");later(next,1000);};
+  };
+  start();
+}
+
+/* ---------- party menu (co-learning: one iPad per group of three) ----------
+   Each member brings one food to Ankita's Diwali party. The group picks 3 foods (at least one from India),
+   then decides the right form for "I want some ___." A wrong choice gets a guiding question, not the answer.
+   The finished menu stays on screen for the group-to-group sharing. */
+const INDIA=['naan','curry','samosa'];
+const fromIndia=w=>INDIA.includes((w.en||'').trim().toLowerCase());
+function party(){
+  const ws=words();
+  if(ws.length<3){app.innerHTML=`<div class="view">${head('Party Menu 派對菜單','')}<p class="note">至少要有 3 個單字。請到 <a href="#words">單字設定</a> 加字。</p></div>`;return;}
+  const needIndia=ws.some(fromIndia);
+  const sentence=w=>`I want some ${form(w)}.`;
+  let group=(S.party&&S.party.group)||'';
+  let chosen=[],k=0,first=0,missed=false;
+  const plate=()=>`<div class="lunchbox"><div class="lb-in">${[0,1,2].map(i=>`<div class="pslot ${chosen[i]?'filled':''}">${chosen[i]?pic(chosen[i],'slot'):`<span class="n">${i+1}</span>`}</div>`).join('')}</div></div>`;
+  const pickView=()=>{
+    clearView();
+    const hasIndia=!needIndia||chosen.some(fromIndia);const full=chosen.length===3;
+    const msg=!full?`再選 ${3-chosen.length} 種。Choose ${3-chosen.length} more.`:!hasIndia?'還少一種印度食物。Add one food from India!':'選好了！Ready!';
+    app.innerHTML=`<div class="view">${head('Party Menu 派對菜單','Ankita 的排燈節派對要開始了。三個人一組，一人選一種食物帶去派對，至少一種要是印度食物。')}
+    <div class="row"><b>我們是</b><div class="seg" role="group" aria-label="我們是哪一組">${['A','B'].map(g=>`<button data-g="${g}" aria-pressed="${group===g}">${g} 組</button>`).join('')}</div><span class="muted">點食物會唸出來；再點一次可以取消。</span></div>
+    ${plate()}
+    <p class="feedback ${full&&hasIndia?'good':''}" id="pm-msg" aria-live="polite">${msg}</p>
+    <div class="pm-grid">${ws.map((w,i)=>`<button class="pm-food ${chosen.includes(w)?'on':''}" data-i="${i}" aria-pressed="${chosen.includes(w)}">${fromIndia(w)?'<span class="tag">INDIA</span>':''}${pic(w,'opt')}<span class="lbl">${esc(w.en)}</span></button>`).join('')}</div>
+    <div class="row center"><button class="btn primary big" id="pm-next" ${full&&hasIndia?'':'disabled'}>下一步：說說看 →</button></div>
+    </div>`;
+    $$('.seg [data-g]').forEach(b=>b.onclick=()=>{group=b.dataset.g;pickView();});
+    $$('.pm-food').forEach(b=>b.onclick=()=>{const w=ws[+b.dataset.i];
+      if(chosen.includes(w)){chosen=chosen.filter(x=>x!==w);pickView();return;}
+      if(chosen.length>=3){sfx.bad();$('#pm-msg').textContent='已經 3 種了。先點掉一種，再換別的。';return;}
+      chosen=[...chosen,w];stopVoice();say(w.en);pickView();});
+    $('#pm-next').onclick=()=>{k=0;first=0;formView();};
+  };
+  const formView=()=>{
+    clearView();stopVoice();
+    if(k>=chosen.length)return menuView(true);
+    const w=chosen[k];const good=form(w);const bad=w.count?w.en.trim():w.en.trim()+'s';
+    const opts=good===bad?[good]:shuffle([good,bad]);missed=false;
+    app.innerHTML=`<div class="view">${head('Party Menu 派對菜單','哪一句才對？三個人討論好再點。')}
+    <div class="hud"><span>第 ${k+1}/${chosen.length} 種食物</span><span>輪到第 ${k+1} 位組員點</span></div>
+    <div class="qpic">${pic(w,'q')}</div>
+    <div class="row center" style="flex-direction:column;align-items:stretch;max-width:520px;margin:0 auto;width:100%">${opts.map(o=>`<button class="btn big" data-o="${esc(o)}">I want some ${esc(o)}.</button>`).join('')}</div>
+    <div class="explain" id="pm-fb" hidden></div></div>`;
+    later(()=>say(w.en),300);
+    $$('[data-o]').forEach(b=>b.onclick=()=>{
+      const fb=$('#pm-fb');fb.hidden=false;
+      if(b.dataset.o!==good){
+        missed=true;sfx.bad();b.disabled=true;b.classList.add('bad','shake');setFace($('.qpic'),w,'flat');
+        fb.innerHTML=`<p class="feedback">🤔 Can you count it? 數得出來嗎？</p>`+(w.count
+          ?`<div class="pm-many" aria-hidden="true">${pic(w,'many')}${pic(w,'many')}${pic(w,'many')}</div><p>${esc(w.en)} 可以一個、兩個、三個數。派對上要帶很多個，字尾要怎麼變？再選一次。</p>`
+          :`<p>${esc(w.en)} 沒辦法一個、兩個數。這種字要加 s 嗎？再選一次。</p>`);
+        later(()=>say('Can you count it?'),250);
+        return;
+      }
+      if(!missed)first++;
+      stopVoice();sfx.good();$$('[data-o]').forEach(x=>x.disabled=true);b.classList.add('good');setFace($('.qpic'),w,'open');
+      const sn=sentence(w);const last=k+1>=chosen.length;
+      fb.innerHTML=`<p class="feedback good">✅ ${missed?'改對了！':'第一次就對了！'}</p><p>${rule(w)}</p><p class="say">${esc(sn)}</p>
+        <p class="muted">三個人一起唸一次，再按下一步。</p>
+        <div class="row center"><button class="btn" id="pm-say">🔊 聽一次</button>${slowBtn('pm-slow')}<button class="btn primary" id="pm-go">${last?'看我們的菜單 →':'下一種 →'}</button></div>`;
+      $('#pm-say').onclick=()=>say(sn);$('#pm-slow').onclick=()=>say(sn,{slow:true});$('#pm-go').onclick=()=>{k++;formView();};
+      later(()=>say(sn),450);
+    });
+  };
+  const menuView=isNew=>{
+    clearView();
+    if(isNew){S.party={group,foods:chosen.map(w=>w.en),first};S.scores.partyFirst=first;S.scores.partyTotal=chosen.length;save();sfx.win();confetti();stamp('party');later(()=>say('Great job!'),300);}
+    const title=group?`Group ${group}’s Party Menu`:'Our Party Menu';
+    app.innerHTML=`<div class="view">${head('🎉 '+esc(title),'這是我們要帶去 Ankita 排燈節派對的食物。')}
+    <div class="panel center">${plate()}
+      <div class="menu-list">${chosen.map((w,i)=>`<button class="menu-item" data-say="${esc(sentence(w))}"><span class="pm-no">${i+1}</span>${pic(w,'chip')}<span>${esc(sentence(w))}</span><span style="margin-left:auto">🔊</span></button>`).join('')}</div>
+      <p class="muted">第一次就選對：${first}/${chosen.length}</p>
+    </div>
+    <section class="panel"><h2>互學：唸給另一組聽</h2>
+      <p>把 iPad 舉起來，一人唸一句。聽的那一組回答：</p>
+      <p class="pm-reply">Yummy! I like your ___.</p>
+      <p class="muted">把 ___ 換成你聽到的食物，例如 ${esc(form(chosen[0]))}。</p></section>
+    <div class="row center"><button class="btn" id="pm-again">重新選一次</button><a class="btn" href="#home" style="text-decoration:none;display:inline-flex;align-items:center">回首頁</a></div>
+    </div>`;
+    $$('[data-say]').forEach(b=>b.onclick=()=>say(b.dataset.say));
+    $('#pm-again').onclick=()=>{chosen=[];first=0;pickView();};
+  };
+  /* a finished menu survives a reload or a sleeping iPad */
+  const saved=S.party&&Array.isArray(S.party.foods)?S.party.foods.map(en=>ws.find(w=>w.en===en)).filter(Boolean):[];
+  if(saved.length===3){chosen=saved;first=+S.party.first||0;menuView(false);}else pickView();
+}
+
+/* ---------- speed round ---------- */
+function speed(){
+  const ws=words();
+  if(!ws.length){app.innerHTML=`<div class="view">${head('Speed Round 快問快答','')}<p class="note">請先到 <a href="#words">單字設定</a> 加字。</p></div>`;return;}
+  const LIMIT=10,C=276.46;let cur=null,run=0;
+  const grp=n=>n%2?'A':'B';
+  app.innerHTML=`<div class="view speedv">
+   ${head('Speed Round 快問快答','抽一位同學，10 秒內說出這一句。說對老師按 ✓，所屬組別 +1；時間到會自動念出示範句，全班跟著唸。')}
+   <div class="stage speedstage">
+     <div class="seatbadge" id="sr-seat" aria-live="polite">? 號</div>
+     <div class="stage-pic" id="sr-pic">${pic(null,'stage')}</div>
+     <div class="frame" id="sr-frame" aria-live="polite">Ready?</div>
+     <div class="ringwrap"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="rbg" cx="50" cy="50" r="44"/><circle class="rfg" id="sr-ring" cx="50" cy="50" r="44"/></svg><span id="sr-sec">${LIMIT}</span></div>
+   </div>
+   <div class="row center"><button class="btn primary big" id="sr-draw">🎲 抽一位 <kbd>空白</kbd></button><button class="btn good" id="sr-ok" disabled>✓ 說對了 +1 <kbd>1</kbd></button><button class="btn bad" id="sr-no" disabled>✗ 再練 <kbd>2</kbd></button><button class="btn" id="sr-say" disabled>🔊 示範句</button></div>
+   <section class="panel"><h2>每位同學的開口次數</h2><div class="sr-board" id="sr-board"></div><p class="muted">輪到次數最少的同學會先被抽到，每人都有機會開口。缺席的座號請在「教師工具」點掉。</p></section>
+  </div>`;
+  const board=()=>{$('#sr-board').innerHTML=[1,2,3,4,5,6].map(n=>{const x=S.speed[n]||{ok:0,t:0};const off=S.absent.includes(n);
+    return `<div class="sr-seat ${off?'off':''} ${cur&&cur.seat===n&&!cur.done?'now':''}"><span class="muted">${n} 號・${grp(n)} 組${off?'（缺席）':''}</span><b>✓ ${x.ok} / ${x.t}</b></div>`;}).join('');};
+  const setBtns=active=>{$('#sr-ok').disabled=!active;$('#sr-no').disabled=!active;$('#sr-say').disabled=!cur;$('#sr-draw').disabled=active;};
+  const reveal=()=>{if(!cur)return;$('#sr-frame').textContent=cur.sentence;};
+  const timeUp=()=>{if(!cur||cur.done)return;const c=cur;beep();reveal();later(()=>{if(cur===c)say(c.sentence);},600);};
+  const countdown=()=>{const id=++run;const t0=Date.now();const ring=$('#sr-ring');ring.classList.remove('low');ring.style.transition='none';ring.style.strokeDashoffset='0';void ring.getBoundingClientRect();ring.style.transition='';
+    const tick=()=>{if(id!==run||!cur||cur.done)return;const left=Math.max(0,LIMIT-(Date.now()-t0)/1000);$('#sr-sec').textContent=Math.ceil(left);
+      ring.style.strokeDashoffset=String(C*(1-left/LIMIT));ring.classList.toggle('low',left<=3);if(left<=3&&left>0&&Math.ceil(left)!==cur.lastTick){cur.lastTick=Math.ceil(left);sfx.tick();}
+      if(left<=0){timeUp();return;}later(tick,200);};tick();};
+  const draw=()=>{
+    if(cur&&!cur.done)return;
+    const present=[1,2,3,4,5,6].filter(n=>!S.absent.includes(n));
+    if(!present.length){$('#sr-frame').textContent='全部標成缺席了';return;}
+    const cnt=n=>(S.speed[n]&&S.speed[n].t)||0;const min=Math.min(...present.map(cnt));
+    const seat=pick(present.filter(n=>cnt(n)===min));
+    const goal=ws.filter(w=>S.boxes[w.en]===1);const w=(goal.length&&Math.random()<.6)?pick(goal):pick(ws);
+    const like=Math.random()<.5;const frame=like?'I like':'I want some';
+    cur={seat,w,sentence:`${frame} ${form(w)}.`,done:false,lastTick:0};
+    $('#sr-seat').textContent=`${seat} 號・${grp(seat)} 組`;
+    $('#sr-pic').innerHTML=pic(w,'stage');$('#sr-pic').classList.remove('pop');void $('#sr-pic').offsetWidth;$('#sr-pic').classList.add('pop');
+    $('#sr-frame').textContent=`${frame} ___.`;sfx.tick();setBtns(true);board();countdown();
+  };
+  const mark=ok=>{
+    if(!cur||cur.done)return;cur.done=true;run++;const c=cur;
+    const x=S.speed[c.seat]||(S.speed[c.seat]={ok:0,t:0});x.t++;if(ok)x.ok++;
+    if(ok){const g=c.seat%2?0:1;S.groups[g]=(S.groups[g]||0)+1;sfx.good();setFace($('#sr-pic'),c.w,'open');later(praise,250);later(()=>{if(cur===c)say(c.sentence);},1100);}
+    else{sfx.bad();setFace($('#sr-pic'),c.w,'flat');later(()=>{if(cur===c)say(c.sentence,{slow:true});},450);}
+    reveal();save();setBtns(false);board();
+  };
+  $('#sr-draw').onclick=draw;$('#sr-ok').onclick=()=>mark(true);$('#sr-no').onclick=()=>mark(false);
+  $('#sr-say').onclick=()=>cur&&say(cur.sentence);
+  viewKeys=e=>{if(e.key===' '){e.preventDefault();if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();draw();}
+    else if(e.key==='1')mark(true);else if(e.key==='2')mark(false);};
+  keepAwake(true);board();
+}
+
+/* ---------- impostor ---------- */
+function makeImpostor(){
+  const w=pick(words());const like=Math.random()<.5;const frame=like?['I','like']:['I','want','some'];
+  const good=[...frame,form(w)];
+  const ok={tokens:good,bad:-1,w,good,why:'整句都對，沒有內鬼！'};
+  if(Math.random()<.25)return ok;
+  if(w.count){
+    if(form(w)===w.en.trim())return ok;
+    return {tokens:[...frame,w.en.trim()],bad:frame.length,w,good,why:`內鬼是 ${esc(w.en)}：${rule(w)}`};
+  }
+  if(like){const a=art(w.en);return {tokens:['I','like',a,w.en.trim()],bad:2,w,good,why:`內鬼是 ${a}：${rule(w)}`};}
+  return {tokens:[...frame,w.en.trim()+'s'],bad:3,w,good,why:`內鬼是 ${esc(w.en)}s：${rule(w)}`};
+}
+function impostor(){
+  const ROUNDS=8;let r=0,pts=0,item=null;
+  if(!words().length){app.innerHTML=`<div class="view">${head('Impostor 抓內鬼','')}<p class="note">請先到 <a href="#words">單字設定</a> 加字。</p></div>`;return;}
+  const round=()=>{
+    clearView();stopVoice();
+    if(r>=ROUNDS)return end();
+    r++;item=makeImpostor();if(r===1)say('Find the impostor!');
+    app.innerHTML=`<div class="view">${head('Impostor 抓內鬼','每句最多一個內鬼：多了 a／an，或 -s 用錯。點那個字把它丟出去；整句都對就按「沒有內鬼」。')}
+    <div class="hud"><span>第 ${r}/${ROUNDS} 句</span><span>抓對 <b>${pts}</b></span></div>
+    <div class="qpic">${pic(item.w,'q')}</div>
+    <div class="tokens">${item.tokens.map((t,i)=>`<button class="tok" data-i="${i}">${esc(t)}</button>`).join('')}<span class="dot">.</span></div>
+    <div class="row center"><button class="btn good" id="i-none">✅ 沒有內鬼</button></div>
+    <div class="explain" id="i-fb" hidden></div></div>`;
+    $$('.tok').forEach(b=>b.onclick=()=>pickIt(+b.dataset.i));
+    $('#i-none').onclick=()=>pickIt(-1);
+  };
+  const pickIt=i=>{
+    const right=i===item.bad;if(right)pts++;right?sfx.good():sfx.bad();setFace($('.qpic'),item.w,right?'open':'flat');
+    $$('.tok').forEach((b,k)=>{b.disabled=true;if(k===item.bad)b.classList.add('impostor');if(k===i&&!right)b.classList.add('miss');});
+    $('#i-none').disabled=true;
+    const sentence=item.good.join(' ')+'.';
+    const fb=$('#i-fb');fb.hidden=false;
+    fb.innerHTML=`<p class="feedback ${right?'good':'bad'}">${right?'✅ 判斷正確！':'❌ 再看一次'}</p><p>${item.why}</p>
+      <p class="say">${esc(sentence)}</p><div class="row center"><button class="btn" id="i-say">🔊 聽正確句子</button>${slowBtn('i-slow')}<button class="btn primary" id="i-next">${r>=ROUNDS?'看結果':'下一句 →'}</button></div>`;
+    $('#i-say').onclick=()=>say(sentence);$('#i-slow').onclick=()=>say(sentence,{slow:true});$('#i-next').onclick=round;later(()=>say(sentence),450);
+  };
+  const end=()=>{
+    S.scores.impostorLast=pts;save();if(pts>=6){sfx.win();confetti();stamp('impostor');}
+    app.innerHTML=`<div class="view">${head('Impostor 結果','')}<div class="panel center"><p class="big-emoji">🕵️</p>
+      <div class="hud" style="justify-content:center"><span>抓對 <b>${pts}/${ROUNDS}</b></span></div>
+      <p>記住：數得出來的字加 -s（apples）；數不出來的字不加 a、不加 -s（rice）。</p>
+      <div class="row center"><button class="btn primary" id="i-re">再玩一次</button><a class="btn" href="#check" style="text-decoration:none;display:inline-flex;align-items:center">下一站 Check →</a></div></div></div>`;
+    $('#i-re').onclick=()=>{r=0;pts=0;round();};
+  };
+  round();
+}
+
+/* ---------- build it ---------- */
+function makeBuild(){
+  const w=pick(words());const like=Math.random()<.5;const frame=like?['I','like']:['I','want','some'];
+  const ans=[...frame,form(w)];const wrong=w.count?w.en.trim():w.en.trim()+'s';
+  const extra=[art(form(w))];if(wrong!==form(w))extra.push(wrong);
+  const tiles=shuffle([...ans,...extra]).map((t,id)=>({t,id}));
+  return {w,like,ans,tiles,zh:like?`我喜歡${w.zh}。`:`我想要一些${w.zh}。`};
+}
+function build(){
+  const ROUNDS=6;let r=0,ok=0,item=null,picked=[],done=false;
+  if(!words().length){app.innerHTML=`<div class="view">${head('Build It 組句子','')}<p class="note">請先到 <a href="#words">單字設定</a> 加字。</p></div>`;return;}
+  const round=()=>{clearView();stopVoice();if(r>=ROUNDS)return end();r++;item=makeBuild();picked=[];done=false;if(r===1)say('Build the sentence!');render();};
+  const render=()=>{
+    const left=item.tiles.filter(x=>!picked.includes(x.id));
+    app.innerHTML=`<div class="view">${head('Build It 組句子','看圖和中文，點字卡排出英文句子。有些字卡是陷阱，不一定全部用到。')}
+    <div class="hud"><span>第 ${r}/${ROUNDS} 句</span><span>答對 <b>${ok}</b></span></div>
+    <div class="qpic">${pic(item.w,'q')}</div><p class="prompt">${esc(item.zh)}</p>
+    <div class="slot" id="b-slot">${picked.length?picked.map(id=>`<button class="tok" data-out="${id}">${esc(item.tiles[id].t)}</button>`).join('')+'<span class="dot">.</span>':'<span class="hint">點下面的字卡放到這裡</span>'}</div>
+    <div class="tray">${left.map(x=>`<button class="tok" data-in="${x.id}">${esc(x.t)}</button>`).join('')}</div>
+    <div class="row center"><button class="btn ghost" id="b-clear">清除</button><button class="btn primary" id="b-check" ${picked.length?'':'disabled'}>檢查</button></div>
+    <div class="explain" id="b-fb" hidden></div></div>`;
+    if(done)return;
+    $$('[data-in]').forEach(b=>b.onclick=()=>{picked.push(+b.dataset.in);sfx.tick();render();});
+    $$('[data-out]').forEach(b=>b.onclick=()=>{picked=picked.filter(id=>id!==+b.dataset.out);render();});
+    $('#b-clear').onclick=()=>{picked=[];render();};
+    $('#b-check').onclick=check;
+  };
+  const check=()=>{
+    done=true;const mine=picked.map(id=>item.tiles[id].t).join(' ');const goal=item.ans.join(' ');const right=mine===goal;if(right)ok++;right?sfx.good():sfx.bad();setFace($('.qpic'),item.w,right?'open':'flat');
+    $$('.tok').forEach(b=>b.disabled=true);$('#b-check').disabled=true;$('#b-clear').disabled=true;
+    const fb=$('#b-fb');fb.hidden=false;
+    fb.innerHTML=`<p class="feedback ${right?'good':'bad'}">${right?'✅ 完全正確！':'❌ 差一點'}</p><p>${rule(item.w)}</p><p class="say">${esc(goal)}.</p>
+      <div class="row center"><button class="btn" id="b-say">🔊 聽一次</button>${slowBtn('b-slow')}<button class="btn primary" id="b-next">${r>=ROUNDS?'看結果':'下一句 →'}</button></div>`;
+    $('#b-say').onclick=()=>say(goal);$('#b-slow').onclick=()=>say(goal,{slow:true});$('#b-next').onclick=round;later(()=>say(goal),450);
+  };
+  const end=()=>{
+    S.scores.buildLast=ok;save();if(ok>=5){sfx.win();confetti();stamp('build');}
+    app.innerHTML=`<div class="view">${head('Build It 結果','')}<div class="panel center"><p class="big-emoji">🧱</p>
+      <div class="hud" style="justify-content:center"><span>答對 <b>${ok}/${ROUNDS}</b></span></div>
+      <div class="row center"><button class="btn primary" id="b-re">再玩一次</button><a class="btn" href="#impostor" style="text-decoration:none;display:inline-flex;align-items:center">下一站 Impostor →</a></div></div></div>`;
+    $('#b-re').onclick=()=>{r=0;ok=0;round();};
+  };
+  round();
+}
+
+/* ---------- check (exit ticket) ---------- */
+function makeCheck(){
+  const ws=shuffle(words());const items=[];
+  ws.slice(0,3).forEach(w=>items.push({type:'sort',w}));
+  ws.slice(3).filter(w=>w.en.trim()).slice(0,3).forEach(w=>{
+    const good=`I like ${form(w)}.`;
+    const set=new Set([good,`I like ${w.count?w.en.trim():w.en.trim()+'s'}.`,`I like ${art(form(w))} ${form(w)}.`]);
+    items.push({type:'choice',w,good,opts:shuffle([...set])});
+  });
+  return items;
+}
+function check(){
+  if(words().length<6){app.innerHTML=`<div class="view">${head('Check 離場檢核','')}<p class="note">至少要有 6 個單字。請到 <a href="#words">單字設定</a> 加字。</p></div>`;return;}
+  const items=makeCheck();let k=0,ok=0;
+  const q=()=>{
+    clearView();stopVoice();
+    if(k>=items.length)return end();
+    const it=items[k];const n=k+1;
+    const body=it.type==='sort'
+      ?`<div class="qpic">${pic(it.w,'q')}</div><p class="prompt">${esc(it.w.en)}　Can you count it? 數得出來嗎？</p>
+        <div class="row center"><button class="btn big" data-a="1">數得出來（用複數）</button><button class="btn big" data-a="0">數不出來</button></div>`
+      :`<div class="qpic">${pic(it.w,'q')}</div><p class="prompt">我喜歡${esc(it.w.zh)}。選對的英文句子：</p>
+        <div class="row center" style="flex-direction:column;align-items:stretch;max-width:520px;margin:0 auto;width:100%">${it.opts.map((o,i)=>`<button class="btn big" data-o="${i}">${esc(o)}</button>`).join('')}</div>`;
+    app.innerHTML=`<div class="view">${head('Check 離場檢核','6 題，做完會產生你的結果卡。')}
+      <div class="hud"><span>第 ${n}/${items.length} 題</span></div>${body}<div class="explain" id="k-fb" hidden></div></div>`;
+    if(it.type==='sort')say('Can you count it?');
+    const done=(right,btn,goodBtn)=>{
+      if(right)ok++;right?sfx.good():sfx.bad();setFace($('.qpic'),it.w,right?'open':'flat');$$('[data-a],[data-o]').forEach(b=>b.disabled=true);
+      btn.classList.add(right?'good':'bad');if(goodBtn)goodBtn.classList.add('good');
+      const fb=$('#k-fb');fb.hidden=false;
+      fb.innerHTML=`<p class="feedback ${right?'good':'bad'}">${right?'✅ 對了':'❌ 再想想'}</p><p>${rule(it.w)}</p>
+        <div class="row center"><button class="btn primary" id="k-next">${n>=items.length?'產生結果卡':'下一題 →'}</button></div>`;
+      $('#k-next').onclick=()=>{k++;q();};
+    };
+    if(it.type==='sort'){$$('[data-a]').forEach(b=>b.onclick=()=>{const right=(b.dataset.a==='1')===!!it.w.count;done(right,b,$(`[data-a="${it.w.count?1:0}"]`));});}
+    else{$$('[data-o]').forEach(b=>b.onclick=()=>{const right=it.opts[+b.dataset.o]===it.good;done(right,b,$(`[data-o="${it.opts.indexOf(it.good)}"]`));later(()=>say(it.good),450);});}
+  };
+  const end=()=>{S.scores.checkLast=ok;S.scores.checkTotal=items.length;save();if(ok>=5){sfx.win();confetti();stamp('check');}location.hash='#card';};
+  q();
+}
+
+/* ---------- result card ---------- */
+function card(){
+  const sc=S.scores;const d=new Date();const date=`${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`;
+  const val=(v,t)=>v==null?'—':(t?`${v}/${t}`:v);
+  app.innerHTML=`<div class="view">${head('我的結果卡','填好座號、自評和下一步，拿給老師看。卡片上不放姓名。')}
+  <div class="card">
+    <div class="card-top"><h2>🍱 Lunch Box Lab</h2>
+      <label>座號 <select id="cd-seat">${['','1','2','3','4','5','6'].map(s=>`<option value="${s}" ${S.seat===s?'selected':''}>${s||'選擇'}</option>`).join('')}</select></label>
+      <span>${date}</span></div>
+    <div class="card-body">
+      <div class="stats">
+        <div class="stat"><b>${val(sc.catchBest)}</b><span>Catch 最高分</span></div>
+        <div class="stat"><b>${val(sc.partyFirst,sc.partyTotal||3)}</b><span>Party Menu</span></div>
+        <div class="stat"><b>${sc.packLast!=null?sc.packLast+'★':'—'}</b><span>Pack the Box</span></div>
+        <div class="stat"><b>${val(sc.buildLast,6)}</b><span>Build It</span></div>
+        <div class="stat"><b>${val(sc.impostorLast,8)}</b><span>Impostor</span></div>
+        <div class="stat"><b>${val(sc.checkLast,sc.checkTotal||6)}</b><span>Check</span></div>
+      </div>
+      <h3>今日印章 Stamps　<span class="muted" style="font-size:14px">${Object.keys(S.stamps).length}/${STAMPS.length}</span></h3>
+      <div class="stamps">${STAMPS.map(([k,name,ph,em])=>`<div class="stampwrap"><div class="stamp ${S.stamps[k]?'on':''}" role="img" aria-label="${esc(name)}${S.stamps[k]?'：已拿到':'：還沒拿到'}">${S.stamps[k]?tile(ph,em):'?'}</div><span>${esc(name)}</span></div>`).join('')}</div>
+      <h3>我想再練的字（點選）</h3>
+      <div class="chips" id="cd-words">${words().map(w=>`<button class="chip ${S.mywords.includes(w.en)?'on':''}" data-w="${esc(w.en)}" aria-pressed="${S.mywords.includes(w.en)}">${pic(w,'chip')}${esc(w.en)}</button>`).join('')}</div>
+      <h3>今天的句型我會了嗎？</h3>
+      <div class="row" id="cd-self">${[['✔','會了，可以教別人','good'],['△','大部分會','warn'],['?','還需要幫忙','bad']].map(([k,t,c])=>`<button class="btn ${c} ${S.self===k?'sel':''}" data-s="${k}">${k} ${t}</button>`).join('')}</div>
+      <h3>我的下一步</h3>
+      <div class="row" id="cd-next">${['再玩 Catch 練聽','再玩 Pack the Box 練整句','再玩 Build It 練句子','請組員考我 3 個字'].map(t=>`<button class="btn ${S.next===t?'sel':''}" data-n="${esc(t)}">${esc(t)}</button>`).join('')}</div>
+    </div>
+  </div>
+  <div class="row center"><button class="btn primary" id="cd-copy">📋 複製結果文字</button><a class="btn" href="#home" style="text-decoration:none;display:inline-flex;align-items:center">回首頁</a><button class="btn ghost" id="cd-reset">清除我的分數（換下一位同學）</button></div>
+  <textarea id="cd-text" readonly hidden aria-label="結果文字"></textarea>
+  <p class="muted center" id="cd-msg" aria-live="polite"></p>
+  </div>`;
+  const SELF={'✔':'✔ 會了，可以教別人','△':'△ 大部分會','?':'? 還需要幫忙'};
+  const cardText=()=>[`Lunch Box Lab 結果卡　${date}　座號 ${S.seat||'—'}`,
+    `Catch 最高分 ${val(sc.catchBest)}｜Party Menu ${val(sc.partyFirst,sc.partyTotal||3)}｜Pack the Box ${sc.packLast!=null?sc.packLast+'★':'—'}｜Build It ${val(sc.buildLast,6)}｜Impostor ${val(sc.impostorLast,8)}｜Check ${val(sc.checkLast,sc.checkTotal||6)}`,
+    `印章：${STAMPS.filter(x=>S.stamps[x[0]]).map(x=>x[1]).join('、')||'—'}（${Object.keys(S.stamps).length}/${STAMPS.length}）`,
+    `想再練：${S.mywords.length?S.mywords.join(', '):'—'}`,`自評：${SELF[S.self]||'—'}`,`下一步：${S.next||'—'}`].join('\n');
+  $('#cd-copy').onclick=()=>{const t=cardText();const ta=$('#cd-text');const fallback=()=>{ta.hidden=false;ta.value=t;ta.focus();ta.select();$('#cd-msg').textContent='請長按上面的文字選取，再複製。';};
+    try{navigator.clipboard.writeText(t).then(()=>{$('#cd-msg').textContent='已複製。';ta.hidden=true;},fallback);}catch(e){fallback();}};
+  $('#cd-seat').onchange=e=>{S.seat=e.target.value;save();};
+  $$('#cd-words [data-w]').forEach(b=>b.onclick=()=>{const w=b.dataset.w;S.mywords=S.mywords.includes(w)?S.mywords.filter(x=>x!==w):[...S.mywords,w];save();b.classList.toggle('on');b.setAttribute('aria-pressed',S.mywords.includes(w));});
+  $$('#cd-self [data-s]').forEach(b=>b.onclick=()=>{S.self=b.dataset.s;save();$$('#cd-self .btn').forEach(x=>x.classList.toggle('sel',x===b));});
+  $$('#cd-next [data-n]').forEach(b=>b.onclick=()=>{S.next=b.dataset.n;save();$$('#cd-next .btn').forEach(x=>x.classList.toggle('sel',x===b));});
+  const rs=$('#cd-reset');
+  rs.onclick=()=>{if(rs.dataset.armed){S.scores={};S.stamps={};S.seat='';S.mywords=[];S.self='';S.next='';S.party=null;save();card();}else{rs.dataset.armed='1';rs.textContent='再按一次確認清除';later(()=>{rs.textContent='清除我的分數（換下一位同學）';delete rs.dataset.armed;},4000);}};
+}
+
+/* ---------- teacher ---------- */
+const T=Object.assign({idx:0,left:null,running:false,endAt:0,id:null},(S.timer&&typeof S.timer==='object')?S.timer:{});T.id=null;
+const saveTimer=()=>{S.timer={idx:T.idx,left:T.left,running:T.running,endAt:T.endAt};save();};
+const phaseSec=i=>Math.max(0,Math.round((+S.phases[i].min||0)*60));
+const mmss=s=>`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+/* the remaining time is always computed from the clock, so hidden tabs and reloads cannot make it drift */
+function syncTimer(){
+  if(!T.running)return;
+  if(T.idx>=S.phases.length)T.idx=S.phases.length-1;
+  let changed=false;
+  while(T.running&&Date.now()>=T.endAt){
+    changed=true;
+    if(T.idx<S.phases.length-1){T.idx++;T.endAt+=phaseSec(T.idx)*1000;}else{T.running=false;T.left=0;}
+  }
+  if(T.running)T.left=Math.max(0,Math.ceil((T.endAt-Date.now())/1000));
+  if(changed){beep();saveTimer();}
+}
+function startTicking(){clearInterval(T.id);T.id=setInterval(()=>{syncTimer();paintTimer();if(!T.running)clearInterval(T.id);},500);}
+function tick(){syncTimer();paintTimer();}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){syncTimer();paintTimer();}});
+function paintTimer(){
+  if(T.left==null)T.left=phaseSec(T.idx);
+  const mini=$('#mini');
+  mini.hidden=!T.running;mini.innerHTML=`<span class="mn">${esc(S.phases[T.idx].name)} </span>${mmss(T.left)}`;
+  const c=$('#t-clock');if(!c)return;
+  c.textContent=mmss(T.left);c.classList.toggle('low',T.left<=60);
+  $('#t-name').textContent=S.phases[T.idx].name;$('#t-note').textContent=S.phases[T.idx].note;
+  $('#t-go').textContent=T.running?'⏸ 暫停':'▶ 開始';
+  $$('.ph').forEach((p,i)=>p.classList.toggle('cur',i===T.idx));
+}
+function teacher(){
+  const total=()=>S.phases.reduce((a,p)=>a+(+p.min||0),0);
+  app.innerHTML=`<div class="view">${head('教師工具','一節課 40 分鐘分段計時（每段時間可改）、兩組計分、隨機抽座號。')}
+  <div class="tgrid">
+    <section class="panel timer" aria-label="分段計時">
+      <p class="phase-name" id="t-name"></p><div class="clock" id="t-clock" role="timer"></div><p class="center muted" id="t-note"></p>
+      <div class="row center"><button class="btn primary big" id="t-go"></button><button class="btn" id="t-next">⏭ 下一段</button><button class="btn ghost" id="t-reset">↺ 從頭</button></div>
+      <div class="phases">${S.phases.map((p,i)=>`<div class="ph"><div><b>${esc(p.name)}</b><small>${esc(p.note)}</small></div>
+        <label><span class="muted" style="font-size:13px">分</span> <input id="ph-${i}" type="number" min="0" max="40" value="${+p.min||0}" aria-label="${esc(p.name)} 分鐘"></label></div>`).join('')}</div>
+      <p class="muted" id="t-total"></p>
+    </section>
+    <section class="panel" aria-label="兩組計分"><h2>兩組計分</h2>
+      <div class="groups">${[0,1].map(g=>`<div class="grp"><span>${g?'B':'A'} 組（${g?'2、4、6':'1、3、5'} 號）</span><b id="g-${g}">${S.groups[g]||0}</b><div class="row center"><button class="btn" data-g="${g}" data-d="-1" aria-label="−1，${g?'B':'A'} 組減一分">−1</button><button class="btn primary" data-g="${g}" data-d="1" aria-label="+1，${g?'B':'A'} 組加一分">+1</button></div></div>`).join('')}</div>
+      <button class="btn ghost" id="g-reset">兩組歸零</button>
+    </section>
+    <section class="panel" aria-label="抽座號"><h2>抽座號</h2><p class="muted">A 組 1、3、5 號；B 組 2、4、6 號（異質分組）。點座號可標成缺席。</p>
+      <div class="seats">${[1,2,3,4,5,6].map(n=>`<button class="seat ${S.absent.includes(n)?'off':''}" data-seat="${n}" aria-pressed="${S.absent.includes(n)}">${n}</button>`).join('')}</div>
+      <button class="btn primary" id="s-pick">🎲 抽一位</button><p class="feedback" id="s-out" aria-live="polite">&nbsp;</p>
+    </section>
+    <section class="panel" aria-label="學生開啟"><h2>學生用 iPad 開啟</h2>
+      <div class="qr" role="img" aria-label="Lunch Box Lab 網址的 QR code"><!--QR--></div>
+      <p class="url" id="app-url">${APP_URL}</p>
+      <div class="row center"><button class="btn" id="url-copy">📋 複製網址</button><button class="btn" id="snd-test">🔊 測試這台的聲音</button></div>
+      <p class="muted" id="url-msg">學生要能打開，請先在頁面右上角的分享選單開放這個連結。</p>
+      <p class="muted" id="snd-msg" aria-live="polite"></p>
+    </section>
+  </div></div>`;
+  const showTotal=()=>{const t=total();$('#t-total').textContent=`合計 ${t} 分鐘${t===40?'，剛好一節課。':t>40?`，超過 ${t-40} 分鐘。`:`，還有 ${40-t} 分鐘可用。`}`;};
+  showTotal();paintTimer();keepAwake(true);
+  $('#snd-test').onclick=async()=>{unlock();const m=$('#snd-msg');
+    if(muted){m.textContent='🔇 目前是靜音（右上角 🔊）。先打開聲音再測。';return;}
+    m.textContent='測試中…';try{await decodeAll();}catch(e){}
+    say('Great job!');sfx.good();
+    m.textContent=`有聽到「Great job!」嗎？（聲音狀態：${actx?actx.state:'此瀏覽器沒有 Web Audio'}）沒聽到：先確認 iPad 側邊的靜音開關、音量，再按一次；仍然沒有就換一台。`;};
+  const selUrl=()=>{const r=document.createRange();r.selectNodeContents($('#app-url'));const sel=getSelection();sel.removeAllRanges();sel.addRange(r);$('#url-msg').textContent='網址已選取，請按複製。';};
+  $('#url-copy').onclick=()=>{try{navigator.clipboard.writeText(APP_URL).then(()=>{$('#url-msg').textContent='已複製網址。';},selUrl);}catch(e){selUrl();}};
+  $('#t-go').onclick=()=>{if(T.running){syncTimer();T.running=false;clearInterval(T.id);}else{if(T.left==null||T.left<=0){T.left=phaseSec(T.idx);}T.running=true;T.endAt=Date.now()+T.left*1000;startTicking();}saveTimer();paintTimer();};
+  $('#t-next').onclick=()=>{if(T.idx<S.phases.length-1){T.idx++;T.left=phaseSec(T.idx);if(T.running)T.endAt=Date.now()+T.left*1000;saveTimer();paintTimer();}};
+  $('#t-reset').onclick=()=>{T.running=false;clearInterval(T.id);T.idx=0;T.left=phaseSec(0);saveTimer();paintTimer();};
+  S.phases.forEach((p,i)=>{$('#ph-'+i).onchange=e=>{const oldSec=phaseSec(i);p.min=Math.max(0,Math.min(40,+e.target.value||0));e.target.value=p.min;save();showTotal();
+    if(i===T.idx){if(T.running){T.endAt+=(phaseSec(i)-oldSec)*1000;syncTimer();}else{T.left=phaseSec(i);}saveTimer();}paintTimer();};});
+  $$('[data-g]').forEach(b=>b.onclick=()=>{const g=+b.dataset.g;S.groups[g]=Math.max(0,(S.groups[g]||0)+(+b.dataset.d));save();$('#g-'+g).textContent=S.groups[g];});
+  const gr=$('#g-reset');gr.onclick=()=>{if(gr.dataset.armed){S.groups=[0,0];save();$('#g-0').textContent=0;$('#g-1').textContent=0;gr.textContent='兩組歸零';delete gr.dataset.armed;}else{gr.dataset.armed='1';gr.textContent='再按一次確認歸零';later(()=>{gr.textContent='兩組歸零';delete gr.dataset.armed;},4000);}};
+  $$('[data-seat]').forEach(b=>b.onclick=()=>{const n=+b.dataset.seat;S.absent=S.absent.includes(n)?S.absent.filter(x=>x!==n):[...S.absent,n];save();b.classList.toggle('off');b.setAttribute('aria-pressed',S.absent.includes(n));});
+  $('#s-pick').onclick=()=>{
+    const pool=[1,2,3,4,5,6].filter(n=>!S.absent.includes(n));if(!pool.length){$('#s-out').textContent='全部標成缺席了';return;}
+    const target=pick(pool);let i=0;const steps=reduce?1:14;$('#s-pick').disabled=true;
+    const step=()=>{i++;const n=i<steps?pick(pool):target;$$('.seat').forEach(s=>s.classList.toggle('hit',+s.dataset.seat===n));
+      if(i<steps)later(step,50+i*i*1.5);else{$('#s-out').textContent=`${target} 號（${target%2?'A':'B'} 組）`;$('#s-pick').disabled=false;}};
+    step();
+  };
+}
+
+/* ---------- words ---------- */
+function wordsView(){
+  const preview=w=>w.en&&w.en.trim()?`I like ${esc(form(w))}. ／ I want some ${esc(form(w))}.`:'';
+  const row=(w,i)=>`<tr>
+    <td><input type="text" class="picin" id="w-pic-${i}" value="${esc(w.pic)}" aria-label="第 ${i+1} 個字的圖"></td>
+    <td><input type="text" id="w-en-${i}" value="${esc(w.en)}" aria-label="第 ${i+1} 個字的英文" autocapitalize="off" spellcheck="false"></td>
+    <td><input type="text" id="w-zh-${i}" value="${esc(w.zh)}" aria-label="第 ${i+1} 個字的中文"></td>
+    <td><input type="checkbox" id="w-ct-${i}" ${w.count?'checked':''} aria-label="第 ${i+1} 個字可數"></td>
+    <td><input type="text" id="w-pl-${i}" value="${esc(w.pl)}" ${w.count?'':'disabled'} placeholder="${w.count?esc(autoPlural(w.en)):'不用填'}" aria-label="第 ${i+1} 個字的複數" autocapitalize="off" spellcheck="false"></td>
+    <td><span class="pv" id="w-pv-${i}">${preview(w)}</span></td>
+    <td><button class="btn ghost" data-del="${i}" aria-label="刪除第 ${i+1} 個字">刪除</button></td></tr>`;
+  app.innerHTML=`<div class="view">${head('單字設定','換成英語護照的字。勾選「可數」的字，句子會自動用複數（apple→apples、cherry→cherries、sandwich→sandwiches）；不規則的複數請自己填。改完立刻生效，存在這台裝置。')}
+  ${exampleNote()}
+  <div class="row"><span class="muted">遊戲裡的圖：</span><div class="seg" role="group" aria-label="圖示樣式"><button id="ic-photo" aria-pressed="${(S.icons||'photo')==='photo'}">實物照片</button><button id="ic-clay" aria-pressed="${S.icons==='clay'}">黏土角色</button><button id="ic-emoji" aria-pressed="${S.icons==='emoji'}">Emoji</button></div><span class="muted">13 個護照字都有實物照片；自己新加的字會用下表的 emoji。</span></div>
+  <div class="tablewrap"><table><thead><tr><th>圖</th><th>英文（單數）</th><th>中文</th><th>可數</th><th>複數</th><th>句子預覽</th><th><span class="sronly">操作</span></th></tr></thead>
+  <tbody id="w-body">${S.words.map(row).join('')}</tbody></table></div>
+  <div class="row"><button class="btn primary" id="w-add">＋ 新增一個字</button><button class="btn ghost" id="w-reset">恢復護照單字</button><span class="muted" id="w-count"></span></div>
+  <p class="muted">提示：圖可以直接貼 emoji。學生 iPad 和大螢幕是分開存的，換字後請在每台裝置都設定一次，或用同一台大螢幕示範。</p>
+  <details class="panel" id="w-bulk"><summary>一次貼上整份單字表</summary>
+    <p>每行一個字，用逗號隔開：<b>英文, 中文, 圖, 可數(y/n), 複數</b>。圖、可數、複數可以省略或換順序（沒寫 y 就當作不可數）。複數會自動算（cherry→cherries、sandwich→sandwiches），特殊的再自己寫。</p>
+    <p class="muted">例：<code>apple, 蘋果, 🍎, y</code>　<code>rice, 米飯, 🍚, n</code>　<code>noodle, 麵, 🍜, y, noodles</code></p>
+    <textarea id="w-text" spellcheck="false" autocapitalize="off" autocorrect="off" aria-label="單字表"></textarea>
+    <div class="row"><button class="btn" id="w-export">把目前清單放進來</button><button class="btn primary" id="w-append">加到清單後面</button><button class="btn warn" id="w-replace">取代整個清單</button></div>
+    <p id="w-msg" aria-live="polite"></p>
+  </details>
+  </div>`;
+  const count=()=>{$('#w-count').textContent=`目前 ${words().length} 個字（Catch 至少 4 個，Check 至少 6 個）`;};
+  $('#ic-photo').onclick=()=>{S.icons='photo';save();wordsView();};$('#ic-clay').onclick=()=>{S.icons='clay';save();wordsView();};$('#ic-emoji').onclick=()=>{S.icons='emoji';save();wordsView();};
+  count();
+  S.words.forEach((w,i)=>{
+    const upd=()=>{w.pic=$('#w-pic-'+i).value;w.en=$('#w-en-'+i).value;w.zh=$('#w-zh-'+i).value;w.count=$('#w-ct-'+i).checked;w.pl=$('#w-pl-'+i).value;
+      S.example=false;save();const pl=$('#w-pl-'+i);pl.disabled=!w.count;pl.placeholder=w.count?autoPlural(w.en):'不用填';$('#w-pv-'+i).innerHTML=preview(w);count();};
+    ['pic','en','zh','pl'].forEach(k=>$(`#w-${k}-${i}`).oninput=upd);$('#w-ct-'+i).onchange=upd;
+  });
+  $$('[data-del]').forEach(b=>b.onclick=()=>{S.words.splice(+b.dataset.del,1);S.example=false;save();wordsView();});
+  $('#w-add').onclick=()=>{S.words.push({pic:'🍽️',en:'',zh:'',count:false,pl:''});save();wordsView();const i=S.words.length-1;const el=$('#w-en-'+i);if(el){el.focus();}};
+  const rs=$('#w-reset');
+  rs.onclick=()=>{if(rs.dataset.armed){S.words=DEFAULT_WORDS.map(w=>({...w}));S.example=false;save();wordsView();}else{rs.dataset.armed='1';rs.textContent='再按一次確認恢復';later(()=>{rs.textContent='恢復護照單字';delete rs.dataset.armed;},4000);}};
+  const msg=(t,bad)=>{const m=$('#w-msg');m.textContent=t;m.className=bad?'errs':'muted';};
+  $('#w-export').onclick=()=>{$('#w-text').value=words().map(w=>[w.en.trim(),(w.zh||'').replace(/[,，]/g,'、'),w.pic,w.count?'y':'n',w.count?form(w):''].filter((x,i)=>i<4||x).join(', ')).join('\n');msg('已放入目前的單字，可以直接修改後按「取代整個清單」。');};
+  const parse=()=>{const out=[],errs=[];
+    $('#w-text').value.split(/\r?\n/).forEach((line,n)=>{if(!line.trim())return;
+      const f=line.split(/[,，\t]/).map(x=>x.trim());
+      if(!/^[A-Za-z][A-Za-z '\-]*$/.test(f[0]||'')){errs.push(`第 ${n+1} 行的英文「${f[0]||''}」看不懂`);return;}
+      /* after 英文, 中文 the other fields may come in any order and may be left out:
+         a y/n flag, an emoji picture, and an English plural */
+      const YN=/^(y|yes|n|no|1|0|可|可數|不可數|c|u|true|false)$/i,YES=/^(y|yes|1|可|可數|c|true)$/i;
+      const CJK=/[\u3400-\u9fff]/;
+      const hasZh=f[1]&&CJK.test(f[1])&&!YN.test(f[1]);
+      const rest=f.slice(hasZh?2:1).filter(Boolean);
+      const flag=rest.find(x=>YN.test(x));
+      const pic=rest.find(x=>!YN.test(x)&&/[^\x00-\x7F]/.test(x)&&!CJK.test(x))||'🍽️';
+      const pl=rest.find(x=>!YN.test(x)&&/^[A-Za-z][A-Za-z '\-]*$/.test(x))||'';
+      const c=flag?YES.test(flag):!!pl;
+      out.push({en:f[0],zh:hasZh?f[1]:'',pic,count:c,pl:c?pl:''});});
+    return {out,errs};};
+  const apply=mode=>{const {out,errs}=parse();if(errs.length){msg(errs.join('；')+'。請修正後再按一次。',true);return;}
+    if(!out.length){msg('沒有讀到任何單字。',true);return;}
+    const seen=new Set(mode==='replace'?[]:S.words.map(w=>(w.en||'').trim().toLowerCase()).filter(Boolean));let dup=0;
+    const add=out.filter(w=>{const k=(w.en||'').trim().toLowerCase();if(k&&seen.has(k)){dup++;return false;}seen.add(k);return true;});
+    S.words=mode==='replace'?add:[...S.words,...add];
+    S.example=false;save();wordsView();
+    $('#w-bulk').open=true;msg(`已${mode==='replace'?'取代為':'加入'} ${out.length-dup} 個字${dup?`（${dup} 個重複的字已略過）`:''}。`);};
+  $('#w-append').onclick=()=>apply('append');
+  const wr=$('#w-replace');
+  wr.onclick=()=>{if(wr.dataset.armed){delete wr.dataset.armed;wr.textContent='取代整個清單';apply('replace');}else{wr.dataset.armed='1';wr.textContent='再按一次確認取代';later(()=>{wr.textContent='取代整個清單';delete wr.dataset.armed;},4000);}};
+}
+
+/* ---------- evidence: pre vs post Spin rounds ---------- */
+function evidence(){
+  const ws=words();const MK={0:'—',1:'?',2:'△',3:'✔'};
+  const count=src=>{const c={0:0,1:0,2:0,3:0};ws.forEach(w=>c[src[w.en]||0]++);return c;};
+  const pre=count(S.boxes),post=count(S.post),n=ws.length||1;
+  const bar=(c)=>`<div class="ev-bar" role="img" aria-label="✔ ${c[3]}、△ ${c[2]}、? ${c[1]}、未轉到 ${c[0]}">${[3,2,1,0].map(b=>c[b]?`<span class="s${b}" style="width:${c[b]/n*100}%">${MK[b]} ${c[b]}</span>`:'').join('')}</div>`;
+  const both=ws.filter(w=>S.boxes[w.en]&&S.post[w.en]);
+  const up=both.filter(w=>S.post[w.en]>S.boxes[w.en]),down=both.filter(w=>S.post[w.en]<S.boxes[w.en]);
+  const stillBox1=ws.filter(w=>S.post[w.en]===1);
+  const pct=(a,b)=>b?Math.round(a/b*100)+'%':'—';
+  const hasPost=ws.some(w=>S.post[w.en]);
+  /* only words that were rated both before and after: how many were "?" before, and are still "?" after */
+  const qB=both.filter(w=>S.boxes[w.en]===1).length,qA=both.filter(w=>S.boxes[w.en]===1&&S.post[w.en]===1).length;
+  const celebrate=both.length>=Math.min(3,ws.length)&&qB>qA&&up.length>down.length;
+  const present6=[1,2,3,4,5,6].filter(n=>!S.absent.includes(n));const spoke=present6.filter(n=>(S.speed[n]||{}).t>0);
+  app.innerHTML=`<div class="view">${head('學習證據','比較 Spin 的課前定標和課後再測：每個字從 ? → △ → ✔ 的變化，加上兩組得分。給觀課、議課時說明「學習被看見」。')}
+  ${celebrate?`<section class="panel celebrate pop"><p class="big-emoji">🎉</p><h2>全班進步了！Great job!</h2><p>前後都測過的 ${both.length} 個字裡，課前有 <b>${qB}</b> 個「?」，${qA?`課後只剩 <b>${qA}</b> 個`:'課後<b>全部</b>不再是「?」'}。</p></section>`:''}
+  ${hasPost?'':'<p class="note">還沒有課後資料。下課前到 <a href="#spin">Spin</a> 切到「課後再測」，再轉一輪。</p>'}
+  <div class="ev-grid">
+    <section class="panel"><h2>課前定標</h2>${bar(pre)}<p class="muted">✔ 會了 ${pct(pre[3],ws.length)}（${pre[3]}/${ws.length}）</p></section>
+    <section class="panel"><h2>課後再測</h2>${bar(post)}<p class="muted">✔ 會了 ${pct(post[3],ws.length)}（${post[3]}/${ws.length}）</p></section>
+  </div>
+  <div class="ev-grid">
+    <section class="panel"><span class="bignum">${up.length}<small style="font-size:20px"> / ${both.length}</small></span><p>前後都轉到的字裡，往上升一格以上的字</p></section>
+    <section class="panel"><span class="bignum">${stillBox1.length}</span><p>課後仍在 Box 1（下一節的目標字）${stillBox1.length?'：'+stillBox1.map(w=>esc(w.en)).join('、'):''}</p></section>
+  </div>
+  <div class="ev-table"><table><thead><tr><th>字</th><th>課前</th><th>課後</th><th>變化</th></tr></thead><tbody>
+  ${ws.map(w=>{const a=S.boxes[w.en]||0,b=S.post[w.en]||0;const ch=a&&b?(b>a?'<span class="up">⬆ 進步</span>':b<a?'<span class="down">⬇ 退步</span>':'持平'):(!a&&!b?'<span class="muted">沒轉到</span>':'<span class="muted">只轉到一次</span>');
+    return `<tr><td>${pic(w,'chip')}${esc(w.en)}</td><td><span class="mk b${a}">${MK[a]}</span></td><td><span class="mk b${b}">${MK[b]}</span></td><td>${ch}</td></tr>`;}).join('')}
+  </tbody></table></div>
+  <section class="panel"><h2>每位同學的口說（Speed Round）</h2>
+    <div class="ev-table"><table><thead><tr><th>座號</th><th>組別</th><th>輪到</th><th>說對</th></tr></thead><tbody>
+    ${[1,2,3,4,5,6].map(n=>{const x=S.speed[n]||{ok:0,t:0};return `<tr><td>${n} 號${S.absent.includes(n)?'（缺席）':''}</td><td>${n%2?'A':'B'}</td><td>${x.t}</td><td>${x.ok}</td></tr>`;}).join('')}
+    </tbody></table></div>
+    <p>${spoke.length===present6.length&&present6.length?'✓ 每位出席的同學都至少開口說了一次。':'還有同學沒輪到：'+present6.filter(n=>!((S.speed[n]||{}).t)).join('、')+' 號。'}</p></section>
+  <section class="panel"><h2>兩組得分</h2><p>A 組 <b>${S.groups[0]||0}</b> 分　B 組 <b>${S.groups[1]||0}</b> 分</p></section>
+  <div class="row"><button class="btn primary" id="ev-copy">📋 複製文字摘要（貼到觀課紀錄）</button></div>
+  <textarea id="ev-text" readonly hidden aria-label="摘要文字"></textarea><p class="muted" id="ev-msg" aria-live="polite"></p>
+  <p class="muted">這些資料只存在這一台裝置（建議用大螢幕電腦轉 Spin）。</p>
+  </div>`;
+  if(celebrate){const key=`${qB}/${qA}/${both.length}/${up.length}`;let seen=null;try{seen=sessionStorage.getItem('lbl.cel');}catch(e){}
+    if(seen!==key){try{sessionStorage.setItem('lbl.cel',key);}catch(e){}sfx.win();later(confetti,200);}}
+  const d=new Date();
+  const text=[`Lunch Box Lab 學習證據　${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`,
+    `課前：✔ ${pre[3]}、△ ${pre[2]}、? ${pre[1]}、未轉到 ${pre[0]}（共 ${ws.length} 字）`,
+    `課後：✔ ${post[3]}、△ ${post[2]}、? ${post[1]}、未轉到 ${post[0]}`,
+    `進步的字：${up.length?up.map(w=>`${w.en}（${MK[S.boxes[w.en]]}→${MK[S.post[w.en]]}）`).join('、'):'—'}`,
+    `退步的字：${down.length?down.map(w=>`${w.en}（${MK[S.boxes[w.en]]}→${MK[S.post[w.en]]}）`).join('、'):'—'}`,
+    `? 的字（前後都測過的 ${both.length} 字）：課前 ${qB} → 課後 ${qA}`,
+    `課後仍在 Box 1：${stillBox1.length?stillBox1.map(w=>w.en).join('、'):'—'}`,
+    `口說：${[1,2,3,4,5,6].map(n=>{const x=S.speed[n]||{ok:0,t:0};return `${n}號 ✓${x.ok}/${x.t}`;}).join('、')}`,
+    `兩組得分：A 組 ${S.groups[0]||0}、B 組 ${S.groups[1]||0}`].join('\n');
+  $('#ev-copy').onclick=()=>{const ta=$('#ev-text');const fb=()=>{ta.hidden=false;ta.value=text;ta.focus();ta.select();$('#ev-msg').textContent='請選取上面的文字再複製。';};
+    try{navigator.clipboard.writeText(text).then(()=>{$('#ev-msg').textContent='已複製。';ta.hidden=true;},fb);}catch(e){fb();}};
+}
+
+/* ---------- guide (for Ankita and the co-teacher) ---------- */
+function guide(){
+  const P=S.phases;const m=i=>P[i]?`${+P[i].min||0} 分`:'';
+  const rows=[
+    [0,'Ankita 的簡報（大螢幕）','Ankita：Where is India? What is Diwali? Say it with me.','中師切換簡報、遞實物，觀察學生反應。'],
+    [1,'Spin（大螢幕）','中師：Here is our mission. Bring food to Ankita’s Diwali party! Say it with me.','開 Spin 按 ⛶ 全螢幕。轉 4 個字，全班唸兩次，按 ✔ △ ? 分盒子。'],
+    [2,'Catch（每人一台 iPad）＋英語護照 p.27','中師：Listen and catch. Then color a star for each word you can say.','巡 iPad 確認有聲音。Ankita 到學生旁邊聽發音。做完在護照塗星星。'],
+    [3,'Party Menu（一組一台 iPad）','中師：Work with your group. Choose three foods. One from India.','選錯時畫面會問 Can you count it?，請學生自己再想，老師先不給答案。'],
+    [4,'Party Menu 的菜單畫面','中師：Group A, please share. Group B, say: Yummy! I like your ___.','兩組舉起 iPad，一人唸一句。Ankita 當派對主人回答 Thank you!'],
+    [5,'Impostor（大螢幕）','中師：Find the impostor! One apple, two apples. Rice? No s.','大螢幕全班一起抓 2 句。中文一句規則。交棒：Ankita, they’re ready for your game!'],
+    [6,'Ankita 的簡報 Quiz（大螢幕）','Ankita：Quiz time! … Tell me: I want some ___!','切回 Ankita 簡報 25–35 頁。每人對 Ankita 說一句才下課。']
+  ];
+  app.innerHTML=`<div class="view">${head('使用說明 Teacher guide','Ankita 全英語主教 25 分鐘（簡報 20＋遊戲 5），中師用四學帶 15 分鐘。下表是每一段用哪一站、說哪一句，時間跟著「教師工具」裡設定的分鐘數。')}
+  <div class="guide" tabindex="0" role="region" aria-label="教學流程表"><table><thead><tr><th>時段 Phase</th><th>用哪一站 Station</th><th>英文提示句</th><th>操作與分工</th></tr></thead><tbody>
+  ${rows.map(([i,st,en,zh])=>`<tr><td><b>${esc(P[i]?P[i].name:'')}</b><br><span class="min">${m(i)}</span></td><td>${esc(st)}</td><td class="en">${esc(en)}</td><td>${esc(zh)}</td></tr>`).join('')}
+  </tbody></table></div>
+  <section class="panel"><h2>The two rules (for Ankita)</h2>
+    <p class="en" style="font-family:var(--display);font-size:18px">Countable food takes <b style="white-space:nowrap">-s</b>: I want some apples. I want some samosas.<br>Uncountable food takes <b style="white-space:nowrap">no a</b> and <b style="white-space:nowrap">no -s</b>: I want some rice. I want some curry.</p>
+    <p class="muted">All thirteen words, both sentence frames and every phrase use recorded ElevenLabs audio; only words you add yourself use the device voice. Tap 🐢 for a slower replay.</p></section>
+  <section class="panel"><h2>上課前檢查</h2>
+    <ul>
+      <li>每台學生 iPad 打開網址，先點一下畫面，再進 Catch 聽一個字，確認有聲音。</li>
+      <li>每組選一台 iPad 做 Party Menu，先在畫面上點好 A 組或 B 組。</li>
+      <li>大螢幕打開 Spin，按 ⛶ 全螢幕；鍵盤空白鍵轉，1／2／3 分盒子。</li>
+      <li>學生開啟：「教師工具」最下面有 QR code，學生用 iPad 相機掃描即可（連結要先在分享選單開放）。</li>
+      <li>「教師工具」的計時已照教案設成 20＋2＋4＋4＋3＋2＋5 分鐘，可以再調整。</li>
+      <li>英語護照翻到 p.27（Level 19），準備色筆塗星星。</li>
+      <li>右上角 🔊 可以關掉所有聲音（例如觀課老師講話時）。</li>
+    </ul></section>
+  </div>`;
+}
+
+/* ---------- router ---------- */
+const VIEWS={home,spin,catch:catchView,party,pack,speed,impostor,build,check,card,teacher,words:wordsView,guide,evidence};
+function route(){
+  clearView();stopVoice();viewKeys=null;
+  let name=(location.hash||'#home').slice(1);if(!Object.prototype.hasOwnProperty.call(VIEWS,name))name='home';
+  curView=name;if(!['spin','teacher','speed'].includes(name))keepAwake(false);
+  $$('#nav a').forEach(a=>{const on=a.getAttribute('href')==='#'+name;a.classList.toggle('on',on);if(on)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
+  VIEWS[name]();paintTimer();window.scrollTo(0,0);
+  const vw=app.querySelector('.view');if(vw)vw.classList.add('enter');
+  const act=$('#nav a.on'),nv=$('#nav');if(act&&nv)nv.scrollLeft=Math.max(0,act.offsetLeft-(nv.clientWidth-act.offsetWidth)/2);
+}
+addEventListener('storage',e=>{
+  if(e.key!==KEY||!e.newValue)return;
+  const fresh2=load();Object.keys(S).forEach(k=>{if(!(k in fresh2))delete S[k];});Object.assign(S,fresh2);delete S.mute;
+  if(S.timer&&typeof S.timer==='object'){const wasRunning=T.running;Object.assign(T,S.timer);if(T.running){syncTimer();if(!wasRunning||!T.id)startTicking();}else{clearInterval(T.id);T.id=null;}}
+  /* re-draw only screens without a game in progress */
+  if(['home','spin','teacher','evidence','words','card','guide'].includes(curView)&&!($('#sp-go')&&$('#sp-go').disabled))route();else paintTimer();
+});
+const muteBtn=$('#mute');
+const paintMute=()=>{muteBtn.textContent=muted?'🔇':'🔊';muteBtn.setAttribute('aria-label',muted?'打開聲音':'關閉聲音');muteBtn.setAttribute('aria-pressed',String(muted));
+  const n=$('#mute-note');if(n)n.hidden=!muted;};
+function setMuted(v){muted=v;try{sessionStorage.setItem('lbl.mute',v?'1':'0');}catch(e){}if(v)stopVoice();paintMute();}
+muteBtn.onclick=()=>setMuted(!muted);
+delete S.mute;
+paintMute();
+addEventListener('hashchange',route);
+if(T.running){syncTimer();if(T.running)startTicking();}
+route();
+})();
+</script>
+

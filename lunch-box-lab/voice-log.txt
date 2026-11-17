@@ -1,0 +1,21 @@
+2026-11-09 15:57 tracker created: hourly trigger, 15 clips missing (cream, hamburger(s), cake, fish, chicken); ElevenLabs credits ~8
+2026-11-09 16:04 Hamburgers. recorded (flash, 5 credits left ~2); composed I like/I want some hamburgers from real fragments; 26/39 clips present
+2026-11-09 16:20 photos integrated (16 Canva photos, default style); review3 fixes applied; published v16
+2026-11-09 16:36 docs synced (zh Docs, B1 en), cards PDF + cheat sheet created, stamps/celebration/sound-test added, v18 published
+2026-11-09 17:12 v19 published: fourth review fixes (icon migration, toast centring, one-time honest celebration, sound test, case-insensitive clips, no-WebP fallback, stamps per lesson); all 9 suites green
+2026-11-09 20:58 v20 published: fixed literal ${ROUNDS} in Pack intro, delete button nowrap, new leaks.js test; 10 suites green
+2026-11-09 20:58 hourly tracker 04:58 Taipei: FULL eleven_v4 rejected, quota 10000 used, 3 credits left, 227 needed; nothing charged; will keep retrying hourly
+2026-11-09 21:05 v21 published: teacher guide table wraps instead of scrolling on iPad widths; leaks.js now also guards sideways scroll; 10 suites green
+2026-11-09 21:11 v22 published: word editing table no longer truncates words on iPad portrait; leaks.js guards truncation; 10 suites green
+2026-11-09 21:18 v23 published: word table fits iPad mini width (744) without sideways scroll or cut words; leaks.js covers 4 viewports; 10 suites green
+2026-11-09 21:57 hourly tracker 05:57 Taipei: FULL eleven_v4 rejected again, 3 credits left of 10000, 227 needed; nothing charged; app unchanged at v23
+2026-11-09 22:57 hourly tracker 06:57 Taipei: FULL eleven_v4 rejected, 3 credits left of 10000, 227 needed; nothing charged; app unchanged at v23
+2026-11-09 23:57 hourly tracker 07:57 Taipei: FULL eleven_v4 rejected, 3 credits left of 10000, 227 needed; nothing charged; app unchanged at v23
+2026-11-10 00:58 hourly tracker 08:57 Taipei 11/10: FULL eleven_v4 rejected, 3 credits left of 10000, 227 needed; nothing charged; app unchanged at v23
+2026-11-10 01:58 hourly tracker 09:57 Taipei 11/10: busy (free generations busy, nothing charged); no retry this run; next hourly run will retry; app unchanged at v23
+2026-11-10 02:57 hourly tracker 10:57 Taipei 11/10: busy (free generations busy, nothing charged); no retry this run; app unchanged at v23
+2026-11-10 03:57 hourly tracker 11:57 Taipei 11/10: FULL eleven_v4 rejected, 3 credits left of 10000, 227 needed; nothing charged; earlier busy replies were not a quota reset; app unchanged at v23
+2026-11-10 04:58 hourly tracker 12:57 Taipei 11/10: ElevenLabs disabled Free Tier access on the account (unusual activity; paid plan required). Nothing charged. Tracker trig_01EaQ8VG1gNLN1gYnXUCjG7v PAUSED (enabled=false) because retries cannot succeed. Re-enable after the account has a paid plan or credits. App unchanged at v23
+2026-11-10 23:59 v24 published: axe accessibility fixes (page lang, contrast, heading level, button names, table header, dark-mode select, focusable scroller), no sideways wiggle while the wheel spins; tests/axe.js added; 11 suites green
+2026-11-11 00:01 tests/nostore.js added (app works when localStorage/sessionStorage throw); WCAG 2.2 target-size clean; app unchanged at v24
+2026-11-17 13:32 v25 (live version 27) published ON TOP OF the Nov 16 lesson-plan-v2/Party Menu version from another session: 15 real-voice clips recorded (cream/hamburger/cake/fish/chicken; transcript-verified, cut points checked), spliced clips retired, all 64 clips loudness-normalised (spread 0.8 dB), voice notes updated, tests/voice.js + Party Menu, soak expects 7 phases; 13 suites green; ElevenLabs Starter used 227+104 credits
