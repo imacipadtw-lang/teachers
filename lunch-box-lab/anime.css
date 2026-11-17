@@ -1,0 +1,67 @@
+/* ===== anime layer: original mascot "Boxy" + manga-style effects. Decorative only (aria-hidden, no pointer events). ===== */
+.mx{position:fixed;left:max(8px,env(safe-area-inset-left,0px));bottom:calc(8px + env(safe-area-inset-bottom,0px));width:clamp(92px,11.5vw,138px);z-index:40;pointer-events:none;user-select:none;-webkit-user-select:none}
+.mx.hide{display:none}
+.mx svg{width:100%;height:auto;display:block;overflow:visible;filter:drop-shadow(0 6px 6px rgba(0,0,0,.18))}
+.mx-bubble{position:absolute;left:68%;bottom:92%;min-width:70px;max-width:190px;background:#fff;color:#24190A;border:3px solid #24190A;border-radius:18px;padding:5px 12px;font:800 clamp(14px,2vw,19px)/1.15 var(--display,system-ui);text-align:center;white-space:nowrap;transform-origin:0 100%;opacity:0;transform:scale(.6);transition:opacity .15s,transform .2s cubic-bezier(.2,.9,.3,1.4)}
+.mx-bubble::after{content:"";position:absolute;left:14px;bottom:-12px;width:14px;height:14px;background:#fff;border-right:3px solid #24190A;border-bottom:3px solid #24190A;transform:rotate(45deg) skew(10deg,10deg)}
+.mx-bubble.on{opacity:1;transform:scale(1)}
+/* character parts */
+.mx .m-all{transform-origin:110px 214px}
+.mx .m-body-g{transform-origin:110px 200px;animation:mBreath 3.4s ease-in-out infinite}
+@keyframes mBreath{0%,100%{transform:scale(1,1)}50%{transform:scale(1.015,1.03)}}
+.mx .m-eyes{animation:mEyes 4.8s infinite}
+.mx .m-eyes-blink{opacity:0;animation:mBlink 4.8s infinite}
+@keyframes mEyes{0%,91%,97%,100%{opacity:1}93%,95%{opacity:0}}
+@keyframes mBlink{0%,91%,97%,100%{opacity:0}93%,95%{opacity:1}}
+.mx .m-ear.l{transform-origin:70px 64px;animation:mEarL 7s ease-in-out infinite}
+.mx .m-ear.r{transform-origin:150px 64px;animation:mEarR 9s ease-in-out infinite}
+@keyframes mEarL{0%,90%,100%{transform:rotate(0)}93%{transform:rotate(-9deg)}96%{transform:rotate(3deg)}}
+@keyframes mEarR{0%,80%,100%{transform:rotate(0)}84%{transform:rotate(9deg)}88%{transform:rotate(-3deg)}}
+.mx .m-arm{transition:transform .25s cubic-bezier(.2,.9,.3,1.3)}
+.mx .m-arm.l{transform-origin:36px 132px}.mx .m-arm.r{transform-origin:184px 132px}
+.mx .m-eyes-star,.mx .m-eyes-oops,.mx .m-mouth.open,.mx .m-mouth.wavy,.mx .m-sweat,.mx .m-sparkles,.mx .m-aura{display:none}
+.mx .m-sparkles .sp{transform-box:fill-box;transform-origin:center;animation:mTwinkle 1s ease-in-out infinite}
+.mx .m-sparkles .sp:nth-child(2){animation-delay:-.3s}.mx .m-sparkles .sp:nth-child(3){animation-delay:-.6s}.mx .m-sparkles .sp:nth-child(4){animation-delay:-.15s}.mx .m-sparkles .sp:nth-child(5){animation-delay:-.45s}
+@keyframes mTwinkle{0%,100%{transform:scale(.3) rotate(0);opacity:.2}50%{transform:scale(1.1) rotate(25deg);opacity:1}}
+/* poses */
+.mx.p-cheer .m-eyes,.mx.p-cheer .m-eyes-blink,.mx.p-win .m-eyes,.mx.p-win .m-eyes-blink{display:none;animation:none}
+.mx.p-cheer .m-eyes-star,.mx.p-win .m-eyes-star{display:block}
+.mx.p-cheer .m-mouth.smile,.mx.p-win .m-mouth.smile,.mx.p-oops .m-mouth.smile{display:none}
+.mx.p-cheer .m-mouth.open,.mx.p-win .m-mouth.open{display:block}
+.mx.p-cheer .m-sparkles,.mx.p-win .m-sparkles{display:block}
+.mx.p-cheer .m-arm.l,.mx.p-win .m-arm.l{transform:rotate(52deg)}
+.mx.p-cheer .m-arm.r,.mx.p-win .m-arm.r{transform:rotate(-52deg)}
+.mx.p-cheer .m-all{animation:mJump .85s cubic-bezier(.3,.7,.4,1) 1}
+@keyframes mJump{0%{transform:scale(1.08,.9)}28%{transform:translateY(-34px) scale(.94,1.1)}55%{transform:translateY(0) scale(1.08,.9)}72%{transform:translateY(-9px) scale(.99,1.03)}100%{transform:translateY(0) scale(1,1)}}
+.mx.p-win .m-all{animation:mDance .9s ease-in-out infinite}
+@keyframes mDance{0%,100%{transform:translateY(0) rotate(-7deg)}25%{transform:translateY(-22px) rotate(0)}50%{transform:translateY(0) rotate(7deg)}75%{transform:translateY(-22px) rotate(0)}}
+.mx.p-oops .m-eyes,.mx.p-oops .m-eyes-blink{display:none;animation:none}
+.mx.p-oops .m-eyes-oops,.mx.p-oops .m-mouth.wavy,.mx.p-oops .m-sweat{display:block}
+.mx.p-oops .m-all{animation:mWobble .7s ease-in-out 1}
+@keyframes mWobble{0%,100%{transform:rotate(0)}15%{transform:rotate(-8deg) translateX(-4px)}35%{transform:rotate(7deg) translateX(4px)}55%{transform:rotate(-5deg)}75%{transform:rotate(3deg)}}
+.mx.p-oops .m-sweat{animation:mSweat .9s ease-in 1}
+@keyframes mSweat{0%{transform:translateY(-8px);opacity:0}30%{opacity:1}100%{transform:translateY(22px);opacity:.1}}
+.mx.p-wave .m-arm.r{animation:mWave .55s ease-in-out 3;transform:rotate(-55deg)}
+@keyframes mWave{0%,100%{transform:rotate(-45deg)}50%{transform:rotate(-80deg)}}
+.mx.fire .m-aura{display:block}
+.mx.fire .m-aura .fl{transform-box:fill-box;transform-origin:50% 100%;animation:mFlame .5s ease-in-out infinite alternate}
+.mx.fire .m-aura .fl:nth-child(2){animation-delay:-.2s}.mx.fire .m-aura .fl:nth-child(3){animation-delay:-.35s}
+@keyframes mFlame{from{transform:scale(.85,.9)}to{transform:scale(1.1,1.15)}}
+/* manga-style effects */
+.fx-burst{position:fixed;left:0;top:0;right:0;bottom:0;z-index:38;pointer-events:none;opacity:0;background:repeating-conic-gradient(from 0deg at 50% 50%,rgba(255,225,120,0) 0deg 5deg,rgba(255,200,60,.5) 5deg 6.6deg);-webkit-mask-image:radial-gradient(circle at 50% 50%,transparent 26%,#000 70%);mask-image:radial-gradient(circle at 50% 50%,transparent 26%,#000 70%)}
+.fx-burst.big{background:repeating-conic-gradient(from 0deg at 50% 50%,rgba(255,120,180,0) 0deg 4deg,rgba(255,110,190,.5) 4deg 5.6deg,rgba(255,225,120,0) 5.6deg 9deg,rgba(255,215,80,.5) 9deg 10.6deg)}
+.fx-pop{position:fixed;z-index:66;pointer-events:none;font:900 clamp(26px,4.6vw,50px)/1 var(--display,system-ui);color:#ffd23f;letter-spacing:.02em;white-space:nowrap;text-shadow:3px 0 #24190A,-3px 0 #24190A,0 3px #24190A,0 -3px #24190A,2px 2px #24190A,-2px 2px #24190A,2px -2px #24190A,-2px -2px #24190A,0 6px 0 rgba(36,25,10,.35)}
+.fx-pop.oops{color:#bfe9ff}
+.fx-star{position:fixed;z-index:65;pointer-events:none;width:22px;height:22px;margin:-11px 0 0 -11px}
+.fx-star svg{width:100%;height:100%;display:block}
+.fx-combo{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 96px);z-index:67;pointer-events:none;transform:translateX(-50%);font:900 clamp(24px,4vw,40px)/1 var(--display,system-ui);color:#fff;background:linear-gradient(90deg,#ff7a18,#ff3d6e);padding:8px 22px;border-radius:999px;border:4px solid #24190A;box-shadow:0 6px 0 rgba(36,25,10,.35);white-space:nowrap}
+
+.fx-seal{position:fixed;left:50%;top:46%;z-index:64;pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:10px;transform:translate(-50%,-50%)}
+.fx-seal-in{width:clamp(150px,22vw,230px);aspect-ratio:1;border-radius:50%;background:#fff6e9;border:7px solid #EFB024;box-shadow:0 0 0 5px #24190A,0 14px 0 rgba(36,25,10,.3),0 0 40px rgba(255,210,63,.8);display:grid;place-items:center;overflow:hidden}
+.fx-seal-in svg,.fx-seal-in img{width:68%;height:68%;object-fit:contain}
+.fx-seal-in .emo{font-size:clamp(60px,10vw,100px)}
+.fx-seal-cap{font:900 clamp(20px,3.4vw,32px)/1 var(--display,system-ui);color:#fff;background:#24190A;padding:8px 20px;border-radius:999px;white-space:nowrap}
+/* collectible look for earned stamps: a slow shine sweeps across them */
+.stamp.on{position:relative}
+.stamp.on::after{content:"";position:absolute;top:0;bottom:0;left:0;right:0;background:linear-gradient(115deg,transparent 36%,rgba(255,255,255,.7) 50%,transparent 64%);transform:translateX(-130%);animation:stShine 3.6s ease-in-out infinite}
+@keyframes stShine{0%,55%{transform:translateX(-130%)}100%{transform:translateX(130%)}}

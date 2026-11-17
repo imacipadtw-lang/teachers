@@ -10,13 +10,47 @@
 - `clips-feedback.js`：鼓勵語與各站開場語 10 段（Great job! … Listen and catch!），同樣已轉文字核對。
 - `segs.json`、`fbsegs.json`：上面兩份錄音的切點（秒）。
 - `qr.svg`：網址 QR code（python `qrcode` 產生，已解碼確認）。
-- `build.py`：把上面組成 `/home/user/lunch-box-lab.html`。
+- `anime.css`、`anime.js`：動漫風的原創吉祥物 Boxy（粉紅便當盒貓耳朵）與漫畫風回饋特效（見下方「動漫風角色與特效」）。`<!--ANIME-->` 是建置時替換的位置。
+- `build.py`：把上面組成 `/home/user/lunch-box-lab.html`（環境變數 `LBL_OUT` 可改輸出位置）。
+- `make_pages.py`：把建置結果包成可放在 GitHub Pages 的完整網頁 `index.html`。
+- `normalize_clips.py`：錄音音量平衡。`voice_tools.py`：錄音嵌入與狀態。`sync_github.sh`：同步到 GitHub。
+- `tests/`：自動測試，`bash tests/run_all.sh`（`LBL_URL` 可改測試的檔案）。
 
 ## 重建
 ```bash
 python3 /home/user/lunch-box-lab-src/build.py
 ```
 然後用 Artifact 工具發布 `/home/user/lunch-box-lab.html`（同一路徑會更新同一網址）。
+
+## 動漫風角色與特效
+- 吉祥物 **Boxy**：原創角色（粉紅便當盒加貓耳朵、大眼睛），不是任何現有作品的角色。SVG 手繪，CSS 動畫：呼吸、眨眼、耳朵抖動；答對時跳起來變星星眼，答錯時冒汗（`> <`），連續答對 3 次起有火焰，過關跳舞，首頁揮手。
+- 特效：答對的漫畫擬聲字（POP! YUM! WOW!…）、星星粒子、集中線爆發、COMBO 橫幅；拿到印章時印章「蓋下來」。答錯只有溫和的 hmm?，不處罰。
+- 接法：`app.html` 的 `sfx.good／bad／win`、`say()`、`stamp()` 各呼叫一次 `window.ANIME`；角色的氣泡只顯示鼓勵語與指令（不顯示單字或題目句，避免破壞「只聽不看字」）。
+- 守則：全部 `aria-hidden`、不接收點擊、不可聚焦；手機寬度（<480px）不顯示；`prefers-reduced-motion` 開啟時不產生任何特效；「教師工具」有一鍵關閉動畫。特效短（約 1 秒）、不擋題目，是依 Mayer 的一致性原則，只做回饋、不增加分心。測試：`tests/anime.js`。
+- 要改角色顏色或表情：改 `anime.js` 裡的 SVG 與 `anime.css` 的姿勢類別（`.p-cheer`、`.p-oops`、`.p-win`、`.p-wave`、`.fire`）。
+
+## 教學理論與素養
+- App 內「使用說明 → 為什麼這樣設計」有完整對照表（活動、素養導向任務、核心素養、理論、學習證據）；這裡放摘要和參考文獻。
+- 素養導向的做法：真實任務（為 Ankita 的排燈節派對準備食物）、學習歷程可見（✔ △ ? 課前課後）、小組合作與口說（Party Menu、菜單分享）、文化理解（印度食物與臺灣食物）、給鷹架不給答案（只問 Can you count it?）、快速溫和的回饋。
+- 間隔重複／提取練習：Spin 標成「? 不熟」和「△」的字，在 Catch 與 Pack the Box 出現的機率較高（權重 3／2／1），其他字照常出現。
+- 課綱核心素養（英-E-A1、B1、C2、C3）的文字，是從各校公開的英語課程計畫轉引的課綱條文，**沒有直接核對教育部原文**（本環境連不到教育部網站）；學習表現編號沒有查到可核對的原文，所以沒有列。正式引用請對照課綱原文。
+- 參考文獻（依作者與年代整理，沒有逐篇重新取得原文，正式引用前請查證）：
+  - Asher, J. J. (1969). The total physical response approach to second language learning. *The Modern Language Journal, 53*(1), 3–17.
+  - Black, P., & Wiliam, D. (1998). Assessment and classroom learning. *Assessment in Education, 5*(1), 7–74.
+  - Deci, E. L., & Ryan, R. M. (2000). The "what" and "why" of goal pursuits. *Psychological Inquiry, 11*(4), 227–268.
+  - Dweck, C. S. (2006). *Mindset: The new psychology of success*. Random House.
+  - Ellis, R. (2003). *Task-based language learning and teaching*. Oxford University Press.
+  - Johnson, D. W., & Johnson, R. T. (1999). *Learning together and alone* (5th ed.). Allyn & Bacon.
+  - Krashen, S. D. (1982). *Principles and practice in second language acquisition*. Pergamon.
+  - Long, M. H. (1991). Focus on form: A design feature in language teaching methodology. In K. de Bot et al. (Eds.), *Foreign language research in cross-cultural perspective* (pp. 39–52). John Benjamins.
+  - Mayer, R. E. (2009). *Multimedia learning* (2nd ed.). Cambridge University Press.
+  - Paivio, A. (1986). *Mental representations: A dual coding approach*. Oxford University Press.
+  - Roediger, H. L., & Karpicke, J. D. (2006). Test-enhanced learning. *Psychological Science, 17*(3), 249–255.
+  - Schmidt, R. W. (1990). The role of consciousness in second language learning. *Applied Linguistics, 11*(2), 129–158.
+  - Um, E., Plass, J. L., Hayward, E. O., & Homer, B. D. (2012). Emotional design in multimedia learning. *Journal of Educational Psychology, 104*(2), 485–498.
+  - Vygotsky, L. S. (1978). *Mind in society*. Harvard University Press.
+  - Willis, J. (1996). *A framework for task-based learning*. Longman.
+  - Wood, D., Bruner, J. S., & Ross, G. (1976). The role of tutoring in problem solving. *Journal of Child Psychology and Psychiatry, 17*(2), 89–100.
 
 ## 補錄新單字（例如英語護照 512–523）
 1. 用 ElevenLabs 同一個聲音（voice_id `hpp4J3VqNfWAUOO0d1Us`）錄「Word. / I like forms. / I want some forms.」，每句空一行。

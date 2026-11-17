@@ -27,8 +27,8 @@ fi
 branch=$(git rev-parse --abbrev-ref HEAD)
 for wait in 0 2 4 8 16; do
   sleep "$wait"
-  if git pull --rebase -q origin "$branch" 2>/dev/null; then
-    if git -c push.negotiate=true push -q -u origin "$branch" 2>/dev/null; then
+  if git pull --rebase --autostash -q origin "$branch"; then
+    if git -c push.negotiate=true push -q -u origin "$branch"; then
       echo "sync_github: pushed to GitHub ($branch) -> https://imacipadtw-lang.github.io/teachers/lunch-box-lab/"; exit 0
     fi
   fi

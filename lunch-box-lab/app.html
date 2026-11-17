@@ -57,6 +57,7 @@ main{max-width:1100px;margin:0 auto;padding-top:24px;padding-bottom:64px}
 .vhead{display:flex;flex-direction:column;gap:6px}
 .vhead h1{font-size:clamp(30px,5vw,44px);font-weight:800}
 .vhead p{color:var(--muted);max-width:62ch}
+.vhead .mission{color:var(--sky);font-weight:800;font-size:15px}
 .muted{color:var(--muted)}
 .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 .center{justify-content:center;text-align:center}
@@ -379,6 +380,7 @@ details.panel>summary{cursor:pointer;font-weight:800;font-size:18px}
 <main id="app"></main>
 
 <!--CLIPS-->
+<!--ANIME-->
 <script>
 (function(){
 'use strict';
@@ -440,6 +442,10 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
 /* one entry per English word (case-insensitive), blank rows ignored */
+/* retrieval practice: words the class still marked "?" (Box 1) or "△" (Box 2) in Spin are picked more often in Catch and Pack (weights 3 / 2 / 1) */
+const wBox=w=>({1:3,2:2}[S.boxes&&S.boxes[w.en]]||1);
+const weightedPick=ws=>{let t=0;const c=ws.map(w=>t+=wBox(w));const r=Math.random()*t;const i=c.findIndex(x=>r<x);return ws[i<0?0:i];};
+const weightedOrder=(ws,n)=>ws.map(w=>({w,k:Math.random()**(1/wBox(w))})).sort((a,b)=>b.k-a.k).slice(0,n).map(x=>x.w);
 const words=()=>{const seen=new Set();return S.words.filter(w=>{const k=(w.en||'').trim().toLowerCase();if(!k||seen.has(k))return false;seen.add(k);return true;});};
 /* regular English plurals: cherry→cherries, sandwich→sandwiches, potato→potatoes, apple→apples */
 function autoPlural(en){en=(en||'').trim();if(!en)return '';
@@ -456,7 +462,9 @@ const app=$('#app');
 let viewTimers=[];
 const later=(fn,ms)=>{const id=setTimeout(fn,ms);viewTimers.push(id);return id;};
 const clearView=()=>{viewTimers.forEach(clearTimeout);viewTimers=[];};
-const head=(t,sub)=>`<div class="vhead"><h1>${t}</h1>${sub?`<p>${sub}</p>`:''}</div>`;
+/* the lesson mission stays visible on every practice screen, so the work keeps its real purpose */
+const MISSION_VIEWS=['catch','party','pack','impostor','build','check'];
+const head=(t,sub)=>`<div class="vhead"><h1>${t}</h1>${sub?`<p>${sub}</p>`:''}${MISSION_VIEWS.includes(curView)?'<p class="mission" lang="en">🎯 Mission: Bring food to Ankita’s Diwali party!</p>':''}</div>`;
 /* food pictures: the original clay-style characters from chars.js for the 13 lesson words, emoji for anything else */
 const PHOTOS=window.LBL_PHOTOS||{};
 /* very old Safari cannot show WebP: the first failed photo switches the whole app to the clay characters */
@@ -479,7 +487,8 @@ function setFace(container,w,mouth){try{const el=container.querySelector('.ico,.
   el.outerHTML=pic(w,el.className.match(/ico-(\w+)/)[1],{mouth});}catch(e){}}
 const STAMPS=[['catch','Catch','fish','🎧'],['party','Party Menu','samosa','🎉'],['pack','Pack the Box','box','🍱'],['impostor','Impostor','samosa','🕵️'],['build','Build It','hamburger','🧱'],['check','Check','egg','✅']];
 function toast(t){try{const d=document.createElement('div');d.className='toast';d.setAttribute('role','status');d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),2600);}catch(e){}}
-function stamp(k){if(S.stamps[k])return;S.stamps[k]=1;save();const n=Object.keys(S.stamps).length;toast(`🏅 新印章：${(STAMPS.find(x=>x[0]===k)||[,k])[1]}！（${n}/${STAMPS.length}）`);}
+function stamp(k){if(S.stamps[k])return;S.stamps[k]=1;save();const n=Object.keys(S.stamps).length;const st=STAMPS.find(x=>x[0]===k)||[k,k,'box','🏅'];toast(`🏅 新印章：${st[1]}！（${n}/${STAMPS.length}）`);
+  try{if(window.ANIME&&ANIME.stamp)ANIME.stamp({name:st[1],html:tile(st[2],st[3]),n,total:STAMPS.length});}catch(e){}}
 function confetti(n=150){
   if(reduce)return;
   try{const c=document.createElement('canvas');c.className='confetti';document.body.appendChild(c);const x=c.getContext('2d');
@@ -538,6 +547,7 @@ document.addEventListener('click',unlock,{capture:true});
 function stopVoice(){try{if(curSrc)curSrc.stop();}catch(e){}curSrc=null;try{if(clipEl)clipEl.pause();}catch(e){}try{speechSynthesis.cancel();}catch(e){}}
 /* say(text, {slow}) — slow uses the <audio> element so pitch is kept; it is only offered on buttons (a tap). */
 function say(t,o={}){
+  ANIMEHOOK('heard',t);
   if(muted)return;
   const k=clipFor(t),uri=CLIPS[k];stopVoice();
   if(uri){
@@ -563,11 +573,12 @@ function tone(seq){
   try{seq.forEach(([f,d,len,type,vol])=>{const o=c.createOscillator(),g=c.createGain();o.type=type||'sine';o.frequency.value=f;o.connect(g);g.connect(c.destination);
     const t=c.currentTime+d;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol||.25,t+.015);g.gain.exponentialRampToValueAtTime(.0001,t+len);o.start(t);o.stop(t+len+.02);});}catch(e){}
 }
+const ANIMEHOOK=(k,a)=>{try{const A=window.ANIME;if(A&&A[k])A[k](a);}catch(e){}};
 const sfx={
-  good:()=>tone([[784,0,.14],[1175,.09,.22]]),
-  bad:()=>tone([[196,0,.28,'square',.12],[147,.12,.3,'square',.1]]),
+  good:()=>{tone([[784,0,.14],[1175,.09,.22]]);ANIMEHOOK('good');},
+  bad:()=>{tone([[196,0,.28,'square',.12],[147,.12,.3,'square',.1]]);ANIMEHOOK('bad');},
   tick:()=>tone([[1400,0,.04,'triangle',.08]]),
-  win:()=>tone([[523,0,.15],[659,.12,.15],[784,.24,.15],[1047,.36,.35]])
+  win:()=>{tone([[523,0,.15],[659,.12,.15],[784,.24,.15],[1047,.36,.35]]);ANIMEHOOK('win');}
 };
 function beep(){tone([[660,0,.22,'sine',.3],[880,.25,.22,'sine',.3],[990,.5,.22,'sine',.3]]);}
 const PRAISE=['Great job!','Awesome!','You got it!'];
@@ -719,7 +730,7 @@ function catchView(){
   };
   const next=(delay=0)=>{
     if(r>=ROUNDS)return end();
-    r++;locked=false;const ws=words();target=pick(ws);
+    r++;locked=false;const ws=words();target=weightedPick(ws);
     /* distractors must look and sound different from the target and from each other */
     const pics=new Set([target.pic]),ens=new Set([target.en.trim().toLowerCase()]),others=[];
     shuffle(ws).forEach(w=>{const e=w.en.trim().toLowerCase();if(others.length<3&&!pics.has(w.pic)&&!ens.has(e)){pics.add(w.pic);ens.add(e);others.push(w);}});
@@ -778,7 +789,7 @@ function pack(){
     <p>先把 iPad 音量打開。第一次點對有 3 顆星，第二次 2 顆，第三次 1 顆。</p>
     <div class="row center"><button class="btn primary big" id="pk-start">開始裝便當</button></div>
     <p class="muted">這台 iPad 最高：${S.scores.packBest!=null?S.scores.packBest+' ★':'—'}</p></div></div>`;
-    $('#pk-start').onclick=e=>{e.currentTarget.disabled=true;order=shuffle(ws0).slice(0,ROUNDS);say("Let's go!");later(next,1000);};
+    $('#pk-start').onclick=e=>{e.currentTarget.disabled=true;order=weightedOrder(ws0,ROUNDS);say("Let's go!");later(next,1000);};
   };
   const next=()=>{
     if(r>=ROUNDS)return end();
@@ -835,7 +846,7 @@ function pack(){
       <div class="row center"><button class="btn primary" id="pk-re">再裝一次</button><a class="btn" href="#build" style="text-decoration:none;display:inline-flex;align-items:center">下一站 Build It →</a></div>
     </div></div>`;
     $$('[data-say]').forEach(b=>b.onclick=()=>say(b.dataset.say));
-    $('#pk-re').onclick=e=>{e.currentTarget.disabled=true;r=0;stars=0;packed.length=0;order=shuffle(ws0).slice(0,ROUNDS);say("Let's go!");later(next,1000);};
+    $('#pk-re').onclick=e=>{e.currentTarget.disabled=true;r=0;stars=0;packed.length=0;order=weightedOrder(ws0,ROUNDS);say("Let's go!");later(next,1000);};
   };
   start();
 }
@@ -1215,12 +1226,15 @@ function teacher(){
       <div class="qr" role="img" aria-label="Lunch Box Lab 網址的 QR code"><!--QR--></div>
       <p class="url" id="app-url">${APP_URL}</p>
       <div class="row center"><button class="btn" id="url-copy">📋 複製網址</button><button class="btn" id="snd-test">🔊 測試這台的聲音</button></div>
+      <div class="row center"><button class="btn" id="fx-toggle" aria-pressed="true">✨ 動畫角色與特效：開</button></div>
       <p class="muted" id="url-msg">學生要能打開，請先在頁面右上角的分享選單開放這個連結。</p>
       <p class="muted" id="snd-msg" aria-live="polite"></p>
     </section>
   </div></div>`;
   const showTotal=()=>{const t=total();$('#t-total').textContent=`合計 ${t} 分鐘${t===40?'，剛好一節課。':t>40?`，超過 ${t-40} 分鐘。`:`，還有 ${40-t} 分鐘可用。`}`;};
   showTotal();paintTimer();keepAwake(true);
+  const paintFx=()=>{const A=window.ANIME,b=$('#fx-toggle');if(!b)return;if(!A){b.hidden=true;return;}const o=A.isOn();b.setAttribute('aria-pressed',o);b.textContent=o?'✨ 動畫角色與特效：開（按一下關閉）':'✨ 動畫角色與特效：關（按一下開啟）';};
+  paintFx();$('#fx-toggle').onclick=()=>{const A=window.ANIME;if(A){A.set(!A.isOn());paintFx();}};
   $('#snd-test').onclick=async()=>{unlock();const m=$('#snd-msg');
     if(muted){m.textContent='🔇 目前是靜音（右上角 🔊）。先打開聲音再測。';return;}
     m.textContent='測試中…';try{await decodeAll();}catch(e){}
@@ -1388,6 +1402,34 @@ function guide(){
   <section class="panel"><h2>The two rules (for Ankita)</h2>
     <p class="en" style="font-family:var(--display);font-size:18px">Countable food takes <b style="white-space:nowrap">-s</b>: I want some apples. I want some samosas.<br>Uncountable food takes <b style="white-space:nowrap">no a</b> and <b style="white-space:nowrap">no -s</b>: I want some rice. I want some curry.</p>
     <p class="muted">All thirteen words, both sentence frames and every phrase use recorded ElevenLabs audio; only words you add yourself use the device voice. Tap 🐢 for a slower replay.</p></section>
+  <details class="panel" id="why"><summary>為什麼這樣設計：素養導向與教學理論（觀課、議課用）</summary>
+    <p class="muted">這一節課不是「練習單字」，而是「幫 Ankita 的排燈節派對準備食物」：有真實的目的、要做決定、要和同學合作、最後有成品（菜單）可以說給別人聽。下表說明每一段對應的素養、理論與可看的學習證據。</p>
+    <div class="guide" tabindex="0" role="region" aria-label="素養與教學理論對照表"><table><thead><tr><th>活動</th><th>學生做什麼（素養導向任務）</th><th>英語文核心素養</th><th>教學理論依據</th><th>學習證據在哪裡看</th></tr></thead><tbody>
+    <tr><td><b>Spin</b> 轉盤＋✔ △ ?</td><td>聽、跟著唸，用手勢說出自己會不會；全班決定今天的目標字（Box 1）。</td><td>英-E-A1</td><td>形成性評量與自我評量（Black &amp; Wiliam, 1998）；全身反應（Asher, 1969）；「還沒會」而不是「不會」的成長式說法（Dweck, 2006）。</td><td>「學習證據」頁：課前、課後每個字從 ? → △ → ✔ 的變化。</td></tr>
+    <tr><td><b>Catch</b> 聽力接接樂</td><td>只聽不看字，點出聽到的食物；還沒會的字會比較常出現。</td><td>英-E-B1、英-E-A1</td><td>可理解的輸入、先聽後說（Krashen, 1982）；提取練習與間隔重複（Roediger &amp; Karpicke, 2006）。</td><td>Catch 最高分；結果卡「我想再練的字」。</td></tr>
+    <tr><td><b>Party Menu</b> 派對菜單</td><td>三人一組一台 iPad：每人選一種食物，至少一種來自印度，再一起決定 I want some ___. 的正確說法。</td><td>英-E-B1、英-E-C2、英-E-C3</td><td>任務型教學（Willis, 1996；Ellis, 2003）；鷹架與近側發展區（Vygotsky, 1978；Wood, Bruner &amp; Ross, 1976）：答錯只問 Can you count it?，不直接給答案；合作學習（Johnson &amp; Johnson）、四學中的共學。</td><td>「第一次就選對」幾種；完成的菜單畫面；老師在組別間聽到的對話。</td></tr>
+    <tr><td><b>菜單分享</b>（互學）</td><td>兩組互相唸菜單，聽的人回答 Yummy! I like your ___.</td><td>英-E-B1、英-E-C2</td><td>互動與意義協商、同儕回饋；四學中的互學。</td><td>Speed Round 的「每位同學的開口次數」；現場錄影或筆記。</td></tr>
+    <tr><td><b>Impostor</b> 抓內鬼</td><td>先用過、說過，再回頭注意 a／an 和 -s 的差別，找出錯的那個字。</td><td>英-E-B1</td><td>注意假說與聚焦形式（Schmidt, 1990；Long, 1991）：先有意義的使用，再短暫關注形式。</td><td>Impostor 抓對題數；Check 離場 6 題。</td></tr>
+    <tr><td><b>全程</b>圖像、聲音、動畫</td><td>真人聲音配實物照片；角色與特效只在答對、答錯、過關時短暫出現，不蓋住題目、不用等它播完。</td><td>英-E-A1</td><td>多媒體學習認知理論（Mayer, 2009）：圖＋聲音、少量文字、去掉會分心的東西；雙碼理論（Paivio, 1986）；正向情緒設計（Um et al., 2012）；自我決定理論（Deci &amp; Ryan, 2000）：用印章看見自己的進步，不排名。</td><td>印章卡；教師工具可一鍵關閉動畫特效。</td></tr>
+    </tbody></table></div>
+    <h3>課綱核心素養原文（國民小學英語文）</h3>
+    <ul>
+      <li><b>英-E-A1</b> 具備認真專注的特質及良好的學習習慣，嘗試運用基本的學習策略，強化個人英語文能力。</li>
+      <li><b>英-E-B1</b> 具備入門的聽、說、讀、寫英語文能力。在引導下，能運用所學字詞及句型進行簡易日常溝通。</li>
+      <li><b>英-E-C2</b> 積極參與課內英語文小組學習活動，培養團隊合作精神。</li>
+      <li><b>英-E-C3</b> 認識國內外主要節慶習俗及風土民情。</li>
+    </ul>
+    <p class="muted">以上四條是查各校公開的英語課程計畫轉引的課綱文字，沒有直接核對教育部課綱原文，正式引用請對照原文。學習表現的編號這裡不列，因為沒有查到可核對的原文。</p>
+    <h3>素養導向的設計原則</h3>
+    <ul>
+      <li><b>真實情境與任務</b>：為派對準備食物，不是背單字表。</li>
+      <li><b>學習歷程看得見</b>：✔ △ ? 的課前課後變化，讓學生和老師都知道自己進步在哪裡。</li>
+      <li><b>合作與表達</b>：一組一台、每人一種食物、兩組互相說給對方聽。</li>
+      <li><b>文化理解</b>：印度的 naan、curry、samosa 與臺灣的食物並列，節慶是學習的理由，不是裝飾。</li>
+      <li><b>給鷹架，不給答案</b>：錯了先問問題，再讓學生自己想。</li>
+      <li><b>回饋要快、要短、要溫和</b>：答對有慶祝，答錯只是「hmm?」，再聽一次。</li>
+    </ul>
+  </details>
   <section class="panel"><h2>上課前檢查</h2>
     <ul>
       <li>每台學生 iPad 打開網址，先點一下畫面，再進 Catch 聽一個字，確認有聲音。</li>
