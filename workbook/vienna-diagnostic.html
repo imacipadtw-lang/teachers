@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>維也納篇・課前課後診斷遊戲（六年級）</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#151033;overflow:hidden;font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;color:#2b2150;user-select:none;touch-action:manipulation}
+#wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+#stage{width:1280px;height:720px;position:relative;transform-origin:center;flex:none;overflow:hidden;border-radius:18px;background:linear-gradient(160deg,#ffe0ec,#d9e4ff 55%,#fff3d6);box-shadow:0 20px 80px #0008}
+#view{position:absolute;inset:0}
+.scr{position:absolute;inset:0;padding:28px 40px;display:flex;flex-direction:column;animation:in .45s cubic-bezier(.2,1.3,.4,1)}
+@keyframes in{from{opacity:0;transform:scale(.95)}}
+h1{font-size:54px;font-weight:900;line-height:1.1}
+h2{font-size:34px;font-weight:900}
+.btn{border:none;cursor:pointer;font:inherit;font-weight:800;border-radius:30px;padding:10px 26px;font-size:22px;background:#ff5d8f;color:#fff;box-shadow:0 6px 0 #c23468;transition:transform .1s}
+.btn:active{transform:translateY(4px);box-shadow:0 2px 0 #c23468}
+.btn.alt{background:#5b7cff;box-shadow:0 6px 0 #3149c2}
+.btn.gold{background:#ffb703;color:#4a3000;box-shadow:0 6px 0 #c98900}
+.btn.gray{background:#8a86a8;box-shadow:0 6px 0 #5d5a78}
+.btn.sm{font-size:16px;padding:6px 16px;box-shadow:0 4px 0 #0003}
+.zh{color:#6a5fa0;font-size:20px;font-weight:700}
+.speak{cursor:pointer;width:38px;height:38px;border-radius:50%;background:#5b7cff;color:#fff;border:none;font-size:18px;vertical-align:middle;margin-left:8px}
+@keyframes bob{50%{transform:translateY(-12px)}}
+@keyframes wob{50%{transform:rotate(-4deg) scale(1.05)}}
+@keyframes pop{from{transform:scale(.3);opacity:0}}
+@keyframes shake{25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+@keyframes jump{40%{transform:translateY(-24px) scale(1.15)}}
+.tbar{height:14px;background:#fff8;border-radius:8px;overflow:hidden;flex:1}
+.tbar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#ff5d8f,#ffb703)}
+canvas#fx{position:absolute;inset:0;pointer-events:none;z-index:50}
+
+/* home */
+.home{align-items:center;text-align:center;justify-content:center}
+.home .bg{position:absolute;inset:0;background:linear-gradient(#6b4cff,#ff8fb8 70%,#ffd89e);z-index:-1}
+.home h1{color:#fff;text-shadow:0 5px 0 #4b2aa8,0 12px 24px #0006}
+.home .tag{display:inline-block;background:#fff;color:#4b2aa8;border-radius:30px;padding:6px 20px;font-weight:900;font-size:20px;margin-bottom:12px;animation:wob 2s infinite}
+.gcards{display:flex;gap:34px;margin:26px 0 18px}
+.gcard{width:400px;background:#fff;border-radius:30px;padding:22px;cursor:pointer;box-shadow:0 12px 0 #4b2aa880;transition:.2s}
+.gcard:hover{transform:translateY(-8px) rotate(-1deg)}
+.gcard .ic{font-size:96px;animation:bob 2.4s infinite;display:block}
+.gcard .when{display:inline-block;background:#ffe27a;border-radius:14px;padding:2px 12px;font-weight:900;font-size:18px}
+.gcard b{display:block;font-size:32px;margin:6px 0 2px}
+.gcard small{font-size:17px;color:#7b6fb5;font-weight:700}
+.clsbox{color:#fff;font-weight:800;font-size:18px}
+.clsbox input{font:inherit;font-size:18px;border:none;border-radius:12px;padding:4px 10px;width:150px;text-align:center}
+
+/* seat */
+.seats{display:grid;grid-template-columns:repeat(10,1fr);gap:12px;margin:18px 0}
+.seats button{font:inherit;font-weight:900;font-size:30px;border:none;border-radius:18px;padding:14px 0;background:#fff;box-shadow:0 6px 0 #b9a8ff;cursor:pointer}
+.seats button:hover{background:#ffe27a}
+
+/* intro */
+.intro{align-items:center;justify-content:center;text-align:center}
+.intro .ic{font-size:150px;animation:bob 2s infinite}
+.intro .rule{font-size:26px;font-weight:800;background:#fff;border-radius:24px;padding:16px 28px;max-width:900px;margin:16px 0 24px;line-height:1.5}
+.count{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:240px;font-weight:900;color:#ff5d8f;text-shadow:0 10px 0 #fff;z-index:40;animation:pop .5s}
+
+/* shared question */
+.hud{display:flex;align-items:center;gap:16px;font-weight:900;font-size:22px;margin-bottom:10px}
+.pill{background:#fff;border-radius:20px;padding:4px 16px}
+.qcard{background:#fff;border-radius:26px;padding:14px 24px;box-shadow:0 8px 0 #0001}
+.qcard .q{font-size:36px;font-weight:900;margin-top:2px}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.opts button{font:inherit;font-weight:900;font-size:30px;border:none;border-radius:22px;padding:16px 20px;text-align:left;background:#fff;box-shadow:0 7px 0 #b9a8ff;cursor:pointer;transition:.12s;color:#2b2150}
+.opts button:hover{transform:translateY(-4px)}
+.opts button.good{background:#7be495;box-shadow:0 7px 0 #2f9e4f}
+.opts button.bad{background:#ffb3b3;box-shadow:0 7px 0 #c23a3a;animation:shake .4s}
+.ov{position:absolute;inset:0;background:#1b1340cc;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:30;color:#fff;text-align:center;animation:in .3s}
+
+/* gacha */
+.shelf{margin-top:auto;background:#fff8;border-radius:20px;padding:8px 14px;display:flex;gap:8px;align-items:center;min-height:66px;font-size:40px}
+.shelf small{font-size:16px;font-weight:900;color:#6a5fa0;margin-right:6px}
+.chests{display:flex;gap:50px;margin-top:24px}
+.chest{font-size:130px;cursor:pointer;animation:wob .5s infinite;filter:drop-shadow(0 8px 0 #0005)}
+.chest:nth-child(2){animation-delay:-.2s}.chest:nth-child(3){animation-delay:-.35s}
+.rcard{width:300px;height:380px;border-radius:26px;display:flex;flex-direction:column;align-items:center;justify-content:center;animation:flip .8s cubic-bezier(.2,1.4,.4,1);color:#2b2150;position:relative}
+@keyframes flip{from{transform:rotateY(180deg) scale(.4)}}
+.rcard .e{font-size:140px}
+.rcard .r{font-size:40px;font-weight:900}
+.rN{background:#e8e8f0}.rR{background:linear-gradient(#bde0ff,#7fb8ff)}.rSR{background:linear-gradient(#e7c6ff,#b07cff)}
+.rSSR{background:linear-gradient(135deg,#fff3a0,#ffb703,#ff7aa8,#fff3a0);background-size:300% 300%;animation:flip .8s cubic-bezier(.2,1.4,.4,1),shine 1.5s linear infinite;box-shadow:0 0 60px #ffd700}
+@keyframes shine{to{background-position:300% 0}}
+
+/* impostor */
+.space{background:radial-gradient(circle at 30% 20%,#3b2a7a,#120c2e 70%)!important;color:#fff}
+.space .zh{color:#d4c8ff}
+.stars{position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(2px 2px at 20px 30px,#fff,#0000),radial-gradient(2px 2px at 140px 90px,#fff,#0000),radial-gradient(1px 1px at 80px 160px,#fff,#0000),radial-gradient(2px 2px at 220px 50px,#fffa,#0000);background-size:260px 200px;animation:drift 30s linear infinite}
+@keyframes drift{to{background-position:-520px 0}}
+.alarm{display:inline-block;background:#ff3b5c;color:#fff;border-radius:14px;padding:4px 14px;font-weight:900;animation:wob .8s infinite}
+.crew{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:22px;flex:1;align-content:start}
+.mate{background:#ffffff14;border:3px solid #ffffff30;border-radius:26px;padding:16px 12px;text-align:center;cursor:pointer;transition:.2s;position:relative}
+.mate:hover{background:#ffffff26;transform:translateY(-6px)}
+.mate .av{width:120px;height:120px;border-radius:50%;margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:76px;border:6px solid #fff;animation:bob 3s infinite}
+.mate:nth-child(2) .av{animation-delay:-.7s}.mate:nth-child(3) .av{animation-delay:-1.4s}.mate:nth-child(4) .av{animation-delay:-2.1s}
+.mate .nm{font-weight:900;font-size:20px;margin:8px 0}
+.mate .say{background:#fff;color:#2b2150;border-radius:18px;padding:12px;font-size:23px;font-weight:900;min-height:110px;display:flex;align-items:center;justify-content:center;position:relative}
+.mate .say::before{content:"";position:absolute;top:-12px;left:50%;margin-left:-12px;border:12px solid transparent;border-top:0;border-bottom-color:#fff}
+.mate.vote::after{content:"VOTED";position:absolute;top:40px;left:50%;transform:translateX(-50%) rotate(-12deg);background:#ff3b5c;color:#fff;font-weight:900;font-size:30px;padding:4px 16px;border-radius:10px}
+.eject{font-size:120px;position:absolute;left:-150px;top:240px;animation:ej 2.4s linear forwards}
+@keyframes ej{to{left:1400px;transform:rotate(1080deg)}}
+.ejtxt{font-size:44px;font-weight:900;margin-top:200px;min-height:60px}
+
+/* kart */
+.track{height:300px;border-radius:24px;position:relative;overflow:hidden;background:linear-gradient(#9fe3ff 0 22%,#7bc96f 22% 26%,#5c5c70 26% 100%);box-shadow:0 8px 0 #0002;flex:none}
+.scenery{position:absolute;top:4px;left:0;white-space:nowrap;font-size:46px;animation:scroll 14s linear infinite;letter-spacing:60px}
+@keyframes scroll{to{transform:translateX(-50%)}}
+.lane{position:absolute;left:0;right:0;height:52px;border-bottom:3px dashed #fff5}
+.finish{position:absolute;right:50px;top:78px;bottom:0;width:26px;background:repeating-conic-gradient(#000 0 25%,#fff 0 50%) 0 0/13px 13px}
+.car{position:absolute;font-size:46px;transition:left 1.1s cubic-bezier(.3,1.2,.4,1);transform:scaleX(-1)}
+.car .lb{position:absolute;top:-6px;left:50%;transform:translateX(-50%) scaleX(-1);font-size:13px;font-weight:900;background:#fff;border-radius:8px;padding:0 6px;white-space:nowrap}
+.car.me .lb{background:#ff5d8f;color:#fff}
+.car.spin{animation:spin .9s}
+@keyframes spin{to{transform:scaleX(-1) rotate(720deg)}}
+.boost{position:absolute;font-size:34px;animation:pop .3s}
+.kfb{font-size:30px;font-weight:900;text-align:center;min-height:42px;margin-top:6px}
+.pads button:nth-child(1){box-shadow:0 7px 0 #ff5d8f}.pads button:nth-child(2){box-shadow:0 7px 0 #5b7cff}.pads button:nth-child(3){box-shadow:0 7px 0 #ffb703}.pads button:nth-child(4){box-shadow:0 7px 0 #2fbf71}
+.pads button{font-size:26px;padding:12px 18px}
+
+/* ninja */
+.dojo{background:linear-gradient(#3a2470,#7a3f8f 60%,#c86b5a)!important;color:#fff}
+.dojo .qcard{color:#2b2150}.dojo .qcard .zh{color:#6a5fa0}
+.field{position:absolute;left:0;right:0;top:190px;bottom:0;touch-action:none;cursor:crosshair}
+.field canvas{position:absolute;inset:0;pointer-events:none}
+.fruit{position:absolute;width:250px;margin-left:-125px;background:#fff;color:#2b2150;border-radius:40px;padding:12px 16px;font-weight:900;font-size:25px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 0 #0004;pointer-events:none;border:5px solid #ffd166}
+.fruit .e{font-size:44px;flex:none}
+.half{position:absolute;transition:transform 1.1s cubic-bezier(.3,.1,.6,1),opacity 1.1s}
+.splash{position:absolute;font-size:80px;animation:pop .3s;pointer-events:none}
+.banner{position:absolute;left:0;right:0;top:250px;text-align:center;font-size:52px;font-weight:900;text-shadow:0 5px 0 #0006;z-index:20;animation:pop .35s;pointer-events:none}
+.banner small{display:block;font-size:26px;margin-top:6px}
+
+/* result */
+.res{align-items:center;text-align:center}
+.res .big{font-size:100px;animation:bob 2s infinite}
+.code{font-family:Consolas,Menlo,monospace;font-size:54px;font-weight:900;background:#fff;border:6px dashed #ff5d8f;border-radius:22px;padding:6px 26px;letter-spacing:4px;margin:10px 0;user-select:text}
+.weak{background:#fff;border-radius:18px;padding:10px 20px;font-size:19px;font-weight:700;max-width:960px;margin:8px 0}
+
+/* teacher */
+.tch{overflow:auto;padding:22px 30px;display:block;background:#f6f3ff;user-select:text}
+.tch h2{font-size:28px;margin:10px 0}
+.tch .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:6px 0}
+.tch textarea{width:100%;height:80px;font:15px Consolas,monospace;border:2px solid #b9a8ff;border-radius:12px;padding:8px}
+.tch input{font:inherit;font-size:16px;border:2px solid #b9a8ff;border-radius:10px;padding:4px 10px}
+table{border-collapse:collapse;width:100%;background:#fff;font-size:14.5px;margin:6px 0 14px}
+th{background:#4b2aa8;color:#fff;padding:6px;text-align:left;position:sticky;top:0}
+td{border-bottom:1px solid #e3ddff;padding:6px;vertical-align:top}
+.st-r{background:#ffd6d6;font-weight:900;color:#a01818;border-radius:8px;padding:1px 6px;white-space:nowrap}
+.st-y{background:#fff1b8;font-weight:900;color:#8a6200;border-radius:8px;padding:1px 6px;white-space:nowrap}
+.st-g{background:#d3f5dc;font-weight:900;color:#17703a;border-radius:8px;padding:1px 6px;white-space:nowrap}
+.msg{font-weight:800;color:#e0357a}
+.guide{background:#fff;border-radius:14px;padding:10px 16px;font-size:15px;line-height:1.6;margin:8px 0}
+details{background:#fff;border-radius:12px;padding:8px 12px;margin:8px 0}
+summary{cursor:pointer;font-weight:900}
+.demo{background:#ffe27a;border-radius:10px;padding:4px 10px;font-weight:900}
+</style>
+</head>
+<body>
+<script>(function(){try{if(localStorage.getItem("wb_ok")!=="1")location.replace("index.html");}catch(e){}})();</script>
+
+<div id="wrap"><div id="stage"><div id="view"></div><canvas id="fx" width="1280" height="720"></canvas></div></div>
+<script>
+window.LESSON={
+id:'V',grade:'六年級',title:'維也納音樂之旅',sub:'Vienna ・ Free time & Transportation',
+concepts:[
+ {code:'M1',name:'by＋交通工具（不加 a / the）',
+  clarify:'by 後面直接接交通工具：by bus、by tram、by bike。想加 a / the 就要換說法：take a bus、on the bus。用「by＋交通工具卡」快閃配對。',
+  next:'交通卡牌接龍：抽到「by a / by the」的炸彈卡要喊 Boom! 丟掉。'},
+ {code:'M2',name:'How 問「方法」',
+  clarify:'How＝怎麼／用什麼方法；Where＝哪裡；What＝什麼。How can we go there? 的答案一定是方法（by tram / walk），不是時間或地點。',
+  next:'答非所問偵探：聽問句，從三個答句中抓出真正回答的那一句。'},
+ {code:'M3',name:'第三人稱單數動詞加 s',
+  clarify:'主詞是 he / she / 一個人名時，一般動詞要加 s / es：write→writes、watch→watches、play→plays。可配合「s 小尾巴」手勢。',
+  next:'s 尾巴大作戰：主詞卡＋動詞卡組合，三單忘了加 s 就被怪獸吃掉。'},
+ {code:'M4',name:'問他/她用 does（後面動詞用原形）',
+  clarify:'問「他／她／某人」做什麼 → What does he do? does 已經帶了 s，後面的動詞回到原形 do；問 I / you / we / they 才用 do。',
+  next:'Do / Does 雙門：主詞跑出來，學生判斷要進 Do 門還是 Does 門。'},
+ {code:'M5',name:'play the＋樂器／play＋球類',
+  clarify:'課本用法：樂器前加 the（play the piano），球類運動不加 the、也不加 a（play baseball）。口訣：「樂器有 the，球類什麼都不加」。（美式口語有時說 play piano，可補充但以課本為準。）',
+  next:'分類投籃：詞卡投進「樂器 the 籃」或「球類 空白籃」。'},
+ {code:'M6',name:'所有格 my / his / her',
+  clarify:'in ___ free time 空格要用所有格：I→my、he→his、she→her、they→their。不能放 he / she（主格）或 hers（所有格代名詞）。',
+  next:'主人找寵物：主詞卡要配到正確的所有格，才能把寵物牽回家。'},
+ {code:'M7',name:'on weekends（介系詞 on）',
+  clarify:'週末、星期幾用 on：on weekends、on Sunday；in 用在月份、季節、in the morning。（英式英語也說 at weekends，本題不列入。）',
+  next:'介系詞三國：on / in / at 三座城堡，時間卡要飛進正確的城堡。'},
+ {code:'M8',name:'「看」的動詞：watch / look / see',
+  clarify:'看電視、看比賽＝watch；叫人「你看！」＝Look!；「看到、看見」＝see。中文都是「看」，英文要分清楚。',
+  next:'看看看情境卡：看圖選 watch / look / see，選錯會被眼睛怪追。'}
+],
+pre:{game:'gacha',name:'音樂寶箱轉蛋',en:'Music Treasure Gacha',icon:'🎁',
+ rule:'答對就能挑一個寶箱抽卡，運氣好會抽到 SSR 黃金鋼琴！答錯只會開到莫札特的臭襪子 🧦',
+ items:[
+ {c:0,zh:'「我們可以搭公車去那裡。」',q:'We can go there ____.',o:[{t:'by bus',ok:1},{t:'by a bus',m:'以為交通工具前要加 a'},{t:'by the bus',m:'以為交通工具前要加 the'},{t:'on bus',m:'把 by 換成 on，卻沒加 the'}]},
+ {c:1,zh:'你想問「我們要怎麼去」動物園？',q:'____ can we go to the zoo?',o:[{t:'How',ok:1},{t:'Where',m:'把「怎麼去」誤當成「去哪裡」'},{t:'What',m:'以為 What 也能問方法'},{t:'Who',m:'疑問詞意義不清（Who 問人）'}]},
+ {c:2,zh:'「我爸爸休閒時間看電視。」',q:'My dad ____ TV in his free time.',o:[{t:'watches',ok:1},{t:'watch',m:'第三人稱單數沒有加 s / es'},{t:'watching',m:'少了 be 動詞，直接用 -ing'},{t:'is watch',m:'把 be 動詞和原形動詞放在一起'}]},
+ {c:3,zh:'「你姊姊休閒時間做什麼？」',q:'What ____ your sister do in her free time?',o:[{t:'does',ok:1},{t:'do',m:'問第三人稱仍然用 do'},{t:'is',m:'以為一般動詞問句要用 be 動詞'},{t:'are',m:'以為一般動詞問句要用 be 動詞'}]},
+ {c:4,zh:'「我週末打籃球。」',q:'I ____ on weekends.',o:[{t:'play basketball',ok:1},{t:'play the basketball',m:'以為球類也要加 the'},{t:'play a basketball',m:'以為球類要加 a'},{t:'do basketball',m:'不知道球類動詞用 play'}]},
+ {c:5,zh:'「Mia 休閒時間看書。」',q:'Mia reads books in ____ free time.',o:[{t:'her',ok:1},{t:'she',m:'把主格 she 當所有格用'},{t:'he',m:'主格當所有格，性別也弄錯'},{t:'hers',m:'把所有格代名詞 hers 放在名詞前'}]},
+ {c:6,zh:'「我們週末去爬山。」',q:'We go hiking ____ weekends.',o:[{t:'on',ok:1},{t:'in',m:'以為所有時間都用 in'},{t:'for',m:'時間介系詞不清楚'},{t:'to',m:'把方向的 to 用在時間'}]},
+ {c:7,zh:'「我休閒時間看電視。」',q:'I ____ TV in my free time.',o:[{t:'watch',ok:1},{t:'see',m:'中文「看」直接對應 see'},{t:'look',m:'中文「看」直接對應 look'},{t:'read',m:'以為看電視用 read'}]}
+ ]},
+post:{game:'impostor',name:'樂團找內鬼',en:"Who's the Fake?",icon:'🕵️',
+ rule:'四位團員各說一句話，只有一個「內鬼」說錯了英文！在時間內把內鬼投票踢出去 🚀',
+ items:[
+ {c:0,zh:'誰的交通說法是錯的？',fix:'I go to the park by bus.',o:[{t:'We can go there by tram.',m:'把正確的 by tram 當成錯的（以為要加冠詞）'},{t:'She goes to school by bike.',m:'把正確的 by bike 當成錯的'},{t:'I go to the park by a bus.',ok:1},{t:'They go to Taipei by train.',m:'把正確的 by train 當成錯的'}]},
+ {c:1,zh:'有人問「How can we go there?」誰答非所問？',fix:'How 要回答方法，例如 By tram.',o:[{t:'We can go there by tram.',m:'沒發現 How 要回答「方法」'},{t:'By MRT.',m:'不知道簡答 By MRT. 也能回答 How'},{t:'We can walk there.',m:'不知道 walk 也是一種「方法」'},{t:'We can go there at three.',ok:1}]},
+ {c:2,zh:'誰的動詞錯了？',fix:'Beethoven plays the piano.',o:[{t:'He writes music.',m:'以為三單 writes 是錯的'},{t:'Mozart writes music.',m:'以為人名當主詞不用加 s'},{t:'Beethoven play the piano.',ok:1},{t:'She watches TV.',m:'以為 watches 是錯的'}]},
+ {c:3,zh:'誰的問句錯了？',fix:'What does he do in his free time?',o:[{t:'What does Mozart do in his free time?',m:'把正確的 does 問句當成錯的'},{t:'What does she do in her free time?',m:'把正確的 does 問句當成錯的'},{t:'What do you do in your free time?',m:'以為 you 也要用 does'},{t:'What do he do in his free time?',ok:1}]},
+ {c:4,zh:'誰的 play 用錯了？',fix:'We play baseball.',o:[{t:'I play the piano.',m:'以為樂器不能加 the'},{t:'He plays baseball.',m:'以為球類要加 the'},{t:'We play the baseball.',ok:1},{t:'She plays the violin.',m:'以為樂器不能加 the'}]},
+ {c:5,zh:'誰的所有格錯了？',fix:'She reads books in her free time.',o:[{t:'He writes music in his free time.',m:'把正確的 his 當成錯的'},{t:'I play games in my free time.',m:'把正確的 my 當成錯的'},{t:'She reads books in he free time.',ok:1},{t:'They sing in their free time.',m:'把正確的 their 當成錯的'}]},
+ {c:6,zh:'誰的時間介系詞錯了？',fix:'He swims on weekends.',o:[{t:'I play baseball on weekends.',m:'以為 on weekends 是錯的'},{t:'We go hiking on Sundays.',m:'以為星期前不用 on'},{t:'He swims in weekends.',ok:1},{t:'They watch movies on weekends.',m:'以為 on weekends 是錯的'}]},
+ {c:7,zh:'誰的「看」用錯了？',fix:'I watch TV after school.',o:[{t:'I watch TV in my free time.',m:'以為看電視不是用 watch'},{t:'Look! I play baseball.',m:'不懂 Look! 是叫人「你看」'},{t:'I see TV after school.',ok:1},{t:'Let me show you.',m:'把 show（展示給人看）和「看」混淆'}]}
+ ]}
+};
+
+</script>
+<script>
+const L=window.LESSON;const $=s=>document.querySelector(s);const view=$('#view');const stage=$('#stage');
+function fit(){stage.style.transform='scale('+Math.min(innerWidth/1280,innerHeight/720)*0.98+')'}addEventListener('resize',fit);fit();
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function scr(html,cls=''){view.innerHTML=`<div class="scr ${cls}">${html}</div>`;return view.firstChild}
+
+/* ---------- sound ---------- */
+let AC;function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}return AC}
+function tone(f,d=.4,type='triangle',vol=.22,when=0){const c=ac();if(!c)return;const t=c.currentTime+when;const o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.02);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(c.destination);o.start(t);o.stop(t+d+.05)}
+function sfx(k){({ok:()=>{tone(659,.2);tone(880,.3,'triangle',.22,.1)},bad:()=>{tone(220,.25,'sawtooth',.13);tone(160,.35,'sawtooth',.13,.12)},win:()=>[523,659,784,1047].forEach((f,i)=>tone(f,.4,'triangle',.22,i*.12)),pop:()=>tone(520,.1,'sine',.15),tick:()=>tone(1000,.05,'square',.08),swoosh:()=>{const c=ac();if(!c)return;tone(900,.12,'sawtooth',.06);tone(500,.15,'sawtooth',.05,.05)},boom:()=>{tone(90,.5,'sawtooth',.2);tone(60,.6,'square',.12,.05)},ssr:()=>[784,988,1175,1568,1976].forEach((f,i)=>tone(f,.5,'triangle',.2,i*.09))}[k]||(()=>{}))()}
+const LANG=L.lang||'en-US';const TH=L.theme||{};let voice=null;function pickVoice(){const vs=speechSynthesis.getVoices();voice=LANG==='zh-TW'?(vs.find(v=>/zh[-_]TW/i.test(v.lang))||vs.find(v=>/^zh/i.test(v.lang))||null):(vs.find(v=>/en[-_]US/i.test(v.lang)&&/(Samantha|Google US|Aria|Jenny|Natural)/i.test(v.name))||vs.find(v=>/en[-_]US/i.test(v.lang))||vs.find(v=>/^en/i.test(v.lang))||null)}
+if('speechSynthesis' in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
+const __TL=((window.LESSON&&window.LESSON.lang)==='zh-TW')?'zh-TW':'en';const __TR=0.95;
+let CT=null;(async()=>{try{if(window.claude&&window.claude.use){CT=await window.claude.use('tts')}}catch(e){CT=null}})();
+let CTsid=0;
+function say(t,pitch=1,rate){
+ if(CT){try{window.speechSynthesis&&speechSynthesis.cancel()}catch(e){}
+  const sid=++CTsid;
+  let s=String(t).replace(/_+/g,__TL==='zh-TW'?'什麼':' blank ').replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}\u{FE0F}\u{200D}↱➡]/gu,'').trim();
+  if(!s)return;
+  const v=pitch>=1.3?'airy':pitch<=0.85?'rounded':pitch>=1.1?'glassy':'buttery';
+  CT.speak(s,{voice:v,language:__TL,rate:__TR}).catch(e=>{const c=e&&e.code;if(c==='not_granted')CT=null;if(sid===CTsid&&c!=='viewer_stopped')sayWeb(t,pitch,rate)});
+  return}
+ sayWeb(t,pitch,rate)}
+
+function sayWeb(t){if(!('speechSynthesis' in window))return;t=t.replace(/_+/g,' blank ').replace(/[↱➡️]/g,'');speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang=LANG;if(voice)u.voice=voice;u.rate=.85;speechSynthesis.speak(u)}
+
+/* ---------- confetti ---------- */
+const fx=$('#fx'),fc=fx.getContext('2d');let P=[];
+function confetti(n=60,x=640,y=420){const s=P.length;for(let i=0;i<n;i++)P.push({x:x+(Math.random()-.5)*200,y,vx:(Math.random()-.5)*16,vy:-7-Math.random()*12,c:`hsl(${Math.random()*360},90%,60%)`,r:5+Math.random()*7,a:Math.random()*6,l:80+Math.random()*50});if(!s)loop()}
+function loop(){fc.clearRect(0,0,1280,720);P.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.45;p.a+=.2;p.l--;fc.save();fc.translate(p.x,p.y);fc.rotate(p.a);fc.fillStyle=p.c;fc.fillRect(-p.r,-p.r/2,p.r*2,p.r);fc.restore()});P=P.filter(p=>p.l>0&&p.y<780);if(P.length)requestAnimationFrame(loop);else fc.clearRect(0,0,1280,720)}
+
+/* ---------- storage ---------- */
+const KEY='diag_'+L.id;let MEM={};
+function dbLoad(){try{const s=localStorage.getItem(KEY);return s?JSON.parse(s):{}}catch(e){return MEM}}
+function dbSave(d){MEM=d;try{localStorage.setItem(KEY,JSON.stringify(d))}catch(e){}}
+let CLS=(()=>{try{return localStorage.getItem(KEY+'_cls')||''}catch(e){return ''}})();
+function setCls(v){CLS=v.trim();try{localStorage.setItem(KEY+'_cls',CLS)}catch(e){}}
+function clsKey(){return CLS||'未命名班級'}
+function addRecord(r){const d=dbLoad();const k=clsKey();d[k]=(d[k]||[]).filter(x=>!(x.t===r.t&&x.seat===r.seat));d[k].push(r);dbSave(d)}
+function codeOf(r){return L.id+r.t+'-'+r.seat+'-'+r.a}
+
+/* ---------- timer ---------- */
+let TM=null;
+function startTimer(sec,onEnd,bar){stopTimer();const t0=performance.now();const me={raf:0};TM=me;
+ const tick=()=>{if(TM!==me)return;const left=sec-(performance.now()-t0)/1000;if(bar)bar.style.width=Math.max(0,left/sec*100)+'%';if(left<=0){TM=null;onEnd()}else me.raf=requestAnimationFrame(tick)};me.raf=requestAnimationFrame(tick);me.frac=()=>Math.max(0,1-(performance.now()-t0)/1000/sec)}
+function stopTimer(){if(!TM)return 0;const f=TM.frac();cancelAnimationFrame(TM.raf);TM=null;return f}
+
+/* ---------- run engine ---------- */
+let R=null;
+function cfg(t){return t==='1'?L.pre:L.post}
+function startRun(t,seat){R={t,seat,items:cfg(t).items,i:0,ans:[],score:0,g:GAMES[cfg(t).game]};R.g.init();nextItem()}
+function nextItem(){if(!R)return;if(R.i>=R.items.length)return finishRun();const it=R.items[R.i];R.lock=false;R.g.show(it,shuffle([0,1,2,3]),R.i)}
+function submit(idx){if(R.lock)return null;R.lock=true;const it=R.items[R.i];const ok=idx>=0&&!!it.o[idx].ok;R.ans[R.i]=idx<0?'X':'ABCD'[idx];if(ok)R.score++;return ok}
+function goNext(){R.i++;nextItem()}
+function correctText(it){return it.o.find(o=>o.ok).t}
+function finishRun(){stopTimer();const rec={t:R.t,seat:R.seat,a:R.ans.join(''),at:Date.now()};addRecord(rec);
+ const n=R.items.length,s=R.score,stars='⭐'.repeat(Math.max(1,Math.round(s/n*3)))+'☆'.repeat(3-Math.max(1,Math.round(s/n*3)));
+ const weak=R.items.map((it,i)=>R.ans[i]==='ABCD'[it.o.findIndex(o=>o.ok)]?null:L.concepts[it.c].name).filter(Boolean);
+ scr(`<div class="big">${s===n?'🏆':s>=n*.6?'🎉':'💪'}</div>
+ <h1>${s} / ${n} 題答對 ${stars}</h1>
+ <div style="font-size:28px;font-weight:900;margin:6px 0">${R.g.summary()}</div>
+ <div class="zh">把這組代碼交給老師（抄下來或給老師看）：</div>
+ <div class="code">${codeOf(rec)}</div>
+ <div class="zh" style="font-size:16px">✅ 也已自動存在這台裝置（${esc(clsKey())}・座號 ${rec.seat}）</div>
+ ${weak.length?`<div class="weak">${R.t==='1'?'📌 上課要特別注意：':'📌 還要再加油的觀念：'}${weak.map(esc).join('、')}</div>`:'<div class="weak">🌟 全部觀念都掌握了！</div>'}
+ <div style="display:flex;gap:16px;margin-top:10px"><button class="btn gold" onclick="seatScreen('${R.t}')">👉 下一位同學</button><button class="btn alt" onclick="home()">🏠 回首頁</button></div>`,'res');
+ if(s>=n*.75){confetti(140);sfx('win')}}
+
+/* ---------- screens ---------- */
+function home(){stopTimer();R=null;
+ scr(`<div class="bg"></div><div class="tag">🎓 ${L.grade}${L.subject||'英語'} ・ ${esc(L.title)}</div>
+ <h1>課前・課後 5 分鐘挑戰</h1>
+ <div class="gcards">
+  <div class="gcard" onclick="seatScreen('1')"><span class="ic">${L.pre.icon}</span><span class="when">課前 5 分鐘・前測</span><b>${L.pre.name}</b><small>${L.pre.en}</small></div>
+  <div class="gcard" onclick="seatScreen('2')"><span class="ic">${L.post.icon}</span><span class="when">課後 5 分鐘・後測</span><b>${L.post.name}</b><small>${L.post.en}</small></div>
+ </div>
+ <div class="clsbox">班級：<input id="clsIn" placeholder="例如 601" value="${esc(CLS)}" onchange="setCls(this.value)"> 　<button class="btn sm gray" onclick="teacher()">👩‍🏫 教師分析表</button></div>`,'home')}
+function seatScreen(t){stopTimer();const c=cfg(t);
+ let b='';for(let i=1;i<=40;i++)b+=`<button onclick="intro('${t}','${String(i).padStart(2,'0')}')">${i}</button>`;
+ scr(`<div style="display:flex;align-items:center;gap:16px"><h2>${c.icon} ${c.name}</h2><span class="zh">請點你的座號</span><button class="btn sm gray" style="margin-left:auto" onclick="home()">🏠</button></div><div class="seats">${b}</div>`)}
+function intro(t,seat){const c=cfg(t);
+ const el=scr(`<div class="ic">${c.icon}</div><h1>${c.name}</h1><div class="zh" style="font-size:24px">${c.en} ・ 座號 ${seat}</div><div class="rule">${c.rule}</div><button class="btn gold" style="font-size:34px;padding:14px 50px" id="go">▶ 準備好了！</button>`,'intro');
+ el.querySelector('#go').onclick=()=>{ac();let n=3;const cd=document.createElement('div');cd.className='count';view.appendChild(cd);
+  const step=()=>{if(n>0){cd.textContent=n;cd.style.animation='none';void cd.offsetWidth;cd.style.animation='';sfx('tick');n--;setTimeout(step,650)}else{cd.textContent='GO!';sfx('win');setTimeout(()=>startRun(t,seat),500)}};step()}}
+
+/* ================= GAMES ================= */
+const GAMES={};
+
+/* ---- 1. Gacha ---- */
+GAMES.gacha={gold:0,col:[],
+ init(){this.gold=0;this.col=[]},
+ show(it,order,i){const me=this;
+  const el=scr(`<div class="hud"><span class="pill">🎁 ${i+1} / 8</span><div class="tbar"><i id="tb"></i></div><span class="pill">💰 <b id="gold">${this.gold}</b></span></div>
+  <div class="qcard"><div class="zh">${it.zh}</div><div class="q">${esc(it.q)}<button class="speak" id="spk">🔊</button></div></div>
+  <div class="opts">${order.map(k=>`<button data-k="${k}">${esc(it.o[k].t)}</button>`).join('')}</div>
+  <div class="shelf"><small>我的收藏</small>${this.col.join('')}</div>`);
+  el.querySelector('#spk').onclick=()=>say(it.q);
+  el.querySelectorAll('.opts button').forEach(b=>b.onclick=()=>me.pick(+b.dataset.k,it));
+  startTimer(30,()=>me.pick(-1,it),el.querySelector('#tb'))},
+ pick(k,it){const ok=submit(k);if(ok===null)return;stopTimer();const me=this;
+  document.querySelectorAll('.opts button').forEach(b=>{const kk=+b.dataset.k;if(it.o[kk].ok)b.classList.add('good');else if(kk===k)b.classList.add('bad')});
+  sfx(ok?'ok':'bad');
+  setTimeout(()=>{const ov=document.createElement('div');ov.className='ov';view.appendChild(ov);
+   if(ok){ov.innerHTML=`<h1>🎉 答對了！挑一個寶箱！</h1><div class="chests"><div class="chest">🎁</div><div class="chest">🎁</div><div class="chest">🎁</div></div>`;
+    ov.querySelectorAll('.chest').forEach(c=>c.onclick=()=>me.open(ov))}
+   else{ov.innerHTML=`<div style="font-size:150px;animation:shake .5s 2">🧦</div><h1>${k<0?'⏰ 時間到！':'喔不～'}開到莫札特的臭襪子！</h1><div style="font-size:28px;margin-top:14px">正確答案：<b style="color:#ffe27a">${esc(correctText(it))}</b></div><button class="btn gold" style="margin-top:22px">下一題 ▶</button>`;
+    ov.querySelector('button').onclick=()=>goNext()}},650)},
+ open(ov){const r=Math.random();const T=r<.08?'SSR':r<.28?'SR':r<.6?'R':'N';
+  const POOL={N:[['🎵','Lucky Note'],['🎶','Double Note'],['🔔','Tiny Bell']],R:[['🥁','Drum'],['🎺','Trumpet'],['🎸','Guitar']],SR:[['🎻','Violin'],['🎷','Saxophone'],['🪗','Accordion']],SSR:[['🎹','Golden Piano'],['👑','Maestro Crown']]};
+  const G={N:10,R:20,SR:40,SSR:100}[T];const p=POOL[T][Math.floor(Math.random()*POOL[T].length)];
+  this.gold+=G;this.col.push(p[0]);sfx(T==='SSR'?'ssr':'win');if(T==='SSR'||T==='SR')confetti(T==='SSR'?160:60);
+  ov.innerHTML=`<div class="rcard r${T}"><div class="r">${T}</div><div class="e">${p[0]}</div><div style="font-size:28px;font-weight:900">${p[1]}</div><div style="font-size:24px;font-weight:900">💰 +${G}</div></div><button class="btn gold" style="margin-top:22px">下一題 ▶</button>`;
+  ov.querySelector('button').onclick=()=>goNext()},
+ summary(){return `💰 金幣 ${this.gold} ・ 收藏 ${this.col.join('')||'（空空的）'}`}};
+
+/* ---- 2. Impostor ---- */
+GAMES.impostor={saved:0,
+ CREW:TH.crew||[['🐱','Cello Cat','#ff8fb8'],['🐶','Drum Dog','#6ea8ff'],['🐰','Bunny Bass','#8ad66b'],['🐼','Panda Piano','#ffd166']],
+ init(){this.saved=0},
+ show(it,order,i){const me=this;
+  const el=scr(`<div class="stars"></div><div class="hud" style="color:#fff"><span class="alarm">${TH.alarm||'🚨 樂團緊急會議'}</span><span>Round ${i+1} / 8</span><div class="tbar"><i id="tb"></i></div><span>🛡️ ${this.saved}</span></div>
+  <div style="font-size:28px;font-weight:900">${TH.ask||'誰是說錯英文的內鬼？投票把他踢出去！'}</div><div class="zh">${it.zh}</div>
+  <div class="crew">${order.map((k,j)=>{const c=me.CREW[j];return `<div class="mate" data-k="${k}" data-j="${j}"><div class="av" style="background:${c[2]}">${c[0]}</div><div class="nm">${c[1]}</div><div class="say">${esc(it.o[k].t)}</div></div>`}).join('')}</div>`,'space');
+  el.querySelectorAll('.mate').forEach(m=>{m.onclick=()=>me.vote(+m.dataset.k,+m.dataset.j,it,order);
+   m.querySelector('.say').ondblclick=e=>{e.stopPropagation();say(e.target.textContent)}});
+  startTimer(TH.tImp||35,()=>me.vote(-1,-1,it,order),el.querySelector('#tb'))},
+ vote(k,j,it,order){const ok=submit(k);if(ok===null)return;stopTimer();const me=this;
+  if(j>=0)document.querySelectorAll('.mate')[j].classList.add('vote');sfx('pop');
+  const fakeJ=order.findIndex(x=>it.o[x].ok),fake=me.CREW[fakeJ];
+  setTimeout(()=>{const ov=document.createElement('div');ov.className='ov';ov.style.background='#0b0720f2';view.appendChild(ov);
+   const c=j>=0?me.CREW[j]:null;
+   ov.innerHTML=`<div class="stars"></div>${c?`<div class="eject">${c[0]}</div>`:''}<div class="ejtxt" id="ejt"></div><div id="ejx" style="opacity:0;transition:.5s"></div>`;
+   const line=c?(TH.ejOk?(ok?TH.ejOk:TH.ejNo).replace('$',c[1]):`${c[1]} was ${ok?'':'not '}The Fake.`):(TH.ejNone||'No one was ejected. (Skipped)');
+   let p=0;const typ=setInterval(()=>{p++;ov.querySelector('#ejt').textContent=line.slice(0,p);if(p%2)sfx('tick');if(p>=line.length){clearInterval(typ);
+     if(ok){me.saved++;sfx('win');confetti(90)}else sfx('bad');
+     const x=ov.querySelector('#ejx');x.style.opacity=1;
+     x.innerHTML=`${ok?'<div style="font-size:30px;font-weight:900;color:#7be495">✅ 抓到內鬼了！</div>':`<div style="font-size:26px;font-weight:900">真正的內鬼是 ${fake[0]} ${fake[1]}：<span style="color:#ff8fa3">「${esc(correctText(it))}」</span></div>`}
+     <div style="font-size:28px;font-weight:900;margin-top:10px">✔ 正確說法：<span style="color:#ffe27a">${esc(it.fix)}</span></div><button class="btn gold" style="margin-top:22px">下一輪 ▶</button>`;
+     x.querySelector('button').onclick=()=>goNext()}},55)},600)},
+ summary(){return `🕵️ 抓到 ${this.saved} 個內鬼 ・ ${this.saved>=7?'王牌偵探！':this.saved>=5?'厲害的偵探！':'見習偵探，加油！'}`}};
+
+/* ---- 3. Kart ---- */
+GAMES.kart={
+ init(){this.pos=[0,0,0,0];this.names=TH.kartNames||['YOU','Pierre','Amélie','Louis'];this.cars=['🏎️','🚗','🚙','🛵']},
+ carX(p){return 30+Math.min(p,100)/100*1080},
+ show(it,order,i){const me=this;
+  const el=scr(`<div class="hud"><span class="pill">🏁 ${i+1} / 8</span><div class="tbar"><i id="tb"></i></div><span class="pill">名次 <b id="rk">${this.rank()}</b></span></div>
+  <div class="track"><div class="scenery">${TH.kartScenery||'🗼 🥐 🌳 🏛️ 🥖 🎨 🗼 🥐 🌳 🏛️ 🥖 🎨'}</div>${[0,1,2,3].map(l=>`<div class="lane" style="top:${78+l*55}px"></div>`).join('')}<div class="finish"></div>
+  ${[0,1,2,3].map(l=>`<div class="car ${l?'':'me'}" id="car${l}" style="top:${80+l*55}px;left:${me.carX(me.pos[l])}px"><span class="lb">${me.names[l]}</span>${me.cars[l]}</div>`).join('')}</div>
+  <div class="qcard" style="margin-top:10px"><div class="zh">${it.zh}</div><div class="q" style="font-size:30px">${esc(it.q)}<button class="speak" id="spk">🔊</button></div></div>
+  <div class="opts pads">${order.map(k=>`<button data-k="${k}">${esc(it.o[k].t)}</button>`).join('')}</div><div class="kfb" id="kfb"></div>`);
+  el.querySelector('#spk').onclick=()=>say(it.q);
+  el.querySelectorAll('.pads button').forEach(b=>b.onclick=()=>me.pick(+b.dataset.k,it));
+  startTimer(TH.tKart||25,()=>me.pick(-1,it),el.querySelector('#tb'))},
+ rank(){const me=this.pos[0];return 1+this.pos.slice(1).filter(p=>p>me).length},
+ pick(k,it){const ok=submit(k);const frac=stopTimer();if(ok===null)return;const me=this;
+  document.querySelectorAll('.pads button').forEach(b=>{const kk=+b.dataset.k;if(it.o[kk].ok)b.classList.add('good');else if(kk===k)b.classList.add('bad')});
+  for(let l=1;l<4;l++)this.pos[l]+=8.5+Math.random()*5;
+  const car=document.getElementById('car0'),fb=document.getElementById('kfb');
+  if(ok){this.pos[0]+=10+frac*7;sfx('ok');fb.innerHTML='🔥 BOOST! 噴射加速！';const b=document.createElement('div');b.className='boost';b.textContent='🔥🔥';b.style.left=(me.carX(me.pos[0])-60)+'px';b.style.top='80px';car.parentNode.appendChild(b)}
+  else{this.pos[0]+=3;sfx('bad');car.classList.add('spin');fb.innerHTML=`🍌 ${k<0?'時間到，':''}打滑了！正確答案：<span style="color:#e0357a">${esc(correctText(it))}</span>`}
+  for(let l=0;l<4;l++)document.getElementById('car'+l).style.left=me.carX(me.pos[l])+'px';
+  setTimeout(()=>{document.getElementById('rk').textContent=me.rank()},1000);
+  setTimeout(()=>goNext(),ok?1700:2600)},
+ summary(){const r=this.rank();return `🏁 你得到第 ${r} 名！${['🥇 冠軍車手！','🥈 好厲害！','🥉 站上頒獎台！','🏎️ 下次衝第一！'][r-1]}`}};
+
+/* ---- 4. Ninja ---- */
+GAMES.ninja={
+ init(){this.pts=0;this.combo=0},
+ show(it,order,i){const me=this;
+  const el=scr(`<div class="hud" style="color:#fff"><span class="pill" style="color:#2b2150">🥐 ${i+1} / 8</span><div class="tbar"><i id="tb"></i></div><span class="pill" style="color:#2b2150">⚡ <b>${this.pts}</b></span>${this.combo>1?`<span class="pill" style="background:#ffb703">🔥 Combo x${this.combo}</span>`:''}</div>
+  <div class="qcard"><div class="zh">${it.zh}</div><div class="q" style="font-size:32px">${esc(it.q)}<button class="speak" id="spk">🔊</button></div></div>
+  <div class="field" id="field"><canvas id="trail" width="1280" height="530"></canvas></div>`,'dojo');
+  el.querySelector('#spk').onclick=()=>say(it.q);
+  this.it=it;this.order=order;this.wave=0;this.field=el.querySelector('#field');this.tr=el.querySelector('#trail').getContext('2d');this.pts_=[];
+  this.bindSlice();this.launch()},
+ launch(){const me=this;this.wave++;const F=this.field;F.querySelectorAll('.fruit,.half,.splash').forEach(e=>e.remove());
+  const foods=shuffle(['🥐','🥖','🧀','🍓','🥨','🍰']);const cols=[175,485,795,1105];
+  this.fr=this.order.map((k,j)=>{const d=document.createElement('div');d.className='fruit';d.innerHTML=`<span class="e">${foods[j]}</span><span>${esc(me.it.o[k].t)}</span>`;d.style.top='600px';d.style.left=cols[j]+'px';F.appendChild(d);
+   return {el:d,k,x:cols[j],apex:30+Math.random()*170,delay:j*.35,ph:Math.random()*6,dead:false}});
+  const T0=performance.now(),DUR=9.6,bar=document.getElementById('tb');
+  const step=()=>{if(me.done||!document.body.contains(F))return;const t=(performance.now()-T0)/1000;
+   bar.style.width=Math.max(0,(1-((me.wave-1)*DUR+t)/(DUR*2))*100)+'%';
+   me.fr.forEach(f=>{if(f.dead)return;const lt=t-f.delay;let y;
+    if(lt<0)y=600;else if(lt<1)y=600-(600-f.apex)*(1-Math.pow(1-lt,3));else if(t<DUR-1.4)y=f.apex+Math.sin(lt*1.6+f.ph)*12;else y=f.apex+Math.pow(t-(DUR-1.4),2)*420;
+    f.y=y;f.el.style.left=f.x+'px';f.el.style.top=y+'px';f.el.style.transform=`rotate(${Math.sin(lt*1.3+f.ph)*5}deg)`});
+   if(t>=DUR){if(me.wave<2){me.launch()}else{me.slice(null)}return}
+   me.raf=requestAnimationFrame(step)};
+  this.done=false;this.raf=requestAnimationFrame(step)},
+ bindSlice(){const me=this,F=this.field;let down=false;
+  const pt=e=>{const r=F.getBoundingClientRect(),s=r.width/1280;return {x:(e.clientX-r.left)/s,y:(e.clientY-r.top)/s,cx:e.clientX,cy:e.clientY}};
+  const hit=p=>{if(me.done)return;for(const f of me.fr){if(f.dead)continue;const r=f.el.getBoundingClientRect();if(p.cx>=r.left&&p.cx<=r.right&&p.cy>=r.top&&p.cy<=r.bottom){me.slice(f,p);return}}};
+  F.onpointerdown=e=>{down=true;try{F.setPointerCapture(e.pointerId)}catch(_){}me.pts_=[pt(e)];sfx('swoosh');hit(pt(e))};
+  F.onpointermove=e=>{if(!down)return;const p=pt(e);me.pts_.push(p);if(me.pts_.length>14)me.pts_.shift();me.draw();hit(p)};
+  F.onpointerup=F.onpointercancel=()=>{down=false;setTimeout(()=>{me.pts_=[];me.draw()},120)}},
+ draw(){const c=this.tr;c.clearRect(0,0,1280,530);const p=this.pts_;if(p.length<2)return;c.lineCap='round';
+  for(let i=1;i<p.length;i++){c.strokeStyle=`rgba(255,255,255,${i/p.length})`;c.lineWidth=2+i*1.2;c.beginPath();c.moveTo(p[i-1].x,p[i-1].y);c.lineTo(p[i].x,p[i].y);c.stroke()}},
+ slice(f,p){const ok=submit(f?f.k:-1);if(ok===null)return;this.done=true;cancelAnimationFrame(this.raf);const me=this,F=this.field;
+  if(f){f.dead=true;const r=f.el;const x=parseFloat(r.style.left),y=parseFloat(r.style.top);
+   ['inset(0 50% 0 0)','inset(0 0 0 50%)'].forEach((clip,h)=>{const c=r.cloneNode(true);c.classList.add('half');c.style.clipPath=clip;F.appendChild(c);
+    requestAnimationFrame(()=>{c.style.transform=`translate(${h?140:-140}px,260px) rotate(${h?40:-40}deg)`;c.style.opacity=0})});r.remove();
+   const s=document.createElement('div');s.className='splash';s.textContent=ok?'💥':'💣';s.style.left=(x-40)+'px';s.style.top=(y-20)+'px';F.appendChild(s)}
+  this.fr.forEach(o=>{if(!o.dead){o.el.style.transition='top .8s ease-in, opacity .8s';o.el.style.top='640px';o.el.style.opacity=.3}});
+  const b=document.createElement('div');b.className='banner';
+  if(ok){this.combo++;const g=100*Math.min(this.combo,5);this.pts+=g;sfx('ok');confetti(50,f?parseFloat(f.el.style.left):640,360);b.innerHTML=`✨ PERFECT SLICE! +${g}${this.combo>1?`<small>🔥 Combo x${this.combo}</small>`:''}`}
+  else{this.combo=0;sfx(f?'boom':'bad');b.innerHTML=`${f?'💣 BOOM!':'⏰ 時間到！'}<small>正確答案：${esc(correctText(this.it))}</small>`}
+  view.firstChild.appendChild(b);setTimeout(()=>goNext(),ok?1700:2700)},
+ summary(){return `⚡ 忍者分數 ${this.pts} ・ ${this.pts>=2000?'傳說忍者！':this.pts>=1000?'上忍！':'見習忍者，加油！'}`}};
+
+/* ================= TEACHER ================= */
+let DEMO=false,clearArm=false;
+function latest(recs,t){const m={};recs.filter(r=>r.t===t).forEach(r=>{if(!m[r.seat]||m[r.seat].at<r.at)m[r.seat]=r});return Object.values(m).sort((a,b)=>a.seat.localeCompare(b.seat))}
+function demoRecs(){const out=[];const pPre=[.35,.5,.3,.25,.45,.4,.5,.3],pPost=[.85,.75,.8,.55,.7,.9,.8,.6];
+ for(let s=1;s<=26;s++)['1','2'].forEach(t=>{const p=t==='1'?pPre:pPost;const it=cfg(t).items;
+  out.push({t,seat:String(s).padStart(2,'0'),at:1,a:it.map((x,i)=>{const ok=x.o.findIndex(o=>o.ok);if(Math.random()<p[i])return 'ABCD'[ok];if(Math.random()<.08)return 'X';const w=[0,1,2,3].filter(j=>j!==ok);const r=Math.random();return 'ABCD'[r<.6?w[0]:r<.85?w[1]:w[2]]}).join('')})});return out}
+function analyze(recs){const res={};
+ ['1','2'].forEach(t=>{const rs=latest(recs,t);const items=cfg(t).items;
+  res[t]={n:rs.length,rs,items:items.map((it,i)=>{const cnt={A:0,B:0,C:0,D:0,X:0};rs.forEach(r=>{const a=r.a[i]||'X';cnt[a in cnt?a:'X']++});
+   const ok='ABCD'[it.o.findIndex(o=>o.ok)];const n=rs.length;
+   const wrong=it.o.map((o,j)=>({j,t:o.t,m:o.m,c:cnt['ABCD'[j]]})).filter(w=>!it.o[w.j].ok).sort((a,b)=>b.c-a.c);
+   return {it,cnt,n,rate:n?cnt[ok]/n:null,wrong,x:cnt.X}})}});return res}
+function pct(v){return v==null?'—':Math.round(v*100)+'%'}
+function status(v){if(v==null)return '';return v<.6?'<span class="st-r">🔴 需重教</span>':v<.8?'<span class="st-y">🟡 需加強</span>':'<span class="st-g">🟢 已掌握</span>'}
+function statusTxt(v){return v==null?'':v<.6?'需重教':v<.8?'需加強':'已掌握'}
+function topMis(A){if(!A||!A.n)return null;const w=A.wrong[0];return w&&w.c?w:null}
+function conceptRows(res){return L.concepts.map((c,i)=>{const pre=res['1'].items[i],post=res['2'].items[i];const base=post.n?post:pre;const tm=topMis(base);
+ return {c,preA:pre,postA:post,tmPre:topMis(pre),tmPost:topMis(post),pre:pre.rate,post:post.rate,d:(pre.rate!=null&&post.rate!=null)?post.rate-pre.rate:null,tm,base,all:base.n?base.wrong.filter(w=>w.c).map(w=>`${w.t} ${pct(w.c/base.n)}`).join('｜')+(base.x?`｜未作答 ${pct(base.x/base.n)}`:''):''}})}
+function misCell(lb,tm,A){if(!A||!A.n)return '';if(!tm)return `<div><b>${lb}測：</b>無錯誤 🎉</div>`;return `<div style="margin-bottom:6px"><b>${lb}測：「${esc(tm.t)}」${pct(tm.c/A.n)}</b><br>${esc(tm.m)}</div>`}
+function teacher(){stopTimer();R=null;clearArm=false;renderTeacher()}
+function renderTeacher(msg=''){
+ const d=dbLoad(),k=clsKey(),recs=DEMO?demoRecs():(d[k]||[]);const res=analyze(recs);const rows=conceptRows(res);
+ const classes=Object.keys(d);
+ const stu={};['1','2'].forEach(t=>res[t].rs.forEach(r=>{stu[r.seat]=stu[r.seat]||{};stu[r.seat][t]=r}));
+ const stuRows=Object.keys(stu).sort().map(s=>{const o={seat:s};['1','2'].forEach(t=>{const r=stu[s][t];if(!r)return;const it=cfg(t).items;let sc=0;const miss=[];it.forEach((x,i)=>{if(r.a[i]==='ABCD'[x.o.findIndex(o=>o.ok)])sc++;else miss.push(L.concepts[x.c].code)});o['s'+t]=sc;o['m'+t]=miss});return o});
+ const el=scr(`<div class="row"><h2 style="margin:0">👩‍🏫 迷失觀念診斷・${esc(L.title)}</h2><button class="btn sm alt" onclick="home()">🏠 回首頁</button></div>
+ <div class="row">班級：<input id="tc" value="${esc(CLS)}" placeholder="例如 601" style="width:120px"> <button class="btn sm" onclick="setCls(document.getElementById('tc').value);renderTeacher()">切換</button>
+  ${classes.length?'已有資料的班級：'+classes.map(c=>`<button class="btn sm gray" data-c="${esc(c)}">${esc(c)}</button>`).join(' '):''}
+  ${DEMO?'<span class="demo">⚠️ 目前顯示「示範資料」（隨機產生，非真實）</span>':''}</div>
+ <div class="row" style="font-weight:800">前測（${esc(L.pre.name)}）：${res['1'].n} 人 ・ 後測（${esc(L.post.name)}）：${res['2'].n} 人</div>
+ <div class="guide"><b>📥 貼上學生代碼</b>（可一次貼很多組，空白或換行分隔，例如 <code>${L.id}1-07-ABDCABDA</code>）。同一座號重複時以最後一次為準。
+ <textarea id="codes" placeholder="${L.id}1-01-ABCDABCD&#10;${L.id}2-01-ABCDABCD"></textarea>
+ <div class="row"><button class="btn sm" id="imp">匯入代碼</button><button class="btn sm gold" id="cp1">📋 複製診斷表</button><button class="btn sm gold" id="cp2">📋 複製學生表</button><button class="btn sm gray" id="dm">${DEMO?'關閉示範':'👀 預覽示範資料'}</button><button class="btn sm gray" id="clr">${clearArm?'⚠️ 再按一次確認清除':'🗑 清除本班資料'}</button> <span class="msg">${esc(msg)}</span></div>
+ <textarea id="cpbox" style="display:none;height:60px"></textarea></div>
+ <div class="guide"><b>📖 怎麼讀這張表：</b>每個觀念前後測各 1 題，題目不同但測同一個觀念，錯誤選項各自對應一種迷失。答對率 <span class="st-r">🔴 &lt;60% 需重教</span> <span class="st-y">🟡 60–79% 需加強</span> <span class="st-g">🟢 ≥80% 已掌握</span>（有後測時以後測判斷）。「最常見迷失」是最多人選的錯誤選項，下一次設計新遊戲時，就把這個迷失做成遊戲裡的「陷阱」或「頭目」。</div>
+ <h2>📊 表一　迷失觀念診斷表</h2>
+ <table><tr><th>觀念</th><th>前測</th><th>後測</th><th>變化</th><th>狀態</th><th>最常見迷失（前測 → 後測）</th><th>所有錯誤選項分布</th><th>澄清教學建議</th><th>下次新遊戲設計方向</th></tr>
+ ${rows.map(r=>`<tr><td><b>${r.c.code}</b> ${esc(r.c.name)}</td><td>${pct(r.pre)}</td><td>${pct(r.post)}</td><td>${r.d==null?'—':(r.d>=0?'▲':'▼')+Math.abs(Math.round(r.d*100))+'%'}</td><td>${status(r.base.n?r.base.rate:null)}</td>
+ <td>${misCell('前',r.tmPre,r.preA)}${misCell('後',r.tmPost,r.postA)}</td><td style="font-size:13px">${esc(r.all)||'—'}</td><td>${esc(r.c.clarify)}</td><td>${esc(r.c.next)}</td></tr>`).join('')}</table>
+ <h2>👧 表二　學生個別表</h2>
+ <table><tr><th>座號</th><th>前測</th><th>後測</th><th>前測錯的觀念</th><th>後測仍錯的觀念（需個別補救）</th></tr>
+ ${stuRows.map(o=>`<tr><td>${o.seat}</td><td>${o.s1!=null?o.s1+'/8':'—'}</td><td>${o.s2!=null?o.s2+'/8':'—'}</td><td>${o.m1?o.m1.join('、')||'全對':'—'}</td><td>${o.m2?(o.m2.length?'<b style="color:#c23a3a">'+o.m2.join('、')+'</b>':'全對 🌟'):'—'}</td></tr>`).join('')||'<tr><td colspan="5">尚無資料</td></tr>'}</table>
+ ${['1','2'].map(t=>`<details><summary>🔍 ${t==='1'?'前測':'後測'}逐題選項分布（${cfg(t).name}）</summary><table><tr><th>題</th><th>觀念</th><th>題目</th><th>A</th><th>B</th><th>C</th><th>D</th><th>未答</th></tr>
+ ${res[t].items.map((x,i)=>`<tr><td>${i+1}</td><td>${L.concepts[x.it.c].code}</td><td>${esc(x.it.q)}<br><span style="color:#888">${esc(x.it.zh)}</span></td>${'ABCD'.split('').map((l,j)=>`<td style="${x.it.o[j].ok?'background:#d3f5dc;font-weight:900':''}">${esc(x.it.o[j].t)}<br>${x.n?x.cnt[l]+' 人 ('+pct(x.cnt[l]/x.n)+')':'—'}</td>`).join('')}<td>${x.n?x.cnt.X:'—'}</td></tr>`).join('')}</table></details>`).join('')}`,'tch');
+ el.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{setCls(b.dataset.c);renderTeacher()});
+ el.querySelector('#imp').onclick=()=>{const txt=el.querySelector('#codes').value.toUpperCase();const re=new RegExp('\\b'+L.id+'([12])-?(\\d{1,2})-?([ABCDX]{8})\\b','g');let m,n=0;
+  while((m=re.exec(txt))){addRecord({t:m[1],seat:m[2].padStart(2,'0'),a:m[3],at:Date.now()+n});n++}
+  const other=(txt.match(/\b[A-Z][12]-?\d{1,2}-?[ABCDX]{8}\b/g)||[]).filter(c=>c[0]!==L.id).length;
+  DEMO=false;renderTeacher(n?`✅ 匯入 ${n} 組代碼到「${clsKey()}」`+(other?`（另有 ${other} 組不是這一課的代碼，已略過）`:''):'找不到有效代碼，請確認格式')};
+ const copy=(txt)=>{const box=el.querySelector('#cpbox');
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(()=>{el.querySelector('.msg').textContent='✅ 已複製，可直接貼到 Google 試算表或 Excel'}).catch(()=>{box.style.display='block';box.value=txt;box.select();el.querySelector('.msg').textContent='請按 Ctrl+C 複製下面的文字'})}
+  else{box.style.display='block';box.value=txt;box.select();el.querySelector('.msg').textContent='請按 Ctrl+C 複製下面的文字'}};
+ el.querySelector('#cp1').onclick=()=>copy([['班級','觀念代碼','觀念','前測答對率','後測答對率','變化','狀態','前測最常見迷失','比例','說明','後測最常見迷失','比例','說明','錯誤選項分布（有後測以後測為準）','澄清教學建議','下次新遊戲設計方向'].join('\t'),
+  ...rows.map(r=>[clsKey()+(DEMO?'(示範)':''),r.c.code,r.c.name,pct(r.pre),pct(r.post),r.d==null?'':Math.round(r.d*100)+'%',statusTxt(r.base.n?r.base.rate:null),r.tmPre?r.tmPre.t:'',r.tmPre?pct(r.tmPre.c/r.preA.n):'',r.tmPre?r.tmPre.m:'',r.tmPost?r.tmPost.t:'',r.tmPost?pct(r.tmPost.c/r.postA.n):'',r.tmPost?r.tmPost.m:'',r.all,r.c.clarify,r.c.next].join('\t'))].join('\n'));
+ el.querySelector('#cp2').onclick=()=>copy([['座號','前測分數','後測分數','前測錯的觀念','後測仍錯的觀念'].join('\t'),...stuRows.map(o=>[o.seat,o.s1??'',o.s2??'',o.m1?o.m1.join('、'):'',o.m2?o.m2.join('、'):''].join('\t'))].join('\n'));
+ el.querySelector('#dm').onclick=()=>{DEMO=!DEMO;renderTeacher()};
+ el.querySelector('#clr').onclick=()=>{if(!clearArm){clearArm=true;renderTeacher();return}const d=dbLoad();delete d[clsKey()];dbSave(d);clearArm=false;DEMO=false;renderTeacher('已清除「'+clsKey()+'」的資料')}}
+
+home();
+</script>
+</body>
+</html>
