@@ -1643,6 +1643,17 @@ html[data-theme=dark] .wb-todo li.ok{background:rgba(79,209,161,.10)}
 .tv-note{margin:14px 0 0;color:var(--ink-3);font-size:13px;text-align:center}
 @media (max-width:560px){.tv-top{padding:10px 12px}.tv-top .brand .txt{display:none}.tv-it{grid-template-columns:54px 1fr}.tv-grid th,.tv-grid td{font-size:12px;padding:6px 2px}.tv-grid td b{font-size:13px}}
 }
+@media screen{
+.setup-box{margin:14px 0 0;padding:16px;border:1px solid var(--line);border-radius:16px;background:var(--surface);text-align:left}
+.setup-box .setup-h{margin:0 0 10px;font-size:15px;color:var(--ink-2);line-height:1.6}
+.setup-box .setup-h b{color:var(--ink);font-size:16px}
+.setup-box label{display:block;font-size:14px;font-weight:700;margin:10px 0 4px;color:var(--ink)}
+.setup-box input{width:100%;box-sizing:border-box;min-height:44px;border:1px solid var(--line);border-radius:10px;padding:0 12px;font:inherit;font-size:16px;background:var(--surface);color:var(--ink)}
+.gfield.solo{grid-template-columns:1fr}
+.gfield.solo > :first-child{border-radius:14px}
+.setup-box .setup-go{width:100%;margin-top:14px;min-height:48px}
+.setup-box .setup-tip{margin:10px 0 0;font-size:13px;color:var(--ink-3)}
+}
 </style>
 </head>
 <body>
@@ -1674,6 +1685,15 @@ html[data-theme=dark] .wb-todo li.ok{background:rgba(79,209,161,.10)}
           </div>
         </div>
         <button class="btn" type="submit">登入</button>
+      </div>
+      <div class="setup-box" id="setupBox" hidden>
+        <p class="setup-h"><b>第一次登入：請設定您自己的密碼</b><br>設好之後，以後都用這個密碼登入（至少 6 個字）。</p>
+        <label for="setupPw1">新密碼</label>
+        <input id="setupPw1" type="password" autocomplete="new-password" placeholder="至少 6 個字">
+        <label for="setupPw2">再輸入一次</label>
+        <input id="setupPw2" type="password" autocomplete="new-password" placeholder="再輸入一次新密碼">
+        <button class="btn setup-go" type="submit">設定密碼並登入</button>
+        <p class="setup-tip">不是您的名字請不要設定。忘記密碼請聯繫教務組重設。</p>
       </div>
       <div class="err" id="loginErr"></div>
       <div class="chipsrow" id="quickNames"></div>
@@ -2825,7 +2845,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.17c";
+const APP_VERSION = "專業版 2026.11.17d";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -2997,7 +3017,9 @@ async function loadNames(){
   try{
     const d = await api({action:"names"});                            // 同時讓伺服器先把資料準備好
     if(!d.ok) throw new Error(d.error);
+    state.setup = Array.isArray(d.setup) ? d.setup : [];           // 115.11.17：還沒設定自己密碼的老師（第一次登入）
     if (JSON.stringify(d.names) !== JSON.stringify(cached)){ fill(d.names); store.set(K+"names", JSON.stringify(d.names), localStorage); }
+    setupMode();
     if (d.offToday) { state.offToday = d.offToday; loginStats(d.names.length); }
     renderPubWeek(d.week); try{ store.set(K+"week", JSON.stringify(d.week||null), localStorage); }catch(_){}
   }catch(e){
@@ -3006,6 +3028,15 @@ async function loadNames(){
   }
 }
 
+/* 115.11.17 第一次登入：選到還沒設定密碼的名字 → 不用輸入初始密碼，直接設定自己的密碼 */
+function setupMode(){
+  const n = $("#name").value, on = !!n && (state.setup || []).includes(n);
+  $("#setupBox").hidden = !on; document.querySelector("#loginForm .pw-wrap").hidden = on; $("#pw").required = !on;
+  document.querySelector("#loginForm .gbox > button[type=submit]").hidden = on;
+  document.querySelector("#loginForm .gfield").classList.toggle("solo", on);
+  return on;
+}
+$("#name").addEventListener("change", () => { $("#loginErr").textContent = ""; if(setupMode()) $("#setupPw1").focus(); });
 /* 公開週表：週一到週五固定五欄；週末有課務才多一欄。老資料（上次存的）先畫，等新的回來再換 */
 /* 半天的停課（例：颱風假下午）要寫出範圍，不要看起來像整天放假（115.11.9） */
 const offHalf = o => !!(o && o.scope && o.scope !== "全天");
@@ -3043,7 +3074,7 @@ function loginStats(n){
   $("#lstats").innerHTML = (n ? `<span><b>${n}</b>位老師</span>` : "")
     + `<span><b>8/31–1/20</b>本學期</span><span><b>${t.getMonth()+1}/${t.getDate()}</b>今天（星期${DOW[t.getDay()]}${off ? "，" + esc(off.name) : ""}）</span>`;
 }
-document.addEventListener("click", e => { const b = e.target.closest("[data-pick]"); if(b){ $("#name").value = b.dataset.pick; $("#pw").focus(); } });
+document.addEventListener("click", e => { const b = e.target.closest("[data-pick]"); if(b){ $("#name").value = b.dataset.pick; if(setupMode()) $("#setupPw1").focus(); else $("#pw").focus(); } });
 (function hintCycle(){                       // 密碼框的提示字輪流換（參考影片）
   const hints = ["輸入個人密碼", "教務組發給您的初始密碼", "或您自己改過的新密碼"]; let k = 0;
   setInterval(() => { const i = $("#pw"); if(!i || i.value || document.activeElement === i) return; k = (k+1) % hints.length; i.placeholder = hints[k]; }, 2600);
@@ -3061,9 +3092,21 @@ $("#loginForm").addEventListener("submit", async e=>{
   const name = $("#name").value.trim(), pw = $("#pw").value;
   $("#loginErr").textContent = "";
   if(!name){ $("#loginErr").textContent = "請先選擇您的名字"; return; }
+  const first = (state.setup || []).includes(name);
+  if(first){ const a = $("#setupPw1").value, b2 = $("#setupPw2").value;
+    if(a.length < 6){ $("#loginErr").textContent = "密碼至少要 6 個字"; $("#setupPw1").focus(); return; }
+    if(a !== b2){ $("#loginErr").textContent = "兩次輸入的密碼不一樣"; $("#setupPw2").focus(); return; } }
   busy(true);
   try{
-    const h = await sha256(name+":"+pw);
+    let h;
+    if(first){                                                         // 第一次登入：先把自己的密碼存好，再用新密碼登入
+      h = await sha256(name+":"+$("#setupPw1").value);
+      const r = await apiPost({action:"firstSet", name, nh:h});
+      if(!r.ok) throw new Error(r.error || "設定失敗");
+      state.setup = (state.setup || []).filter(x => x !== name);
+      $("#setupPw1").value = ""; $("#setupPw2").value = ""; setupMode();
+      toast("密碼設定好了，以後請用這個密碼登入");
+    } else h = await sha256(name+":"+pw);
     const data = await fetchData(name, h);
     if (!data.ok) throw new Error(data.error || "姓名或密碼不正確");
     state.cred = {name, h};
@@ -3591,12 +3634,12 @@ function renderAdmin(){
   box.style.display="block";
   const opts = ["<option value=''>全校總覽</option>", ...state.teachers.map(t=>`<option ${t===state.viewing?"selected":""}>${esc(t)}</option>`)].join("");
   const pwRows = state.pwStatus.map(p=>`<div class="row"><span>${esc(p.name)}</span>
-      <span class="st ${p.changed?"c":""}">${p.changed?"已自訂 "+esc(p.at):"初始密碼"}</span>
-      ${p.changed && p.name!==state.cred.name ? `<button type="button" data-reset="${esc(p.name)}">恢復初始</button>` : `<span style="width:62px"></span>`}</div>`).join("");
+      <span class="st ${p.changed?"c":""}">${p.changed?"已自訂 "+esc(p.at):p.name===state.cred.name?"初始密碼":"還沒設定"}</span>
+      ${p.changed && p.name!==state.cred.name ? `<button type="button" data-reset="${esc(p.name)}">重設密碼</button>` : `<span style="width:62px"></span>`}</div>`).join("");
   const html = `<label>查看哪位老師</label><select class="viewAs" aria-label="查看哪位老師">${opts}</select>
-    <div class="pw-tip">網站目前只開放教務組；選老師可以看他的課務。</div>
+    <div class="pw-tip">選老師可以看他的課務（老師自己登入只看得到自己的、沒有金額）。</div>
     <details class="pw-list"><summary>老師密碼狀態</summary>${pwRows}
-    <div class="pw-tip">老師忘記密碼時按「恢復初始」，就能用密碼表上的初始密碼登入。</div></details>`;
+    <div class="pw-tip">「已自訂」＝老師設定過自己的密碼；「還沒設定」＝他第一次登入時會請他設定。忘記密碼、或不是本人設定的，按「重設密碼」：他下次登入選自己的名字，就會請他重新設定新密碼（不用初始密碼）。</div></details>`;
   box.innerHTML = html; mob.innerHTML = `<div class="admin-box">${html}</div>`;
   const vt = $("#viewTop");          // 頂端列也放一個「查看哪位老師」：每一頁都能切換，不必回年曆
   if(vt){ vt.innerHTML = `<label class="sr" for="viewAsTop">查看哪位老師</label><svg class="vt-ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><select class="viewAs" id="viewAsTop" title="查看哪位老師（全校總覽或單一老師）">${opts}</select>`;
@@ -3610,12 +3653,12 @@ function renderAdmin(){
   });
   document.querySelectorAll("[data-reset]").forEach(b=>b.onclick = async ()=>{
     const t = b.dataset.reset;
-    if(!confirm(`把 ${t} 老師的密碼恢復成初始密碼？`)) return;
+    if(!confirm(`重設 ${t} 老師的密碼？\n\n重設後，他下次登入選自己的名字，會請他重新設定新密碼。`)) return;
     busy(true);
     try{
       const d = await api({action:"reset", name:state.cred.name, h:state.cred.h, target:t});
       if(!d.ok) throw new Error(d.error);
-      toast(`${t} 老師已恢復成初始密碼`); reload();
+      toast(`已重設 ${t} 老師的密碼，請他重新登入設定新密碼`); reload();
     }catch(e){ toast("重設失敗："+e.message); }
     finally{ busy(false); }
   });
@@ -8444,7 +8487,8 @@ async function printAcct(r){
 
 /* ---------- 示範資料（網址加 ?demo=1）：人名、資料都是虛構的，密碼一律 demo ---------- */
 const DEMO_NAMES=["王教務","甲老師","乙老師","丙老師","丁老師"];
-const demoPw = {}, demoSaved = [], demoReports = [];
+const demoPw = (() => { try{ return JSON.parse(sessionStorage.getItem("demoPw") || "{}"); }catch(e){ return {}; } })(), demoSaved = [], demoReports = [];
+const demoPwSave = () => { try{ sessionStorage.setItem("demoPw", JSON.stringify(demoPw)); }catch(e){} };
 function demoTT(){                    // 虛構課表：甲＝四甲導師、丙＝五甲導師、乙＝科任（自然）、丁＝六甲導師
   const tt={}, tSlot={};
   const put=(d,p,c,s,t)=>{ tt[d+"|"+p+"|"+c]={subject:s,teachers:[t]}; (tSlot[d+"|"+p+"|"+t]=tSlot[d+"|"+p+"|"+t]||[]).push(c); };
@@ -8470,11 +8514,11 @@ async function demoApi(p){
     const t=new Date(), wd=t.getDay(), mon=new Date(t.getFullYear(),t.getMonth(),t.getDate()+(wd===0?1:wd===6?2:1-wd));
     const ymd=i=>{const d=new Date(mon.getFullYear(),mon.getMonth(),mon.getDate()+i);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;};
     const it=[[{p:"2",c:"三年甲班",k:"sub",j:"國語",a:"甲老師",b:"乙老師"},{p:"導師",c:"三年甲班",k:"tutor",j:"",a:"甲老師",b:"丙老師"}],[],[{p:"5",c:"五年乙班",k:"todo",j:"數學",a:"丁老師",b:""}],[{p:"3",c:"四年甲班",k:"swap",m:"改由 乙老師 上自然",x:"丙老師 的社會移到 週五 第4節"}],[]];
-    return {ok:true,names:DEMO_NAMES,week:[0,1,2,3,4,5,6].map(i=>({d:ymd(i),off:"",items:it[i]||[]}))};
+    return {ok:true,names:DEMO_NAMES,setup:/[?&]setup=1/.test(location.search) ? DEMO_NAMES.filter(n=>n!=="王教務" && !demoPw[n]) : [],week:[0,1,2,3,4,5,6].map(i=>({d:ymd(i),off:"",items:it[i]||[]}))};
   }
   if(!DEMO_NAMES.includes(p.name) || !(await ok(p.name,p.h))) return {ok:false,error:p.action==="change"?"目前的密碼不正確":"姓名或密碼不正確（示範模式密碼是 demo）"};
-  if(p.action==="change"){ demoPw[p.name]=p.nh; return {ok:true}; }
-  if(p.action==="reset"){ delete demoPw[p.target]; return {ok:true}; }
+  if(p.action==="change"){ demoPw[p.name]=p.nh; demoPwSave(); return {ok:true}; }
+  if(p.action==="reset"){ delete demoPw[p.target]; demoPwSave(); return {ok:true}; }
   const admin = p.name==="王教務";
   if(p.action==="meta") return admin ? Object.assign({ok:true,teachers:DEMO_NAMES,ev:demoEvents()}, demoTT()) : {ok:false,error:"只有管理者可以使用"};
   const all = demoEvents(), target = admin ? (p.as||"__all__") : p.name;
@@ -8500,6 +8544,9 @@ function demoLineOut(b){
   return o;
 }
 async function demoPost(b){
+  if(b.action==="firstSet"){ if(b.name==="王教務" || !DEMO_NAMES.includes(b.name)) return {ok:false,error:"這個帳號不能用這個方式設定密碼"};
+    if(demoPw[b.name]) return demoPw[b.name]===b.nh ? {ok:true} : {ok:false,error:"您已經設定過密碼了，請用自己的密碼登入。忘記密碼或不是您本人設定的，請聯繫教務組重設。"};
+    demoPw[b.name]=b.nh; demoPwSave(); return {ok:true}; }
   if(b.action==="lineStatus") return demoLineOut(b);
   if(b.action==="lineClaim"){ demoLineAdm.claim = b.on==="1" || b.on===true; return demoLineOut(b); }
   if(b.action==="lineMember"){ if(b.op==="add"){ if(!/^[\u4e00-\u9fffA-Za-z·．.\s]{2,12}$/.test(b.member||"")) return {ok:false,error:"姓名請填 2～12 個字（中文或英文）"}; demoLineAdm.extra = demoLineAdm.extra.filter(x=>x.name!==b.member).concat([{name:b.member, role:b.role==="heli"?"heli":"self", title:b.title||""}]); } else demoLineAdm.extra = demoLineAdm.extra.filter(x=>x.name!==b.member); return demoLineOut(b); }
