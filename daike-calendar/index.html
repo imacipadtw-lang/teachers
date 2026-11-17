@@ -2706,7 +2706,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.16k";
+const APP_VERSION = "專業版 2026.11.17a";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -5108,7 +5108,7 @@ function refreshPlan(){
   const rowsN = (form.swaps||form.subs||form.absents||[]).length + ((form.tutors||[]).length);
   const anyMissing = (form.swaps||[]).some(r=>missingOf("swap",r).length) || (form.subs||[]).some(r=>missingOf("sub",r).length) || (form.tutors||[]).some(r=>missingOf("tutor",r).length) || (form.absents||[]).some(r=>missingOf("absent",r).length) || (plan.kind==="absent" && !rowsN && plan.absent.from ? true : false);
   const anyOut = (form.swaps||[]).some(r=>termOf("swap",r).length) || (form.subs||[]).some(r=>termOf("sub",r).length) || (form.tutors||[]).some(r=>termOf("tutor",r).length) || (form.absents||[]).some(r=>termOf("absent",r).length);
-  $("#planSum").innerHTML = !rowsN ? "還沒有資料" : hardN ? `<span style="color:var(--rose);font-weight:800">⛔ 有 ${hardN} 列衝堂或請假，不能儲存，請改選老師</span>` : anyMissing ? `還有欄位沒填完` : anyOut ? `<span style="color:var(--rose);font-weight:700">⚠ 有日期不在本學期（${esc(termText())}）</span>` : all ? `<span style="color:var(--rose);font-weight:700">⚠ 有 ${all} 列需要確認</span>` : (plan.kind==="absent" || plan.kind==="tutor" ? `<span style="color:var(--sage);font-weight:700">✓ 共 ${rowsN} 天，可以登記</span>` : `<span style="color:var(--sage);font-weight:700">✓ 共 ${rowsN} 列，沒有衝堂、沒有請假</span>`);
+  $("#planSum").innerHTML = !rowsN ? (plan.kind==="sub" ? `還沒有要登記的課：請先按「${plan.sub.leaver ? "帶入" + esc(plan.sub.leaver) + "這天的課" : "帶入這天的課"}」或「＋ 加一節」。只登記請假請用「請假」分頁，只登記代導師請勾「也登記代導師」或用「代導師」分頁。` : "還沒有資料") : hardN ? `<span style="color:var(--rose);font-weight:800">⛔ 有 ${hardN} 列衝堂或請假，不能儲存，請改選老師</span>` : anyMissing ? `還有欄位沒填完` : anyOut ? `<span style="color:var(--rose);font-weight:700">⚠ 有日期不在本學期（${esc(termText())}）</span>` : all ? `<span style="color:var(--rose);font-weight:700">⚠ 有 ${all} 列需要確認</span>` : (plan.kind==="absent" || plan.kind==="tutor" ? `<span style="color:var(--sage);font-weight:700">✓ 共 ${rowsN} 天，可以登記</span>` : `<span style="color:var(--sage);font-weight:700">✓ 共 ${rowsN} 列，沒有衝堂、沒有請假</span>`);
   { const bad = document.querySelector("#planBody .chk.stop, #planBody .chk.bad, #planBody .chk.wait");   // 115.11.10：有問題時可以一鍵捲到那一列
     if(bad && rowsN){ const host = bad.closest("[data-chk]"), n = host ? (+String(host.dataset.chk).split(".").pop() + 1) : 0;
       $("#planSum").insertAdjacentHTML("beforeend", ` <button type="button" class="linkbtn" id="planJump">看${n ? `第 ${n} 列` : "哪裡"}</button>`);
