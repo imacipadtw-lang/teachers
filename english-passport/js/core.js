@@ -200,8 +200,10 @@
     teacher: {},       // key -> blob URL (teacher recordings from IndexedDB)
     current: null,
     manifest: D.audio || {},   // id -> {s:'human'|'tts', a: accent, by: author, lic}
+    ai: {},            // id -> data URL (AI voice, ElevenLabs) — only for words with no human recording; always labelled 'AI 語音'
+    aiMeta: D.aiAudio || {},   // id -> {v: voice, m: model, t: generated at, src}
   });
-  window.EP_AUDIO_PACK = function (level, map) { Object.assign(audio.clips, map); audio.packs[level] = true; const cb = audio._wait[level]; if (cb) cb.forEach((f) => f()); delete audio._wait[level]; };
+  window.EP_AUDIO_PACK = function (level, map, ai) { Object.assign(audio.clips, map); if (ai) Object.assign(audio.ai, ai); audio.packs[level] = true; const cb = audio._wait[level]; if (cb) cb.forEach((f) => f()); delete audio._wait[level]; };
   audio._wait = {};
   audio.ensureLevel = function (lv) {
     if (audio.packs[lv]) return Promise.resolve();
@@ -216,13 +218,14 @@
     });
   };
   audio.ensureAll = () => Promise.all(EP.levels.map((l) => audio.ensureLevel(l.level)));
-  /** where the voice for this item comes from: 'teacher' | 'human' | 'tts' */
+  /** where the voice for this item comes from: 'teacher' | 'human' | 'ai' | 'tts' */
   audio.source = function (w, kind) {
     const key = (kind === 'sentence' ? 's' : 'w') + w.id;
     if (audio.teacher[key]) return 'teacher';
     // 'human' only when a real recording will actually play here: built in, saved on this device,
     // or streamable (not in the hosted viewer, whose content policy blocks Wikimedia)
     if (kind !== 'sentence' && (audio.clips[w.id] || audio.offline[w.id] || (audio.manifest[w.id] && !EP.hosted && !audio.failed[w.id]))) return 'human';
+    if (kind !== 'sentence' && (audio.ai[w.id] || (audio.aiMeta[w.id] && audio.packs[w.level] !== 'missing'))) return 'ai';
     return 'tts';
   };
   audio.stop = function () { try { if (audio.current) { audio.current.pause(); audio.current = null; } window.speechSynthesis && speechSynthesis.cancel(); } catch (e) {} };
@@ -261,7 +264,7 @@
       } catch (e) { done(false); }
     });
   }
-  /** Play the word (or its sentence). Order: teacher recording > bundled/offline/streamed real human > speech synthesis. */
+  /** Play the word (or its sentence). Order: teacher recording > bundled/offline/streamed real human > AI voice (ElevenLabs) > speech synthesis. */
   audio.play = async function (w, opts) {
     opts = opts || {}; const kind = opts.sentence ? 'sentence' : 'word';
     audio.stop();
@@ -275,6 +278,7 @@
         if (ok) return 'human';
         if (src === (audio.manifest[w.id] || {}).u) audio.failed[w.id] = true;
       }
+      if (audio.ai[w.id] && await playSrc(audio.ai[w.id], null, opts)) return 'ai';
     }
     await EP.tts.say(kind === 'sentence' ? w.sentence : w.word.replace('...', ''), { slow: opts.slow });
     return 'tts';

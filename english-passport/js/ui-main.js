@@ -23,7 +23,7 @@
     return { close, el: m };
   };
   ui.srcTag = function (src) {
-    const t = { human: ['human', '真人發音'], teacher: ['teacher', '老師錄音'], tts: ['tts', '電腦語音'] }[src] || ['tts', '電腦語音'];
+    const t = { human: ['human', '真人發音'], teacher: ['teacher', '老師錄音'], ai: ['ai', 'AI 語音'], tts: ['tts', '電腦語音'] }[src] || ['tts', '電腦語音'];
     return el('span', { class: 'src-tag ' + t[0] }, t[1]);
   };
   ui.unlocked = function (n) { if (n <= 1 || EP.settings.unlockAll) return true; const p = EP.me.levels[n - 1]; return !!(p && (p.stars > 0 || p.stamp)); };
@@ -138,13 +138,14 @@
   ui.levelCard = function (n) {
     const l = LV(n); const g = EP.games[l.game]; const prog = EP.me.levels[n] || {};
     const ms = EP.srs.levelMastery(n); const ws = EP.levelWords(n);
-    const human = ws.filter((w) => EP.audio.source(w) !== 'tts').length;
+    const human = ws.filter((w) => ['human', 'teacher'].includes(EP.audio.source(w))).length;
+    const aiN = ws.filter((w) => EP.audio.source(w) === 'ai').length;
     const c = el('div', {},
       el('div', { class: 'level-head' }, el('div', { class: 'big-ic', style: { background: `linear-gradient(135deg,#fff,${l.color}33)` } }, l.icon),
         el('div', {}, el('div', { class: 'muted' }, `Level ${n} 第${n}關 · ${l.city}, ${l.country}`), el('h2', {}, l.titleEn), el('div', { class: 'zh', style: { fontSize: '1.15rem' } }, `${l.cityZh}（${l.countryZh}）· ${l.titleZh}`))),
       el('div', { class: 'inspired' }, '🎮 ', el('b', {}, g ? `${g.icon} ${g.title} ${g.titleZh || ''}` : 'Coming soon'), g ? el('div', { class: 'zh' }, `靈感來自：${g.model}`) : null, g ? el('div', { class: 'muted zh' }, g.howZh) : null),
       el('p', { class: 'zh', style: { margin: '6px 0' } }, '🌏 ', l.factZh, el('br'), el('span', { class: 'muted' }, l.fact)),
-      el('div', { class: 'row', style: { justifyContent: 'space-between' } }, el('span', {}, `📚 ${ws.length} words 個單字`), el('span', {}, `🔊 真人發音 ${human}/${ws.length}`, EP.hosted && human < ws.length ? el('span', { class: 'muted zh', style: { fontSize: '.8rem' } }, '（線上版；下載版可播放更多）') : null), el('span', {}, prog.stars ? '⭐'.repeat(prog.stars) : '☆☆☆'), prog.stamp ? el('span', {}, prog.gold ? '🏅 Gold stamp' : '🛂 Stamped') : null),
+      el('div', { class: 'row', style: { justifyContent: 'space-between' } }, el('span', {}, `📚 ${ws.length} words 個單字`), el('span', {}, `🔊 真人發音 ${human}/${ws.length}`, aiN ? el('span', { class: 'muted zh', style: { fontSize: '.8rem' } }, `（另有 ${aiN} 個 AI 語音）`) : null, EP.hosted && human < ws.length ? el('span', { class: 'muted zh', style: { fontSize: '.8rem' } }, '（線上版；下載版可播放更多）') : null), el('span', {}, prog.stars ? '⭐'.repeat(prog.stars) : '☆☆☆'), prog.stamp ? el('span', {}, prog.gold ? '🏅 Gold stamp' : '🛂 Stamped') : null),
       el('div', { style: { marginTop: '8px' } }, el('div', { class: 'muted' }, `Mastered 精熟 ${ms.mastered}/${ms.total}`), el('div', { class: 'meter' }, el('i', { style: { width: (ms.mastered / ms.total) * 100 + '%' } }))),
       el('div', { class: 'level-actions' },
         el('button', { class: 'btn blue big', onclick: () => { m.close(); ui.show('learn', { level: n }); } }, '📖 Learn', el('small', {}, '學習卡')),

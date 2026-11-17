@@ -202,7 +202,7 @@
       sel('voiceRate', [[0.75, '0.75×'], [0.9, '0.9×'], [1, '1×']], 'Computer voice speed 電腦語音速度（僅用於沒有真人發音的句子）'),
       sel('ttsVoice', [['', 'Auto (best en-US) 自動']].concat(EP.tts.voices.map((v) => [v.name, `${v.name} (${v.lang})`])), 'Computer voice 電腦語音'),
       el('label', { class: 'tog' }, 'Teacher PIN 教師密碼', el('input', { type: 'text', value: S.teacherPin, maxlength: 8, onchange: (e) => { S.teacherPin = e.target.value || '0000'; save(); } })),
-      el('p', { class: 'muted zh' }, '單字一律優先播放真人發音；只有完全找不到真人錄音的項目與例句才用電腦語音，並會清楚標示「電腦語音」。'),
+      el('p', { class: 'muted zh' }, '單字一律優先播放真人發音；完全找不到真人錄音的項目改用 AI 語音（ElevenLabs，標示「AI 語音」），仍沒有的才用電腦語音（標示「電腦語音」）。'),
       el('h3', { style: { marginTop: '16px' } }, '🧑‍🏫 一節課 40 分鐘建議流程'),
       el('div', { class: 'scroll' }, el('table', { class: 'data zh' }, el('thead', {}, el('tr', {}, ['時間', '活動', '在哪裡'].map((h) => el('th', {}, h)))),
         el('tbody', {}, [['5 分', '暖身：全班跟讀真人發音', '該關 📖 學習卡（投影）'], ['15 分', '個人或兩人闖關', '🎮 開始遊戲'], ['10 分', '全班分組對戰', '首頁 🏆 Class Battle'], ['5 分', '護照蓋章考（80% 蓋章）', '🛂 護照蓋章考'], ['5 分', '錯題回顧', '🔁 Review Rush／📚 Word-dex']].map((r) => el('tr', {}, r.map((c) => el('td', {}, c))))))),
@@ -210,27 +210,27 @@
   };
   ui.teacherTabs.audio = function () {
     const man = EP.audio.manifest; const rows = EP.words.map((w) => ({ w, m: man[w.id], src: EP.audio.source(w) }));
-    const human = rows.filter((r) => r.m).length; const bundled = rows.filter((r) => EP.audio.clips[r.w.id]).length; const offline = rows.filter((r) => EP.audio.offline[r.w.id]).length; const teacher = rows.filter((r) => EP.audio.teacher['w' + r.w.id]).length;
+    const human = rows.filter((r) => r.m).length; const bundled = rows.filter((r) => EP.audio.clips[r.w.id]).length; const offline = rows.filter((r) => EP.audio.offline[r.w.id]).length; const teacher = rows.filter((r) => EP.audio.teacher['w' + r.w.id]).length; const aiN = rows.filter((r) => !r.m && !EP.audio.teacher['w' + r.w.id] && EP.audio.aiMeta[r.w.id]).length;
     let only = 'all';
     const prog = el('div', { class: 'muted' }, EP.store.get('offlineAudioAt') ? `Last offline download 上次下載：${new Date(EP.store.get('offlineAudioAt')).toLocaleString()}` : '');
     const tbody = el('tbody');
     const render = () => {
       tbody.innerHTML = '';
-      rows.filter((r) => only === 'all' || (only === 'missing' && !r.m && !EP.audio.teacher['w' + r.w.id]) || (only === 'human' && r.m)).forEach(({ w, m }) => {
-        const st = EP.audio.teacher['w' + w.id] ? ui.srcTag('teacher') : m ? ui.srcTag('human') : ui.srcTag('tts');
+      rows.filter((r) => only === 'all' || (only === 'missing' && !r.m && !EP.audio.teacher['w' + r.w.id]) || (only === 'human' && r.m) || (only === 'ai' && !r.m && EP.audio.aiMeta[r.w.id])).forEach(({ w, m }) => {
+        const st = EP.audio.teacher['w' + w.id] ? ui.srcTag('teacher') : m ? ui.srcTag('human') : EP.audio.aiMeta[w.id] ? ui.srcTag('ai') : ui.srcTag('tts');
         tbody.appendChild(el('tr', {}, el('td', {}, w.id), el('td', {}, el('b', {}, w.word), el('br'), el('span', { class: 'zh muted' }, w.zh)), el('td', {}, st, EP.audio.clips[w.id] ? ' 📦' : EP.audio.offline[w.id] ? ' 💾' : m ? ' ☁️' : ''),
-          el('td', {}, m ? m.a : ''), el('td', {}, m ? el('span', {}, m.by, el('br'), el('span', { class: 'muted' }, m.lic)) : '—'),
-          el('td', {}, m ? (m.t || '').replace('T', ' ').replace('Z', ' UTC') : '—'), el('td', {}, m && m.n ? el('span', { class: 'muted' }, m.n) : ''),
+          el('td', {}, m ? m.a : EP.audio.aiMeta[w.id] ? 'US' : ''), el('td', {}, m ? el('span', {}, m.by, el('br'), el('span', { class: 'muted' }, m.lic)) : EP.audio.aiMeta[w.id] ? el('span', {}, 'ElevenLabs · ' + EP.audio.aiMeta[w.id].v, el('br'), el('span', { class: 'muted' }, 'AI 語音（非真人錄音）')) : '—'),
+          el('td', {}, m ? (m.t || '').replace('T', ' ').replace('Z', ' UTC') : EP.audio.aiMeta[w.id] ? (EP.audio.aiMeta[w.id].t || '').replace('T', ' ').replace('Z', ' UTC') : '—'), el('td', {}, m && m.n ? el('span', { class: 'muted' }, m.n) : ''),
           el('td', {}, el('button', { class: 'btn small', onclick: () => EP.audio.play(w) }, '🔊'), m ? el('a', { class: 'btn small', href: m.p, target: '_blank', rel: 'noopener' }, '↗') : el('button', { class: 'btn small purple', onclick: () => ui.show('teacher', 'record') }, '🎙️'))));
       });
     };
-    const filter = el('select', { 'aria-label': 'Filter words 篩選單字', onchange: (e) => { only = e.target.value; render(); } }, [['all', 'All 全部'], ['human', 'Real human 有真人發音'], ['missing', 'Missing 缺少真人發音']].map(([v, t]) => el('option', { value: v }, t)));
+    const filter = el('select', { 'aria-label': 'Filter words 篩選單字', onchange: (e) => { only = e.target.value; render(); } }, [['all', 'All 全部'], ['human', 'Real human 有真人發音'], ['ai', 'AI voice AI 語音'], ['missing', 'Missing 缺少真人發音']].map(([v, t]) => el('option', { value: v }, t)));
     render();
     return el('div', {},
       el('div', { class: 'panel', style: { marginBottom: '12px' } },
         el('h3', {}, '🔊 Real human pronunciation tracker 真人發音追蹤'),
-        el('div', { class: 'stat-row' }, el('div', { class: 'stat' }, el('b', {}, `${human}/700`), 'Found 找到真人錄音'), el('div', { class: 'stat' }, el('b', {}, `${EP.words.filter((w) => EP.audio.source(w) !== 'tts').length}/700`), 'Plays here 這台可播放'), el('div', { class: 'stat' }, el('b', {}, bundled), '📦 Built-in 內建'), el('div', { class: 'stat' }, el('b', {}, offline), '💾 Saved on this device 已存本機'), el('div', { class: 'stat' }, el('b', {}, teacher), '🎙️ Teacher 老師錄音'), el('div', { class: 'stat' }, el('b', {}, 700 - human - teacher), 'Computer voice 電腦語音')),
-        el('p', { class: 'zh' }, '規則（自動執行、不再詢問）：每個單字自動搜尋維基詞典／維基共享資源上的真人錄音（優先美式發音、必須與單字完全相符），有就自動下載使用並記錄來源、錄音者、授權與時間；找不到才用電腦語音，並列入「缺少」清單供老師錄音補齊。'),
+        el('div', { class: 'stat-row' }, el('div', { class: 'stat' }, el('b', {}, `${human}/700`), 'Found 找到真人錄音'), el('div', { class: 'stat' }, el('b', {}, `${EP.words.filter((w) => ['human', 'teacher'].includes(EP.audio.source(w))).length}/700`), 'Human voice plays here 這台可播放真人聲'), el('div', { class: 'stat' }, el('b', {}, bundled), '📦 Built-in 內建'), el('div', { class: 'stat' }, el('b', {}, offline), '💾 Saved on this device 已存本機'), el('div', { class: 'stat' }, el('b', {}, teacher), '🎙️ Teacher 老師錄音'), el('div', { class: 'stat' }, el('b', {}, aiN), '🤖 AI voice AI 語音'), el('div', { class: 'stat' }, el('b', {}, 700 - human - teacher - aiN), 'Computer voice 電腦語音')),
+        el('p', { class: 'zh' }, '規則（自動執行、不再詢問）：每個單字自動搜尋維基詞典／維基共享資源上的真人錄音（優先美式發音、必須與單字完全相符），有就自動下載使用並記錄來源、錄音者、授權與時間；找不到的改用 ElevenLabs 的 AI 語音（美式女聲，標示「AI 語音」，不是真人錄音），仍沒有的才用電腦語音；這兩種都列入「缺少」清單，供老師錄音補齊（老師錄音最優先）。'),
         EP.hosted ? el('p', { class: 'zh', style: { background: 'var(--paper)', padding: '10px', borderRadius: '12px' } }, 'ℹ️ 線上版只能播放內建的錄音，無法直接連到維基共享資源。讓所有學生都聽到真人發音：在下載版的教師專區按「下載全部真人發音並匯出發音包」，把 passport-real-voices.json 放進 Google 雲端硬碟「土城國小 英語護照」資料夾，Claude 每 3 小時檢查一次並自動內建到這個連結。只想先讓這台裝置有真人發音，也可以按下面的「匯入發音包」。') : null,
         EP.hosted ? null : el('div', { class: 'panel', style: { background: 'var(--paper)', margin: '8px 0' } },
           el('b', { class: 'zh' }, '⭐ 讓線上版的所有學生都聽到真人發音（一次就好）'),
@@ -289,7 +289,7 @@
         const key = kind + w.id; const has = !!EP.audio.teacher[key];
         const recBtn = el('button', { class: 'btn small red', disabled: !supported, onclick: () => record(w, key, recBtn) }, has ? '🔁 Re-record 重錄' : '⏺ Record 錄音');
         tbody.appendChild(el('tr', {}, el('td', {}, w.id), el('td', {}, el('b', {}, kind === 's' ? w.sentence : w.word), el('br'), el('span', { class: 'zh muted' }, kind === 's' ? w.sentenceZh : w.zh)),
-          el('td', {}, has ? ui.srcTag('teacher') : ui.srcTag(kind === 'w' && EP.audio.manifest[w.id] ? 'human' : 'tts')),
+          el('td', {}, has ? ui.srcTag('teacher') : ui.srcTag(kind === 'w' && EP.audio.manifest[w.id] ? 'human' : kind === 'w' && EP.audio.aiMeta[w.id] ? 'ai' : 'tts')),
           el('td', {}, recBtn, has ? el('button', { class: 'btn small', onclick: () => EP.audio.play(w, { sentence: kind === 's' }) }, '▶') : null, has ? el('button', { class: 'btn small', onclick: async () => { await EP.rec.del(key); render(); } }, '🗑') : null)));
       });
     };
@@ -411,6 +411,7 @@
   ];
   ui.screens.credits = function () {
     const s = el('div', { class: 'screen' }); s.appendChild(ui.topbar('📜 Credits 授權與來源'));
+    const aiRows = EP.words.filter((w) => !EP.audio.manifest[w.id] && EP.audio.aiMeta[w.id]).map((w) => { const a = EP.audio.aiMeta[w.id]; return el('tr', {}, el('td', {}, w.word), el('td', {}, a.src), el('td', {}, a.v), el('td', {}, a.m), el('td', {}, (a.t || '').slice(0, 10))); });
     const audioRows = EP.words.filter((w) => EP.audio.manifest[w.id]).map((w) => { const m = EP.audio.manifest[w.id]; return el('tr', {}, el('td', {}, w.word), el('td', {}, el('a', { href: m.p, target: '_blank', rel: 'noopener' }, m.f)), el('td', {}, m.by), el('td', {}, m.lic)); });
     s.append(
       el('div', { class: 'panel', style: { marginBottom: '12px' } }, el('h3', {}, '🎮 Why these 25 games? 為什麼選這些遊戲'),
@@ -419,7 +420,10 @@
       el('div', { class: 'panel', style: { marginBottom: '12px' } }, el('h3', {}, '📚 Word list 單字表'), el('p', {}, '土城國小英語護照 700 單字（' + (window.EP_DATA.source || '') + '）。Pictures: Unicode emoji.')),
       el('div', { class: 'panel' }, el('h3', {}, `🔊 Real human recordings 真人錄音 (${audioRows.length})`),
         el('p', { class: 'muted' }, 'Recordings by Wikimedia Commons contributors (including Lingua Libre), used under the licence shown for each file (CC BY-SA / CC BY / public domain). Audio was trimmed and volume-normalised. Click a file name for the original and full licence.'),
-        el('div', { class: 'scroll' }, el('table', { class: 'data' }, el('thead', {}, el('tr', {}, ['Word', 'File', 'Recorded by', 'Licence'].map((h) => el('th', {}, h)))), el('tbody', {}, audioRows)))));
+        el('div', { class: 'scroll' }, el('table', { class: 'data' }, el('thead', {}, el('tr', {}, ['Word', 'File', 'Recorded by', 'Licence'].map((h) => el('th', {}, h)))), el('tbody', {}, audioRows)))),
+      aiRows.length ? el('div', { class: 'panel', style: { marginTop: '12px' } }, el('h3', {}, `🤖 AI voice AI 語音 (${aiRows.length})`),
+        el('p', { class: 'muted zh' }, '這些項目在維基詞典／維基共享資源找不到真人錄音，改用 ElevenLabs 文字轉語音產生（AI 合成，不是真人錄音），在遊戲中標示「AI 語音」。之後若找到真人錄音或老師自己錄音，會優先播放。'),
+        el('div', { class: 'scroll', tabindex: '0', role: 'region', 'aria-label': 'AI voice list AI 語音清單' }, el('table', { class: 'data' }, el('thead', {}, el('tr', {}, ['Word', 'Service', 'Voice', 'Model', 'Made'].map((h) => el('th', {}, h)))), el('tbody', {}, aiRows)))) : null);
     return s;
   };
 })();

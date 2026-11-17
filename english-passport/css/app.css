@@ -136,6 +136,7 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; background: 
 .src-tag.human { background: #d3f9d8; color: #1b6e2c; }
 .src-tag.teacher { background: #fff3bf; color: #7a5a00; }
 .src-tag.tts { background: #e7e9f7; color: #555c85; }
+.src-tag.ai { background: #e5dbff; color: #5235ab; }
 .choices { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; width: min(760px, 100%); max-width: 96vw; }
 .choice { min-height: 86px; border-radius: 18px; font-weight: 900; font-size: clamp(1.2rem, 3.4vw, 1.9rem); color: #fff; box-shadow: 0 6px 0 rgba(0,0,0,.25); display: flex; align-items: center; justify-content: center; gap: 10px; padding: 8px 14px; text-shadow: 0 2px 0 rgba(0,0,0,.25); transition: transform .08s, filter .2s; line-height: 1.15; }
 .choice:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,.25); }
