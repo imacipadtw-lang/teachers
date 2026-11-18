@@ -15,7 +15,7 @@ i = anime_js.index('const SVG = `') + len('const SVG = `'); boxy = anime_js[i:an
 assert boxy.startswith('<svg') and boxy.rstrip().endswith('</svg>')
 m = re.search(r'window\.LBL_PHOTOS=(\{.*?\});?\s*\n', rd(os.path.join(lab, 'index.html')))
 photos = json.loads(m.group(1))
-need = ['naan', 'curry', 'samosa', 'apple', 'dumplings', 'rice']
+need = ['naan', 'curry', 'samosa', 'apple', 'dumplings', 'rice', 'diya']
 missing = [k for k in need if k not in photos]; assert not missing, missing
 parts = {
     '/*{{ANIME_CSS}}*/': rd(os.path.join(lab, 'anime.css')),

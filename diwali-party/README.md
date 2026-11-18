@@ -24,4 +24,6 @@
 - 不放任何學生姓名（公開倉庫），只用座號與組別。
 
 ## 測試
-`python3 -m http.server 8791`（在倉庫根目錄）後，用 Playwright 開 `http://localhost:8791/diwali-party/class.html`：`window.__deck.go(頁, 步)`、`.next()`、`.cur`、`.step`、`.lab` 可供測試使用。115.11.18 測過：10 頁逐頁截圖無破版與錯誤、一鍵流程、三個站在 iframe 內開啟並可操作、計時器開始與重設、重新整理後回到原頁。**沒有在真的教室大螢幕與 iPad Safari 上測過。**
+在倉庫根目錄 `python3 -m http.server 8791 &`，再執行 `node diwali-party/tests/steps.js`（要 Playwright）：核對每一頁的步數、計時、要開哪一站，並只用「下一步」鍵從第 1 頁走到最後（一般與減少動態兩種模式），按鍵總數要等於 `script.html` 寫的 37 下。**簡報增減步驟時，`tests/steps.js` 的 `EXPECT` 和 `script.html` 的「按鍵」說明要一起改。**
+
+115.11.18 測過：10 頁在 1180×820、1366×768、1280×720、1920×1080 逐頁檢查無破版與錯誤；三個站在 iframe 內開啟並可操作；Lunch Box Lab 載不進來時 7 秒後出現說明與「再試一次／另開分頁」，恢復後可重試；計時器開始與重設；重新整理後回到原頁；`index.html`、`script.html`、`plan.html` 在 390 寬不左右捲動。**沒有在真的教室大螢幕與 iPad Safari 上測過。**

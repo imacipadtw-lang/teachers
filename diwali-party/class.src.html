@@ -57,6 +57,14 @@ button{font:inherit;color:inherit;cursor:pointer}
 .parade span:nth-child(even){width:186px;height:186px}
 @keyframes hop{0%,100%{transform:translateY(0) scale(1.06,.94)}18%{transform:translateY(-8px) scale(.96,1.05)}45%{transform:translateY(-58px) scale(1,1) rotate(3deg)}72%{transform:translateY(-6px) scale(.98,1.03)}86%{transform:translateY(0) scale(1.08,.92)}}
 
+/* the diya (one of Ankita's festival words) glows where the rangoli turns */
+.glow{position:absolute;right:95px;top:75px;width:250px;height:250px;display:grid;place-items:center;pointer-events:none}
+.glow::before{content:"";position:absolute;inset:-100px;border-radius:50%;background:radial-gradient(circle,rgba(255,197,49,.6),rgba(255,138,31,.2) 45%,transparent 70%);animation:halo 2.4s ease-in-out infinite}
+.glow img{position:relative;width:230px;height:230px;animation:bob 3.2s ease-in-out infinite}
+@keyframes halo{50%{transform:scale(1.14)}}
+.slide.on .parade span>svg{animation:dropin .7s cubic-bezier(.2,1.4,.4,1) both;animation-delay:calc(var(--i)*.09s)}
+@keyframes dropin{from{transform:translateY(-760px) rotate(-24deg)}to{transform:none}}
+
 /* I-can cards */
 .cans{position:absolute;left:96px;top:522px;width:1330px;display:grid;grid-template-columns:repeat(3,1fr);gap:30px}
 .can{position:relative;background:#fff;color:var(--ol);border:6px solid var(--ol);border-radius:40px;box-shadow:0 12px 0 var(--ol);padding:60px 30px 26px;min-height:330px;display:flex;flex-direction:column;gap:8px}
@@ -218,7 +226,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 
 /* ---------- Lunch Box Lab station layer ---------- */
 #lab{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;background:#FFF7E9}
-#lab[hidden],#help[hidden],#fx[hidden],#eyes[hidden]{display:none}
+#lab[hidden],#help[hidden],#fx[hidden],#eyes[hidden],#lab-msg[hidden]{display:none}
 #labfr{flex:1;width:100%;border:0;display:block;background:#FFF7E9}
 #labbar{flex:none;display:flex;align-items:center;gap:12px;padding:8px max(12px,env(safe-area-inset-right,0px)) calc(8px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px));background:var(--night);color:#fff;font:800 20px/1 var(--f)}
 #labbar button,#labbar a{height:48px;display:inline-flex;align-items:center;border-radius:999px;border:3px solid var(--ol);padding:3px 22px 0;font:800 20px/1 var(--z);text-decoration:none}
@@ -229,6 +237,10 @@ button{font:inherit;color:inherit;cursor:pointer}
 #lab-t,#lab-clock{height:44px;display:inline-flex;align-items:center;border-radius:999px;padding:3px 16px 0;font-variant-numeric:tabular-nums;background:rgba(255,255,255,.12)}
 #lab-t.low{background:var(--pink)}
 #lab-clock{color:var(--mut);font-size:16px}
+#lab-msg{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);width:min(520px,90vw);background:#fff;color:var(--ol);border:4px solid var(--ol);border-radius:22px;box-shadow:0 8px 0 var(--ol);padding:22px 24px;text-align:center;font:700 18px/1.6 var(--z)}
+#lab-msg p{margin:0 0 14px}
+#lab-msg button,#lab-msg a{display:inline-flex;align-items:center;height:48px;margin:0 4px;border-radius:999px;border:3px solid var(--ol);padding:0 22px;font:900 17px/1 var(--z);text-decoration:none;color:var(--ol);background:#fff}
+#lab-msg button{background:var(--gold)}
 @media (max-width:640px){#lab-new,#lab-clock{display:none}}
 
 /* ---------- help ---------- */
@@ -237,7 +249,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 #help h2{margin:0 0 8px;font:900 22px/1.3 var(--z)}#help li{margin:2px 0}#help kbd{font:700 14px ui-monospace,Menlo,monospace;border:2px solid var(--ol);border-radius:6px;padding:0 6px;margin-right:4px}
 #help button{margin-top:10px;height:44px;border-radius:999px;border:3px solid var(--ol);background:var(--gold);padding:0 26px;font:900 16px var(--z)}
 
-@media (prefers-reduced-motion:reduce){.peek i::after,#wipe.go,.crew span,.speedlines,.racer,.halftone,#rangoli,.parade span,.plates img,.cta.show,.vs i,.lamp.lit .fl,#timer.run,.finale.show,#rail.party .lamp{animation:none}}
+@media (prefers-reduced-motion:reduce){.glow::before,.glow img,.slide.on .parade span>svg,.peek i::after,#wipe.go,.crew span,.speedlines,.racer,.halftone,#rangoli,.parade span,.plates img,.cta.show,.vs i,.lamp.lit .fl,#timer.run,.finale.show,#rail.party .lamp{animation:none}}
 </style>
 </head><body>
 <div id="stage" aria-live="off">
@@ -251,6 +263,7 @@ button{font:inherit;color:inherit;cursor:pointer}
   <h1 class="cover-t"><span class="w">Food for</span> <span class="w">Ankita's</span><br><span class="w em">Diwali</span> <span class="w em">Party!</span></h1>
   <div class="ask rv" data-s="1">What food should we bring?</div>
   <div class="parade" id="parade" aria-hidden="true"></div>
+  <div class="glow" aria-hidden="true"><img data-ph="diya" alt=""></div>
  </section>
 
  <!-- 2 mission + success criteria -->
@@ -375,6 +388,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 
 <div id="lab" hidden>
  <iframe id="labfr" title="Lunch Box Lab"></iframe>
+ <div id="lab-msg" hidden role="alert"><p>Lunch Box Lab 還沒載入，可能是網路不穩。</p><button id="lab-retry">再試一次</button><a id="lab-open" target="_blank" rel="noopener">另開分頁 ↗</a></div>
  <div id="labbar"><button id="lab-back">← 回簡報</button><span id="lab-name"></span><span id="lab-t">0:00</span><span id="lab-clock"></span><a id="lab-new" target="_blank" rel="noopener">另開分頁 ↗</a><button id="lab-next">下一頁 →</button></div>
 </div>
 
@@ -493,12 +507,17 @@ function prev(){if(step>0){step--;paint();return;}if(cur>0)go(cur-1,nSteps(slide
 
 /* ---------- Lunch Box Lab station inside the deck ---------- */
 const lab=$('#lab'),fr=$('#labfr');let frReady=false;
-function loadLab(name){const url=LAB+'#'+(name||'home');$('#lab-new').href=url;
- if(!frReady){fr.src=url;frReady=true;return;}
+const labMsg=$('#lab-msg');let labTO=0;
+const labOk=()=>{try{return !!(fr.contentDocument&&fr.contentDocument.querySelector('#app'));}catch(e){return false;}};
+function labWatch(){clearTimeout(labTO);labMsg.hidden=true;labTO=setTimeout(()=>{if(labOpen&&!labOk())labMsg.hidden=false;},7000);}
+fr.addEventListener('load',()=>{if(!frReady)return;clearTimeout(labTO);labMsg.hidden=!labOpen||labOk();});
+function loadLab(name,fresh){const url=LAB+(fresh?'?r='+Date.now():'')+'#'+(name||'home');$('#lab-new').href=$('#lab-open').href=LAB+'#'+(name||'home');
+ if(!frReady||fresh||!labOk()){fr.src=url;frReady=true;return;}
  try{fr.contentWindow.location.hash='#'+name;}catch(e){fr.src=url;}}
-function openLab(){const sl=slides[cur];if(!sl.dataset.lab)return;labOpen=true;loadLab(sl.dataset.lab);$('#lab-name').textContent=sl.dataset.labname||'';lab.hidden=false;
+$('#lab-retry').onclick=()=>{loadLab(slides[cur].dataset.lab,true);labWatch();};
+function openLab(){const sl=slides[cur];if(!sl.dataset.lab)return;labOpen=true;loadLab(sl.dataset.lab);if(labOk())labMsg.hidden=true;else labWatch();$('#lab-name').textContent=sl.dataset.labname||'';lab.hidden=false;
  labTimer.set(+sl.dataset.labsec||120);labTimer.start();startClock();try{fr.focus();}catch(e){}}
-function closeLab(advance){labOpen=false;lab.hidden=true;labTimer.pause();labDone[cur]=true;try{window.focus();}catch(e){}if(advance&&cur<LAST)go(cur+1,0);else paint();}
+function closeLab(advance){labOpen=false;lab.hidden=true;clearTimeout(labTO);labMsg.hidden=true;labTimer.pause();labDone[cur]=true;try{window.focus();}catch(e){}if(advance&&cur<LAST)go(cur+1,0);else paint();}
 $('#lab-back').onclick=()=>closeLab(false);$('#lab-next').onclick=()=>closeLab(true);
 $$('[data-open]').forEach(b=>b.onclick=e=>{e.stopPropagation();ac();openLab();});
 /* warm the station up in the background so it opens at once */
@@ -530,13 +549,13 @@ const cv=$('#sky'),cx=cv.getContext('2d');const stars=[],fw=[];
 for(let i=0;i<64;i++)stars.push({x:Math.random()*1920,y:Math.random()*940,r:Math.random()*2.4+.8,p:Math.random()*6.28,s:Math.random()*.03+.008,c:i%5?'#ffffff':(i%2?'#FFC531':'#FF8AC0')});
 function firework(x,y,c){for(let i=0;i<40;i++){const a=i/40*6.283+Math.random()*.25,v=3.5+Math.random()*6;fw.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,l:1,c});}}
 let nextFw=0;
-function frame(t){requestAnimationFrame(frame);if(labOpen||document.hidden)return;cx.clearRect(0,0,1920,1080);
+function frame(t){if(!reduce)requestAnimationFrame(frame);if(labOpen||document.hidden)return;cx.clearRect(0,0,1920,1080);
  for(const p of stars){p.p+=p.s;const a=.25+.75*Math.abs(Math.sin(p.p)),r=p.r*(2+a*2);cx.globalAlpha=a;cx.fillStyle=p.c;cx.beginPath();cx.moveTo(p.x,p.y-r);cx.quadraticCurveTo(p.x,p.y,p.x+r,p.y);cx.quadraticCurveTo(p.x,p.y,p.x,p.y+r);cx.quadraticCurveTo(p.x,p.y,p.x-r,p.y);cx.quadraticCurveTo(p.x,p.y,p.x,p.y-r);cx.fill();}
  const party=cur===0||(cur===LAST&&step>=4);
  if(party&&t>nextFw){nextFw=t+(cur===0?1700:520)+Math.random()*700;firework(cur===0?1100+Math.random()*700:200+Math.random()*1520,90+Math.random()*(cur===0?240:420),['#FFC531','#FF4FA3','#27E0C7','#FF8A1F','#ffffff'][Math.floor(Math.random()*5)]);}
  for(let i=fw.length-1;i>=0;i--){const p=fw[i];p.x+=p.vx;p.y+=p.vy;p.vy+=.09;p.vx*=.985;p.l-=.016;if(p.l<=0){fw.splice(i,1);continue;}cx.globalAlpha=p.l;cx.fillStyle=p.c;cx.beginPath();cx.arc(p.x,p.y,4.5*p.l+1.5,0,6.283);cx.fill();}
  cx.globalAlpha=1;}
-if(!reduce)requestAnimationFrame(frame);
+if(reduce)frame(0);else requestAnimationFrame(frame);
 
 /* ---------- start ---------- */
 (function(){const m=/^#s(\d+)$/.exec(location.hash);const saved=(ss.get('dp.pos')||'').split(',');
