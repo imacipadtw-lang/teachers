@@ -59,6 +59,7 @@ python3 /home/user/lunch-box-lab-src/build.py
   - Paivio, A. (1986). *Mental representations: A dual coding approach*. Oxford University Press.
   - Roediger, H. L., & Karpicke, J. D. (2006). Test-enhanced learning. *Psychological Science, 17*(3), 249–255.
   - Schmidt, R. W. (1990). The role of consciousness in second language learning. *Applied Linguistics, 11*(2), 129–158.
+  - Swain, M. (1985). Communicative competence: Some roles of comprehensible input and comprehensible output in its development. In S. Gass & C. Madden (Eds.), *Input in second language acquisition* (pp. 235–253). Newbury House.
   - Um, E., Plass, J. L., Hayward, E. O., & Homer, B. D. (2012). Emotional design in multimedia learning. *Journal of Educational Psychology, 104*(2), 485–498.
   - Vygotsky, L. S. (1978). *Mind in society*. Harvard University Press.
   - Willis, J. (1996). *A framework for task-based learning*. Longman.
@@ -104,4 +105,5 @@ python3 /home/user/lunch-box-lab-src/build.py
 ## 版本紀錄（重要）
 - 2026-11-16 另一個工作階段發布了教案 v2（Ankita 簡報 20 分、中師四學 15 分、Ankita 遊戲 5 分；新增 Party Menu 站、首頁依上課順序排列、6 個印章、排燈節主題）。那一次只改了 `app.html`，沒有改圖片或錄音。
 - 2026-11-17 本資料夾的 `app.html` 已改為那個版本的原始碼（由線上檔反推，重建後與線上檔逐字相同），再加上本次的真人錄音、音量平衡與說明文字更新，發布為 v27（線上版本號）。測試也已跟著更新（`soak.js` 改為 7 個階段，`voice.js` 加入 Party Menu）。
+- 2026-11-18 另一個工作階段直接在 GitHub 倉庫改了 `app.html` 與 `index.html`（教案 v3）：Ankita 主教前 20 分鐘、中師主教後 20 分鐘，最後 5 分鐘由中師主持 Speed Round；首頁排成 1 → 5；Speed Round 只出 I want some ___. 並顯示兩組分數；拿掉護照塗星星（全程不用紙本）；`planV` 3；「為什麼這樣設計」加 Speed Round 一列、英-E-B2 與 Swain (1985)。搭配的上課簡報、腳本、教案在倉庫的 `diwali-party/`，簡報會用 iframe 開這個程式的 `#spin`、`#impostor`、`#speed`，所以這三個網址不要改名。**下次從來源資料夾同步前，請先把倉庫版 `app.html` 的改動併回來源。**
 - 對方那一次的測試檔不在這個資料夾。之後改動前先用 Artifact 工具讀線上最新版，確認沒有別人更新，避免覆蓋。

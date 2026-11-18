@@ -1,0 +1,528 @@
+<!doctype html>
+<!-- 著作權所有 © 2026 imacipadtw-lang，保留一切權利。本檔公開可見不代表授權，見倉庫根目錄 LICENSE。 -->
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noai,noimageai">
+<title>Diwali Party 上課簡報</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Noto+Sans+TC:wght@500;700;900&display=swap" media="print" onload="this.media='all'">
+<style>/*{{ANIME_CSS}}*/</style>
+<style>
+/* Class deck for the co-teacher's 20 minutes. One 1920x1080 stage scaled to the screen.
+   Look: Diwali night + pop "sticker" shapes; the mascot Boxy and the clay food characters come from Lunch Box Lab. */
+:root{color-scheme:dark;--night:#17114A;--night2:#2A1E7A;--deep:#0C0828;--ink:#FFF7E6;--mut:#CFC8F2;--gold:#FFC531;--saf:#FF8A1F;--pink:#FF4FA3;--teal:#27E0C7;--ol:#24190A;
+ --f:"Baloo 2","Noto Sans TC",system-ui,-apple-system,"Segoe UI",sans-serif;--z:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--deep);overflow:hidden;color:var(--ink);font-family:var(--f);-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;cursor:pointer}
+#stage{position:absolute;left:50%;top:50%;width:1920px;height:1080px;overflow:hidden;
+ background:radial-gradient(1100px 760px at 80% 8%,#4A34B8 0,transparent 62%),radial-gradient(900px 700px at 4% 104%,#7A1F7A 0,transparent 60%),linear-gradient(160deg,var(--night2),var(--night) 55%,var(--deep))}
+#sky{position:absolute;inset:0;pointer-events:none}
+.halftone{position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle,rgba(255,255,255,.16) 3px,transparent 3.6px);background-size:26px 26px;
+ -webkit-mask-image:linear-gradient(115deg,#000 0,transparent 30%,transparent 72%,#000 100%);mask-image:linear-gradient(115deg,#000 0,transparent 30%,transparent 72%,#000 100%);animation:drift 40s linear infinite}
+@keyframes drift{to{background-position:260px 130px}}
+#rangoli{position:absolute;right:-250px;top:-270px;width:940px;height:940px;opacity:.3;pointer-events:none;animation:spin 150s linear infinite}
+#rangoli svg{width:100%;height:100%;display:block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ---------- slides ---------- */
+.slide{position:absolute;inset:0;visibility:hidden;transform:translateX(70px) scale(.985)}
+.slide.on{visibility:visible;transform:none;transition:transform .45s cubic-bezier(.2,.9,.3,1.15)}
+.rv{visibility:hidden;transform:translateY(46px) scale(.9)}
+.rv.show{visibility:visible;transform:none;transition:transform .5s cubic-bezier(.2,1.35,.35,1)}
+.st{paint-order:stroke fill;-webkit-text-stroke:16px var(--ol);text-shadow:0 10px 0 var(--ol)}
+.em{color:var(--gold)}
+.zh{font-family:var(--z);font-weight:700}
+.tag{position:absolute;left:96px;top:58px;font:800 36px/1 var(--f);letter-spacing:.04em;background:var(--gold);color:var(--ol);border:5px solid var(--ol);border-radius:999px;padding:12px 30px 9px;box-shadow:0 7px 0 var(--ol);transform:rotate(-2deg)}
+.tag b{font-family:var(--z);font-weight:900;margin-left:12px;padding-left:14px;border-left:4px solid var(--ol)}
+.tag.zhfirst b{font-family:var(--f);font-weight:800}
+.ttl{position:absolute;left:96px;top:138px;margin:0;font:800 128px/1.02 var(--f);color:#fff;paint-order:stroke fill;-webkit-text-stroke:16px var(--ol);text-shadow:0 10px 0 var(--ol);letter-spacing:.005em}
+.ttl.sm{font-size:108px}
+.ttl .ok,.ttl .so,.ttl .no{display:inline-block;-webkit-text-stroke:0;text-shadow:none;width:150px;height:150px;line-height:150px;text-align:center;border-radius:50%;border:7px solid var(--ol);box-shadow:0 8px 0 var(--ol);font-size:96px;vertical-align:8px;margin-left:14px;color:var(--ol)}
+.ok{background:#4BE08A}.so{background:var(--gold)}.no{background:#FF8AC0}
+.line{position:absolute;left:96px;margin:0;font:800 58px/1.2 var(--f);color:#fff}
+.line .zh{font-size:36px;color:var(--mut);margin-left:18px}
+
+/* cover */
+.eyebrow{position:absolute;left:100px;top:86px;margin:0;font:800 40px/1 var(--f);letter-spacing:.22em;color:var(--gold)}
+.cover-t{position:absolute;left:96px;top:160px;margin:0;font:800 176px/.98 var(--f);color:#fff;paint-order:stroke fill;-webkit-text-stroke:20px var(--ol);text-shadow:0 14px 0 var(--ol)}
+.cover-t .w{display:inline-block;transform:translateY(120px) scale(.6) rotate(-6deg);visibility:hidden}
+.slide.on .cover-t .w{visibility:visible;animation:wpop .7s cubic-bezier(.2,1.5,.35,1) both}
+.slide.on .cover-t .w:nth-of-type(2){animation-delay:.12s}.slide.on .cover-t .w:nth-of-type(3){animation-delay:.34s}.slide.on .cover-t .w:nth-of-type(4){animation-delay:.46s}
+@keyframes wpop{from{transform:translateY(120px) scale(.6) rotate(-6deg)}to{transform:none}}
+.ask{position:absolute;left:104px;top:560px;font:800 76px/1.1 var(--f);background:#fff;color:var(--ol);border:6px solid var(--ol);border-radius:44px;padding:20px 46px 14px;box-shadow:0 10px 0 var(--ol)}
+.ask::after{content:"";position:absolute;right:-34px;bottom:26px;width:44px;height:44px;background:#fff;border-right:6px solid var(--ol);border-top:6px solid var(--ol);transform:rotate(45deg) skew(8deg,8deg)}
+.parade{position:absolute;left:70px;top:700px;display:flex;gap:6px;align-items:flex-end}
+.parade span{display:block;width:210px;height:210px;transform-origin:50% 92%;animation:hop 1.5s cubic-bezier(.3,.6,.4,1) infinite;animation-delay:calc(var(--i)*-.19s)}
+.parade span:nth-child(even){width:186px;height:186px}
+@keyframes hop{0%,100%{transform:translateY(0) scale(1.06,.94)}18%{transform:translateY(-8px) scale(.96,1.05)}45%{transform:translateY(-58px) scale(1,1) rotate(3deg)}72%{transform:translateY(-6px) scale(.98,1.03)}86%{transform:translateY(0) scale(1.08,.92)}}
+
+/* I-can cards */
+.cans{position:absolute;left:96px;top:522px;width:1330px;display:grid;grid-template-columns:repeat(3,1fr);gap:30px}
+.can{position:relative;background:#fff;color:var(--ol);border:6px solid var(--ol);border-radius:40px;box-shadow:0 12px 0 var(--ol);padding:60px 30px 26px;min-height:330px;display:flex;flex-direction:column;gap:8px}
+.can i{position:absolute;left:26px;top:-44px;width:92px;height:92px;border-radius:50%;background:var(--pink);color:#fff;border:6px solid var(--ol);font:800 58px/82px var(--f);text-align:center;font-style:normal;box-shadow:0 6px 0 var(--ol)}
+.can:nth-child(2) i{background:var(--saf)}.can:nth-child(3) i{background:#17B8A4}
+.can b{font:800 66px/1 var(--f);letter-spacing:.02em}
+.can span{font:800 50px/1.14 var(--f)}
+.can em{margin-top:auto;font:900 32px/1 var(--z);font-style:normal;color:#6A5B8F}
+.cans.chk .can{padding-right:150px}
+.cans.chk .can u{position:absolute;right:20px;top:50%;margin-top:-66px;text-decoration:none;display:grid;gap:6px;font:800 30px/38px var(--f);text-align:center}
+.cans.chk .can u s{text-decoration:none;display:block;width:100px;border:4px solid var(--ol);border-radius:14px}
+
+/* self-check signals */
+.chips3{position:absolute;left:96px;top:330px;display:flex;gap:34px}
+.sig{width:370px;background:#fff;color:var(--ol);border:6px solid var(--ol);border-radius:40px;box-shadow:0 12px 0 var(--ol);padding:26px 20px 20px;text-align:center}
+.sig i{display:block;width:150px;height:150px;margin:0 auto 10px;border-radius:50%;border:6px solid var(--ol);font:800 100px/140px var(--f);font-style:normal}
+.sig.ok i{background:#4BE08A}.sig.so i{background:var(--gold)}.sig.no i{background:#FF8AC0}
+.sig b{display:block;font:800 60px/1.05 var(--f)}
+.sig em{display:block;font:900 32px/1.3 var(--z);font-style:normal;color:#6A5B8F}
+.sig:nth-child(2).show{transition-delay:.1s}.sig:nth-child(3).show{transition-delay:.2s}
+
+/* how-to lists */
+.how{position:absolute;left:96px;top:330px;margin:0;padding:0;list-style:none;display:grid;gap:22px;width:1300px}
+.how li{position:relative;padding:14px 30px 8px 132px;font:800 66px/1.15 var(--f);background:rgba(255,255,255,.1);border:4px solid rgba(255,255,255,.28);border-radius:34px;min-height:112px}
+.how li i{position:absolute;left:18px;top:50%;margin-top:-44px;width:88px;height:88px;border-radius:50%;background:var(--gold);color:var(--ol);border:5px solid var(--ol);font:800 56px/80px var(--f);text-align:center;font-style:normal}
+.how li.tip{background:var(--pink);border-color:var(--ol);border-width:5px;box-shadow:0 8px 0 var(--ol)}
+.how li.tip i{background:#fff}
+.how li:nth-child(2).show{transition-delay:.08s}.how li:nth-child(3).show{transition-delay:.16s}.how li:nth-child(4).show{transition-delay:.24s}
+.how .zh{font-size:36px;color:var(--mut);margin-left:16px}
+.key{display:inline-block;background:#fff;color:var(--ol);border:4px solid var(--ol);border-radius:18px;padding:0 20px;box-shadow:0 5px 0 var(--ol)}
+.how.h3{top:520px;width:1320px;gap:16px}.how.h3 li{font-size:58px;min-height:98px;padding-top:12px}
+
+/* party menu */
+.rules{position:absolute;left:96px;top:320px;display:flex;gap:28px;align-items:center}
+.pill{display:inline-flex;align-items:center;gap:14px;height:124px;font:800 68px/1 var(--f);background:#fff;color:var(--ol);border:6px solid var(--ol);border-radius:999px;padding:8px 44px 0;box-shadow:0 10px 0 var(--ol)}
+.pill.india{background:var(--gold);padding-right:22px}
+.pill img{width:104px;height:104px;margin-top:-10px;filter:drop-shadow(0 4px 0 rgba(0,0,0,.25))}
+.roles{position:absolute;left:96px;top:520px;width:1330px;display:grid;grid-template-columns:repeat(3,1fr);gap:30px}
+.role{background:#fff;color:var(--ol);border:6px solid var(--ol);border-radius:40px;box-shadow:0 12px 0 var(--ol);padding:30px 26px 22px;min-height:336px;display:flex;flex-direction:column;gap:6px}
+.role b{font:800 76px/1 var(--f);color:#D81B7A}.role:nth-child(2) b{color:#E06400}.role:nth-child(3) b{color:#0B8F7F}
+.role span{font:800 52px/1.12 var(--f)}
+.role em{margin-top:auto;font:900 32px/1 var(--z);font-style:normal;color:#6A5B8F}
+.role:nth-child(2).show{transition-delay:.1s}.role:nth-child(3).show{transition-delay:.2s}
+
+/* speech bubbles */
+.talk{position:absolute;left:96px;top:330px;width:1320px;display:grid;gap:30px}
+.bub{position:relative;justify-self:start;max-width:1180px;background:#fff;color:var(--ol);border:6px solid var(--ol);border-radius:44px;box-shadow:0 10px 0 var(--ol);padding:44px 44px 16px 44px;font:800 74px/1.1 var(--f)}
+.bub u{position:absolute;left:30px;top:-30px;text-decoration:none;font:800 36px/1 var(--f);letter-spacing:.04em;background:var(--pink);color:#fff;border:5px solid var(--ol);border-radius:999px;padding:9px 24px 5px}
+.bub.b{justify-self:end;background:#FFF1B8}.bub.b u{background:#17B8A4;left:auto;right:30px}
+.bub.k{background:#FFE0EF}.bub.k u{background:var(--saf)}
+.bub small{display:block;font:800 34px/1.5 var(--f);color:#6A5B8F}
+.blank{display:inline-block;width:230px;height:16px;border-bottom:9px dashed var(--pink);margin:0 6px;vertical-align:4px;font-style:normal}
+
+/* countable or not */
+.col{position:absolute;top:318px;width:690px;height:486px;background:#fff;color:var(--ol);border:6px solid var(--ol);border-radius:44px;box-shadow:0 12px 0 var(--ol);padding:22px 26px;text-align:center}
+.col.yes{left:96px}.col.no{left:826px}
+.col h3{margin:0;font:800 76px/1 var(--f)}
+.col h3 b{display:inline-block;margin-left:14px;padding:6px 26px 0;border-radius:999px;border:5px solid var(--ol);color:#fff;background:#12A56B}
+.col.no h3 b{background:#E0407F}
+.plates{display:flex;justify-content:center;gap:16px;margin:16px 0 4px}
+.plates figure{margin:0;width:196px}
+.plates img{display:block;width:176px;height:176px;margin:0 auto;animation:bob 3.2s ease-in-out infinite;animation-delay:calc(var(--i,0)*-.8s)}
+.plates figcaption{font:800 38px/1.2 var(--f);white-space:nowrap}
+.plates figcaption b{color:#12A56B}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-12px) rotate(2deg)}}
+.col p{margin:10px 0 0;font:800 52px/1.1 var(--f);background:#F3EEFF;border-radius:22px;padding:10px 8px 4px}
+.col p b{color:#12A56B}.col p s{color:#E0407F;text-decoration-thickness:6px}
+
+/* team vs team */
+.vs{position:absolute;left:96px;top:312px;display:flex;align-items:center;gap:30px}
+.team{width:420px;text-align:center;border:6px solid var(--ol);border-radius:36px;box-shadow:0 10px 0 var(--ol);padding:16px 10px 8px;color:var(--ol)}
+.team.a{background:var(--pink);color:#fff}.team.b{background:var(--teal)}
+.team b{display:block;font:800 72px/1 var(--f)}.team span{font:800 48px/1.2 var(--f)}
+.vs i{font:800 92px/1 var(--f);font-style:normal;color:var(--gold);paint-order:stroke fill;-webkit-text-stroke:12px var(--ol);animation:vs 1s ease-in-out infinite}
+@keyframes vs{50%{transform:scale(1.18) rotate(-6deg)}}
+
+/* small cheering crew + speed lines: motion on the hook slides only; work slides stay calm (Mayer's coherence principle) */
+.crew{position:absolute;display:flex;gap:4px;align-items:flex-end}
+.crew span{display:block;width:150px;height:150px;transform-origin:50% 92%;animation:hop 1.2s cubic-bezier(.3,.6,.4,1) infinite;animation-delay:calc(var(--i)*-.22s)}
+.speedlines{position:absolute;inset:0;pointer-events:none;opacity:.42;animation:zoom .7s linear infinite;background:
+ linear-gradient(90deg,transparent 0 55%,#fff 55% 100%) 0 250px/520px 6px repeat-x,linear-gradient(90deg,transparent 0 70%,#FFC531 70% 100%) 0 505px/700px 8px repeat-x,
+ linear-gradient(90deg,transparent 0 60%,#fff 60% 100%) 0 905px/420px 5px repeat-x,linear-gradient(90deg,transparent 0 65%,#FF8AC0 65% 100%) 0 96px/640px 6px repeat-x}
+@keyframes zoom{to{background-position:-520px 250px,-700px 505px,-420px 905px,-640px 96px}}
+.racer{position:absolute;top:296px;width:190px;height:190px;animation:race .5s ease-in-out infinite alternate}
+.racer.b{animation-delay:-.25s}
+@keyframes race{from{transform:translate(-8px,6px) rotate(-6deg)}to{transform:translate(10px,-8px) rotate(5deg)}}
+/* call to action (opens a Lunch Box Lab station inside the deck) */
+.cta{position:absolute;left:96px;font:800 78px/1 var(--f);letter-spacing:.02em;color:var(--ol);background:linear-gradient(#FFE27A,var(--gold));border:7px solid var(--ol);border-radius:999px;padding:26px 64px 16px;box-shadow:0 12px 0 var(--ol)}
+.cta.show{animation:cta 1.1s ease-in-out .5s infinite}
+@keyframes cta{50%{transform:translateY(-8px) scale(1.04)}}
+.cta:active{transform:translateY(8px);box-shadow:0 4px 0 var(--ol)}
+
+/* finale */
+.finale{position:absolute;left:0;right:0;top:300px;text-align:center;font:800 230px/1 var(--f);color:var(--gold);paint-order:stroke fill;-webkit-text-stroke:24px var(--ol);text-shadow:0 16px 0 var(--ol);pointer-events:none}
+.finale.show{animation:fin 1.6s ease-in-out .5s infinite}
+@keyframes fin{50%{transform:scale(1.05) rotate(-2deg)}}
+.dim .talk,.dim .line,.dim .ttl,.dim .tag{transform:scale(.96);filter:brightness(.35);transition:filter .4s,transform .4s}
+
+/* ---------- timer ---------- */
+#timer{position:absolute;right:104px;top:92px;width:380px;height:380px;border:0;background:none;padding:0}
+#timer svg{width:100%;height:100%;display:block;transform:rotate(-90deg)}
+#timer .bg{fill:rgba(12,8,40,.55);stroke:rgba(255,255,255,.2);stroke-width:26}
+#timer .fg{fill:none;stroke:var(--gold);stroke-width:26;stroke-linecap:round;transition:stroke-dashoffset .25s linear,stroke .3s}
+#timer.low .fg{stroke:var(--pink)}
+#timer b{position:absolute;inset:0;display:grid;place-items:center;font:800 118px/1 var(--f);font-variant-numeric:tabular-nums;padding-top:12px}
+#timer small{position:absolute;left:0;right:0;bottom:64px;text-align:center;font:800 30px/1 var(--f);letter-spacing:.12em;color:var(--mut)}
+#timer.run{animation:tpulse 2s ease-in-out infinite}
+#timer.low.run{animation-duration:.6s}
+#timer.done b{color:var(--pink);font-size:76px}
+@keyframes tpulse{50%{transform:scale(1.03)}}
+
+/* ---------- mascot (Boxy comes from Lunch Box Lab's anime layer) ---------- */
+#stage .mx{position:absolute;left:auto;right:96px;bottom:150px;width:320px;z-index:5;transition:transform .5s cubic-bezier(.2,1.3,.3,1)}
+#stage .mx.away{transform:translateY(520px)}
+#stage .mx.small{width:250px;right:150px}
+#stage .mx-bubble{left:auto;right:6%;bottom:99%;max-width:560px;border-width:6px;border-radius:34px;padding:16px 34px 8px;font:800 52px/1.1 var(--f);box-shadow:0 8px 0 var(--ol);transform-origin:80% 100%}
+#stage .mx-bubble::after{left:auto;right:70px;bottom:-21px;width:28px;height:28px;border-right-width:6px;border-bottom-width:6px}
+
+/* ---------- lamp rail: one diya per stage of the lesson ---------- */
+#rail{position:absolute;left:0;right:0;bottom:0;height:128px;background:linear-gradient(transparent,rgba(8,5,28,.82) 42%)}
+#lamps{position:absolute;left:84px;bottom:36px;display:flex;gap:10px}
+.lamp{display:flex;align-items:center;gap:6px;height:58px;padding:3px 14px 0 5px;border-radius:999px;border:3px solid rgba(255,255,255,.22);background:rgba(255,255,255,.07);font:800 22px/1 var(--f);color:var(--mut);white-space:nowrap}
+.lamp svg{width:44px;height:44px;overflow:visible;margin-top:-14px;flex:none}
+.lamp .fl{transform-origin:50px 46px;transform:scale(0);transition:transform .5s cubic-bezier(.2,1.6,.3,1)}
+.lamp.lit .fl{transform:scale(1);animation:flick 1.3s ease-in-out infinite}
+.lamp.lit{color:#fff;border-color:rgba(255,197,49,.6)}
+.lamp.now{background:var(--gold);color:var(--ol);border-color:var(--ol);transform:translateY(-6px) scale(1.08);box-shadow:0 6px 0 var(--ol)}
+.lamp b{font-family:var(--z);font-weight:900;margin-right:2px}
+@keyframes flick{0%,100%{transform:scale(1) skewX(0)}30%{transform:scale(1.08,.94) skewX(-5deg)}60%{transform:scale(.95,1.08) skewX(4deg)}}
+#rail.party .lamp{animation:lampdance .7s ease-in-out infinite;animation-delay:calc(var(--i)*-.12s)}
+@keyframes lampdance{50%{transform:translateY(-12px)}}
+#note{position:absolute;left:90px;right:560px;bottom:8px;font:700 21px/1.2 var(--z);color:rgba(255,255,255,.62);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#clock{position:absolute;right:90px;bottom:40px;height:54px;display:flex;align-items:center;gap:10px;padding:4px 20px 0;border-radius:999px;border:3px solid rgba(255,255,255,.22);background:rgba(8,5,28,.6);font:800 32px/1 var(--f);font-variant-numeric:tabular-nums;color:#fff}
+#clock.late{background:var(--pink);border-color:var(--ol);color:#fff}
+#clock small{font:700 20px/1 var(--z);color:var(--mut)}#clock.late small{color:#fff}
+#tools{position:absolute;right:304px;bottom:42px;display:flex;gap:6px}
+#tools button{width:50px;height:50px;border-radius:50%;border:3px solid rgba(255,255,255,.22);background:rgba(8,5,28,.6);font:800 26px/1 var(--f);color:#fff;padding:2px 0 0}
+#tools button:active{background:var(--gold);color:var(--ol)}
+
+/* ---------- manga burst (GO! / TIME'S UP!) ---------- */
+#fx{position:absolute;inset:0;pointer-events:none;z-index:9;display:grid;place-items:center}
+#fx .rays{position:absolute;inset:-30%;background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.2) 0 3deg,transparent 3deg 11deg);-webkit-mask-image:radial-gradient(circle,transparent 24%,#000 46%);mask-image:radial-gradient(circle,transparent 24%,#000 46%);animation:rays .9s ease-out both}
+#fx .word{position:relative;font:800 250px/1 var(--f);color:#fff;paint-order:stroke fill;-webkit-text-stroke:28px var(--ol);text-shadow:0 18px 0 var(--ol);background:var(--pink);border:10px solid var(--ol);border-radius:60px;padding:40px 90px 10px;transform:rotate(-5deg);animation:word 1.25s cubic-bezier(.2,1.5,.35,1) both}
+#fx.gold .word{background:var(--gold)}
+@keyframes rays{from{transform:scale(.4) rotate(-20deg)}to{transform:scale(1.2) rotate(8deg)}}
+@keyframes word{0%{transform:scale(.1) rotate(-30deg)}40%{transform:scale(1.1) rotate(-5deg)}80%{transform:scale(1) rotate(-5deg)}100%{transform:scale(1.5) rotate(-5deg) translateY(-900px)}}
+
+/* ---------- Lunch Box Lab station layer ---------- */
+#lab{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;background:#FFF7E9}
+#lab[hidden],#help[hidden],#fx[hidden]{display:none}
+#labfr{flex:1;width:100%;border:0;display:block;background:#FFF7E9}
+#labbar{flex:none;display:flex;align-items:center;gap:12px;padding:8px max(12px,env(safe-area-inset-right,0px)) calc(8px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px));background:var(--night);color:#fff;font:800 20px/1 var(--f)}
+#labbar button,#labbar a{height:48px;display:inline-flex;align-items:center;border-radius:999px;border:3px solid var(--ol);padding:3px 22px 0;font:800 20px/1 var(--z);text-decoration:none}
+#lab-back{background:#fff;color:var(--ol)}
+#lab-next{background:var(--gold);color:var(--ol);margin-left:auto;font-size:22px;padding-inline:30px}
+#lab-new{background:transparent;color:var(--mut);border-color:rgba(255,255,255,.3);font-weight:700;font-size:15px}
+#lab-name{font:800 24px/1 var(--f);margin:2px 6px 0}
+#lab-t,#lab-clock{height:44px;display:inline-flex;align-items:center;border-radius:999px;padding:3px 16px 0;font-variant-numeric:tabular-nums;background:rgba(255,255,255,.12)}
+#lab-t.low{background:var(--pink)}
+#lab-clock{color:var(--mut);font-size:16px}
+@media (max-width:640px){#lab-new,#lab-clock{display:none}}
+
+/* ---------- help ---------- */
+#help{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:rgba(8,5,28,.72);padding:16px}
+#help div{width:min(680px,100%);max-height:90%;overflow:auto;background:#fff;color:var(--ol);border-radius:22px;border:4px solid var(--ol);padding:20px 24px;font:500 17px/1.6 var(--z)}
+#help h2{margin:0 0 8px;font:900 22px/1.3 var(--z)}#help li{margin:2px 0}#help kbd{font:700 14px ui-monospace,Menlo,monospace;border:2px solid var(--ol);border-radius:6px;padding:0 6px;margin-right:4px}
+#help button{margin-top:10px;height:44px;border-radius:999px;border:3px solid var(--ol);background:var(--gold);padding:0 26px;font:900 16px var(--z)}
+
+@media (prefers-reduced-motion:reduce){.crew span,.speedlines,.racer,.halftone,#rangoli,.parade span,.plates img,.cta.show,.vs i,.lamp.lit .fl,#timer.run,.finale.show,#rail.party .lamp{animation:none}}
+</style>
+</head><body>
+<div id="stage" aria-live="off">
+ <canvas id="sky" width="1920" height="1080" aria-hidden="true"></canvas>
+ <div class="halftone" aria-hidden="true"></div>
+ <div id="rangoli" aria-hidden="true"></div>
+
+ <!-- 1 handover (20:00) -->
+ <section class="slide" data-st="-1" data-at="0" data-host="wave" data-say="Hello!" data-note="情境導入｜接著 Ankita 的 Diwali 簡報，用一個真的要決定的問題開場（素養導向：情境化、脈絡化的學習）">
+  <p class="eyebrow">DIWALI · THE FESTIVAL OF LIGHTS</p>
+  <h1 class="cover-t"><span class="w">Food for</span> <span class="w">Ankita's</span><br><span class="w em">Diwali</span> <span class="w em">Party!</span></h1>
+  <div class="ask rv" data-s="1">What food should we bring?</div>
+  <div class="parade" id="parade" aria-hidden="true"></div>
+ </section>
+
+ <!-- 2 mission + success criteria -->
+ <section class="slide" data-st="-1" data-at="15" data-host="cheer" data-say="Let's go!" data-note="任務型教學 Pre-task（Willis, 1996）｜學習目標寫成學生看得懂的 I can…，下課前再對照一次（形成性評量：Black &amp; Wiliam, 1998）">
+  <div class="tag">OUR MISSION <b>任務</b></div>
+  <h2 class="ttl sm">Bring food to<br>Ankita's <span class="em">Diwali party!</span></h2>
+  <div class="cans">
+   <div class="can rv" data-s="1"><i>1</i><b>LISTEN</b><span>I can find the food I hear.</span><em>聽得懂</em></div>
+   <div class="can rv" data-s="2"><i>2</i><b>SAY</b><span>I can say:<br>I want some ___.</span><em>說得出</em></div>
+   <div class="can rv" data-s="3"><i>3</i><b>THINK</b><span>I can ask:<br>Can you count it?</span><em>會判斷</em></div>
+  </div>
+ </section>
+
+ <!-- 3 lead-in: Spin + self-rating -->
+ <section class="slide" data-st="0" data-at="45" data-lab="spin" data-labname="1 Spin" data-labsec="75" data-host="wave" data-say="Say it with me!" data-note="導學｜先用 ✔ △ ? 說出自己會不會，再決定今天練什麼（自我調整學習的預想階段：Zimmerman, 2002；「還不熟」的成長式說法：Dweck, 2006）">
+  <div class="tag zhfirst">導學 <b>ALL TOGETHER</b></div>
+  <h2 class="ttl">Spin <span class="em">&amp;</span> Say!</h2>
+  <div class="chips3">
+   <div class="sig ok rv" data-s="1"><i>✔</i><b>I know it!</b><em>會了</em></div>
+   <div class="sig so rv" data-s="1"><i>△</i><b>So-so.</b><em>有點熟</em></div>
+   <div class="sig no rv" data-s="1"><i>?</i><b>Not yet.</b><em>還不熟</em></div>
+  </div>
+  <p class="line rv" data-s="2" style="top:716px">"Not yet"? No problem.</p>
+  <button class="cta rv" data-s="2" data-open style="top:800px">▶ SPIN!</button>
+ </section>
+
+ <!-- 4 self-study: Catch -->
+ <section class="slide" data-st="1" data-at="120" data-timer="210" data-go="2" data-host="wave" data-hostsize="small" data-say="Listen!" data-note="自學｜一人一台平板：只聽不看字、立刻知道對錯、沒聽對的再聽一次（可理解的輸入：Krashen, 1982；提取練習：Roediger &amp; Karpicke, 2006）">
+  <div class="tag zhfirst">自學 <b>ON MY OWN</b></div>
+  <h2 class="ttl">Listen <span class="em">&amp;</span> Catch!</h2>
+  <ol class="how">
+   <li class="rv" data-s="1"><i>1</i>Tap <span class="key">2 Catch</span> on your iPad.</li>
+   <li class="rv" data-s="1"><i>2</i>Listen. <span class="zh">只聽，不看字</span></li>
+   <li class="rv" data-s="1"><i>3</i>Tap the food you hear!</li>
+   <li class="rv tip" data-s="1"><i>★</i>Missed one? Tap 🔊 and say it.</li>
+  </ol>
+ </section>
+
+ <!-- 5 group work: Party Menu -->
+ <section class="slide" data-st="2" data-at="360" data-timer="210" data-go="3" data-host="cheer" data-hostsize="small" data-say="Team up!" data-note="共學｜三人各有角色，合作完成一份菜單；選錯時只問 Can you count it?，不直接給答案（鷹架：Wood, Bruner &amp; Ross, 1976；合作學習：Johnson &amp; Johnson, 1999）">
+  <div class="tag zhfirst">共學 <b>WITH MY TEAM</b></div>
+  <h2 class="ttl sm">Plan the <span class="em">Party Menu!</span></h2>
+  <div class="rules rv" data-s="1"><span class="pill">3 foods</span><span class="pill india">1 from India <img data-ph="naan" alt=""><img data-ph="curry" alt=""><img data-ph="samosa" alt=""></span></div>
+  <div class="roles">
+   <div class="role rv" data-s="2"><b>Leader</b><span>taps the iPad</span><em>操作平板</em></div>
+   <div class="role rv" data-s="2"><b>Reporter</b><span>reads the menu aloud</span><em>帶大家唸</em></div>
+   <div class="role rv" data-s="2"><b>Checker</b><span>asks: "Can you count it?"</span><em>幫忙檢查</em></div>
+  </div>
+ </section>
+
+ <!-- 6 team to team: share -->
+ <section class="slide" data-st="3" data-at="600" data-timer="150" data-go="4" data-host="cheer" data-hostsize="small" data-say="Yummy!" data-note="互學｜有聽眾、有回應，才是真的溝通；聽的人要說出對方的一種食物（輸出假說：Swain, 1985；互動假說：Long, 1996）">
+  <div class="tag zhfirst">互學 <b>TEAM TO TEAM</b></div>
+  <h2 class="ttl">Share Your <span class="em">Menu!</span></h2>
+  <div class="talk">
+   <div class="bub a rv" data-s="1"><u>TEAM A</u>I want some <i class="blank"></i>.<small>One sentence each. <span class="zh">一人一句</span></small></div>
+   <div class="bub b rv" data-s="2"><u>TEAM B</u>Yummy! I like your <i class="blank"></i>.</div>
+   <div class="bub k rv" data-s="3"><u>ANKITA</u>Thank you! <span class="em" style="color:#E06400">Then switch!</span></div>
+  </div>
+ </section>
+
+ <!-- 7 language focus: countable or not -->
+ <section class="slide" data-st="4" data-at="780" data-lab="impostor" data-labname="4 Impostor" data-labsec="100" data-host="wave" data-hostsize="small" data-say="" data-note="導學｜先用過、說過，再回頭注意語言形式；規則由學生自己歸納（聚焦形式：Long, 1991；注意假說：Schmidt, 1990）">
+  <div class="tag zhfirst">導學 <b>THINK</b></div>
+  <h2 class="ttl">Can you <span class="em">count</span> it?</h2>
+  <div class="col yes rv" data-s="1"><h3>YES! <b>+ s</b></h3>
+   <div class="plates"><figure><img data-ph="apple" alt="" style="--i:0"><figcaption>apple<b>s</b></figcaption></figure><figure><img data-ph="dumplings" alt="" style="--i:1"><figcaption>dumpling<b>s</b></figcaption></figure><figure><img data-ph="samosa" alt="" style="--i:2"><figcaption>samosa<b>s</b></figcaption></figure></div>
+   <p>one apple → two apple<b>s</b></p></div>
+  <div class="col no rv" data-s="2"><h3>NO. <b>no s</b></h3>
+   <div class="plates"><figure><img data-ph="rice" alt="" style="--i:3"><figcaption>rice</figcaption></figure><figure><img data-ph="curry" alt="" style="--i:1"><figcaption>curry</figcaption></figure><figure><img data-ph="naan" alt="" style="--i:2"><figcaption>naan</figcaption></figure></div>
+   <p>some rice <s>rices</s></p></div>
+  <button class="cta rv" data-s="3" data-open style="top:826px;font-size:60px;padding:20px 50px 12px">▶ FIND THE IMPOSTOR!</button>
+ </section>
+
+ <!-- 8 game: Speed Round -->
+ <section class="slide" data-st="5" data-at="900" data-lab="speed" data-labname="5 Speed Round" data-labsec="210" data-host="fire" data-say="Speed!" data-note="統整｜每個人都要開口的表現任務；次數最少的人先被抽到，說不出來時全班一起接住（輸出假說：Swain, 1985；低焦慮環境：Krashen, 1982）">
+  <div class="speedlines" aria-hidden="true"></div>
+  <div class="tag zhfirst">統整 <b>GAME TIME</b></div>
+  <h2 class="ttl">Speed <span class="em">Round!</span></h2>
+  <span class="racer a" data-char="samosa" data-mouth="open" style="left:1070px" aria-hidden="true"></span><span class="racer b" data-char="dumplings" data-mouth="wow" style="left:1260px" aria-hidden="true"></span>
+  <div class="vs rv" data-s="1"><div class="team a"><b>TEAM A</b><span>1 · 3 · 5</span></div><i>VS</i><div class="team b"><b>TEAM B</b><span>2 · 4 · 6</span></div></div>
+  <ol class="how h3">
+   <li class="rv" data-s="2"><i>1</i>Your number? Stand up!</li>
+   <li class="rv" data-s="2"><i>2</i>Ten seconds. Say: <span class="key">I want some ___.</span></li>
+  </ol>
+  <button class="cta rv" data-s="3" data-open style="top:800px">▶ START!</button>
+ </section>
+
+ <!-- 9 self-check against the success criteria -->
+ <section class="slide" data-st="5" data-at="1110" data-host="cheer" data-say="You did it!" data-note="後設認知｜對照開頭的三個 I can 自我檢核，學生自己說出進步在哪裡（自我調整學習的自我反思階段：Zimmerman, 2002）">
+  <div class="tag zhfirst">統整 <b>HOW DID I DO?</b></div>
+  <h2 class="ttl">Show me <span class="ok">✔</span><span class="so">△</span><span class="no">?</span></h2>
+  <div class="cans" style="top:470px">
+   <div class="can rv" data-s="1"><i>1</i><b>LISTEN</b><span>I can find the food I hear.</span><em>聽得懂</em></div>
+   <div class="can rv" data-s="2"><i>2</i><b>SAY</b><span>I can say:<br>I want some ___.</span><em>說得出</em></div>
+   <div class="can rv" data-s="3"><i>3</i><b>THINK</b><span>I can ask:<br>Can you count it?</span><em>會判斷</em></div>
+  </div>
+ </section>
+
+ <!-- 10 exit: use it for real -->
+ <section class="slide" data-st="6" data-at="1155" data-host="win" data-say="Happy Diwali!" data-note="實踐力行｜把句子用在真的對象身上，再帶回家用（素養導向：學以致用、連結生活；跨文化理解：英-E-C3）">
+  <div class="tag">PARTY TIME <b>實踐</b></div>
+  <h2 class="ttl">Tell Ankita!</h2>
+  <div class="talk">
+   <div class="bub a rv" data-s="1"><u>YOU</u>I want some <i class="blank"></i>!</div>
+   <div class="bub k rv" data-s="2" style="justify-self:end"><u style="left:auto;right:30px">ANKITA</u>Here you are! Happy Diwali!</div>
+  </div>
+  <p class="line rv" data-s="3" style="top:776px">Tonight: <span class="em">say it at dinner!</span><span class="zh">今晚吃飯時，用英語說一句</span></p>
+  <div class="finale rv" data-s="4">Happy Diwali!</div>
+  <div class="crew rv" data-s="4" data-crew="samosa,apple,curry,dumplings,naan,rice,cake,noodles" style="left:96px;top:640px" aria-hidden="true"></div>
+ </section>
+
+ <button id="timer" hidden aria-label="倒數計時，點一下開始或暫停"><svg viewBox="0 0 380 380" aria-hidden="true"><circle class="bg" cx="190" cy="190" r="160"/><circle class="fg" cx="190" cy="190" r="160"/></svg><b>3:30</b><small>TAP TO START</small></button>
+ <div class="mx" id="host" aria-hidden="true"><div class="mx-bubble"></div></div>
+ <div id="rail"><div id="lamps"></div><div id="note"></div>
+  <div id="tools"><button id="b-prev" aria-label="上一步">‹</button><button id="b-next" aria-label="下一步">›</button><button id="b-snd" aria-label="聲音開關">♪</button><button id="b-full" aria-label="全螢幕">⛶</button><button id="b-help" aria-label="操作說明">?</button></div>
+  <button id="clock" aria-label="上課時間，點一下開始，連點兩下歸零"><small>課堂時間</small><span>20:00</span></button></div>
+ <div id="fx" hidden aria-hidden="true"><div class="rays"></div><div class="word"></div></div>
+</div>
+
+<div id="lab" hidden>
+ <iframe id="labfr" title="Lunch Box Lab"></iframe>
+ <div id="labbar"><button id="lab-back">← 回簡報</button><span id="lab-name"></span><span id="lab-t">0:00</span><span id="lab-clock"></span><a id="lab-new" target="_blank" rel="noopener">另開分頁 ↗</a><button id="lab-next">下一頁 →</button></div>
+</div>
+
+<div id="help" hidden><div role="dialog" aria-label="操作說明">
+ <h2>怎麼操作（只要一直按「下一步」）</h2>
+ <ul>
+  <li>點畫面右邊、按 <kbd>→</kbd> 或 <kbd>空白鍵</kbd>：下一步。點畫面最左邊或按 <kbd>←</kbd>：上一步。</li>
+  <li>看到黃色大按鈕（▶ SPIN! 等）再按一次「下一步」，Lunch Box Lab 那一站會直接在簡報裡打開；做完按右下角「下一頁 →」。</li>
+  <li>有圓形計時器的頁面：按到最後一步會出現 GO! 並自動開始倒數；也可以直接點計時器開始或暫停。</li>
+  <li>右下角「課堂時間」從 20:00 開始算（離開第一頁時自動開始；連點兩下歸零）。變成粉紅色表示該換下一段了。</li>
+  <li><kbd>F</kbd> 全螢幕　<kbd>1</kbd>–<kbd>9</kbd>、<kbd>0</kbd> 跳到第 1–10 頁　<kbd>O</kbd> 顯示或隱藏最下面一行給觀課者看的設計說明　<kbd>M</kbd> 聲音開關</li>
+  <li>下面一排小油燈是六個階段，點一下可以直接跳到那一段。</li>
+ </ul>
+ <button id="help-x">知道了</button></div></div>
+
+<template id="boxy"><!--{{BOXY_SVG}}--></template>
+<script>/*{{CHARS_JS}}*/</script>
+<script>window.PH=/*{{PHOTOS}}*/{};</script>
+<script>
+(function(){
+'use strict';
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const stage=$('#stage'),slides=$$('.slide'),LAST=slides.length-1;
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const LAB='../lunch-box-lab/index.html';
+const ss={get(k){try{return sessionStorage.getItem(k);}catch(e){return null;}},set(k,v){try{sessionStorage.setItem(k,v);}catch(e){}},del(k){try{sessionStorage.removeItem(k);}catch(e){}}};
+let cur=0,step=0,labOpen=false,sound=true,notes=true;const labDone={};
+const fmt=s=>{s=Math.max(0,Math.ceil(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};
+const nSteps=sl=>Math.max(0,+sl.dataset.go||0,...$$('[data-s]',sl).map(e=>+e.dataset.s));
+
+/* ---------- fit ---------- */
+function fit(){const k=Math.min(innerWidth/1920,innerHeight/1080);stage.style.transform=`translate(-50%,-50%) scale(${k})`;}
+addEventListener('resize',fit);fit();
+
+/* ---------- pictures and characters ---------- */
+$$('img[data-ph]').forEach(im=>{const u=window.PH[im.dataset.ph];if(u)im.src=u;});
+(function(){const box=$('#parade');if(!window.CHAR||!box)return;const have=window.CHARS||[];
+ ['samosa','apple','curry','dumplings','naan','rice'].filter(k=>have.includes(k)).forEach((k,i)=>{const s=document.createElement('span');s.style.setProperty('--i',i);
+  s.innerHTML=window.CHAR(k,{size:210,face:{mouth:i%2?'open':'smile'}});const sv=s.firstElementChild;if(sv){sv.setAttribute('width','100%');sv.setAttribute('height','100%');}box.appendChild(s);});})();
+const have=window.CHARS||[];const charSvg=(k,sz,mouth)=>{if(!window.CHAR||!have.includes(k))return '';const d=document.createElement('div');d.innerHTML=window.CHAR(k,{size:sz,face:{mouth:mouth||'smile'}});const sv=d.firstElementChild;sv.setAttribute('width','100%');sv.setAttribute('height','100%');return d.innerHTML;};
+$$('[data-char]').forEach(el=>{el.innerHTML=charSvg(el.dataset.char,190,el.dataset.mouth);});
+$$('[data-crew]').forEach(el=>{el.dataset.crew.split(',').forEach((k,i)=>{const h=charSvg(k,150,i%2?'open':'wow');if(!h)return;const sp=document.createElement('span');sp.style.setProperty('--i',i);sp.innerHTML=h;el.appendChild(sp);});});
+const host=$('#host');host.insertAdjacentHTML('beforeend',$('#boxy').innerHTML);const bubble=$('.mx-bubble',host);
+function pose(p,say,size){host.classList.remove('p-cheer','p-oops','p-win','p-wave','fire');void host.offsetWidth;
+ if(p==='fire')host.classList.add('fire','p-cheer');else if(p&&p!=='idle')host.classList.add('p-'+p);
+ host.classList.toggle('small',size==='small');bubble.textContent=say||'';bubble.classList.toggle('on',!!say);}
+
+/* rangoli: drawn here, slowly turning in the corner */
+(function(){let s='';const cols=['#FF4FA3','#FFC531','#27E0C7','#FF8A1F'];
+ [[8,330,112],[12,244,84],[16,164,56],[8,88,38]].forEach(([n,r,w],k)=>{for(let i=0;i<n;i++)s+=`<ellipse cy="${-r}" rx="${w/2}" ry="${w}" transform="rotate(${360/n*i})" fill="none" stroke="${cols[k]}" stroke-width="7"/>`;});
+ for(let i=0;i<24;i++)s+=`<circle cy="-438" r="9" transform="rotate(${15*i})" fill="${cols[i%4]}"/>`;
+ $('#rangoli').innerHTML=`<svg viewBox="-460 -460 920 920">${s}<circle r="30" fill="none" stroke="#FFC531" stroke-width="9"/></svg>`;})();
+
+/* lamp rail */
+const STAGES=[['導學','Spin',2],['自學','Catch',3],['共學','Menu',4],['互學','Share',5],['導學','Count',6],['統整','Speed',7]];
+const diya=i=>`<svg viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="dy${i}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E88A4A"/><stop offset="1" stop-color="#9A3F18"/></linearGradient><linearGradient id="df${i}" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#FF7A18"/><stop offset="1" stop-color="#FFE45C"/></linearGradient></defs><g class="fl"><path d="M50 2 C34 24 32 36 50 48 C68 36 66 24 50 2Z" fill="url(#df${i})" stroke="#24190A" stroke-width="3"/><path d="M50 22 C43 32 43 38 50 44 C57 38 57 32 50 22Z" fill="#fff8c9"/></g><path d="M8 50 Q50 64 92 50 Q90 84 50 88 Q10 84 8 50Z" fill="url(#dy${i})" stroke="#24190A" stroke-width="4" stroke-linejoin="round"/><path d="M20 60 Q50 70 80 60" fill="none" stroke="#FFD7A8" stroke-width="4" stroke-linecap="round" opacity=".7"/></svg>`;
+const lamps=$('#lamps');STAGES.forEach(([zh,en,to],i)=>{const b=document.createElement('button');b.className='lamp';b.style.setProperty('--i',i);b.innerHTML=diya(i)+`<span><b>${zh}</b> ${en}</span>`;b.setAttribute('aria-label',`跳到 ${zh} ${en}`);b.onclick=e=>{e.stopPropagation();go(to,0);};lamps.appendChild(b);});
+
+/* ---------- sound (made here: two soft bells) ---------- */
+let AC=null;const ac=()=>{if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC;};
+function bell(f,t,d){const a=ac();if(!a||!sound)return;const o=a.createOscillator(),g=a.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0,a.currentTime+t);g.gain.linearRampToValueAtTime(.22,a.currentTime+t+.02);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+t+d);o.connect(g).connect(a.destination);o.start(a.currentTime+t);o.stop(a.currentTime+t+d+.05);}
+const chime=()=>{bell(880,0,.7);bell(1174.7,.18,.7);bell(1568,.36,1.1);};
+const tickSnd=()=>bell(660,0,.12);
+
+/* ---------- manga burst ---------- */
+const fx=$('#fx');let fxT=0;
+function burst(text,gold){if(reduce)return;clearTimeout(fxT);fx.hidden=true;void fx.offsetWidth;const w=$('.word',fx);w.textContent=text;w.style.fontSize=text.length>10?'176px':'';fx.classList.toggle('gold',!!gold);fx.hidden=false;fxT=setTimeout(()=>{fx.hidden=true;},1250);}
+
+/* ---------- countdown ---------- */
+function Countdown(paint,done){let end=0,left=0,dur=0,on=false,id=0,lastTick=0;
+ const loop=()=>{if(!on)return;left=Math.max(0,(end-Date.now())/1000);paint(left,dur,true);const c=Math.ceil(left);if(c<=5&&c>0&&c!==lastTick){lastTick=c;tickSnd();}if(left<=0){on=false;done&&done();return;}id=setTimeout(loop,200);};
+ return{set(sec){clearTimeout(id);on=false;dur=left=sec;lastTick=0;paint(left,dur,false);},start(){if(on||left<=0)return;end=Date.now()+left*1000;on=true;loop();},pause(){if(!on)return;clearTimeout(id);on=false;left=Math.max(0,(end-Date.now())/1000);paint(left,dur,false);},toggle(){on?this.pause():this.start();},get on(){return on;},get left(){return left;}};}
+const tEl=$('#timer'),tFg=$('.fg',tEl),tNum=$('b',tEl),tCap=$('small',tEl),CIRC=2*Math.PI*160;tFg.style.strokeDasharray=CIRC;
+const slideTimer=Countdown((left,dur,run)=>{tNum.textContent=left<=0?"TIME'S UP":fmt(left);tFg.style.strokeDashoffset=CIRC*(1-(dur?left/dur:1));tEl.classList.toggle('low',left<=30&&left>0);tEl.classList.toggle('run',run);tEl.classList.toggle('done',left<=0);tCap.textContent=left<=0?'':run?'':'TAP TO START';},
+ ()=>{chime();burst("TIME'S UP!");pose('wave',"Time's up!",slides[cur].dataset.hostsize);});
+tEl.onclick=e=>{e.stopPropagation();ac();slideTimer.toggle();};
+const labT=$('#lab-t');const labTimer=Countdown((left)=>{labT.textContent=left<=0?"Time's up":fmt(left);labT.classList.toggle('low',left<=20);},()=>chime());
+
+/* ---------- lesson clock (starts at 20:00 when the co-teacher takes over) ---------- */
+const clock=$('#clock'),clockTxt=$('span',clock),labClock=$('#lab-clock');let t0=+ss.get('dp.t0')||0,armed=0;
+const elapsed=()=>t0?(Date.now()-t0)/1000:0;
+function paintClock(){const e=elapsed(),tot=1200+e,txt=Math.floor(tot/60)+':'+String(Math.floor(tot%60)).padStart(2,'0');clockTxt.textContent=txt;labClock.textContent='課堂 '+txt;
+ const nx=slides[cur+1];clock.classList.toggle('late',!!t0&&(nx?e>(+nx.dataset.at)+20:e>1215));}
+function startClock(force){if(t0&&!force)return;t0=Date.now();ss.set('dp.t0',String(t0));paintClock();}
+clock.onclick=e=>{e.stopPropagation();if(!t0){startClock();return;}if(Date.now()-armed<1500){t0=0;ss.del('dp.t0');armed=0;paintClock();}else armed=Date.now();};
+setInterval(paintClock,500);
+
+/* ---------- show a slide ---------- */
+function paint(){
+ slides.forEach((sl,i)=>{const on=i===cur;sl.classList.toggle('on',on);sl.setAttribute('aria-hidden',String(!on));
+  $$('[data-s]',sl).forEach(el=>el.classList.toggle('show',on&&+el.dataset.s<=step));});
+ const sl=slides[cur],st=+sl.dataset.st;
+ $$('.lamp',lamps).forEach((b,i)=>{b.classList.toggle('lit',i<=st);b.classList.toggle('now',i===st);});
+ $('#rail').classList.toggle('party',st>=6&&step>=4);
+ sl.classList.toggle('dim',cur===LAST&&step>=4);
+ $('#note').innerHTML=notes?(sl.dataset.note||''):'';
+ /* mascot */
+ const fin=cur===LAST&&step>=4;
+ pose(sl.dataset.host,fin?'Yay!':sl.dataset.say,sl.dataset.hostsize);host.classList.toggle('away',sl.dataset.host==='none');
+ /* timer */
+ if(sl.dataset.timer){tEl.hidden=false;const go=+sl.dataset.go;if(tEl.dataset.for!==String(cur)){tEl.dataset.for=String(cur);slideTimer.set(+sl.dataset.timer);}
+  if(step>=go&&!slideTimer.on&&slideTimer.left===+sl.dataset.timer){slideTimer.start();burst('GO!',true);pose('cheer','Go!',sl.dataset.hostsize);}
+  if(step<go&&(slideTimer.on||slideTimer.left!==+sl.dataset.timer))slideTimer.set(+sl.dataset.timer);}
+ else{tEl.hidden=true;slideTimer.set(0);delete tEl.dataset.for;}
+ if(fin){burst('HAPPY DIWALI!',true);chime();}
+ if(cur>0)startClock();paintClock();
+ try{history.replaceState(null,'','#s'+(cur+1));}catch(e){}ss.set('dp.pos',cur+','+step);
+}
+function go(i,s){cur=Math.max(0,Math.min(LAST,i));step=Math.max(0,Math.min(nSteps(slides[cur]),s||0));paint();}
+function next(){ac();const sl=slides[cur];if(step<nSteps(sl)){step++;paint();return;}
+ if(sl.dataset.lab&&!labDone[cur]){openLab();return;}
+ if(cur<LAST)go(cur+1,0);}
+function prev(){if(step>0){step--;paint();return;}if(cur>0)go(cur-1,nSteps(slides[cur-1]));}
+
+/* ---------- Lunch Box Lab station inside the deck ---------- */
+const lab=$('#lab'),fr=$('#labfr');let frReady=false;
+function loadLab(name){const url=LAB+'#'+(name||'home');$('#lab-new').href=url;
+ if(!frReady){fr.src=url;frReady=true;return;}
+ try{fr.contentWindow.location.hash='#'+name;}catch(e){fr.src=url;}}
+function openLab(){const sl=slides[cur];if(!sl.dataset.lab)return;labOpen=true;loadLab(sl.dataset.lab);$('#lab-name').textContent=sl.dataset.labname||'';lab.hidden=false;
+ labTimer.set(+sl.dataset.labsec||120);labTimer.start();startClock();try{fr.focus();}catch(e){}}
+function closeLab(advance){labOpen=false;lab.hidden=true;labTimer.pause();labDone[cur]=true;try{window.focus();}catch(e){}if(advance&&cur<LAST)go(cur+1,0);else paint();}
+$('#lab-back').onclick=()=>closeLab(false);$('#lab-next').onclick=()=>closeLab(true);
+$$('[data-open]').forEach(b=>b.onclick=e=>{e.stopPropagation();ac();openLab();});
+/* warm the station up in the background so it opens at once */
+addEventListener('load',()=>setTimeout(()=>{if(!frReady)loadLab('home');},1200));
+
+/* ---------- input ---------- */
+stage.addEventListener('click',e=>{if(e.target.closest('button,a'))return;const r=stage.getBoundingClientRect();((e.clientX-r.left)/r.width<.12)?prev():next();});
+$('#b-prev').onclick=e=>{e.stopPropagation();prev();};$('#b-next').onclick=e=>{e.stopPropagation();next();};
+$('#b-full').onclick=e=>{e.stopPropagation();const d=document;if(d.fullscreenElement)d.exitFullscreen();else if(d.documentElement.requestFullscreen)d.documentElement.requestFullscreen().catch(()=>{});};
+const sndBtn=$('#b-snd');const setSound=v=>{sound=v;sndBtn.textContent=v?'♪':'×';sndBtn.setAttribute('aria-pressed',String(v));};sndBtn.onclick=e=>{e.stopPropagation();setSound(!sound);if(sound){ac();bell(880,0,.3);}};
+const help=$('#help');$('#b-help').onclick=e=>{e.stopPropagation();help.hidden=false;};$('#help-x').onclick=()=>{help.hidden=true;};help.onclick=e=>{if(e.target===help)help.hidden=true;};
+addEventListener('keydown',e=>{if(e.metaKey||e.ctrlKey||e.altKey)return;const k=e.key;
+ if(!help.hidden){if(k==='Escape'||k==='Enter')help.hidden=true;return;}
+ if(labOpen){if(k==='Escape')closeLab(false);return;}
+ if(k==='ArrowRight'||k===' '||k==='Enter'||k==='PageDown'){e.preventDefault();next();}
+ else if(k==='ArrowLeft'||k==='Backspace'||k==='PageUp'){e.preventDefault();prev();}
+ else if(k==='Home')go(0,0);else if(k==='End')go(LAST,0);
+ else if(k==='f'||k==='F')$('#b-full').click();
+ else if(k==='o'||k==='O'){notes=!notes;paint();}
+ else if(k==='m'||k==='M')setSound(!sound);
+ else if(k==='?'||k==='h'||k==='H')help.hidden=false;
+ else if(/^[0-9]$/.test(k))go(k==='0'?9:+k-1,0);});
+
+/* ---------- sky: twinkling stars and fireworks, drawn here ---------- */
+const cv=$('#sky'),cx=cv.getContext('2d');const stars=[],fw=[];
+for(let i=0;i<64;i++)stars.push({x:Math.random()*1920,y:Math.random()*940,r:Math.random()*2.4+.8,p:Math.random()*6.28,s:Math.random()*.03+.008,c:i%5?'#ffffff':(i%2?'#FFC531':'#FF8AC0')});
+function firework(x,y,c){for(let i=0;i<40;i++){const a=i/40*6.283+Math.random()*.25,v=3.5+Math.random()*6;fw.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,l:1,c});}}
+let nextFw=0;
+function frame(t){requestAnimationFrame(frame);if(labOpen||document.hidden)return;cx.clearRect(0,0,1920,1080);
+ for(const p of stars){p.p+=p.s;const a=.25+.75*Math.abs(Math.sin(p.p)),r=p.r*(2+a*2);cx.globalAlpha=a;cx.fillStyle=p.c;cx.beginPath();cx.moveTo(p.x,p.y-r);cx.quadraticCurveTo(p.x,p.y,p.x+r,p.y);cx.quadraticCurveTo(p.x,p.y,p.x,p.y+r);cx.quadraticCurveTo(p.x,p.y,p.x-r,p.y);cx.quadraticCurveTo(p.x,p.y,p.x,p.y-r);cx.fill();}
+ const party=cur===0||(cur===LAST&&step>=4);
+ if(party&&t>nextFw){nextFw=t+(cur===0?1700:520)+Math.random()*700;firework(cur===0?1100+Math.random()*700:200+Math.random()*1520,90+Math.random()*(cur===0?240:420),['#FFC531','#FF4FA3','#27E0C7','#FF8A1F','#ffffff'][Math.floor(Math.random()*5)]);}
+ for(let i=fw.length-1;i>=0;i--){const p=fw[i];p.x+=p.vx;p.y+=p.vy;p.vy+=.09;p.vx*=.985;p.l-=.016;if(p.l<=0){fw.splice(i,1);continue;}cx.globalAlpha=p.l;cx.fillStyle=p.c;cx.beginPath();cx.arc(p.x,p.y,4.5*p.l+1.5,0,6.283);cx.fill();}
+ cx.globalAlpha=1;}
+if(!reduce)requestAnimationFrame(frame);
+
+/* ---------- start ---------- */
+(function(){const m=/^#s(\d+)$/.exec(location.hash);const saved=(ss.get('dp.pos')||'').split(',');
+ if(m)go(+m[1]-1,(saved[0]===String(+m[1]-1))?+saved[1]||0:0);else go(0,0);})();
+window.__deck={go,next,prev,get cur(){return cur;},get step(){return step;},get lab(){return labOpen;}};
+})();
+</script>
+</body></html>

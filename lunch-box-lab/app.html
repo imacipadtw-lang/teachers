@@ -408,18 +408,18 @@ const DEFAULT_WORDS=[
   {pic:'🔺',en:'samosa',zh:'咖哩角',count:true,pl:'samosas'}
 ];
 const DEFAULT_PHASES=[
-  /* 教案 v2：Ankita 簡報 20 分 → 中師四學 15 分 → Ankita 遊戲 5 分 */
+  /* 教案 v3：Ankita 簡報 20 分 → 中師四學＋收尾遊戲 20 分（全程不用紙本） */
   {name:'導學・Diwali（Ankita）',min:20,note:'Ankita 簡報 1–24 頁：India、Diwali、9 個節慶字、和元宵節比一比'},
   {name:'導學・定標（中師）',min:2,note:'揭示派對任務；大螢幕 Spin 轉 4 個字，全班唸兩次，比 ✔ △ ?'},
-  {name:'自學',min:4,note:'每人一台 iPad：Catch 一輪；護照 p.27 會說的字塗星星'},
+  {name:'自學',min:4,note:'每人一台 iPad：Catch 一輪；結果畫面點 🔊 把沒聽對的字再聽一次、跟著唸'},
   {name:'共學',min:4,note:'一組一台 iPad：Party Menu，三人各選一種食物，至少一種印度食物'},
   {name:'互學',min:3,note:'兩組舉起 iPad 互唸菜單；回答 Yummy! I like your ___.'},
-  {name:'導學・點撥（中師）',min:2,note:'大螢幕 Impostor 抓 2 句；一句規則；交棒給 Ankita'},
-  {name:'導學・統整（Ankita）',min:5,note:'Ankita’s Game（簡報 25–35 頁 Quiz）；離場句 I want some ___!'}
+  {name:'導學・點撥（中師）',min:2,note:'大螢幕 Impostor 抓 2 句；一句規則 Can you count it?'},
+  {name:'統整・Speed Round（中師）',min:5,note:'大螢幕 Speed Round 兩組對抗，每人至少開口一次；下課前每人對 Ankita 說 I want some ___!'}
 ];
 const KEY='lunchboxlab.v1';
 const APP_URL='https://claude.ai/artifact/5CrCV1GGNXaZYRqdmocLRZ';
-const fresh=()=>({words:DEFAULT_WORDS.map(w=>({...w})),example:false,boxes:{},post:{},speed:{},stamps:{},mode:'pre',icons:'photo',iconsV:2,scores:{},groups:[0,0],seat:'',mywords:[],self:'',next:'',absent:[],party:null,planV:2,phases:DEFAULT_PHASES.map(p=>({...p}))});
+const fresh=()=>({words:DEFAULT_WORDS.map(w=>({...w})),example:false,boxes:{},post:{},speed:{},stamps:{},mode:'pre',icons:'photo',iconsV:2,scores:{},groups:[0,0],seat:'',mywords:[],self:'',next:'',absent:[],party:null,planV:3,phases:DEFAULT_PHASES.map(p=>({...p}))});
 function load(){
   try{const s=JSON.parse(localStorage.getItem(KEY)||'null');
     if(s&&typeof s==='object'&&!Array.isArray(s)){const f=fresh();const o=Object.assign(f,s);
@@ -430,7 +430,7 @@ function load(){
       if(!Array.isArray(o.groups))o.groups=[0,0];
       if(s.iconsV!==2){o.icons='photo';o.iconsV=2;}
       /* devices that saved the old six-phase timer get the lesson-plan v2 phases once */
-      if(s.planV!==2){o.phases=fresh().phases;delete o.timer;o.planV=2;}
+      if(s.planV!==3){o.phases=fresh().phases;delete o.timer;o.planV=3;}
       return o;}
   }catch(e){}
   return fresh();
@@ -607,24 +607,24 @@ function home(){
   <section class="hero"><div class="hero-text"><p class="eyebrow">五甲英語・FOOD FOR ANKITA’S DIWALI PARTY</p><h1>Lunch Box Lab</h1>
     <p class="lede">Ankita 的排燈節派對要開始了！幫派對準備食物：聽、選、說。句型 I want some ___.</p></div>
     <div class="hero-art" aria-hidden="true">${['diya','noodles','apple','dumplings','curry','samosa'].map((k,i)=>`<span class="hf hf${i}" style="--i:${i}">${tile(k,'')}</span>`).join('')}</div></section>
-  <h2 class="sec">今天上課：照 1 → 4 走</h2>
+  <h2 class="sec">今天上課：照 1 → 5 走</h2>
   <div class="bento">
     <a class="cell main" href="#spin"><span class="who">導學・大螢幕</span><h2><span class="no">1</span>Spin</h2><p>轉輪盤抽一個食物，全班唸兩次，比 ✔ △ ?。不熟的字留在 Box 1，這就是今天的目標。</p><span class="pic">${tile('rice','🍱')}</span></a>
-    <a class="cell" href="#catch"><span class="who">自學・iPad</span><span class="pic">${tile('fish','🎧')}</span><h2><span class="no">2</span>Catch</h2><p>只聽不看字，點對的食物。做完在護照 p.27 塗星星。</p></a>
+    <a class="cell" href="#catch"><span class="who">自學・iPad</span><span class="pic">${tile('fish','🎧')}</span><h2><span class="no">2</span>Catch</h2><p>只聽不看字，點對的食物。做完把沒聽對的字再聽一次、跟著唸。</p></a>
     <a class="cell" href="#party"><span class="who">共學・一組一台</span><span class="pic">${tile('samosa','🎉')}</span><h2><span class="no">3</span>Party Menu</h2><p>三人各選一種食物帶去派對，再唸給另一組聽。</p></a>
-    <a class="cell wide" href="#impostor"><span class="who">導學・大螢幕</span><span class="pic">${tile('egg','🕵️')}</span><h2><span class="no">4</span>Impostor</h2><p>全班一起抓內鬼：多了 a／an，或 -s 用錯的字。</p></a>
+    <a class="cell" href="#impostor"><span class="who">導學・大螢幕</span><span class="pic">${tile('egg','🕵️')}</span><h2><span class="no">4</span>Impostor</h2><p>全班一起抓內鬼：多了 a／an，或 -s 用錯的字。</p></a>
+    <a class="cell" href="#speed"><span class="who">收尾遊戲・大螢幕</span><span class="pic">${tile('chicken','⚡')}</span><h2><span class="no">5</span>Speed Round</h2><p>兩組對抗：抽座號＋抽食物，10 秒說一句 I want some ___.</p></a>
   </div>
   <h2 class="sec">延伸練習與老師工具</h2>
   <div class="bento">
     <a class="cell rice" href="#pack"><span class="who">延伸・iPad</span><span class="pic">${tile('box','🍱')}</span><h2>Pack the Box</h2><p>聽整句，把食物裝進便當。</p></a>
     <a class="cell rice" href="#build"><span class="who">延伸・iPad</span><span class="pic">${tile('hamburger','🧱')}</span><h2>Build It</h2><p>點字卡組出正確句子。</p></a>
     <a class="cell rice" href="#check"><span class="who">延伸・iPad</span><span class="pic">${tile('cake','✅')}</span><h2>Check</h2><p>6 題小檢核：數得出來嗎？選對句子。</p></a>
-    <a class="cell rice" href="#speed"><span class="who">延伸・大螢幕</span><span class="pic">${tile('chicken','⚡')}</span><h2>Speed Round</h2><p>抽座號＋抽字，10 秒說一句。</p></a>
     <a class="cell rice" href="#card"><span class="who">iPad</span><span class="pic">${tile('tangyuan','🪪')}</span><h2>結果卡</h2><p>分數、印章、自評、下一步。</p></a>
     <a class="cell rice" href="#evidence"><span class="who">老師</span><span class="pic">${tile('naan','📈')}</span><h2>學習證據</h2><p>課前課後 ✔△? 與每人開口次數。</p></a>
     <a class="cell rice" href="#words"><span class="who">老師</span><span class="pic">${tile('apple','✏️')}</span><h2>單字設定</h2><p>換字、可數不可數、角色或 emoji。</p></a>
     <a class="cell rice" href="#guide"><span class="who">老師</span><span class="pic">${tile('curry','📖')}</span><h2>使用說明</h2><p>Ankita 與中師的分工和英文提示句。</p></a>
-    <a class="cell full rice" href="#teacher"><span class="who">老師</span><span class="pic">${tile('diya','⏱️')}</span><h2>教師工具</h2><p>40 分鐘分段計時（20＋15＋5）、兩組計分、抽座號、學生 QR code。</p></a>
+    <a class="cell full rice" href="#teacher"><span class="who">老師</span><span class="pic">${tile('diya','⏱️')}</span><h2>教師工具</h2><p>40 分鐘分段計時（Ankita 20＋中師 20）、兩組計分、抽座號、學生 QR code。</p></a>
   </div>
   <p class="muted">13 個預設單字、兩個句型和所有鼓勵語都是 ElevenLabs 真人錄音；只有自己新加的字會改用裝置語音。分數和設定只存在這台裝置的瀏覽器。中師與 Ankita 的分工在 <a href="#guide">使用說明</a>。</p>
   </div>`;
@@ -772,7 +772,7 @@ function catchView(){
     <div class="panel center"><p class="big-emoji">${hits>=8?'🏆':hits>=5?'👍':'💪'}</p>
       <div class="hud center" style="justify-content:center"><span>分數 <b>${score}</b></span><span>答對 <b>${hits}/${ROUNDS}</b></span><span>最高分 <b>${S.scores.catchBest}</b></span></div>
       ${uniq.length?`<p>這幾個字要再聽一次：</p><div class="chips" style="justify-content:center">${uniq.map(w=>`<button class="chip" data-en="${esc(w.en)}">🔊 ${pic(w,'chip')}${esc(w.en)}</button>`).join('')}</div>`:'<p>全部都聽對了！</p>'}
-      <p class="note">下一步：打開英語護照 p.27，會說的字把星星塗滿 ⭐</p>
+      <p class="note">沒聽對的字，點 🔊 再聽一次、跟著唸；都對了就再玩一次，挑戰最高分。</p>
       <div class="row center"><button class="btn primary" id="c-re">再玩一次</button><a class="btn" href="#party" style="text-decoration:none;display:inline-flex;align-items:center">下一站 Party Menu →</a></div>
     </div></div>`;
     $$('[data-en]').forEach(b=>b.onclick=()=>say(b.dataset.en));
@@ -950,7 +950,8 @@ function speed(){
   const grp=n=>n%2?'A':'B';
   app.innerHTML=`<div class="view speedv">
    ${head('Speed Round 快問快答','抽一位同學，10 秒內說出這一句。說對老師按 ✓，所屬組別 +1；時間到會自動念出示範句，全班跟著唸。')}
-   <div class="stage speedstage">
+   <div class="hud" id="sr-teams" style="justify-content:center;font-size:24px" aria-live="polite"></div>
+    <div class="stage speedstage">
      <div class="seatbadge" id="sr-seat" aria-live="polite">? 號</div>
      <div class="stage-pic" id="sr-pic">${pic(null,'stage')}</div>
      <div class="frame" id="sr-frame" aria-live="polite">Ready?</div>
@@ -959,7 +960,7 @@ function speed(){
    <div class="row center"><button class="btn primary big" id="sr-draw">🎲 抽一位 <kbd>空白</kbd></button><button class="btn good" id="sr-ok" disabled>✓ 說對了 +1 <kbd>1</kbd></button><button class="btn bad" id="sr-no" disabled>✗ 再練 <kbd>2</kbd></button><button class="btn" id="sr-say" disabled>🔊 示範句</button></div>
    <section class="panel"><h2>每位同學的開口次數</h2><div class="sr-board" id="sr-board"></div><p class="muted">輪到次數最少的同學會先被抽到，每人都有機會開口。缺席的座號請在「教師工具」點掉。</p></section>
   </div>`;
-  const board=()=>{$('#sr-board').innerHTML=[1,2,3,4,5,6].map(n=>{const x=S.speed[n]||{ok:0,t:0};const off=S.absent.includes(n);
+  const board=()=>{const tm=$('#sr-teams');if(tm)tm.innerHTML=`<span>A 組（1、3、5 號） <b>${S.groups[0]||0}</b></span><span>B 組（2、4、6 號） <b>${S.groups[1]||0}</b></span>`;$('#sr-board').innerHTML=[1,2,3,4,5,6].map(n=>{const x=S.speed[n]||{ok:0,t:0};const off=S.absent.includes(n);
     return `<div class="sr-seat ${off?'off':''} ${cur&&cur.seat===n&&!cur.done?'now':''}"><span class="muted">${n} 號・${grp(n)} 組${off?'（缺席）':''}</span><b>✓ ${x.ok} / ${x.t}</b></div>`;}).join('');};
   const setBtns=active=>{$('#sr-ok').disabled=!active;$('#sr-no').disabled=!active;$('#sr-say').disabled=!cur;$('#sr-draw').disabled=active;};
   const reveal=()=>{if(!cur)return;$('#sr-frame').textContent=cur.sentence;};
@@ -975,7 +976,7 @@ function speed(){
     const cnt=n=>(S.speed[n]&&S.speed[n].t)||0;const min=Math.min(...present.map(cnt));
     const seat=pick(present.filter(n=>cnt(n)===min));
     const goal=ws.filter(w=>S.boxes[w.en]===1);const w=(goal.length&&Math.random()<.6)?pick(goal):pick(ws);
-    const like=Math.random()<.5;const frame=like?'I like':'I want some';
+    const like=false; /* this lesson's finale drills the target frame only */const frame=like?'I like':'I want some';
     cur={seat,w,sentence:`${frame} ${form(w)}.`,done:false,lastTick:0};
     $('#sr-seat').textContent=`${seat} 號・${grp(seat)} 組`;
     $('#sr-pic').innerHTML=pic(w,'stage');$('#sr-pic').classList.remove('pop');void $('#sr-pic').offsetWidth;$('#sr-pic').classList.add('pop');
@@ -1408,13 +1409,13 @@ function guide(){
   const rows=[
     [0,'Ankita 的簡報（大螢幕）','Ankita：Where is India? What is Diwali? Say it with me.','中師切換簡報、遞實物，觀察學生反應。'],
     [1,'Spin（大螢幕）','中師：Here is our mission. Bring food to Ankita’s Diwali party! Say it with me.','開 Spin 按 ⛶ 全螢幕。轉 4 個字，全班唸兩次，按 ✔ △ ? 分盒子。'],
-    [2,'Catch（每人一台 iPad）＋英語護照 p.27','中師：Listen and catch. Then color a star for each word you can say.','巡 iPad 確認有聲音。Ankita 到學生旁邊聽發音。做完在護照塗星星。'],
+    [2,'Catch（每人一台 iPad）','中師：Listen and catch. Missed a word? Tap and say it.','巡 iPad 確認有聲音。Ankita 到學生旁邊聽發音。做完在結果畫面點 🔊 再聽沒答對的字。'],
     [3,'Party Menu（一組一台 iPad）','中師：Work with your group. Choose three foods. One from India.','選錯時畫面會問 Can you count it?，請學生自己再想，老師先不給答案。'],
     [4,'Party Menu 的菜單畫面','中師：Group A, please share. Group B, say: Yummy! I like your ___.','兩組舉起 iPad，一人唸一句。Ankita 當派對主人回答 Thank you!'],
-    [5,'Impostor（大螢幕）','中師：Find the impostor! One apple, two apples. Rice? No s.','大螢幕全班一起抓 2 句。中文一句規則。交棒：Ankita, they’re ready for your game!'],
-    [6,'Ankita 的簡報 Quiz（大螢幕）','Ankita：Quiz time! … Tell me: I want some ___!','切回 Ankita 簡報 25–35 頁。每人對 Ankita 說一句才下課。']
+    [5,'Impostor（大螢幕）','中師：Find the impostor! One apple, two apples. Rice? No s.','大螢幕全班一起抓 2 句。中文一句規則：數得出來的加 s，數不出來的不加。'],
+    [6,'Speed Round（大螢幕）','中師：Speed Round! Team A, Team B. Ten seconds. Say: I want some ___.','點上方選單的 Speed → 按「🎲 抽一位」→ 10 秒內說出句子 → 說對按 ✓。每人至少一次。下課前每人對 Ankita 說 I want some ___!']
   ];
-  app.innerHTML=`<div class="view">${head('使用說明 Teacher guide','Ankita 全英語主教 25 分鐘（簡報 20＋遊戲 5），中師用四學帶 15 分鐘。下表是每一段用哪一站、說哪一句，時間跟著「教師工具」裡設定的分鐘數。')}
+  app.innerHTML=`<div class="view">${head('使用說明 Teacher guide','Ankita 全英語主教前 20 分鐘（簡報），中師用四學和收尾遊戲帶後 20 分鐘。下表是每一段用哪一站、說哪一句，時間跟著「教師工具」裡設定的分鐘數。')}
   <div class="guide" tabindex="0" role="region" aria-label="教學流程表"><table><thead><tr><th>時段 Phase</th><th>用哪一站 Station</th><th>英文提示句</th><th>操作與分工</th></tr></thead><tbody>
   ${rows.map(([i,st,en,zh])=>`<tr><td><b>${esc(P[i]?P[i].name:'')}</b><br><span class="min">${m(i)}</span></td><td>${esc(st)}</td><td class="en">${esc(en)}</td><td>${esc(zh)}</td></tr>`).join('')}
   </tbody></table></div>
@@ -1425,20 +1426,22 @@ function guide(){
     <p class="muted">這一節課不是「練習單字」，而是「幫 Ankita 的排燈節派對準備食物」：有真實的目的、要做決定、要和同學合作、最後有成品（菜單）可以說給別人聽。下表說明每一段對應的素養、理論與可看的學習證據。</p>
     <div class="guide" tabindex="0" role="region" aria-label="素養與教學理論對照表"><table><thead><tr><th>活動</th><th>學生做什麼（素養導向任務）</th><th>英語文核心素養</th><th>教學理論依據</th><th>學習證據在哪裡看</th></tr></thead><tbody>
     <tr><td><b>Spin</b> 轉盤＋✔ △ ?</td><td>聽、跟著唸，用手勢說出自己會不會；全班決定今天的目標字（Box 1）。</td><td>英-E-A1</td><td>形成性評量與自我評量（Black &amp; Wiliam, 1998）；全身反應（Asher, 1969）；「還沒會」而不是「不會」的成長式說法（Dweck, 2006）。</td><td>「學習證據」頁：課前、課後每個字從 ? → △ → ✔ 的變化。</td></tr>
-    <tr><td><b>Catch</b> 聽力接接樂</td><td>只聽不看字，點出聽到的食物；還沒會的字會比較常出現。</td><td>英-E-B1、英-E-A1</td><td>可理解的輸入、先聽後說（Krashen, 1982）；提取練習與間隔重複（Roediger &amp; Karpicke, 2006）。</td><td>Catch 最高分；結果卡「我想再練的字」。</td></tr>
+    <tr><td><b>Catch</b> 聽力接接樂</td><td>只聽不看字，點出聽到的食物；還沒會的字會比較常出現。</td><td>英-E-B1、英-E-A1、英-E-B2</td><td>可理解的輸入、先聽後說（Krashen, 1982）；提取練習與間隔重複（Roediger &amp; Karpicke, 2006）。</td><td>Catch 最高分；結果卡「我想再練的字」。</td></tr>
     <tr><td><b>Party Menu</b> 派對菜單</td><td>三人一組一台 iPad：每人選一種食物，至少一種來自印度，再一起決定 I want some ___. 的正確說法。</td><td>英-E-B1、英-E-C2、英-E-C3</td><td>任務型教學（Willis, 1996；Ellis, 2003）；鷹架與近側發展區（Vygotsky, 1978；Wood, Bruner &amp; Ross, 1976）：答錯只問 Can you count it?，不直接給答案；合作學習（Johnson &amp; Johnson）、四學中的共學。</td><td>「第一次就選對」幾種；完成的菜單畫面；「學習證據」頁的小組表現觀察（? △ ✔）；老師在組別間聽到的對話。</td></tr>
     <tr><td><b>菜單分享</b>（互學）</td><td>兩組互相唸菜單，聽的人回答 Yummy! I like your ___.</td><td>英-E-B1、英-E-C2</td><td>互動與意義協商、同儕回饋；四學中的互學。</td><td>Speed Round 的「每位同學的開口次數」；現場錄影或筆記。</td></tr>
     <tr><td><b>Impostor</b> 抓內鬼</td><td>先用過、說過，再回頭注意 a／an 和 -s 的差別，找出錯的那個字。</td><td>英-E-B1</td><td>注意假說與聚焦形式（Schmidt, 1990；Long, 1991）：先有意義的使用，再短暫關注形式。</td><td>Impostor 抓對題數；Check 離場 6 題。</td></tr>
+  <tr><td><b>Speed Round</b> 收尾遊戲</td><td>兩組對抗：抽到座號的同學 10 秒內說出 I want some ___.；時間到，全班跟著示範句一起唸。下課前每人對 Ankita 說一句。</td><td>英-E-B1、英-E-C2</td><td>輸出假說：開口說，才會發現自己哪裡還不會（Swain, 1985）；提取練習（Roediger &amp; Karpicke, 2006）；次數最少的人先被抽到，說不出來時有全班示範接住，降低焦慮（Krashen, 1982）。</td><td>Speed Round「每位同學的開口次數」與兩組分數；離場句現場聆聽。</td></tr>
     <tr><td><b>全程</b>圖像、聲音、動畫</td><td>真人聲音配實物照片；角色與特效只在答對、答錯、過關時短暫出現，不蓋住題目、不用等它播完。</td><td>英-E-A1</td><td>多媒體學習認知理論（Mayer, 2009）：圖＋聲音、少量文字、去掉會分心的東西；雙碼理論（Paivio, 1986）；正向情緒設計（Um et al., 2012）；自我決定理論（Deci &amp; Ryan, 2000）：用印章看見自己的進步，不排名。</td><td>印章卡；教師工具可一鍵關閉動畫特效。</td></tr>
     </tbody></table></div>
     <h3>課綱核心素養原文（國民小學英語文）</h3>
     <ul>
       <li><b>英-E-A1</b> 具備認真專注的特質及良好的學習習慣，嘗試運用基本的學習策略，強化個人英語文能力。</li>
       <li><b>英-E-B1</b> 具備入門的聽、說、讀、寫英語文能力。在引導下，能運用所學字詞及句型進行簡易日常溝通。</li>
+  <li><b>英-E-B2</b> 具備使用各種資訊科技媒材進行自我學習的能力，以增進英語文聽說讀寫綜合應用能力及文化習俗之理解。</li>
       <li><b>英-E-C2</b> 積極參與課內英語文小組學習活動，培養團隊合作精神。</li>
       <li><b>英-E-C3</b> 認識國內外主要節慶習俗及風土民情。</li>
     </ul>
-    <p class="muted">以上四條是查各校公開的英語課程計畫轉引的課綱文字，沒有直接核對教育部課綱原文，正式引用請對照原文。學習表現的編號這裡不列，因為沒有查到可核對的原文。</p>
+    <p class="muted">以上五條是查各校公開的英語課程計畫轉引的課綱文字，沒有直接核對教育部課綱原文，正式引用請對照原文。學習表現的編號這裡不列，因為沒有查到可核對的原文。</p>
     <h3>素養導向的設計原則</h3>
     <ul>
       <li><b>真實情境與任務</b>：為派對準備食物，不是背單字表。</li>
@@ -1456,7 +1459,7 @@ function guide(){
       <li>大螢幕打開 Spin，按 ⛶ 全螢幕；鍵盤空白鍵轉，1／2／3 分盒子。</li>
       <li>學生開啟：「教師工具」最下面有 QR code，學生用 iPad 相機掃描即可（連結要先在分享選單開放）。</li>
       <li>「教師工具」的計時已照教案設成 20＋2＋4＋4＋3＋2＋5 分鐘，可以再調整。</li>
-      <li>英語護照翻到 p.27（Level 19），準備色筆塗星星。</li>
+      <li>大螢幕開「上課簡報」（Lunch Box Lab 的各站已經嵌在簡報裡，不用切換分頁）。全程不用紙本。</li>
       <li>右上角 🔊 可以關掉所有聲音（例如觀課老師講話時）。</li>
     </ul></section>
   </div>`;
