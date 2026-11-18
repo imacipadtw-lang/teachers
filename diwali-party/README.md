@@ -19,6 +19,7 @@
 - Lunch Box Lab 用同網域的 iframe 直接開在簡報裡（`../lunch-box-lab/index.html#站名`），所以紀錄仍存在同一個 localStorage，「學習證據」看得到。**這個做法只在 GitHub Pages（或同一個資料夾結構）有效**，claude.ai 的預覽版不能嵌入別的網頁。
 - 吉祥物 Boxy、黏土食物角色、食物照片都是建置時從 `../lunch-box-lab/`（`anime.css`、`anime.js`、`chars.js`、`index.html` 裡的照片）取用的；那邊改了角色就重新 `python3 build.py`。
 - 右下角「課堂時間」從 20:00 起算（離開第 1 頁自動開始，連點兩下歸零），超過下一頁的預定時間會變粉紅色。最下面一行小字是給觀課者看的設計說明（按 O 開關）。
+- `B` 鍵或右下角 👀：整個畫面換成 Eyes on me!（班級經營用，計時不停）。換頁時有一道斜向色帶掃過。
 - 動畫只放在開場、遊戲與結尾；學生作業的頁面只有步驟與計時器（Mayer 的一致性原則）。尊重 `prefers-reduced-motion`。
 - 不放任何學生姓名（公開倉庫），只用座號與組別。
 

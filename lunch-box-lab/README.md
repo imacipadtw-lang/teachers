@@ -105,5 +105,5 @@ python3 /home/user/lunch-box-lab-src/build.py
 ## 版本紀錄（重要）
 - 2026-11-16 另一個工作階段發布了教案 v2（Ankita 簡報 20 分、中師四學 15 分、Ankita 遊戲 5 分；新增 Party Menu 站、首頁依上課順序排列、6 個印章、排燈節主題）。那一次只改了 `app.html`，沒有改圖片或錄音。
 - 2026-11-17 本資料夾的 `app.html` 已改為那個版本的原始碼（由線上檔反推，重建後與線上檔逐字相同），再加上本次的真人錄音、音量平衡與說明文字更新，發布為 v27（線上版本號）。測試也已跟著更新（`soak.js` 改為 7 個階段，`voice.js` 加入 Party Menu）。
-- 2026-11-18 另一個工作階段直接在 GitHub 倉庫改了 `app.html` 與 `index.html`（教案 v3）：Ankita 主教前 20 分鐘、中師主教後 20 分鐘，最後 5 分鐘由中師主持 Speed Round；首頁排成 1 → 5；Speed Round 只出 I want some ___. 並顯示兩組分數；拿掉護照塗星星（全程不用紙本）；`planV` 3；「為什麼這樣設計」加 Speed Round 一列、英-E-B2 與 Swain (1985)。搭配的上課簡報、腳本、教案在倉庫的 `diwali-party/`，簡報會用 iframe 開這個程式的 `#spin`、`#impostor`、`#speed`，所以這三個網址不要改名。**下次從來源資料夾同步前，請先把倉庫版 `app.html` 的改動併回來源。**
+- 2026-11-18 另一個工作階段直接在 GitHub 倉庫改了 `app.html` 與 `index.html`（教案 v3）：Ankita 主教前 20 分鐘、中師主教後 20 分鐘，最後 5 分鐘由中師主持 Speed Round；首頁排成 1 → 5；Speed Round 只出 I want some ___. 並顯示兩組分數；拿掉護照塗星星（全程不用紙本）；`planV` 3；「為什麼這樣設計」加 Speed Round 一列、英-E-B2 與 Swain (1985)。搭配的上課簡報、腳本、教案在倉庫的 `diwali-party/`，簡報會用 iframe 開這個程式的 `#spin`、`#impostor`、`#speed`，所以這三個網址不要改名。另外，網站放在 GitHub Pages（網域以 `.github.io` 結尾）時，「教師工具」的學生網址與 QR code 會改指向 GitHub 的網址（`ON_PAGES`、`PAGES_QR`）；在 Claude 預覽版仍指向預覽網址。**下次從來源資料夾同步前，請先把倉庫版 `app.html` 的改動併回來源。**
 - 對方那一次的測試檔不在這個資料夾。之後改動前先用 Artifact 工具讀線上最新版，確認沒有別人更新，避免覆蓋。
