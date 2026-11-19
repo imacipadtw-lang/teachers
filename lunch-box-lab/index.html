@@ -726,9 +726,9 @@ const DEFAULT_PHASES=[
   /* 教案 v3：Ankita 簡報 20 分 → 中師四學＋收尾遊戲 20 分（全程不用紙本） */
   {name:'導學・Diwali（Ankita）',min:20,note:'Ankita 簡報 1–24 頁：India、Diwali、9 個節慶字、和元宵節比一比'},
   {name:'導學・定標（中師）',min:2,note:'揭示派對任務；大螢幕 Spin 轉 4 個字，全班唸兩次，比 ✔ △ ?'},
-  {name:'自學',min:4,note:'每人一台 iPad：Catch 一輪；結果畫面點 🔊 把沒聽對的字再聽一次、跟著唸'},
+  {name:'自學',min:4,note:'每人一台 iPad：Wordwall 配對（老師先示範一題）；結束時把錯最多的字全班再唸'},
   {name:'共學',min:4,note:'一組一台 iPad：Party Menu，三人各選一種食物，至少一種印度食物'},
-  {name:'互學',min:3,note:'兩組舉起 iPad 互唸菜單；回答 Yummy! I like your ___.'},
+  {name:'互學',min:3,note:'Padlet：各組錄音貼菜單，另一組回應 Yummy! I like your ___. 並檢查，原組修正重錄'},
   {name:'導學・點撥（中師）',min:2,note:'大螢幕 Impostor 抓 2 句；一句規則 Can you count it?'},
   {name:'統整・Speed Round（中師）',min:5,note:'大螢幕 Speed Round 兩組對抗，每人至少開口一次；下課前每人對 Ankita 說 I want some ___!'}
 ];
@@ -1728,9 +1728,9 @@ function guide(){
   const rows=[
     [0,'Ankita 的簡報（大螢幕）','Ankita：Where is India? What is Diwali? Say it with me.','中師切換簡報、遞實物，觀察學生反應。'],
     [1,'Spin（大螢幕）','中師：Here is our mission. Bring food to Ankita’s Diwali party! Say it with me.','開 Spin 按 ⛶ 全螢幕。轉 4 個字，全班唸兩次，按 ✔ △ ? 分盒子。'],
-    [2,'Catch（每人一台 iPad）','中師：Listen and catch. Missed a word? Tap and say it.','巡 iPad 確認有聲音。Ankita 到學生旁邊聽發音。做完在結果畫面點 🔊 再聽沒答對的字。'],
+    [2,'Wordwall（每人一台 iPad，學生入口按 1）','中師：Watch me first. … Tap number one. Now you!','先在大螢幕示範一題。巡視時看 Wordwall 結果頁，結束時把錯最多的字全班再唸。Ankita 到學生旁邊聽發音。'],
     [3,'Party Menu（一組一台 iPad）','中師：Work with your group. Choose three foods. One from India.','選錯時畫面會問 Can you count it?，請學生自己再想，老師先不給答案。'],
-    [4,'Party Menu 的菜單畫面','中師：Group A, please share. Group B, say: Yummy! I like your ___.','兩組舉起 iPad，一人唸一句。Ankita 當派對主人回答 Thank you!'],
+    [4,'Padlet（學生入口按 3）','中師：Tap plus. Tap the mic. Say it. Publish. … Team B, say: Yummy! I like your ___.','各組錄音貼菜單；大螢幕播放，另一組回應、Checker 問 Can you count it?，有錯就重錄。Ankita 回答 Thank you!'],
     [5,'Impostor（大螢幕）','中師：Find the impostor! One apple, two apples. Rice? No s.','大螢幕全班一起抓 2 句。中文一句規則：數得出來的加 s，數不出來的不加。'],
     [6,'Speed Round（大螢幕）','中師：Speed Round! Team A, Team B. Ten seconds. Say: I want some ___.','點上方選單的 Speed → 按「🎲 抽一位」→ 10 秒內說出句子 → 說對按 ✓。每人至少一次。下課前每人對 Ankita 說 I want some ___!']
   ];

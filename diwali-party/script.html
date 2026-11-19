@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Noto+Sans+TC:wght@500;700;900&display=swap" media="print" onload="this.media='all'">
 <style>
-:root{--bg:#FFF8EC;--card:#fff;--ink:#24190A;--mut:#6B6176;--line:#E8DCC6;--night:#17114A;--gold:#FFC531;--me:#D81B7A;--meb:#FFE7F2;--ank:#C85400;--ankb:#FFEFD9;--st:#0B7F71;--stb:#DDF8F3;--do:#3D3566;--dob:#EEEBFA;
+:root{--bg:#FFF8EC;--card:#fff;--ink:#24190A;--mut:#6B6176;--line:#E8DCC6;--night:#17114A;--gold:#FFC531;--me:#C0166E;--meb:#FFE7F2;--ank:#B44C00;--ankb:#FFEFD9;--st:#0B7F71;--stb:#DDF8F3;--do:#3D3566;--dob:#EEEBFA;
  --f:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;--e:"Baloo 2","Noto Sans TC",system-ui,sans-serif}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth;scroll-padding-top:64px}
@@ -38,8 +38,9 @@ p{margin:8px 0}
 .r>.tg{align-self:start;text-align:center;margin-top:3px}
 .r p{margin:0}
 .r p+p{margin-top:6px}
-.en{font:800 20px/1.35 var(--e);color:var(--ink)}
+.en{font:800 21px/1.4 var(--e);color:var(--ink)}
 .me .en{color:var(--me)}.ank .en{color:var(--ank)}.st .en{color:var(--st)}
+.act{color:var(--mut);font-size:15px}
 .zh{color:var(--mut);font-size:15px}
 kbd{font:700 14px/1 ui-monospace,Menlo,monospace;border:2px solid var(--ink);border-radius:6px;padding:2px 6px;background:#fff;white-space:nowrap}
 ul.chk{list-style:none;margin:0;padding:0}
@@ -49,9 +50,10 @@ ul.chk label{display:grid;grid-template-columns:30px 1fr;gap:8px;padding:11px 16
 ul.chk input{width:22px;height:22px;margin:3px 0 0;accent-color:var(--me)}
 ul.chk input:checked+span{color:var(--mut);text-decoration:line-through}
 .tablewrap{overflow-x:auto;border:2px solid var(--line);border-radius:14px;background:#fff}
-table{border-collapse:collapse;width:100%;min-width:560px;font-size:15px}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:15px}
 th,td{text-align:left;vertical-align:top;padding:9px 12px;border-top:1px solid var(--line)}
 thead th{border-top:0;background:#FFF1CC;font-weight:900}
+td.en{font-size:18px;color:var(--me)}
 .note{background:#F1EEFF;border-radius:14px;padding:12px 16px;font-size:15px}
 a{color:#4B2FD0}
 .card-en{background:#fff;border:2px solid var(--ank);border-radius:18px;padding:14px 16px}
@@ -61,151 +63,179 @@ a{color:#4B2FD0}
 @media (max-width:480px){.r{grid-template-columns:1fr;gap:4px}.r>.tg{justify-self:start}.en{font-size:19px}}
 </style></head><body>
 <header class="top"><div class="wrap">
- <h1><small>FOOD FOR ANKITA'S DIWALI PARTY</small>上課腳本：中師與 Ankita 一步一步怎麼搭配</h1>
- <p class="sub">五年甲班・40 分鐘・Ankita 主教前 20 分鐘，中師主教後 20 分鐘（含收尾遊戲）・全程不用紙本</p>
+ <h1><small>FOOD FOR ANKITA'S DIWALI PARTY</small>上課腳本（英語為主）：中師與 Ankita 一步一步怎麼搭配</h1>
+ <p class="sub">五年甲班・40 分鐘・英語為主、必要時一句中文・Ankita 主教前 20 分鐘，中師主教後 20 分鐘・Cool English／Wordwall／Padlet／因材網・不用紙本</p>
 </div></header>
 <nav aria-label="時間"><div class="wrap">
- <a href="#pre">課前</a><a href="#t00">0:00</a><a href="#t20">20:00</a><a href="#t2045">20:45</a><a href="#t22">22:00</a><a href="#t26">26:00</a><a href="#t30">30:00</a><a href="#t33">33:00</a><a href="#t35">35:00</a><a href="#t3830">38:30</a><a href="#short">時間不夠</a><a href="#ank">For Ankita</a>
+ <a href="#pre">課前</a><a href="#words">20 句</a><a href="#t00">0:00</a><a href="#t20">20:00</a><a href="#t2045">20:45</a><a href="#t22">22:00</a><a href="#t26">26:00</a><a href="#t30">30:00</a><a href="#t33">33:00</a><a href="#t35">35:00</a><a href="#t3830">38:30</a><a href="#after">課後</a><a href="#ank">For Ankita</a>
 </div></nav>
 <main class="wrap">
 
-<p>大螢幕只要開一個網頁：<a href="class.html">上課簡報</a>。Lunch Box Lab 的 Spin、Impostor、Speed Round 會直接在簡報裡打開，不用切換分頁。整節課幾乎只做一件事：<strong>按「下一步」</strong>（點畫面右邊，或鍵盤 <kbd>→</kbd>）。下面每一格寫「按幾下、說哪一句」。</p>
+<p>您說的話<strong>以簡單英語為主</strong>，每句三到六個字，配一個動作。孩子聽不懂時：① 慢一點再說一次 ② 做動作 ③ 指大螢幕的圖；還是不懂，再補<strong>一句中文</strong>（每一段標了「可補中文」的那一句）。灰色小字是操作提示，不用唸。</p>
+<p>大螢幕只開 <a href="class.html">上課簡報</a>，一直按「下一步」（點畫面右邊或 <kbd>→</kbd>）。學生 iPad 只開一個 <a href="kids.html">學生入口</a>，上面只有 1、2、3 三個大按鈕。</p>
 <div class="legend"><span class="tg key">按鍵</span><span class="tg me">我說</span><span class="tg do">我做</span><span class="tg ank">Ankita</span><span class="tg st">學生</span></div>
 
-<h2 id="pre">課前 10 分鐘：照順序打勾</h2>
+<h2 id="words">先背這 20 句就夠了（整節課一直重複）</h2>
+<div class="tablewrap"><table><thead><tr><th>英文</th><th>動作</th><th>什麼時候用</th></tr></thead><tbody>
+ <tr><td class="en">Eyes on me.</td><td>兩指指自己眼睛</td><td>要大家看老師（或按 <kbd>B</kbd> 出現大眼睛畫面）</td></tr>
+ <tr><td class="en">iPads flat.</td><td>雙手掌心向下壓平</td><td>要大家停手、iPad 平放</td></tr>
+ <tr><td class="en">iPads up.</td><td>雙手掌心向上抬</td><td>開始用 iPad</td></tr>
+ <tr><td class="en">Watch me first.</td><td>指自己，再指螢幕</td><td>老師先示範</td></tr>
+ <tr><td class="en">Now you.</td><td>手掌伸向學生</td><td>換學生做</td></tr>
+ <tr><td class="en">Listen.</td><td>手放耳朵</td><td>聽</td></tr>
+ <tr><td class="en">Say it with me.</td><td>手畫圈到自己嘴巴</td><td>跟著唸</td></tr>
+ <tr><td class="en">One more time.</td><td>比 1</td><td>再一次</td></tr>
+ <tr><td class="en">Your turn.</td><td>手掌伸向某人</td><td>輪到你</td></tr>
+ <tr><td class="en">Tap number one.</td><td>比 1，手指點一下</td><td>按學生入口的 1（2、3 同理）</td></tr>
+ <tr><td class="en">Show me.</td><td>雙手攤開</td><td>比 ✔ △ ?</td></tr>
+ <tr><td class="en">I know it. / So-so. / Not yet.</td><td>大拇指／手掌搖／手放頭上</td><td>自我評量三個手勢</td></tr>
+ <tr><td class="en">Need help? Raise your hand.</td><td>舉手</td><td>卡住時</td></tr>
+ <tr><td class="en">Team time.</td><td>雙手合起來</td><td>小組開始</td></tr>
+ <tr><td class="en">Thirty seconds.</td><td>比 3、比 0</td><td>剩 30 秒</td></tr>
+ <tr><td class="en">Time's up.</td><td>雙手交叉</td><td>時間到</td></tr>
+ <tr><td class="en">Stand up. / Sit down.</td><td>手往上／往下</td><td>Speed Round</td></tr>
+ <tr><td class="en">Good job! / Great try!</td><td>比讚</td><td>說對／說錯都要給</td></tr>
+ <tr><td class="en">Can you count it?</td><td>手指一個一個數</td><td>判斷要不要加 s</td></tr>
+ <tr><td class="en">I want some ___.</td><td>手指向自己</td><td>今天的目標句</td></tr>
+</tbody></table></div>
+
+<h2 id="pre">課前：照順序打勾</h2>
 <div class="blk"><ul class="chk" id="chk">
- <li><label><input type="checkbox"><span>大螢幕用 Chrome 或 Edge 開「上課簡報」，按 <kbd>F</kbd> 全螢幕，停在第 1 頁。先點一下畫面（瀏覽器要有人點過才會出聲音）。</span></label></li>
- <li><label><input type="checkbox"><span>試一次：按鍵盤 <kbd>3</kbd> 到第 3 頁，按 <kbd>→</kbd> 三下，Spin 會在簡報裡打開。在 Spin 畫面按「🆕 新的一節課」兩下，清掉上次的紀錄。按左下「← 回簡報」，再按 <kbd>1</kbd> 回第 1 頁。</span></label></li>
- <li><label><input type="checkbox"><span>簡報右下角「課堂時間」如果不是 20:00，連點兩下歸零。（離開第 1 頁時它會自己開始走。）</span></label></li>
- <li><label><input type="checkbox"><span>六台學生 iPad 開 Lunch Box Lab（入口頁有 QR code）。每台先點一下畫面，進「2 Catch」聽一個字，確認有聲音，再回首頁。iPad 側邊靜音要關。</span></label></li>
- <li><label><input type="checkbox"><span>兩組 Leader 的 iPad 另外進「3 Party Menu」，先點好 A 組或 B 組，再回首頁。</span></label></li>
- <li><label><input type="checkbox"><span>有人請假：大螢幕的 Lunch Box Lab →「教師工具」→ 點掉那個座號，Speed Round 就不會抽到。</span></label></li>
- <li><label><input type="checkbox"><span>和 Ankita 對三件事：她的簡報第 1–24 頁在 20:00 結束；交棒句是 What food should we bring to the party?；最後一分鐘她站在門口當派對主人。</span></label></li>
+ <li><label><input type="checkbox"><span><b>12/28 之前先上一節 20 分鐘「iPad 練習課」</b>：不教新單字，只練五個動作：掃 QR 開學生入口、按 1／2／3、Wordwall 拖曳、Padlet 按 ＋ 錄音、按左上角 &lt; 回來。孩子剛用 iPad 不久，當天就不會卡在操作。</span></label></li>
+ <li><label><input type="checkbox"><span>做好 Wordwall 與 Padlet（做法在 <a href="plan.html#prep">教案「課前準備」</a>），把兩個連結貼到 <a href="./#setup">入口頁「老師設定」</a>，按「儲存」。</span></label></li>
+ <li><label><input type="checkbox"><span>六台 iPad 掃入口頁的 QR code，打開「學生入口」，看得到 1、2、3 三個彩色大按鈕。在 Padlet 按一次錄音，讓 iPad 先允許麥克風。側邊靜音關掉、音量開大。</span></label></li>
+ <li><label><input type="checkbox"><span>大螢幕用 Chrome 或 Edge 開「上課簡報」，按 <kbd>F</kbd> 全螢幕，停在第 1 頁，先點一下畫面。另開一個分頁登入 Wordwall 的「結果」頁，上課時看得到孩子的成績。</span></label></li>
+ <li><label><input type="checkbox"><span>在 Spin 畫面按「🆕 新的一節課」兩下清掉舊紀錄；有人請假，到 Lunch Box Lab「教師工具」點掉座號。</span></label></li>
+ <li><label><input type="checkbox"><span>和 Ankita 對好：她講到 20:00，交棒句 What food should we bring to the party?；後 20 分鐘她當派對主人、發音示範、裁判（她的台詞在最下面）。</span></label></li>
 </ul></div>
 
-<h2 id="t00">前 20 分鐘：Ankita 主教，我協助</h2>
-<div class="blk ankita" ><header><b>0:00–20:00</b><h3>導學｜Diwali 節慶介紹（Ankita 簡報第 1–24 頁，全英語）</h3><span>協同模式：一人主教、一人協助</span></header>
- <div class="r ank"><span class="tg ank">Ankita</span><div><p>Where is India? → What is Diwali? → 9 個節慶單字 → Diwali 和元宵節比一比。</p></div></div>
- <div class="r do"><span class="tg do">我做</span><div><p>站在學生側後方。只做三件事：幫忙換頁或遞實物；學生聽不懂時用動作、指圖片幫忙，不翻譯整句；記下哪兩位最需要幫忙，等一下自學時先走到他們旁邊。</p><p>18:00 向 Ankita 比「剩兩分鐘」。19:30 把大螢幕換到「上課簡報」第 1 頁。</p></div></div>
- <div class="r ank"><span class="tg ank">Ankita</span><div><p class="en">What food should we bring to the party?</p><p class="zh">這是交棒句。Ankita 說完，看向我。</p></div></div>
+<h2 id="t00">0:00–20:00　Ankita 主教，我協助</h2>
+<div class="blk ankita"><header><b>0:00–20:00</b><h3>Diwali 節慶介紹（Ankita 簡報第 1–24 頁）</h3><span>一人主教、一人協助</span></header>
+ <div class="r do"><span class="tg do">我做</span><div><p>站在學生側後方：幫忙換頁或遞實物；孩子聽不懂時用動作、指圖片，不翻譯；記下兩位最需要幫忙的孩子。18:00 向 Ankita 比「2」。19:30 把大螢幕換到上課簡報第 1 頁。</p></div></div>
+ <div class="r ank"><span class="tg ank">Ankita</span><div><p class="en">What food should we bring to the party?</p></div></div>
 </div>
 
-<h2>後 20 分鐘：我主教，Ankita 協助</h2>
-
-<div class="blk" id="t20"><header><b>20:00</b><h3>交棒與任務（簡報第 1、2 頁）</h3><span>45 秒</span></header>
- <div class="r key"><span class="tg key">按鍵</span><div><p>第 1 頁按一下 <kbd>→</kbd>，出現問句。</p></div></div>
+<div class="blk" id="t20"><header><b>20:00</b><h3>任務與三個 I can（第 1、2 頁）</h3><span>45 秒</span></header>
+ <div class="r key"><span class="tg key">按鍵</span><div><p>第 1 頁按一下，出現問句。</p></div></div>
  <div class="r me"><span class="tg me">我說</span><div><p class="en">Great question! Let's plan the party food.</p></div></div>
- <div class="r key"><span class="tg key">按鍵</span><div><p>再按一下到第 2 頁，之後按三下，一次出現一個 I can。</p></div></div>
- <div class="r me"><span class="tg me">我說</span><div><p class="en">Here is our mission. Bring food to Ankita's Diwali party!</p><p class="en">One: Listen. Two: Say. Three: Think.</p><p class="zh">每按一下，帶全班唸那個大字（Listen! Say! Think!）。中文補一句：「每個人選一種食物，一組三種，至少一種是印度的。」</p></div></div>
+ <div class="r key"><span class="tg key">按鍵</span><div><p>按一下到第 2 頁，再按三下，一次出現一張卡。</p></div></div>
+ <div class="r me"><span class="tg me">我說</span><div><p class="en">Our mission: bring food to the party!</p><p class="en">One. Listen. Say it with me: Listen!</p><p class="en">Two. Say. — Say!</p><p class="en">Three. Think. — Think!</p><p class="act">每出現一張卡，指著大字帶全班唸一次。</p></div></div>
 </div>
 
-<div class="blk" id="t2045"><header><b>20:45</b><h3>導學｜Spin 找今天的目標字（第 3 頁）</h3><span>到 22:00</span></header>
- <div class="r key"><span class="tg key">按鍵</span><div><p>按一下換到第 3 頁，再按一下：出現 ✔ △ ?。</p></div></div>
- <div class="r me"><span class="tg me">我說</span><div><p class="en">Show me. I know it! So-so. Not yet.</p><p class="zh">邊說邊比手勢：✔ 大拇指、△ 手掌搖一搖、? 手放頭上（用班上原本的手勢也可以）。</p></div></div>
+<div class="blk" id="t2045"><header><b>20:45</b><h3>導學｜Cool English 單字＋Spin（第 3 頁）</h3><span>到 22:00</span></header>
+ <div class="r key"><span class="tg key">按鍵</span><div><p>按一下到第 3 頁（畫面寫著 Words from Cool English），再按一下：出現 ✔ △ ?。</p></div></div>
+ <div class="r me"><span class="tg me">我說</span><div><p class="en">Our words today come from Cool English.</p><p class="act">可補中文：「今天的單字是老師從酷英網挑的。」</p><p class="act">指著畫面那一行說一次就好，不用切到酷英網。</p><p class="en">Show me. I know it. So-so. Not yet.</p><p class="act">邊說邊做三個手勢，孩子跟著做一次。</p></div></div>
  <div class="r key"><span class="tg key">按鍵</span><div><p>按一下，再按一下：Spin 在簡報裡打開。</p></div></div>
- <div class="r me"><span class="tg me">我說</span><div><p class="en">"Not yet"? No problem. That's our goal today.</p></div></div>
- <div class="r do"><span class="tg do">我做</span><div><p>轉 4 個字，每個字做同樣四步：① 點「轉！」（或空白鍵）② 聽發音，說 <span class="en">Say it with me.</span> 全班唸，再說 <span class="en">One more time.</span> ③ 問 <span class="en">Tick, triangle, or question mark?</span> ④ 看多數人的手勢，按 ✔ △ ?（鍵盤 <kbd>3</kbd> <kbd>2</kbd> <kbd>1</kbd>）。</p></div></div>
- <div class="r ank"><span class="tg ank">Ankita</span><div><p>站在螢幕另一邊。第二次唸的時候由她帶：<span class="en">Say it with me.</span></p></div></div>
+ <div class="r me"><span class="tg me">我說</span><div><p class="en">"Not yet"? No problem.</p><p class="en">Spin it! … Listen. … Say it with me. … One more time. … Show me.</p><p class="act">轉 3–4 個字，每個字都是這五句。看多數人的手勢按 ✔ △ ?（鍵盤 <kbd>3</kbd> <kbd>2</kbd> <kbd>1</kbd>）。</p></div></div>
+ <div class="r ank"><span class="tg ank">Ankita</span><div><p>第二次唸由她帶：<span class="en">Say it with me.</span></p></div></div>
  <div class="r key"><span class="tg key">按鍵</span><div><p>22:00 按右下角「下一頁 →」。</p></div></div>
 </div>
 
-<div class="blk" id="t22"><header><b>22:00</b><h3>自學｜Catch 聽音選圖（第 4 頁）</h3><span>每人一台 iPad・倒數 3:30</span></header>
- <div class="r key"><span class="tg key">按鍵</span><div><p>（從 Spin 按「下一頁 →」就到第 4 頁。）按一下：出現四個步驟。</p></div></div>
- <div class="r me"><span class="tg me">我說</span><div><p class="en">iPads up! Tap 2, Catch. Listen and catch.</p><p class="en">Missed a word? Tap and say it.</p></div></div>
- <div class="r key"><span class="tg key">按鍵</span><div><p>再按一下：出現 GO!，計時器自動開始。</p></div></div>
- <div class="r st"><span class="tg st">學生</span><div><p>聽到哪個食物就點那張圖，一輪 10 題。做完在結果畫面點 🔊，把沒聽對的字再聽一次、跟著唸；還有時間就按「再玩一次」。</p></div></div>
- <div class="r do"><span class="tg do">我做</span><div><p>先走到剛才記下的兩位旁邊，確認 iPad 有聲音。巡一圈，記下結果畫面上最多人出現的 1–2 個字。</p></div></div>
- <div class="r ank"><span class="tg ank">Ankita</span><div><p>蹲到學生旁邊，一人約 20 秒，聽他跟著唸，再示範一次：<span class="en">Say it with me.</span></p></div></div>
- <div class="r me"><span class="tg me">我說</span><div><p class="en">Thirty seconds left.　→　Time's up! Eyes on me, please.</p></div></div>
+<div class="blk" id="t22"><header><b>22:00</b><h3>自學｜Wordwall 配對（第 4 頁）</h3><span>每人一台 iPad・倒數 3:30</span></header>
+ <div class="r key"><span class="tg key">按鍵</span><div><p>按一下：出現四個步驟和「▶ Watch me first」。</p></div></div>
+ <div class="r me"><span class="tg me">我說</span><div><p class="en">Watch me first.</p><p class="act">點「▶ Watch me first」，Wordwall 在新分頁打開。示範一題：拖一個字到圖片上。</p><p class="en">Drag the word … to the picture. Yes!</p><p class="act">可補中文：「把字拖到對的圖片上。」</p><p class="act">切回簡報分頁（瀏覽器上方的簡報分頁）。</p></div></div>
+ <div class="r me"><span class="tg me">我說</span><div><p class="en">iPads up. Tap number one.</p><p class="en">Type your number. Now you!</p></div></div>
+ <div class="r key"><span class="tg key">按鍵</span><div><p>再按一下：出現 GO!，計時開始。</p></div></div>
+ <div class="r st"><span class="tg st">學生</span><div><p>按入口的 1 → 輸入座號 → 把單字拖到對的圖片上。點單字會唸出英文。</p></div></div>
+ <div class="r do"><span class="tg do">我做</span><div><p>先走到那兩位孩子旁邊。手指點螢幕示範，不替他做。看 Wordwall 結果頁，記下錯最多的一個字。</p></div></div>
+ <div class="r ank"><span class="tg ank">Ankita</span><div><p>蹲到孩子旁邊，聽他唸、再示範：<span class="en">Say it with me.</span></p></div></div>
+ <div class="r me"><span class="tg me">我說</span><div><p class="en">Thirty seconds. … Time's up. iPads flat.</p><p class="en">Look. Noodles. Say it with me. Noodles!</p><p class="act">把錯最多的那個字唸兩次（上面用 noodles 當例子）。這 20 秒就是「依評量結果給回饋」。</p></div></div>
 </div>
 
-<div class="blk" id="t26"><header><b>26:00</b><h3>共學｜Party Menu 三人選菜單（第 5 頁）</h3><span>一組一台 iPad・倒數 3:30</span></header>
+<div class="blk" id="t26"><header><b>26:00</b><h3>共學｜Party Menu（第 5 頁）</h3><span>一組一台 iPad・倒數 3:30</span></header>
  <div class="r key"><span class="tg key">按鍵</span><div><p>按一下換到第 5 頁。再按一下：規則。再按一下：三個角色。</p></div></div>
- <div class="r me"><span class="tg me">我說</span><div><p class="en">Work with your group. Choose three foods. One from India.</p><p class="en">Leader taps. Reporter reads. Checker asks: Can you count it?</p></div></div>
+ <div class="r me"><span class="tg me">我說</span><div><p class="en">Team time!</p><p class="en">Three foods. One from India.</p><p class="act">比 3，再比 1，指著 naan、curry、samosa 的圖。</p><p class="en">Leader, tap number two.</p><p class="en">Checker, ask: Can you count it?</p><p class="en">Reporter, read the menu.</p><p class="act">可補中文：「選三種食物，一種是印度的；Leader 按平板，Checker 檢查，Reporter 唸。」</p></div></div>
  <div class="r key"><span class="tg key">按鍵</span><div><p>再按一下：GO!，計時開始。</p></div></div>
- <div class="r st"><span class="tg st">學生</span><div><p>Leader 的 iPad 開「3 Party Menu」。三人各選一種食物，再輪流選出正確的句子（I want some apples. 還是 I want some apple.）。菜單完成後，Reporter 帶全組把三句唸一次。</p></div></div>
- <div class="r do"><span class="tg do">我做</span><div><p>在 A 組旁邊聽一分鐘，再到 B 組。學生選錯時不要給答案，指著畫面只問一句：<span class="en">Can you count it?</span></p></div></div>
- <div class="r ank"><span class="tg ank">Ankita</span><div><p>到另一組。問 <span class="en">What food is from India?</span> 學生答對就說 <span class="en">Yes! I love samosas!</span></p></div></div>
- <div class="r me"><span class="tg me">我說</span><div><p class="en">Time's up! Menus up!</p><p class="zh">兩組把 iPad 的菜單畫面舉起來。</p></div></div>
+ <div class="r st"><span class="tg st">學生</span><div><p>Leader 按入口的 2，三人各選一種食物，再一起選對的句子。Reporter 帶全組把菜單唸一次。</p></div></div>
+ <div class="r do"><span class="tg do">我做</span><div><p>選錯時不給答案，指著畫面問：<span class="en">Can you count it?</span>　答對：<span class="en">Good job!</span></p></div></div>
+ <div class="r ank"><span class="tg ank">Ankita</span><div><p class="en">What food is from India? … Yes! I love samosas!</p></div></div>
+ <div class="r me"><span class="tg me">我說</span><div><p class="en">Time's up. iPads flat.</p></div></div>
 </div>
 
-<div class="blk" id="t30"><header><b>30:00</b><h3>互學｜兩組互唸菜單（第 6 頁）</h3><span>倒數 2:30</span></header>
- <div class="r key"><span class="tg key">按鍵</span><div><p>按一下換到第 6 頁。再連按四下：三個對話框依序出現，最後 GO! 開始計時。</p></div></div>
- <div class="r me"><span class="tg me">我說</span><div><p class="en">Group A, please share. One sentence each.</p></div></div>
- <div class="r st"><span class="tg st">學生</span><div><p class="en">I want some ___.</p><p class="zh">A 組三人看著自己的菜單，一人一句。</p></div></div>
- <div class="r me"><span class="tg me">我說</span><div><p class="en">Group B, say: Yummy! I like your ___.</p><p class="zh">一定要說出對方菜單上的一種食物，才算有在聽。</p></div></div>
- <div class="r ank"><span class="tg ank">Ankita</span><div><p class="en">Thank you!</p><p class="zh">她是派對主人，代表收下這份菜單。</p></div></div>
- <div class="r me"><span class="tg me">我說</span><div><p class="en">Switch! Group B, your turn.</p></div></div>
+<div class="blk" id="t30"><header><b>30:00</b><h3>互學｜Padlet 錄音互評（第 6 頁）</h3><span>倒數 2:30</span></header>
+ <div class="r key"><span class="tg key">按鍵</span><div><p>按一下換到第 6 頁，再按一下：出現 Team A 的句子、「▶ Open Padlet」，GO! 計時 2:30 開始。</p></div></div>
+ <div class="r me"><span class="tg me">我說</span><div><p class="en">Watch me first.</p><p class="act">點「▶ Open Padlet」。邊做邊說：</p><p class="en">Tap plus. Tap the mic. Say it. Tap stop. Publish.</p><p class="en">Leader, tap number three. Now you!</p><p class="act">可補中文：「按＋，按麥克風，三個人輪流說，按發布。」</p></div></div>
+ <div class="r st"><span class="tg st">學生</span><div><p>每組在自己那一欄按 ＋ → 錄音 → 三人輪流說 <span class="en">I want some ___.</span> → 發布。</p></div></div>
+ <div class="r key"><span class="tg key">按鍵</span><div><p>按一下：Team B 的回應句。</p></div></div>
+ <div class="r me"><span class="tg me">我說</span><div><p class="en">Team A, let's listen.</p><p class="act">在大螢幕的 Padlet 播放 A 組的錄音。</p><p class="en">Team B, say: Yummy! I like your ___.</p></div></div>
+ <div class="r key"><span class="tg key">按鍵</span><div><p>按一下：Checker 的問題。</p></div></div>
+ <div class="r me"><span class="tg me">我說</span><div><p class="en">Checker, can you count it?</p><p class="act">有錯：<span class="en">Fix it. Record again.</span>（這就是「依它組意見修改」）沒錯：<span class="en">Good job!</span>，給一個 👍。</p><p class="en">Switch! Team B, your turn.</p></div></div>
+ <div class="r ank"><span class="tg ank">Ankita</span><div><p>每組聽完說：<span class="en">Thank you!</span></p></div></div>
 </div>
 
-<div class="blk" id="t33"><header><b>33:00</b><h3>導學｜Can you count it?（第 7 頁，接 Impostor）</h3><span>2 分鐘</span></header>
+<div class="blk" id="t33"><header><b>33:00</b><h3>導學｜Can you count it?＋Impostor（第 7 頁）</h3><span>2 分鐘</span></header>
  <div class="r key"><span class="tg key">按鍵</span><div><p>按一下換到第 7 頁，再按一下：YES 那一欄。</p></div></div>
- <div class="r me"><span class="tg me">我說</span><div><p class="en">Can you count apples? One apple, two apples. Yes! Add s.</p></div></div>
+ <div class="r me"><span class="tg me">我說</span><div><p class="en">Apples. Can you count it? One, two, three. Yes! Add s.</p></div></div>
  <div class="r key"><span class="tg key">按鍵</span><div><p>再按一下：NO 那一欄。</p></div></div>
- <div class="r me"><span class="tg me">我說</span><div><p class="en">Can you count rice? No. No s. Some rice.</p><p class="zh">中文只說一句：「數得出來的加 s，數不出來的不加。」</p></div></div>
+ <div class="r me"><span class="tg me">我說</span><div><p class="en">Rice. Can you count it? No! No s.</p><p class="en">Count it? Add s. Can't count it? No s.</p><p class="act">可補中文：「數得出來的加 s，數不出來的不加。」</p></div></div>
  <div class="r key"><span class="tg key">按鍵</span><div><p>按兩下：Impostor 在簡報裡打開。</p></div></div>
- <div class="r me"><span class="tg me">我說</span><div><p class="en">Find the impostor!</p></div></div>
- <div class="r do"><span class="tg do">我做</span><div><p>全班說出是哪個字不對，我點那個字；整句都對就按「沒有內鬼」。抓 2 句就好。</p></div></div>
- <div class="r ank"><span class="tg ank">Ankita</span><div><p>把畫面上的句子照著唸出來（錯的地方也照唸），讓學生用聽的抓。</p></div></div>
- <div class="r key"><span class="tg key">按鍵</span><div><p>35:00 按右下角「下一頁 →」。</p></div></div>
+ <div class="r me"><span class="tg me">我說</span><div><p class="en">Find the impostor! Which word?</p><p class="act">孩子指出來，我點那個字；整句都對就按「沒有內鬼」。抓 2 句。</p></div></div>
+ <div class="r ank"><span class="tg ank">Ankita</span><div><p>把畫面上的句子照唸（錯的也照唸）。</p></div></div>
+ <div class="r key"><span class="tg key">按鍵</span><div><p>35:00 按「下一頁 →」。</p></div></div>
 </div>
 
-<div class="blk" id="t35"><header><b>35:00</b><h3>統整｜Speed Round 兩組對抗（第 8 頁）</h3><span>到 38:30</span></header>
- <div class="r key"><span class="tg key">按鍵</span><div><p>（從 Impostor 按「下一頁 →」就到第 8 頁。）按一下：兩隊。再按一下：規則。</p></div></div>
- <div class="r me"><span class="tg me">我說</span><div><p class="en">Speed Round! Team A: one, three, five. Team B: two, four, six.</p><p class="en">Your number? Stand up! Ten seconds. Say: I want some ___.</p></div></div>
- <div class="r key"><span class="tg key">按鍵</span><div><p>按兩下：Speed Round 在簡報裡打開。</p></div></div>
- <div class="r do"><span class="tg do">我做</span><div><p>每一輪三步：① 點「🎲 抽一位」（或空白鍵），唸出座號 <span class="en">Number four!</span> ② 學生站起來，10 秒內說出句子 ③ 說對按「✓ 說對了 +1」（鍵盤 <kbd>1</kbd>），沒說出來按「✗ 再練」（鍵盤 <kbd>2</kbd>）。</p><p>時間到程式會自己唸示範句，這時說 <span class="en">Say it together!</span> 全班一起唸，不扣分。程式會先抽開口次數最少的人，所以每個人都會輪到。</p></div></div>
- <div class="r ank"><span class="tg ank">Ankita</span><div><p>當裁判。學生說完，她比讚並重複一次正確的句子：<span class="en">I want some samosas. Great!</span></p></div></div>
- <div class="r me"><span class="tg me">我說</span><div><p class="en">Team A, ___ points. Team B, ___ points. Everyone spoke. Great job!</p><p class="zh">分數在畫面上方；下方「每位同學的開口次數」確認六個人都有開口。38:30 按「下一頁 →」。</p></div></div>
+<div class="blk" id="t35"><header><b>35:00</b><h3>統整｜Speed Round（第 8 頁）</h3><span>到 38:30</span></header>
+ <div class="r key"><span class="tg key">按鍵</span><div><p>按一下：兩隊。再按一下：規則。再按兩下：Speed Round 在簡報裡打開。</p></div></div>
+ <div class="r me"><span class="tg me">我說</span><div><p class="en">Game time! Team A: one, three, five. Team B: two, four, six.</p><p class="en">Your number? Stand up!</p><p class="en">Ten seconds. Say: I want some ___.</p><p class="act">可補中文：「抽到號碼的站起來，十秒內說一句。」</p></div></div>
+ <div class="r do"><span class="tg do">我做</span><div><p>按「🎲 抽一位」（空白鍵）→ 唸座號 <span class="en">Number four!</span> → 說對按 ✓（鍵盤 <kbd>1</kbd>），沒說出來按 ✗（鍵盤 <kbd>2</kbd>）。時間到程式會唸示範句，說 <span class="en">Say it together!</span> 全班一起唸。</p></div></div>
+ <div class="r ank"><span class="tg ank">Ankita</span><div><p>當裁判，重複正確句子：<span class="en">I want some samosas. Great!</span></p></div></div>
+ <div class="r me"><span class="tg me">我說</span><div><p class="en">Team A, three points. Team B, three points. Good job, everyone!</p><p class="act">分數照畫面上方唸。38:30 按「下一頁 →」。</p></div></div>
 </div>
 
 <div class="blk" id="t3830"><header><b>38:30</b><h3>自我檢核與離場句（第 9、10 頁）</h3><span>90 秒</span></header>
- <div class="r key"><span class="tg key">按鍵</span><div><p>（從 Speed Round 按「下一頁 →」就到第 9 頁。）按三下，一次一個 I can。</p></div></div>
- <div class="r me"><span class="tg me">我說</span><div><p class="en">Number one: Listen. Show me!</p><p class="zh">學生用開頭同樣的手勢比 ✔ △ ?。三個都做完，看哪一個最多人比 △ 或 ?，說一句 <span class="en">We'll practice more next time.</span></p></div></div>
- <div class="r key"><span class="tg key">按鍵</span><div><p>按一下換到第 10 頁，再按兩下：出現兩句對話。</p></div></div>
- <div class="r me"><span class="tg me">我說</span><div><p class="en">Line up! Tell Ankita: I want some ___!</p></div></div>
- <div class="r st"><span class="tg st">學生</span><div><p class="en">I want some ___!</p><p class="zh">排隊，每個人對站在門口的 Ankita 說一句自己想帶的食物。</p></div></div>
- <div class="r ank"><span class="tg ank">Ankita</span><div><p class="en">Here you are! Happy Diwali!</p><p class="zh">和每個孩子擊掌。</p></div></div>
- <div class="r key"><span class="tg key">按鍵</span><div><p>再按兩下：回家任務，然後是煙火和 Happy Diwali!</p></div></div>
- <div class="r me"><span class="tg me">我說</span><div><p class="en">Tonight, say it at dinner. Happy Diwali!</p></div></div>
+ <div class="r key"><span class="tg key">按鍵</span><div><p>第 9 頁按三下，一次一張卡。</p></div></div>
+ <div class="r me"><span class="tg me">我說</span><div><p class="en">Number one. Listen. Show me!</p><p class="en">Number two. Say. Show me!</p><p class="en">Number three. Think. Show me!</p><p class="en">Great job! More practice next time.</p></div></div>
+ <div class="r key"><span class="tg key">按鍵</span><div><p>按一下到第 10 頁，再按兩下：出現兩句對話。</p></div></div>
+ <div class="r me"><span class="tg me">我說</span><div><p class="en">Line up. Tell Ankita: I want some ___!</p></div></div>
+ <div class="r st"><span class="tg st">學生</span><div><p class="en">I want some ___!</p></div></div>
+ <div class="r ank"><span class="tg ank">Ankita</span><div><p class="en">Here you are! Happy Diwali!</p><p class="act">和每個孩子擊掌。</p></div></div>
+ <div class="r key"><span class="tg key">按鍵</span><div><p>再按兩下：回家任務和煙火。</p></div></div>
+ <div class="r me"><span class="tg me">我說</span><div><p class="en">Tonight, say it at dinner. Happy Diwali! Bye-bye!</p></div></div>
 </div>
 
-<h2 id="short">時間不夠時，照這個順序省</h2>
+<h2 id="after">課後 5 分鐘（學生不用操作）</h2>
+<div class="blk"><ul class="chk">
+ <li><label><input type="checkbox"><span>把上課簡報、Wordwall、Padlet 三個連結和 Wordwall 成績截圖放到<b>因材網</b>的老師教材區，當作這一課的數位教材與學習紀錄。</span></label></li>
+ <li><label><input type="checkbox"><span>在 Lunch Box Lab「學習證據」看課前、課後的 ✔ △ ? 與每人開口次數，帶到議課。</span></label></li>
+</ul></div>
+
+<h2>時間不夠時，照這個順序省</h2>
 <div class="tablewrap"><table><thead><tr><th>順序</th><th>省哪裡</th><th>怎麼做</th></tr></thead><tbody>
- <tr><td>1</td><td>Catch</td><td>26:00 一到就停，沒做完沒關係。</td></tr>
- <tr><td>2</td><td>互學</td><td>兩組只唸菜單，不做 Yummy! 的回應。</td></tr>
+ <tr><td>1</td><td>Spin</td><td>只轉 2 個字。</td></tr>
+ <tr><td>2</td><td>Padlet</td><td>只錄 A 組，B 組直接口頭說菜單。</td></tr>
  <tr><td>3</td><td>Impostor</td><td>只抓 1 句。</td></tr>
- <tr><td>4</td><td>自我檢核</td><td>只做第 2 個（Say）。</td></tr>
- <tr><td>不能省</td><td>離場句</td><td>每人對 Ankita 說一句。這是整節課的成果。</td></tr>
+ <tr><td>4</td><td>自我檢核</td><td>只做 Number two。</td></tr>
+ <tr><td>不能省</td><td>離場句</td><td>每人對 Ankita 說一句。</td></tr>
 </tbody></table></div>
 
 <h2>臨時狀況</h2>
 <div class="tablewrap"><table><thead><tr><th>狀況</th><th>處理</th></tr></thead><tbody>
- <tr><td>某台 iPad 沒聲音</td><td>先看側邊靜音與音量；還是沒有，就和旁邊同學共用一台聽。</td></tr>
- <tr><td>網路斷線</td><td>已經開好的畫面可以繼續用，不要重新整理。簡報裡的 Lunch Box Lab 如果打不開，按下方「另開分頁」。</td></tr>
- <tr><td>Ankita 的簡報超過 20:00</td><td>Spin 只轉 2 個字；Catch 計時器點一下暫停，26:00 就收。</td></tr>
- <tr><td>Speed Round 有孩子說不出來</td><td>等 10 秒到，全班一起唸示範句，按「✗ 再練」。時間夠做第二輪時會再輪到他。</td></tr>
- <tr><td>一組只剩兩人</td><td>Leader 兼 Checker。</td></tr>
- <tr><td>不小心按太快</td><td>點畫面最左邊或按 <kbd>←</kbd> 退一步；按數字鍵 <kbd>1</kbd>–<kbd>9</kbd>、<kbd>0</kbd> 直接跳到第 1–10 頁。</td></tr>
+ <tr><td>孩子聽不懂指令</td><td>慢慢再說一次＋做動作＋指螢幕；說 <span class="en">Watch me.</span> 直接示範；還不懂再補一句中文。</td></tr>
+ <tr><td>Padlet 不能錄音</td><td>改成全組對著大螢幕直接說，我按 👍；課後再補錄。</td></tr>
+ <tr><td>Wordwall 打不開</td><td>改用入口頁的 2（Party Menu）前先在大螢幕全班一起玩 Wordwall，我拖、孩子說。</td></tr>
+ <tr><td>某台 iPad 沒聲音</td><td>看側邊靜音與音量；不行就和旁邊同學共用。</td></tr>
+ <tr><td>孩子回不到學生入口</td><td>按 Safari 左上角的 &lt;；還是不行，重新掃 QR code。</td></tr>
+ <tr><td>Speed Round 說不出來</td><td>10 秒到全班一起唸示範句，按 ✗ 再練，說 <span class="en">Great try!</span></td></tr>
+ <tr><td>按太快</td><td>點畫面最左邊或按 <kbd>←</kbd>；數字鍵 <kbd>1</kbd>–<kbd>9</kbd>、<kbd>0</kbd> 跳頁。</td></tr>
 </tbody></table></div>
 
 <h2 id="ank">For Ankita: your lines after 20:00</h2>
-<div class="card-en"><h3>You lead until 20:00. After that, you are the party host.</h3>
+<div class="card-en"><h3>You lead until 20:00. After that, you are the party host. Please use short, slow sentences.</h3>
 <ul>
- <li><b>20:00</b> Hand over: "What food should we bring to the party?"</li>
+ <li><b>20:00</b> "What food should we bring to the party?"</li>
  <li><b>Spin</b> Lead the second repeat: "Say it with me."</li>
- <li><b>Catch</b> Sit next to each child for about 20 seconds: "Say it with me."</li>
- <li><b>Party Menu</b> Ask one group: "What food is from India?" Then: "Yes! I love samosas!"</li>
- <li><b>Share</b> After each menu: "Thank you!"</li>
+ <li><b>Wordwall</b> Sit next to a child: "Say it with me."</li>
+ <li><b>Party Menu</b> "What food is from India?" → "Yes! I love samosas!"</li>
+ <li><b>Padlet</b> After each team's recording: "Thank you!"</li>
  <li><b>Impostor</b> Read the sentence on the screen aloud, mistakes included.</li>
- <li><b>Speed Round</b> You are the judge. Repeat the correct sentence: "I want some ___. Great!"</li>
- <li><b>At the door</b> Each child says "I want some ___!" You answer: "Here you are! Happy Diwali!"</li>
+ <li><b>Speed Round</b> Judge. Repeat the correct sentence: "I want some ___. Great!"</li>
+ <li><b>At the door</b> Each child: "I want some ___!" You: "Here you are! Happy Diwali!"</li>
 </ul></div>
 
-<p class="note" style="margin-top:22px">這份腳本和 <a href="class.html">上課簡報</a>、<a href="plan.html">教案</a>、Lunch Box Lab 的「使用說明」用同一套時間與句子。要改流程時，四個地方要一起改。回 <a href="./">入口頁</a>。</p>
+<p class="note" style="margin-top:22px">這份腳本和 <a href="class.html">上課簡報</a>、<a href="plan.html">教案</a> 用同一套時間與句子；要改流程時一起改。回 <a href="./">入口頁</a>。</p>
 </main>
 <script>
-(function(){const K='dp.chk',boxes=[...document.querySelectorAll('#chk input')];let st=[];try{st=JSON.parse(localStorage.getItem(K)||'[]');}catch(e){}
+(function(){const K='dp.chk2',boxes=[...document.querySelectorAll('ul.chk input')];let st=[];try{st=JSON.parse(localStorage.getItem(K)||'[]');}catch(e){}
  boxes.forEach((b,i)=>{b.checked=!!st[i];b.onchange=()=>{try{localStorage.setItem(K,JSON.stringify(boxes.map(x=>x.checked)));}catch(e){}};});})();
 </script>
 </body></html>

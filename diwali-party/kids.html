@@ -1,0 +1,45 @@
+<!doctype html>
+<!-- 著作權所有 © 2026 imacipadtw-lang，保留一切權利。本檔公開可見不代表授權，見倉庫根目錄 LICENSE。 -->
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noai,noimageai">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Diwali Party 學生入口</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&family=Noto+Sans+TC:wght@700;900&display=swap" media="print" onload="this.media='all'">
+<style>
+/* Student start page: three huge numbered buttons, the same numbers the teacher says and the big screen shows. */
+:root{color-scheme:dark;--night:#17114A;--ink:#FFF7E6;--mut:#CFC8F2;--ol:#24190A;--f:"Baloo 2","Noto Sans TC","PingFang TC",system-ui,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:var(--ink);font:700 18px/1.5 var(--f);background:radial-gradient(800px 500px at 90% 0,#4A34B8 0,transparent 60%),linear-gradient(160deg,#2A1E7A,var(--night) 60%,#0C0828) fixed;-webkit-tap-highlight-color:transparent}
+main{max-width:900px;margin:0 auto;padding-block:max(22px,env(safe-area-inset-top,0px)) 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{margin:0 0 4px;font:800 clamp(30px,5vw,46px)/1.1 var(--f)}
+.tip{margin:0 0 20px;color:var(--mut);font-size:clamp(18px,2.6vw,22px)}
+.tip b{color:#FFC531}
+a.go{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:20px;margin:0 0 18px;padding:18px 26px;min-height:140px;border-radius:32px;border:5px solid var(--ol);box-shadow:0 10px 0 var(--ol);color:var(--ol);text-decoration:none}
+a.go:active{transform:translateY(8px);box-shadow:0 2px 0 var(--ol)}
+a.go i{display:grid;place-items:center;width:96px;height:96px;border-radius:50%;background:#fff;border:5px solid var(--ol);font:800 64px/1 var(--f);font-style:normal;padding-top:6px}
+a.go b{display:block;font:800 clamp(34px,5.4vw,52px)/1 var(--f)}
+a.go span{display:block;margin-top:6px;font:900 clamp(18px,2.6vw,24px)/1.3 "Noto Sans TC",system-ui,sans-serif}
+.w1{background:#FFC531}.w2{background:#FF8AC0}.w3{background:#5FE6D2}
+a.go.off{background:#C9C3DD;box-shadow:0 10px 0 #6A6383;border-color:#6A6383}
+.back{margin:26px 0 0;padding:16px 20px;border-radius:22px;background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.25);color:var(--mut);font-size:19px}
+.back b{color:#fff}
+</style></head><body><main>
+<h1>Ankita's Diwali Party 🪔</h1>
+<p class="tip">老師說<b>幾號</b>，就按<b>幾號</b>。一次只按一個。</p>
+<a class="go w1" id="g1" data-k="w"><i>1</i><div><b>Wordwall</b><span>自學：把單字拖到對的圖片上</span></div></a>
+<a class="go w2" id="g2" href="../lunch-box-lab/index.html#party"><i>2</i><div><b>Party Menu</b><span>共學：小組一起選三種食物</span></div></a>
+<a class="go w3" id="g3" data-k="p"><i>3</i><div><b>Padlet</b><span>互學：錄下我們的菜單，聽別組的菜單</span></div></a>
+<p class="back">做完了？按左上角的 <b>&lt;</b> 回到這一頁，<b>把 iPad 平放</b>，看老師。</p>
+</main>
+<script>
+(function(){
+  /* the teacher's Wordwall and Padlet links travel in the address (set on the entry page): kids.html#w=...&p=... */
+  var q={};try{location.hash.slice(1).split('&').forEach(function(x){var i=x.indexOf('=');if(i>0)q[x.slice(0,i)]=decodeURIComponent(x.slice(i+1));});}catch(e){}
+  var ok=function(u){return /^https:\/\/([a-z0-9-]+\.)*(wordwall\.net|padlet\.com|padlet\.org)\//i.test(u||'');};
+  ['g1','g3'].forEach(function(id){var a=document.getElementById(id),u=q[a.dataset.k];
+    if(ok(u))a.href=u;else{a.classList.add('off');a.removeAttribute('href');a.querySelector('span').textContent='請老師先在入口頁設定連結';}});
+})();
+</script>
+</body></html>

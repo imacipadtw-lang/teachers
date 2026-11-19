@@ -151,6 +151,12 @@ button{font:inherit;color:inherit;cursor:pointer}
 .racer{position:absolute;top:296px;width:190px;height:190px;animation:race .5s ease-in-out infinite alternate}
 .racer.b{animation-delay:-.25s}
 @keyframes race{from{transform:translate(-8px,6px) rotate(-6deg)}to{transform:translate(10px,-8px) rotate(5deg)}}
+/* links to the teacher's Wordwall / Padlet (set once on the entry page) */
+.ext{position:absolute;right:104px;top:520px;width:380px;font:800 46px/1 var(--f);color:var(--ol);background:#fff;border:6px solid var(--ol);border-radius:999px;padding:22px 10px 14px;box-shadow:0 10px 0 var(--ol)}
+.ext.unset{font:900 26px/1.3 var(--z);background:#FFE0EF}
+.srcline{position:absolute;left:100px;top:286px;margin:0;font:800 34px/1 var(--f);color:var(--mut)}
+.srcline b{color:#fff}
+.srcline .zh{font-size:26px;margin-left:12px}
 /* call to action (opens a Lunch Box Lab station inside the deck) */
 .cta{position:absolute;left:96px;font:800 78px/1 var(--f);letter-spacing:.02em;color:var(--ol);background:linear-gradient(#FFE27A,var(--gold));border:7px solid var(--ol);border-radius:999px;padding:26px 64px 16px;box-shadow:0 12px 0 var(--ol)}
 .cta.show{animation:cta 1.1s ease-in-out .5s infinite}
@@ -286,20 +292,22 @@ button{font:inherit;color:inherit;cursor:pointer}
    <div class="sig so rv" data-s="1"><i>△</i><b>So-so.</b><em>有點熟</em></div>
    <div class="sig no rv" data-s="1"><i>?</i><b>Not yet.</b><em>還不熟</em></div>
   </div>
+  <p class="srcline">Words from <b>Cool English</b> <span class="zh">單字取自酷英網</span></p>
   <p class="line rv" data-s="2" style="top:716px">"Not yet"? No problem.</p>
   <button class="cta rv" data-s="2" data-open style="top:800px">▶ SPIN!</button>
  </section>
 
- <!-- 4 self-study: Catch -->
- <section class="slide" data-st="1" data-at="120" data-timer="210" data-go="2" data-host="wave" data-hostsize="small" data-say="Listen!" data-note="自學｜一人一台平板：只聽不看字、立刻知道對錯、沒聽對的再聽一次（可理解的輸入：Krashen, 1982；提取練習：Roediger &amp; Karpicke, 2006）">
+ <!-- 4 self-study: Wordwall -->
+ <section class="slide" data-st="1" data-at="120" data-timer="210" data-go="2" data-host="none" data-say="" data-note="自學｜Wordwall 配對，每人一台 iPad：老師先示範一題再放手（逐步釋放責任：Pearson &amp; Gallagher, 1983）；點單字會唸出英文；老師看結果頁，把錯最多的字當場再練（形成性評量：Black &amp; Wiliam, 1998）">
   <div class="tag zhfirst">自學 <b>ON MY OWN</b></div>
-  <h2 class="ttl">Listen <span class="em">&amp;</span> Catch!</h2>
+  <h2 class="ttl">Match It!</h2>
   <ol class="how">
-   <li class="rv" data-s="1"><i>1</i>Tap <span class="key">2 Catch</span> on your iPad.</li>
-   <li class="rv" data-s="1"><i>2</i>Listen. <span class="zh">只聽，不看字</span></li>
-   <li class="rv" data-s="1"><i>3</i>Tap the food you hear!</li>
-   <li class="rv tip" data-s="1"><i>★</i>Missed one? Tap 🔊 and say it.</li>
+   <li class="rv" data-s="1"><i>1</i>Tap <span class="key">1</span> Wordwall.</li>
+   <li class="rv" data-s="1"><i>2</i>Type your number. <span class="zh">打座號</span></li>
+   <li class="rv" data-s="1"><i>3</i>Drag the word to the picture. <span class="zh">拖到圖片上</span></li>
+   <li class="rv tip" data-s="1"><i>★</i>Need help? Raise your hand ✋</li>
   </ol>
+  <button class="ext rv" data-s="1" data-ext="wordwall">▶ Watch me first</button>
  </section>
 
  <!-- 5 group work: Party Menu -->
@@ -314,15 +322,16 @@ button{font:inherit;color:inherit;cursor:pointer}
   </div>
  </section>
 
- <!-- 6 team to team: share -->
- <section class="slide" data-st="3" data-at="600" data-timer="150" data-go="4" data-host="cheer" data-hostsize="small" data-say="Yummy!" data-note="互學｜有聽眾、有回應，才是真的溝通；聽的人要說出對方的一種食物（輸出假說：Swain, 1985；互動假說：Long, 1996）">
+ <!-- 6 team to team: Padlet -->
+ <section class="slide" data-st="3" data-at="600" data-timer="150" data-go="1" data-host="none" data-say="" data-note="互學｜Padlet：各組錄音貼出菜單，另一組聽完回應，Checker 用 Can you count it? 檢查，原組依意見修正重錄（組間互學：比較、提出意見、依它組意見修改；互動假說：Long, 1996）">
   <div class="tag zhfirst">互學 <b>TEAM TO TEAM</b></div>
-  <h2 class="ttl">Share Your <span class="em">Menu!</span></h2>
+  <h2 class="ttl">Padlet <span class="em">Party!</span></h2>
   <div class="talk">
-   <div class="bub a rv" data-s="1"><u>TEAM A</u>I want some <i class="blank"></i>.<small>One sentence each. <span class="zh">一人一句</span></small></div>
+   <div class="bub a rv" data-s="1"><u>TEAM A</u>🎤 I want some <i class="blank"></i>.<small>Tap ＋ → 🎤 → Publish <span class="zh">按＋、錄音、發布</span></small></div>
    <div class="bub b rv" data-s="2"><u>TEAM B</u>Yummy! I like your <i class="blank"></i>.</div>
-   <div class="bub k rv" data-s="3"><u>ANKITA</u>Thank you! <span class="em" style="color:#E06400">Then switch!</span></div>
+   <div class="bub k rv" data-s="3"><u>CHECKER</u>Can you count it? <span class="em" style="color:#E06400">Fix it!</span></div>
   </div>
+  <button class="ext rv" data-s="1" data-ext="padlet">▶ Open Padlet</button>
  </section>
 
  <!-- 7 language focus: countable or not -->
@@ -444,7 +453,7 @@ function pose(p,say,size){host.classList.remove('p-cheer','p-oops','p-win','p-wa
  $('#rangoli').innerHTML=`<svg viewBox="-460 -460 920 920">${s}<circle r="30" fill="none" stroke="#FFC531" stroke-width="9"/></svg>`;})();
 
 /* lamp rail */
-const STAGES=[['導學','Spin',2],['自學','Catch',3],['共學','Menu',4],['互學','Share',5],['導學','Count',6],['統整','Speed',7]];
+const STAGES=[['導學','Spin',2],['自學','Wordwall',3],['共學','Menu',4],['互學','Padlet',5],['導學','Count',6],['統整','Speed',7]];
 const diya=i=>`<svg viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="dy${i}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E88A4A"/><stop offset="1" stop-color="#9A3F18"/></linearGradient><linearGradient id="df${i}" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#FF7A18"/><stop offset="1" stop-color="#FFE45C"/></linearGradient></defs><g class="fl"><path d="M50 2 C34 24 32 36 50 48 C68 36 66 24 50 2Z" fill="url(#df${i})" stroke="#24190A" stroke-width="3"/><path d="M50 22 C43 32 43 38 50 44 C57 38 57 32 50 22Z" fill="#fff8c9"/></g><path d="M8 50 Q50 64 92 50 Q90 84 50 88 Q10 84 8 50Z" fill="url(#dy${i})" stroke="#24190A" stroke-width="4" stroke-linejoin="round"/><path d="M20 60 Q50 70 80 60" fill="none" stroke="#FFD7A8" stroke-width="4" stroke-linecap="round" opacity=".7"/></svg>`;
 const lamps=$('#lamps');STAGES.forEach(([zh,en,to],i)=>{const b=document.createElement('button');b.className='lamp';b.style.setProperty('--i',i);b.innerHTML=diya(i)+`<span><b>${zh}</b> ${en}</span>`;b.setAttribute('aria-label',`跳到 ${zh} ${en}`);b.onclick=e=>{e.stopPropagation();go(to,0);};lamps.appendChild(b);});
 
@@ -518,6 +527,10 @@ $('#lab-retry').onclick=()=>{loadLab(slides[cur].dataset.lab,true);labWatch();};
 function openLab(){const sl=slides[cur];if(!sl.dataset.lab)return;labOpen=true;loadLab(sl.dataset.lab);if(labOk())labMsg.hidden=true;else labWatch();$('#lab-name').textContent=sl.dataset.labname||'';lab.hidden=false;
  labTimer.set(+sl.dataset.labsec||120);labTimer.start();startClock();try{fr.focus();}catch(e){}}
 function closeLab(advance){labOpen=false;lab.hidden=true;clearTimeout(labTO);labMsg.hidden=true;labTimer.pause();labDone[cur]=true;try{window.focus();}catch(e){}if(advance&&cur<LAST)go(cur+1,0);else paint();}
+let LINKS={};try{LINKS=JSON.parse(localStorage.getItem('dp.links')||'{}')||{};}catch(e){}
+$$('[data-ext]').forEach(b=>{const k=b.dataset.ext,u=/^https:\/\//.test(LINKS[k]||'')?LINKS[k]:'';
+ if(!u){b.classList.add('unset');b.textContent='先到入口頁貼上 '+(k==='wordwall'?'Wordwall':'Padlet')+' 連結';}
+ b.onclick=e=>{e.stopPropagation();if(u)window.open(u,'_blank','noopener');else location.href='./#setup';};});
 $('#lab-back').onclick=()=>closeLab(false);$('#lab-next').onclick=()=>closeLab(true);
 $$('[data-open]').forEach(b=>b.onclick=e=>{e.stopPropagation();ac();openLab();});
 /* warm the station up in the background so it opens at once */

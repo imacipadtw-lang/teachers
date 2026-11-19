@@ -4,7 +4,7 @@
 const { chromium } = require('playwright');
 const BASE = process.env.DP_URL || 'http://localhost:8791/diwali-party/';
 // [steps on the slide, station opened after the last step, timer seconds, step that starts the timer]
-const EXPECT = [[1, null, 0, 0], [3, null, 0, 0], [2, 'spin', 0, 0], [2, null, 210, 2], [3, null, 210, 3], [4, null, 150, 4], [3, 'impostor', 0, 0], [3, 'speed', 0, 0], [3, null, 0, 0], [4, null, 0, 0]];
+const EXPECT = [[1, null, 0, 0], [3, null, 0, 0], [2, 'spin', 0, 0], [2, null, 210, 2], [3, null, 210, 3], [3, null, 150, 1], [3, 'impostor', 0, 0], [3, 'speed', 0, 0], [3, null, 0, 0], [4, null, 0, 0]];
 (async () => {
   const b = await chromium.launch(); let fail = 0; const errs = [];
   for (const reduced of [false, true]) {
