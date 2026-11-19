@@ -74,8 +74,10 @@ python3 /home/user/lunch-box-lab-src/build.py
 注意：2026-11-09 測試時 ElevenLabs 帳戶只剩約 38 點，補錄前需要額度。
 
 
-## 真人發音（ElevenLabs）
-- 目前 39 個必要片段（13 個預設單字各自的單字、複數句子與兩個句型）、7 句固定指令與鼓勵語，全部都是 ElevenLabs 真人錄音（Bella，eleven_v4），沒有拼接，也不用裝置語音。2026-11-17 使用者升級 ElevenLabs Starter 後補錄最後 15 句（cream、hamburger、cake、fish、chicken），逐字轉錄核對與切點對時全部正確。
+## 發音（ElevenLabs 語音）
+- **管理者 115.11.19 指示：一律用 ElevenLabs，不要用裝置語音。** 115.11.19 實測走完 Spin／Catch／Party Menu／Impostor／Speed／Pack／Build／Check 八站，沒有任何一句退回裝置語音（只有使用者自己新加的字還沒有音檔）。
+- ElevenLabs 產生的是**合成語音**，不是真人錄音；畫面與文件請寫「ElevenLabs 語音」。
+- 目前 39 個必要片段（13 個預設單字各自的單字、複數句子與兩個句型）、7 句固定指令與鼓勵語，全部都是 ElevenLabs 語音（Bella，eleven_v4），沒有拼接，也不用裝置語音。2026-11-17 使用者升級 ElevenLabs Starter 後補錄最後 15 句（cream、hamburger、cake、fish、chicken），逐字轉錄核對與切點對時全部正確。
 - 只有使用者自己在「單字設定」新加的字沒有錄音，會用裝置語音。要預錄新字：`python3 voice_tools.py plan` 看要錄的文字，用 ElevenLabs 錄好後 `python3 voice_tools.py ingest <mp3> <tag> "<第1句>" "<第2句>" ...`（空一行分句，會自動切句、嵌入、並做音量平衡），再 `python3 build.py`。
 - `normalize_clips.py`：把所有錄音的說話音量平衡到同一水準（目標 -21 dB，差距 0.8 dB 以內，峰值不超過 -1 dB）；原檔備份在 `voice-raw/old/`；可重複執行，已平衡的不會再動。
 - 補錄排程「Lunch Box Lab 自動補錄真人發音」已不需要，已停用。
