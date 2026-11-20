@@ -2893,7 +2893,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.20c";
+const APP_VERSION = "專業版 2026.11.20d";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -5155,25 +5155,47 @@ const dowTag = d => d ? "星期"+CF.dow(d) : "";
 /* 自動帶入：班級、科目、調(代)課教師（手動改過的就不再自動改） */
 function autoSwap(r){
   const T = plan.swap.teacher;
-  if(!r.cls && T && r.fromDate && r.fromPeriod){ const c = state.meta.tSlot[CF.dow(r.fromDate)+"|"+r.fromPeriod+"|"+T]||[]; if(c.length===1){ r.cls=c[0]; r.auto.cls=1; } }
+  if((!r.cls || r.auto.cls) && T && r.fromDate && r.fromPeriod){ const c = state.meta.tSlot[CF.dow(r.fromDate)+"|"+r.fromPeriod+"|"+T]||[];
+    if(c.length===1){ r.cls=c[0]; r.auto.cls=1; } else if(r.cls && c.indexOf(r.cls) < 0) r.cls = ""; }      // 115.11.20：原日期、節次改了，自動帶的班級跟著課表換（自己選的班級不動）
   const a = ttAt(r.fromDate,r.fromPeriod,r.cls); if(a && (!r.fromSubject || r.auto.fromSubject)){ r.fromSubject=a.subject; r.auto.fromSubject=1; }
+  else if(!a && r.auto.fromSubject) r.fromSubject = "";
   const b = ttAt(r.toDate,r.toPeriod,r.cls);
-  if(b && (!r.toSubject || r.auto.toSubject)){ r.toSubject=b.subject; r.auto.toSubject=1; }
   if(b && (!r.partner || r.auto.partner)){ r.partner = b.teachers.indexOf(T)>=0 ? T : b.teachers[0]; r.auto.partner=1; }
+  if(!r.toSubject || r.auto.toSubject){                                   // 115.11.20：選好調整後的日期、節次就跳出科目（班級那節的課；查不到再看調(代)課教師那節的課）
+    const L = r.pend ? null : swapToLesson(r.toDate, r.toPeriod, r.cls, r.partner);
+    if(L){ r.toSubject = L.subject; r.auto.toSubject = 1; }
+    else if(r.auto.toSubject) r.toSubject = "";                             // 換到課表上沒有課的節：自動帶的舊科目不留著（自己打的不動）
+  }
+}
+/* 調整後那一節是什麼課（排調代課、「修改」共用）：① 調課班級那一節課表上的課 ② 沒選班級、或那班那節沒排課 → 調(代)課教師那一節課表上的課（合班算學段那一格） */
+function swapToLesson(date, p, cls, partner){
+  if(!state.meta || !state.meta.tt || !date || !p) return null;
+  const a = cls ? ttAt(date, p, cls) : null;
+  if(a && a.subject) return {subject:a.subject, teachers:a.teachers || [], cls, by:"cls"};
+  if(!partner) return null;
+  const raw = (state.meta.tSlot || {})[CF.dow(date)+"|"+p+"|"+partner] || [], real = raw.filter(c => !/年級$/.test(c));
+  for(const c of combCls(date, p, real.length ? real : raw, partner)){ const x = ttAt(date, p, c); if(x && x.subject) return {subject:x.subject, teachers:x.teachers || [], cls:c, by:"partner"}; }
+  return null;
 }
 /* 班級、科目為什麼沒有自動帶出來：直接告訴使用者 */
 function swapHint(r){
-  const T = plan.swap.teacher;
-  if(!r.fromDate || !r.fromPeriod) return "";
-  if(!r.cls){
-    if(!T) return "先選上面的「申請人」，班級和科目就會依課表自動帶出（也可以直接選班級）";
-    const c = state.meta.tSlot[CF.dow(r.fromDate)+"|"+r.fromPeriod+"|"+T] || [];
-    if(!c.length) return `課表上 ${T} ${CF.md(r.fromDate)}第${r.fromPeriod}節沒有課，請選班級（選了班級，科目會自動帶出）`;
-    if(c.length > 1) return `${T} 這一節有 ${c.join("、")}，請選班級`;
+  const T = plan.swap.teacher, m = [];
+  if(r.fromDate && r.fromPeriod){
+    if(!r.cls){
+      const c = T ? state.meta.tSlot[CF.dow(r.fromDate)+"|"+r.fromPeriod+"|"+T] || [] : [];
+      if(!T) m.push("先選上面的「申請人」，班級和科目就會依課表自動帶出（也可以直接選班級）");
+      else if(!c.length) m.push(`課表上 ${T} ${CF.md(r.fromDate)}第${r.fromPeriod}節沒有課，請選班級（選了班級，科目會自動帶出）`);
+      else if(c.length > 1) m.push(`${T} 這一節有 ${c.join("、")}，請選班級`);
+    }
+    else if(!ttAt(r.fromDate, r.fromPeriod, r.cls)) m.push(`課表上 ${r.cls} ${CF.md(r.fromDate)}第${r.fromPeriod}節沒有排課，原科目請自己填`);
   }
-  const m = [];
-  if(r.cls && !ttAt(r.fromDate, r.fromPeriod, r.cls)) m.push(`課表上 ${r.cls} ${CF.md(r.fromDate)}第${r.fromPeriod}節沒有排課，原科目請自己填`);
-  if(r.cls && r.toDate && r.toPeriod && !ttAt(r.toDate, r.toPeriod, r.cls)) m.push(`課表上 ${r.cls} ${CF.md(r.toDate)}第${r.toPeriod}節沒有排課，調整後科目請自己填`);
+  if(!r.pend && r.toDate && r.toPeriod && (!r.toSubject || r.auto.toSubject)){        // 115.11.20：調整後的科目從哪裡帶的、為什麼帶不出來
+    const L = swapToLesson(r.toDate, r.toPeriod, r.cls, r.partner), at = `${CF.md(r.toDate)}第${r.toPeriod}節`;
+    if(L && L.by === "partner") m.push(`調整後科目「${L.subject}」是依 ${r.partner} ${at}的課表帶入（${L.cls}）${r.cls ? `；課表上 ${r.cls} 這一節沒有排課` : ""}，不對可以直接改`);
+    else if(!L && r.cls) m.push(`課表上 ${r.cls} ${at}沒有排課${r.partner ? `、${r.partner} 這一節也沒有課` : ""}，調整後科目請自己填`);
+    else if(!L && r.partner) m.push(`課表上 ${r.partner} ${at}沒有課，調整後科目帶不出來：請選「調課班級」，或自己填科目`);
+    else if(!L && !m.length) m.push("調整後科目還帶不出來：請選「調課班級」或「調(代)課教師」，就會依課表自動跳出");
+  }
   return m.join("；");
 }
 function autoSub(r){
@@ -5666,7 +5688,7 @@ $("#planBody").addEventListener("input", e=>{            // 打字中：只記�
 $("#planBody").addEventListener("click", e=>{
   const t = e.target;
   if(t.id==="addRow"){
-    if(plan.kind==="swap"){ const last = plan.swap.rows[plan.swap.rows.length-1]; plan.swap.rows.push(Object.assign(newSwapRow(), {cls:last?last.cls:"", fromDate:last?last.fromDate:""})); }
+    if(plan.kind==="swap"){ const last = plan.swap.rows[plan.swap.rows.length-1]; plan.swap.rows.push(Object.assign(newSwapRow(), {cls:last?last.cls:"", fromDate:last?last.fromDate:"", auto:last && last.auto.cls ? {cls:1} : {}})); }   // 上一列的班級是依課表帶的 → 這一列選了節次也依課表換
     else plan.sub.rows.push(newSubRow());
     renderPlan();
   }
@@ -5933,6 +5955,9 @@ function openFix(key){
   if(!e) return toast("找不到這筆紀錄，請重新整理");
   Object.assign(fx, {ref:fixRef(e), ev:e, orig:fixRec(e), step:"edit", op:"save", issues:[], doneText:""});
   fx.cur = Object.assign({}, fx.orig);
+  { const o = fx.orig, L = fx.ref.kind === "調課" ? swapToLesson(o.toDate, o.toPeriod, o.cls, o.partner) : null;   // 115.11.20：調整後科目是空的、或和課表一樣 → 改了調整後的日期節次，科目跟著課表跳出
+    fx.autoTo = fx.ref.kind === "調課" && (!fxTrim(o.toSubject) || !!(L && L.subject === fxTrim(o.toSubject))); fx.autoPartner = false; }
+  if(fx.ref.kind === "調課" && !state.meta) prefetchMeta();
   fx.back = document.activeElement;
   $("#fixErr").textContent = ""; renderFix(); $("#fixModal").hidden = false;
   setTimeout(() => $("#fixTitle").focus(), 60);                  // 焦點放標題（手機不會一打開就跳出鍵盤）
@@ -5943,7 +5968,22 @@ function fixInput(e){
   fx.cur[k] = e.target.value;
   e.target.parentElement.classList.toggle("chg", fxTrim(fx.cur[k]) !== fxTrim(fx.orig[k]));
   if(k==="leaveType"){ const n = $("#fx-note"); if(n) n.placeholder = fx.cur.leaveType==="其他" ? "假別選「其他」一定要寫，例如：公傷假" : "可以不寫"; }
+  if(fx.ref && fx.ref.kind === "調課") fixSwapAuto(k);
   $("#fixErr").textContent = "";
+}
+/* 「修改」調課：填了／改了調整後的日期、節次（或班級、調(代)課教師）→ 調整後科目依課表跳出，還沒有調(代)課教師就一併帶入（115.11.20）。自己打過的科目、原本就選好的老師不動。 */
+function fixSwapAuto(k){
+  const c = fx.cur;
+  if(k === "toSubject"){ fx.autoTo = false; return; }
+  if(k === "partner") fx.autoPartner = false;
+  if(!/^(toDate|toPeriod|cls|partner)$/.test(k) || !state.meta || !state.meta.tt) return;
+  if(c.toDate && +String(c.toDate).slice(0,4) < 2000) return;              // 用鍵盤打日期、年份還沒打完
+  const put = (key, v) => { c[key] = v; const el = $("#fx-" + key); if(!el) return;
+    if(el.tagName === "SELECT" && v && ![...el.options].some(o => o.value === v)) el.add(new Option(v, v));
+    el.value = v; el.parentElement.classList.toggle("chg", fxTrim(v) !== fxTrim(fx.orig[key])); };
+  const L = swapToLesson(c.toDate, c.toPeriod, c.cls, c.partner);
+  if(L && L.by === "cls" && k !== "partner" && (!c.partner || fx.autoPartner)){ const who = L.teachers.indexOf(c.teacher) >= 0 ? c.teacher : L.teachers[0]; if(who){ put("partner", who); fx.autoPartner = true; } }
+  if(!fxTrim(c.toSubject) || fx.autoTo){ if(L){ put("toSubject", L.subject); fx.autoTo = true; } else if(fx.autoTo && fxTrim(c.toSubject)) put("toSubject", ""); }
 }
 $("#fixBody").addEventListener("input", fixInput);
 $("#fixBody").addEventListener("change", fixInput);
