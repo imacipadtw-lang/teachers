@@ -28,7 +28,10 @@
   TC.esc = esc;
 
   /* ---------------- settings (stored on this device only) ---------------- */
-  const DEF = { syncUrl: "", asr: true, record: true, volume: 0.9, voice: "", roster: "", hintAfter: 9, rounds: 0, ollieAsks: false };
+  /* 土城國小運動會英語日：只用觸控大螢幕，不接麥克風、相機、手機，也不連網。
+   asr=false 老師按「✓ 說得好」判定；record=false 不錄音；rounds=6：一組最多 6 人，每人輪一次。
+   這三項都可以在畫面右上角 ⚙ 設定裡臨時改回來。 */
+const DEF = { syncUrl: "", asr: false, record: false, volume: 0.9, voice: "", roster: "", hintAfter: 9, rounds: 6, ollieAsks: false };
   TC.cfg = Object.assign({}, DEF, safeJSON(localStorage.getItem("tc_cfg")) || {});
   TC.saveCfg = () => { try { localStorage.setItem("tc_cfg", JSON.stringify(TC.cfg)); } catch (e) {} };
   function safeJSON(s) { try { return JSON.parse(s); } catch (e) { return null; } }

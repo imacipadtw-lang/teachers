@@ -53,9 +53,8 @@
     queue.forEach((k, i) => q.append(h("div", { class: "q-kid" },
       h("div", { class: "av", style: `background:${k.color}` }, k.name[0]),
       h("span", {}, k.name), h("span", { class: "x zh", onclick: () => { queue.splice(i, 1); renderQueue(); } }, "移除 ✕"))));
-    $("#goBtn").classList.toggle("hidden", !queue.length || running);
-    if (!running) TC.guide(queue.length ? "拿著護照，準備闖關！" : "拿出護照，排隊準備闖關！",
-      queue.length ? `按下面的 <kbd>START ▶</kbd>（或 Enter）開始；後面的孩子可以繼續掃 QR 排隊` : `掃孩子護照上的 QR（<kbd>📷 相機掃描</kbd> 或掃描機），或按 <kbd>👆 手動選擇</kbd> 點座號 → 再按 <kbd>START ▶</kbd>`, "corner");
+    $("#goBtn").classList.toggle("hidden", running);   // 不用報到：START 永遠可按
+    if (!running) TC.guide("拿出護照，準備闖關！", "關主按下面的 <kbd>START ▶</kbd>（或 Enter）就開始；孩子輪流回答，說完按 <kbd>✓ 說得好</kbd>")
   }
   TC.onScan((kid) => {
     TC.ac();
@@ -191,7 +190,8 @@
   }
 
   /* buttons + keys */
-  $("#goBtn").onclick = runQueue;
+  // 不用報到：直接按 START，整組一起玩，關主輪流點孩子回答
+  $("#goBtn").onclick = () => { if (!queue.length) { const g = TC.mkKid("00", "大家", 3); g.color = G.color || "#4cc9ff"; queue.push(g); renderQueue(); } runQueue(); };
   $("#camBtn").onclick = () => { TC.ac(); TC.cameraScan(); };
   $("#manBtn").onclick = () => { TC.ac(); TC.manualPick(); };
   // one tap for visitors (e.g. the minister): a guest traveller at the intermediate level

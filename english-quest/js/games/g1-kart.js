@@ -65,6 +65,8 @@
       spr.push({ d, side: i % 2 ? 1.5 : -1.5, img: IM.tree, s: 1.1 });
     }
     S.signs.forEach((sg) => !sg.done && spr.push({ d: sg.d, side: 0, sign: sg }));
+    // 自動撿星星：觸控螢幕上孩子只需要回答問題，不必點左右換車道
+    { let best = null, bd = 1e9; for (const st of S.stars) { if (st.done) continue; const dz = st.d - S.pos; if (dz > 60 && dz < 1600 && dz < bd) { bd = dz; best = st; } } if (best) S.lane = best.lane; }
     S.laneX += (S.lane - S.laneX) * 0.18;
     S.stars.forEach((st) => {
       if (st.done) return;
@@ -170,7 +172,6 @@
   TC.games.kart = {
     mount(api) {
       cv = TC.h("canvas", { class: "game" }); api.stage.append(cv); ctx = cv.getContext("2d");
-      cv.addEventListener("pointerdown", (e) => { if (!S.running || S.bubble) return; const r = cv.getBoundingClientRect(); S.lane = Math.max(-1, Math.min(1, S.lane + (e.clientX - r.left < r.width / 2 ? -1 : 1))); TC.sfx("whoosh"); });
       resize(); addEventListener("resize", resize);
       raf = requestAnimationFrame(draw);
     },
@@ -179,9 +180,9 @@
       const G = api.G, kid = api.kid;
       Object.assign(S, { pos: 0, speed: 0, target: 0, boost: 0, rival: 1500, rivalSpeed: 0, signs: [], finishAt: 0, bubble: null, kidColor: kid.color, kidName: kid.name, running: true, lane: 0, laneX: 0, stars: [], got: 0, hint: 6 });
       const items = G.items.slice().sort(() => Math.random() - 0.5).slice(0, TC.rounds(5));
-      items.forEach((it, i) => S.signs.push({ d: 3500 + i * 5200, it }));
+      items.forEach((it, i) => S.signs.push({ d: 1800 + i * 2500, it }));   // 縮短題與題之間的行駛距離，減少乾等
       // star trails between the signs, weaving across the three lanes
-      for (let d = 1200; d < 3500 + items.length * 5200 + 4000; d += 420) { const near = S.signs.some((sg) => Math.abs(sg.d - d) < 900); if (!near) S.stars.push({ d, lane: Math.round(Math.sin(d / 1700) * 1.4), done: false }); }
+      for (let d = 700; d < 1800 + items.length * 2500 + 2200; d += 420) { const near = S.signs.some((sg) => Math.abs(sg.d - d) < 900); if (!near) S.stars.push({ d, lane: Math.round(Math.sin(d / 1700) * 1.4), done: false }); }
       const N = items.length + 1;
       // start lights: three reds, then green
       const lights = TC.h("div", { style: "position:fixed;left:50%;top:22%;transform:translateX(-50%);z-index:30;display:flex;gap:2vh;padding:2vh 3vh;border-radius:3vh;background:#14182b;box-shadow:0 2vh 4vh rgba(0,0,0,.5)" });
@@ -213,7 +214,7 @@
       }
       // finish
       api.progress(items.length, N);
-      S.lane = 0; S.finishAt = S.pos + 5200; S.rival = Math.min(S.rival, S.pos - 900); S.rivalSpeed = 500;
+      S.lane = 0; S.finishAt = S.pos + 2400; S.rival = Math.min(S.rival, S.pos - 900); S.rivalSpeed = 500;
       await driveTo(S.finishAt + 700, api); if (api.aborted) return null;
       const F = G.finale, L = api.level;
       const r = await api.ask({ teacher: F.teacher, tzh: F.zh, say: F.say[L], keys: F.keys[L], word: "first" });
