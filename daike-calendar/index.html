@@ -836,6 +836,13 @@ body:not(.has-view) .ev-other button{display:none}   /* 管理者看某位老師
 .rgrid.sub{grid-template-columns:90px 110px 1fr 240px}
 .slot{display:grid;grid-template-columns:1.3fr .8fr 1fr;gap:8px;background:var(--sky-mist);border:1px solid var(--line-2);border-radius:10px;padding:8px}
 .slot .cap{grid-column:1/-1;font-size:12px;font-weight:700;color:var(--sky-deep)}
+@media screen{
+.slot .cap .pendchk{display:inline-flex;align-items:center;gap:4px;margin-left:12px;font-weight:700;color:var(--ink);cursor:pointer;min-height:24px}
+#planBody .slot .cap .pendchk input{width:18px;height:18px;min-height:0;padding:0;margin:0;accent-color:var(--rose);box-shadow:none}
+.slot.pend{border-style:dashed}
+#planBody .slot.pend input:disabled,#planBody .slot.pend select:disabled{background:var(--surface-2);color:var(--ink-3);border-style:dashed;cursor:not-allowed}
+.slot .pendnote{grid-column:1/-1;margin:0;font-size:12px;color:var(--ink-2);line-height:1.5}
+}
 .arrow{align-self:center;text-align:center;color:var(--sky);font-size:20px;font-weight:900}
 @media screen{.fillall{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin:0 0 12px;padding:10px 14px;border:1px dashed var(--line);border-radius:12px;background:var(--surface-2);font-size:13.5px;color:var(--ink-2)}.fillall label{margin:0;font-weight:700;color:var(--ink)}.fillall select{width:auto;min-width:160px;height:40px}}
 @media screen and (min-width:761px){.rgrid.swap>div:not(.slot):not(.arrow){padding-bottom:23px}}
@@ -2260,7 +2267,7 @@ var CF = (function () {
   /* 把還沒儲存的資料轉成紀錄，讓同一張單裡前後列也能互相檢查 */
   function asEvents(kind, r) {
     if (kind === "swap") {
-      var base = { type: "swap", id: "這張單", teacher: r.teacher, partner: r.partner, cls: r.cls, toDate: r.toDate || "", toPeriod: r.toPeriod || "" };
+      var base = { type: "swap", id: "這張單", teacher: r.teacher, partner: r.partner, cls: r.cls, toDate: r.toDate || "", toPeriod: r.toPeriod || "", pend: !!r.pend && !r.toDate };
       var a = [Object.assign({}, base, { dir: "調出", date: r.fromDate, period: r.fromPeriod })];
       if (r.toDate && !(r.toDate === r.fromDate && same(r.toPeriod, r.fromPeriod))) a.push(Object.assign({}, base, { dir: "調入", date: r.toDate, period: r.toPeriod }));
       return a;
@@ -2404,7 +2411,7 @@ var CF = (function () {
         if (e.partner && !known[e.partner]) probs.push("對調的「" + e.partner + "」不在課表的老師名單裡，可能打錯名字");
         if (e.cls && !fs) probs.push("課表上 " + md(e.date) + "第" + e.period + "節 " + e.cls + " 沒有課");
         else if (fs && e.teacher && fs.teachers.indexOf(e.teacher) < 0) probs.push("課表上 " + md(e.date) + "第" + e.period + "節 " + e.cls + " 是 " + fs.teachers.join("、") + " 的" + fs.subject + "，不是 " + e.teacher + " 的課");
-        if (!e.toDate || !e.toPeriod) probs.push("沒有填調整後的日期或節次，" + (e.teacher || "") + " 這節課不知道補在哪一天");
+        if (!e.toDate || !e.toPeriod) probs.push(e.pend ? "調整後的日期、節次還沒定（待輸入），定了請按這筆的「修改」補上" : "沒有填調整後的日期或節次，" + (e.teacher || "") + " 這節課不知道補在哪一天");
         else if (e.cls && !ts) probs.push("課表上 " + md(e.toDate) + "第" + e.toPeriod + "節 " + e.cls + " 沒有課");
         else if (ts && e.partner && ts.teachers.indexOf(e.partner) < 0) probs.push("課表上 " + md(e.toDate) + "第" + e.toPeriod + "節 " + e.cls + " 是 " + ts.teachers.join("、") + " 的" + ts.subject + "，不是 " + e.partner + " 的課；對調老師應該是 " + ts.teachers.join("、"));
         if (fs && e.teacher && fs.teachers.indexOf(e.teacher) >= 0) {
@@ -2850,7 +2857,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.20a";
+const APP_VERSION = "專業版 2026.11.20b";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -3522,6 +3529,7 @@ function tvItem(e, me){
     return { k:"absent", tag:"請假", slot:sc.length > 4 ? "請假" : sc, h:"請假" + (e.scope === "節次" ? "（" + sc + "）" : ""), m:e.leaveType ? "假別：" + e.leaveType : "已登記請假", o:0 }; }
   if(e.type === "swap"){
     const it = { k:"swap", tag:"調課", slot:P ? "第" + P + "節" : "", h:cls, o:+P || 9 };
+    if(!e.toDate && e.pend){ it.m = me === e.teacher ? `您的${e.fromSubject || "課"}調走，調整後的時間待定` : `和 ${nm(e.teacher)} 調課，調整後的時間待定`; it.x = "教務組會再通知"; return it; }
     if(!e.toDate){ const s = e.fromSubject || "課"; it.m = me === e.partner ? `您代 ${nm(e.teacher)} 上${s}` : `由 ${nm(e.partner)} 代您上${s}`; it.x = "調課單上的代課"; return it; }
     const atFrom = e.dir === "調出", X = atFrom ? e.partner : e.teacher, xs = (atFrom ? e.toSubject : e.fromSubject) || "課";
     const Y = atFrom ? e.teacher : e.partner, ys = (atFrom ? e.fromSubject : e.toSubject) || "課";
@@ -4249,6 +4257,7 @@ function swapView(e){
   if(!e.dir){ const s=swapParts(e); return {p:s.dir, w:(isAll()&&s.who?s.who+" ":"")+s.text, f:e.other||""}; }
   const nm = n => n || "對方";
   const head = [`第${e.period}節`, e.cls].filter(Boolean).join(" ") + (state.role==="admin" && e.id ? `（${e.id}）` : "");
+  if(!e.toDate && e.pend) return {p:head, w:`${nm(e.teacher)}的${e.fromSubject||"課"}調走` + (e.partner ? `（和${e.partner}對調）` : ""), f:"調整後的日期、節次待輸入"};
   if(!e.toDate) return {p:head, w:`${nm(e.partner)}代${nm(e.teacher)}上${e.fromSubject||"課"}`, f:"調課單上的代課"};
   const atFrom = e.dir==="調出";
   const X  = atFrom ? e.partner : e.teacher;            // 這節改由誰上
@@ -5270,7 +5279,7 @@ function formData(){
   if(plan.kind==="swap"){
     const S = plan.swap;
     return {swaps:S.rows.map(r=>({teacher:S.teacher, applyDate:S.applyDate, reason:S.reason, cls:r.cls, fromDate:r.fromDate, fromPeriod:r.fromPeriod, fromSubject:r.fromSubject,
-                                  toDate:r.toDate, toPeriod:r.toPeriod, toSubject:r.toSubject, partner:r.partner}))};
+                                  toDate:r.pend ? "" : r.toDate, toPeriod:r.pend ? "" : r.toPeriod, toSubject:r.pend ? "" : r.toSubject, partner:r.partner, pend:!!r.pend}))};
   }
   const U = plan.sub, home = U.leaver && state.meta.homeroom[U.leaver];
   return {subs:U.rows.map(r=>({leaver:U.leaver, leaveType:U.leaveType, date:U.date, period:r.period, cls:r.cls, subject:r.subject, sub:r.sub, note:U.note, self:!!U.self})),
@@ -5279,7 +5288,7 @@ function formData(){
 function missingOf(kind, r){
   const m=[];
   if(kind==="swap"){ if(!plan.swap.teacher) m.push("申請人"); if(!r.cls) m.push("班級"); if(!r.fromDate) m.push("原日期"); if(!r.fromPeriod) m.push("原節次");
-    if(!r.toDate) m.push("調整後日期"); if(!r.toPeriod) m.push("調整後節次"); if(!r.partner) m.push("調(代)課教師");
+    if(!r.pend){ if(!r.toDate) m.push("調整後日期"); if(!r.toPeriod) m.push("調整後節次"); if(!r.partner) m.push("調(代)課教師"); }
     if(r.fromDate && r.fromDate===r.toDate && r.fromPeriod && String(r.fromPeriod)===String(r.toPeriod)) m.push("（原節次和調整後是同一天同一節，等於沒有調，請改調整後節次）"); }
   else if(kind==="sub"){ if(!r.leaver) m.push("請假老師"); if(!r.date) m.push("日期"); if(!r.period) m.push("節次"); if(!r.cls) m.push("班級"); if(!r.sub) m.push("代課老師");
     if(r.sub && r.sub===r.leaver) m.push("（代課老師不能是請假老師本人）");
@@ -5391,10 +5400,11 @@ function renderPlan(){
             <div><select aria-label="原節次" data-k="r.${i}.fromPeriod">${periodOpts(r.fromPeriod)}</select></div>
             <div><input aria-label="原科目" placeholder="科目" data-k="r.${i}.fromSubject" value="${esc(r.fromSubject)}"></div></div>
           <div class="arrow" aria-hidden="true">⇄</div>
-          <div class="slot"><span class="cap">調整後</span>
-            <div><input type="date" aria-label="調整後日期" data-k="r.${i}.toDate" value="${esc(r.toDate)}" min="${state.term.from}" max="${state.term.to}"><div class="dow-tag" data-dow="r.${i}.toDate"></div></div>
-            <div><select aria-label="調整後節次" data-k="r.${i}.toPeriod">${periodOpts(r.toPeriod)}</select></div>
-            <div><input aria-label="調整後科目" placeholder="科目" data-k="r.${i}.toSubject" value="${esc(r.toSubject)}"></div></div>
+          <div class="slot${r.pend ? " pend" : ""}"><span class="cap">調整後<label class="pendchk"><input type="checkbox" data-k="r.${i}.pend"${r.pend ? " checked" : ""}>（待輸入）</label></span>
+            <div><input type="date" aria-label="調整後日期" data-k="r.${i}.toDate" value="${esc(r.toDate)}" min="${state.term.from}" max="${state.term.to}"${r.pend ? " disabled" : ""}><div class="dow-tag" data-dow="r.${i}.toDate"></div></div>
+            <div><select aria-label="調整後節次" data-k="r.${i}.toPeriod"${r.pend ? " disabled" : ""}>${periodOpts(r.toPeriod)}</select></div>
+            <div><input aria-label="調整後科目" placeholder="科目" data-k="r.${i}.toSubject" value="${esc(r.toSubject)}"${r.pend ? " disabled" : ""}></div>
+            ${r.pend ? `<p class="pendnote">調整後的日期、節次還沒定：先存檔，定了再按這筆的「修改」補上（資料檢查會提醒）。</p>` : ""}</div>
           <div><label>調(代)課教師</label><select data-k="r.${i}.partner">${teacherOpts(r.partner)}</select></div>
         </div><div class="auto-hint" data-hint="${i}" hidden></div><div data-chk="swap.${i}"></div></div>`;
     });
@@ -5571,6 +5581,7 @@ function setField(k, v){
   else if(scope==="r"){
     const row = (plan.kind==="swap" ? plan.swap.rows : plan.sub.rows)[+a];
     row[b] = v; delete row.auto[b];
+    if(b === "pend" && v){ row.toDate = ""; row.toPeriod = ""; if(row.auto.toSubject) row.toSubject = ""; if(row.auto.partner) row.partner = ""; delete row.auto.toSubject; delete row.auto.partner; }   // 11/20：調整後待輸入
   }
   if(plan.kind==="swap"){
     if(scope==="s" && a==="teacher") plan.swap.rows.forEach(r=>{ if(r.auto.cls){ r.cls=""; } if(r.auto.partner){ r.partner=""; } });
@@ -5604,7 +5615,7 @@ $("#planBody").addEventListener("change", e=>{
     return;
   }
   if((k==="u.leaver" || k==="u.date") && plan.sub.leaver && plan.sub.date && !plan.sub.rows.length && state.meta) fillDay();   // 115.11.10：選好老師和日期就自動帶入那天的課
-  if(k==="u.leaver" || k==="u.tutor" || k==="u.date" || k==="u.self" || k.indexOf("a.")===0 || (k.indexOf("t.")===0 && k!=="t.note")) renderPlan();   // 會改變版面的才整個重畫
+  if(k==="u.leaver" || k==="u.tutor" || k==="u.date" || k==="u.self" || /\.pend$/.test(k) || k.indexOf("a.")===0 || (k.indexOf("t.")===0 && k!=="t.note")) renderPlan();   // 會改變版面的才整個重畫
   else refreshPlan();
 });
 $("#planBody").addEventListener("input", e=>{            // 打字中：只記下來，不重畫（避免游標跳掉）
@@ -6244,6 +6255,13 @@ function remindItems(d){
     } else if(e.type === "swap" && e.dir){
       const k = ["sw", e.id || "", e.date, e.period, e.cls].join("|"); if(seen.has(k)) return; seen.add(k);
       const per = {}, sh = {}, T = e.teacher || "", P = e.partner || "";
+      if(!e.toDate && e.pend){                                     // 11/20：調整後待輸入
+        const hd = `${p} ${[e.cls, e.fromSubject].filter(Boolean).join(" ")}`;
+        if(T) per[T] = `${hd}：這節調課，調整後的時間待定（教務組會再通知）`; if(P) per[P] = `${hd}：和${nm(T)}老師調課，調整後的時間待定`;
+        if(T) sh[T] = {role:"調課", t:`${hd}　→時間待定`}; if(P) sh[P] = {role:"調課", t:`${hd}　→時間待定`};
+        out.push({p:+e.period||0, line:`${hd}：${nm(T)}老師調課，調整後的時間待定`, per, sh, card:{kind:"調課", ph:p, t:[e.cls, e.fromSubject].filter(Boolean).join(" "), a:`${nm(T)} 老師`, b:"調整後時間待定"}});
+        return;
+      }
       if(!e.toDate){                                               // 調課單上寫的是代課（沒有調整後的時間）
         const hd = `${p} ${[e.cls, e.fromSubject].filter(Boolean).join(" ")}`;
         if(P) per[P] = `${hd}：請您代課（原本是${nm(T)}老師的課；調課單）`; if(T) per[T] = `${hd}：您的課由${nm(P)}老師代課（調課單）`;
@@ -8581,7 +8599,7 @@ async function demoPost(b){
   if(blocked.length) return {ok:false, blocked, error:"衝堂或請假，不能登記"};
   if(conflicts.length && !b.force) return {ok:false, conflicts};
   const ids=[];
-  (b.swaps||[]).forEach(r=>{ const id="調-"+String(100+demoSaved.length); ids.push(id); CF.asEvents("swap",r).forEach(e=>demoSaved.push(Object.assign(e,{id,fromDate:r.fromDate,fromPeriod:r.fromPeriod,fromSubject:r.fromSubject,toDate:r.toDate,toPeriod:r.toPeriod,toSubject:r.toSubject,who:r.teacher,other:r.partner,subject:"",note:""}))); });
+  (b.swaps||[]).forEach(r=>{ const id="調-"+String(100+demoSaved.length); ids.push(id); CF.asEvents("swap",r).forEach(e=>demoSaved.push(Object.assign(e,{id,fromDate:r.fromDate,fromPeriod:r.fromPeriod,fromSubject:r.fromSubject,toDate:r.toDate,toPeriod:r.toPeriod,toSubject:r.toSubject,pend:!!r.pend&&!r.toDate,who:r.teacher,other:r.partner,subject:"",note:""}))); });
   (b.subs||[]).forEach(r=>{ ids.push("網-示範"); CF.asEvents("sub",r).forEach(e=>demoSaved.push(Object.assign(e,{subject:r.subject,leaveType:r.leaveType,note:""}))); });
   (b.tutors||[]).forEach(r=>{ CF.asEvents("tutor",r).forEach(e=>demoSaved.push(Object.assign(e,{leaveType:r.leaveType,days:1,note:""}))); });
   return {ok:true,saved:ids.length,ids,conflicts};
