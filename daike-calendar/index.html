@@ -1665,6 +1665,28 @@ html[data-theme=dark] .wb-todo li.ok{background:rgba(79,209,161,.10)}
 .setup-box .setup-go{width:100%;margin-top:14px;min-height:48px}
 .setup-box .setup-tip{margin:10px 0 0;font-size:13px;color:var(--ink-3)}
 }
+@media screen{
+/* 115.11.20 用序號查詢 */
+.find-card{width:min(580px,100%);max-height:calc(100dvh - 32px);display:flex;flex-direction:column}
+.find-form{display:flex;gap:8px;margin:12px 0 4px}
+.find-form input{flex:1;min-width:0;min-height:44px;border:1px solid var(--line);border-radius:10px;padding:0 12px;font:inherit;font-size:16px;background:var(--surface);color:var(--ink)}
+#findOut{overflow:auto;flex:1;min-height:0;margin:6px -6px 0;padding:0 6px}
+.find-none{margin:14px 0;color:var(--ink-2);font-size:14px;line-height:1.8}
+.find-n{margin:8px 0 0;color:var(--ink-2);font-size:13px}
+.find-it{border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:10px 0;background:var(--surface)}
+.find-it h3{margin:0 0 8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:20px;letter-spacing:.02em;font-variant-numeric:tabular-nums;color:var(--ink)}
+.find-it h3 .fk{font-size:12px;font-weight:800;letter-spacing:0;padding:1px 9px;border-radius:999px;border:1.5px solid currentColor;color:var(--c-sub)}
+.find-it.swap h3 .fk{color:var(--c-swap)}
+.find-it.tutor h3 .fk{color:var(--c-tutor)}
+.find-it.absent h3 .fk{color:var(--c-leave)}
+.find-it h3 .fs{font-size:13px;font-weight:700;letter-spacing:0;color:var(--sage)}
+.find-it h3 .fs.no{color:var(--ink-3)}
+.find-it dl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:0;font-size:15px;line-height:1.6}
+.find-it dt{color:var(--ink-3);white-space:nowrap}
+.find-it dd{margin:0;color:var(--ink);overflow-wrap:anywhere}
+.find-it dd.warn{color:var(--rose);font-weight:700}
+.find-acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+}
 </style>
 </head>
 <body>
@@ -1767,6 +1789,7 @@ html[data-theme=dark] .wb-todo li.ok{background:rgba(79,209,161,.10)}
         <button class="mitem" id="reload" type="button" role="menuitem"><svg class="mi" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>重新整理</button>
         <button class="mitem" id="openReport" type="button" role="menuitem" hidden><svg class="mi" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>回報問題</button>
         <button class="mitem" id="openLine" type="button" role="menuitem" hidden><svg class="mi" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9 9 0 0 1-3.4-.7L3 21l1.6-4.6A8 8 0 0 1 3 11.5 8.6 8.6 0 0 1 12 3a8.6 8.6 0 0 1 9 8.5z"/></svg>LINE 通知</button>
+        <button class="mitem" id="openFind" type="button" role="menuitem" hidden><svg class="mi" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/></svg>用序號查詢</button>
         <button class="mitem" id="openPw" type="button" role="menuitem"><svg class="mi" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>更改密碼</button>
         <hr class="msep" aria-hidden="true">
         <button class="mitem" id="logout" type="button" role="menuitem"><svg class="mi" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>登出</button>
@@ -1969,6 +1992,19 @@ html[data-theme=dark] .wb-todo li.ok{background:rgba(79,209,161,.10)}
     <div class="cmd-in"><kbd aria-hidden="true">Ctrl K</kbd><input id="cmdQ" placeholder="輸入老師、日期（10/27）、序號或功能…" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="true" aria-controls="cmdList" aria-autocomplete="list"></div>
     <ul id="cmdList" role="listbox" aria-label="符合的項目"></ul>
     <div class="cmd-foot"><span><kbd>↑</kbd><kbd>↓</kbd> 選擇</span><span><kbd>Enter</kbd> 執行</span><span><kbd>Esc</kbd> 關閉</span><span class="r">任何地方按 <kbd>Ctrl</kbd>＋<kbd>K</kbd> 或 <kbd>/</kbd> 打開</span></div>
+  </div>
+</div>
+<div class="modal" id="findModal" hidden>
+  <div class="modal-card find-card" role="dialog" aria-modal="true" aria-labelledby="findTitle">
+    <h2 id="findTitle">用序號查詢</h2>
+    <p class="sub">輸入紙本上的序號，查這筆調課、代課、代導師或請假。只打後面幾個數字也可以。</p>
+    <form class="find-form" id="findForm" autocomplete="off">
+      <label class="sr" for="findQ">序號</label>
+      <input id="findQ" placeholder="例：代-11511009、調-11511001、009" enterkeyhint="search">
+      <button class="btn" type="submit">查詢</button>
+    </form>
+    <div id="findOut" aria-live="polite"></div>
+    <div class="modal-actions"><button class="btn ghost" type="button" id="findClose">關閉</button></div>
   </div>
 </div>
 <div class="modal" id="sidModal" hidden>
@@ -2857,7 +2893,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.20b";
+const APP_VERSION = "專業版 2026.11.20c";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -3486,6 +3522,7 @@ function applyData(d){
   $("#openPlan").hidden = state.role!=="admin"; $("#cmdBtn").hidden = state.role!=="admin";
   $("#dlExcel").textContent = state.role==="admin" || state.role==="acct" ? "明細試算表（雲端）" : "下載 Excel";
   $("#openReport").hidden = state.role!=="teacher";                 // 老師回報：只有老師用
+  $("#openFind").hidden = state.role!=="admin" && state.role!=="acct";   // 11/20 用序號查詢
   state.reports = d.reports || []; state.notify = d.notify; state.auto = d.auto || null; autoNotice();
   state.off = d.off || {}; state.audit = d.audit || []; state.typhoon = d.typhoon || null; state.heli = d.heli || state.heli || []; if(d.ins) state.ins = d.ins; if(d.meta) state.meta = d.meta;
   if(d.offRows) state.offRows = d.offRows; if(d.settings) applySettings(d.settings);   // 費率等設定（管理者可在網站改）
@@ -4591,6 +4628,7 @@ function subLoad(date){
 /* ---------- 快速指令（10/31）：Ctrl＋K 或 / 打開；輸入老師、日期、序號、功能；也有單鍵快捷鍵 ---------- */
 const CMD_ACTIONS = () => [
   {ic:"＋", t:"排調代課", d:"登記調課、代課、請假、代導師", k:"N", kw:"登記 新增 代課 調課 請假", run:() => openPlan()},
+  {ic:"#", t:"用序號查詢", d:"輸入紙本序號（代-、調-、導-、假-），查這筆調代課", k:"S", kw:"序號 編號 號碼 查詢 紙本 回查", run:() => findOpen("")},
   {ic:"今", t:"回到今天", d:"年曆跳到這個月", k:"T", kw:"今天 年曆", run:() => { setRange(""); jumpToday(true); }},
   {ic:"▦", t:"數據儀表板", d:"統計、趨勢、熱點", k:"G", kw:"統計 圖表 分析 儀表板", run:() => WB_FUNCS.find(x => x[0] === "數據儀表板")[1]()},
   {ic:"◐", t:"切換深色／粉色模式", d:"深色科技模式或粉色模式", k:"D", kw:"深色 粉色 主題 夜間 外觀", run:() => setTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "pink" : "dark")},
@@ -6159,7 +6197,7 @@ const WB_FUNCS = [
   ["老師回報", () => wbGo("#myReports")], ["回報", () => wbGo("#myReports")],
   ["老師密碼", () => { const d = document.querySelector("#adminBox .pw-list") || document.querySelector("#adminMobile .pw-list"); if(d) d.open = true; wbGo(d && d.offsetParent ? d : "#adminMobile"); }], ["密碼", () => $("#openPw").click()],
   ["LINE", () => { if(!$("#openLine").hidden) $("#openLine").click(); else toast("LINE 通知還沒設定（資料表選單「設定 LINE」）"); }], ["年曆", () => wbGo("#year")], ["清單", () => { document.querySelector('.tab[data-view="list"]').click(); wbGo("#list"); }],
-  ["整學期", () => { setRange(""); wbGo("#year"); }],
+  ["整學期", () => { setRange(""); wbGo("#year"); }], ["序號查詢", () => findOpen("")], ["序號", () => findOpen("")], ["編號", () => findOpen("")],
   ["數據儀表板", () => { const d = $("#dash"); if(d){ d.open = true; store.set(K+"dashOpen", "1", localStorage); } wbGo("#dash"); }], ["統計", () => { const d = $("#dash"); if(d) d.open = true; wbGo("#dash"); }], ["儀表板", () => { const d = $("#dash"); if(d) d.open = true; wbGo("#dash"); }]
 ];
 function wbGo(sel, fallback){
@@ -6485,10 +6523,11 @@ function renderWorkbench(){
   if(nav){ nav.querySelectorAll("button").forEach(b => b.onclick = () => { const t = b.dataset.nav; if(t === "cmd"){ cmdOpen(); return; } if(t === "set") wbOpenSettings(); else wbGo(t); nav.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); }); }
 }
 /* 找：老師 → 切到那位老師；日期 → 打開那天；月份 → 切月份；功能 → 跳過去 */
-function wbFind(q){
+function wbFind(q, jump){
   // 全形字（中文輸入法常打出「調－１１５１１００１」）、各種破折號、「序號：」字頭都先轉成標準寫法
   q = String(q || "").normalize("NFKC").replace(/[－—–‐‑−]/g, "-").replace(/^序號\s*[:：]?\s*/, "").trim(); if(!q) return;
   if(/\d/.test(q) && !/[\/月日]/.test(q)){                       // 序號：調-11511001、代-11511001、假-11511001、導-11511001、A11501025
+    if(!jump && (findHits(q).length || /^[A-Za-z\u4e00-\u9fff]{0,3}-?\d+$/.test(q))){ findOpen(q); return; }   // 11/20：列出這筆的完整內容
     const k = sidKey(q.replace(/^序號/, "")), seen = new Set();
     let hit = state.events.filter(e => sidOf(e) && sidKey(sidOf(e)) === k);
     if(!hit.length && /^\|/.test(k)) hit = state.events.filter(e => sidOf(e) && sidKey(sidOf(e)).split("|")[1] === k.slice(1));   // 只打數字 11511001
@@ -6513,6 +6552,85 @@ function wbFind(q){
   if(fn){ fn[1](); return; }
   toast(`找不到「${q}」：可以輸入老師名字、日期（10/27）、月份（10 月）或功能名稱`);
 }
+
+/* ---------- 115.11.20 用序號查詢（管理者要求）：輸入紙本序號 → 列出那筆調代課的完整內容，可直接看那一天、修改、核章 ---------- */
+const findNorm = q => String(q || "").normalize("NFKC").replace(/[－—–‐‑−]/g, "-").replace(/^序號\s*[:：]?\s*/, "").replace(/\s/g, "");
+function findHits(q){
+  q = findNorm(q); if(!q || !/\d/.test(q)) return [];
+  const by = new Map();                                             // 一個序號一筆：調課取原日期那筆（調出）；代課取寫得出說明的那筆
+  (isAll() ? state.events : state.events.concat(state.school || [])).forEach(e => { const sid = sidOf(e); if(!sid) return; const cur = by.get(sid);
+    if(!cur || (!describe(cur) && describe(e)) || (e.type === "swap" && e.dir === "調出" && cur.dir !== "調出")) by.set(sid, e); });
+  const all = [...by.entries()], k = sidKey(q);
+  let hit = all.filter(([sid]) => sidKey(sid) === k);
+  if(!hit.length && /^\|/.test(k)) hit = all.filter(([sid]) => sidKey(sid).split("|")[1] === k.slice(1));        // 只打數字：11511009
+  if(!hit.length && q.replace(/\D/g, "").length >= 2){                                                           // 只打一部分：009、代-115110
+    const dq = q.toUpperCase().replace(/-/g, ""), num = /^\d+$/.test(dq);
+    hit = all.filter(([sid]) => { const t = sid.toUpperCase().replace(/-/g, ""); return num ? t.endsWith(dq) || t.replace(/\D/g, "").includes(dq) : t.includes(dq); });
+  }
+  const dayOf = e => e.type === "swap" ? (e.fromDate || e.date) : e.date;
+  return hit.map(x => x[1]).sort((a, b) => dayOf(a) < dayOf(b) ? -1 : dayOf(a) > dayOf(b) ? 1 : sidOf(a) < sidOf(b) ? -1 : 1);
+}
+function findRows(e){
+  const R = [], t = e.type, per = p => p ? `第${p}節` : "", warn = v => ({v, warn:true});
+  if(t === "swap"){
+    R.push(["申請人", e.teacher || warn("沒有寫")]);
+    R.push(["原上課", [md(e.fromDate || e.date), per(e.fromPeriod || e.period), e.cls, e.fromSubject].filter(Boolean).join(" ")]);
+    R.push(["調整後", e.toDate ? [md(e.toDate), per(e.toPeriod), e.toSubject].filter(Boolean).join(" ") : e.pend ? warn("待輸入（日期、節次還沒定）") : "沒有調整後的時間（調課單上的代課）"]);
+    R.push([e.toDate || e.pend ? "對調老師" : "代課老師", e.partner || warn("還沒填")]);
+  } else if(t === "absent"){
+    R.push(["請假老師", e.who || ""]); R.push(["日期", md(e.date)]); R.push(["範圍", CF.absText(e)]); if(e.leaveType) R.push(["假別", e.leaveType]);
+  } else {
+    const tut = t === "tutor" || t === "tutorLeave", mine = t === "sub" || t === "tutor", leaver = mine ? e.other : e.who, by = mine ? e.who : e.other;
+    R.push(["日期", [md(e.date), tut ? daysTxt(e) : per(e.period)].filter(Boolean).join(" ")]);
+    R.push([tut ? "班級" : "課程", tut ? `${e.cls || ""} 導師` : courseOf(e)]);
+    R.push(["請假老師", (leaver || "沒有寫") + (e.leaveType ? `（${e.leaveType}）` : "")]);
+    R.push([tut ? "代導師" : "代課老師", by || warn(tut ? "還沒安排代導師" : "還沒安排代課")]);
+    const d = describe(e); if(by && d && d.f) R.push(["費用", d.f + (e.nofee && !e.self && e.exempt && d.f.indexOf(e.exempt) < 0 ? `（${e.exempt}）` : "")]);
+  }
+  if((e.flags || []).length) R.push(["提醒", warn(e.flags.join("；"))]);
+  if(e.fix && e.fix.text && state.role === "admin") R.push(["已修正", e.fix.text]);
+  return R;
+}
+let findCur = [];
+function findCardHtml(e, i){
+  const sid = sidOf(e), fam = stampFam(e), done = isStamped(e), admin = state.role === "admin", ref = admin ? fixRef(e) : null;
+  const cls = e.type === "swap" ? "swap" : e.type === "absent" ? "absent" : fam === "代導師" ? "tutor" : "sub";
+  const acts = [`<button type="button" class="btn ghost small" data-fgo="${i}">看這一天</button>`];
+  if(ref) acts.push(`<button type="button" class="btn ${e.pend ? "" : "ghost "}small" data-ffix="${i}">${e.pend ? "補上調整後的日期" : "修改"}</button>`);
+  if(admin && fam && e.type !== "absent") acts.push(`<button type="button" class="btn ghost small" data-fstamp="${i}">${done ? "看同一張紙本" : "核章完成"}</button>`);
+  acts.push(`<button type="button" class="btn ghost small" data-fcopy="${i}">複製</button>`);
+  return `<section class="find-it ${cls}" aria-label="序號 ${esc(sid)}"><h3>${esc(sid)}<span class="fk">${esc(fam || KIND[e.type] || "")}${e.self && e.type !== "swap" ? "・費用自理" : ""}</span>${fam && e.type !== "absent" ? `<span class="fs${done ? "" : " no"}">${done ? "✓ 已核章完成" : "還沒核章"}</span>` : ""}</h3>
+    <dl>${findRows(e).map(([k, v]) => `<dt>${esc(k)}</dt><dd${v && v.warn ? ' class="warn"' : ""}>${esc(v && v.warn ? v.v : v)}</dd>`).join("")}</dl>
+    <div class="find-acts">${acts.join("")}</div></section>`;
+}
+function findText(e){ return "序號 " + sidOf(e) + "\n" + findRows(e).map(([k, v]) => `${k}：${v && v.warn ? v.v : v}`).join("\n"); }
+function findRender(){
+  const q = findNorm($("#findQ").value), out = $("#findOut"), max = 30;
+  if(!q){ findCur = []; out.innerHTML = `<p class="find-none">序號寫在紙本上，網站每一筆紀錄也都有（例如 代-11511009）。<br>字頭：代＝代課、調＝調課、導＝代導師、假＝請假；「自代」「自導」＝費用自理。</p>`; return; }
+  findCur = findHits(q).slice(0, max + 1);
+  if(!findCur.length){ out.innerHTML = `<p class="find-none">找不到序號「${esc(q)}」。<br>請核對紙本上的號碼；已經刪除的紀錄查不到。只查得到本學期（${esc(termText())}）的資料。</p>`; return; }
+  const more = findCur.length > max; if(more) findCur = findCur.slice(0, max);
+  out.innerHTML = (findCur.length > 1 ? `<p class="find-n">找到 ${more ? "超過 " + max : findCur.length} 筆${more ? `，先列出前 ${max} 筆（多打幾個字會更準）` : ""}</p>` : "") + findCur.map(findCardHtml).join("");
+}
+function findOpen(q){
+  if(q !== undefined) $("#findQ").value = q || "";
+  findRender(); $("#findModal").hidden = false; const i = $("#findQ"); i.focus(); try{ i.select(); }catch(_){}
+}
+function findClose(){ $("#findModal").hidden = true; }
+$("#findForm").onsubmit = e => { e.preventDefault(); findRender(); };
+$("#findQ").oninput = findRender;
+$("#findClose").onclick = findClose;
+$("#openFind").onclick = () => findOpen("");
+$("#findModal").addEventListener("keydown", e => { if(e.key === "Escape") findClose(); });
+$("#findOut").addEventListener("click", async ev => {
+  const b = ev.target.closest("button"); if(!b) return;
+  const pick = k => b.dataset[k] !== undefined ? findCur[+b.dataset[k]] : null;
+  let e;
+  if((e = pick("fgo"))){ findClose(); wbOpenSid(e); }
+  else if((e = pick("ffix"))){ const r = fixRef(e); if(r){ findClose(); openFix(r.key); } }
+  else if((e = pick("fstamp"))){ findClose(); openSidModal(e.id); }
+  else if((e = pick("fcopy"))){ const ok = await copyText(findText(e)); toast(ok ? "已複製這筆的內容" : "複製不了，請手動選取文字"); }
+});
 
 /* ---------- 管理者：人事差勤系統核對（10/30） ----------
  * 把差勤系統「已批核案件」的文字貼進來 → 和本系統比對；貼過的文字留在這台裝置（localStorage），重新整理會再比一次。 */
@@ -6906,7 +7024,7 @@ function renderAlerts(){
     box.addEventListener("click", e => {
       const a = e.target.closest("[data-alsid]"), b = e.target.closest("[data-alday]"), x = e.target.closest("[data-alexp]"), pl = e.target.closest("[data-alplan]"), sg = e.target.closest("[data-alsg]"),
             rn = e.target.closest("[data-alrun]"), cl = e.target.closest("[data-alclose]"), rs = e.target.closest("[data-alrestore]");
-      if(a) wbFind(a.dataset.alsid); else if(b) wbOpenDay(b.dataset.alday);
+      if(a) wbFind(a.dataset.alsid, true); else if(b) wbOpenDay(b.dataset.alday);
       else if(x){ alExp.key = alExp.key === x.dataset.alexp ? "" : x.dataset.alexp; alExp.text = ""; alExp.plan = null; alExp.err = ""; renderAlerts(); if(alExp.key) setTimeout(() => { const t = $("#alText"); if(t) t.focus(); }, 30); }
       else if(cl){ alExp.key = ""; alExp.plan = null; renderAlerts(); }
       else if(pl){ const i = (state.audit || []).find(z => z.key === alExp.key); if(!i) return; const t = $("#alText"); alExp.text = t ? t.value : ""; const r = alPlanFrom(i, alExp.text);

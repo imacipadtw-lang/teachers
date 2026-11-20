@@ -47,7 +47,9 @@ async function login(p){
     ok(!bad.length, `快速指令 ${n} 個都可執行 ${bad.join('; ')}`);
     // 搜尋
     await p.evaluate(() => showPage('home')); await p.fill('#wbQ', '調-001'); await p.press('#wbQ', 'Enter'); await p.waitForTimeout(400);
-    ok(await p.evaluate(() => state.page === 'cal' && !!state.selected), '工作台搜尋序號會跳到年曆那一天');
+    ok(await p.isVisible('#findModal') && (await p.textContent('#findOut')).includes('調-001'), '工作台搜尋序號 → 「用序號查詢」列出這筆的內容');
+    await p.click('#findOut [data-fgo]'); await p.waitForTimeout(400);
+    ok(await p.isHidden('#findModal') && await p.evaluate(() => state.page === 'cal' && !!state.selected), '按「看這一天」跳到年曆那一天');
     // 更多選單
     await p.click('#moreBtn'); ok(await p.isVisible('#moreMenu'), '「更多」選單打得開');
     await p.keyboard.press('Escape'); ok(await p.evaluate(() => document.getElementById('moreMenu').hidden), 'Esc 關閉「更多」選單');
