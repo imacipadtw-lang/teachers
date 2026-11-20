@@ -627,6 +627,8 @@ body:not(.has-view) .ev-other button{display:none}   /* 管理者看某位老師
 .sid-list li{margin:6px 0;font-size:14px;color:var(--ink-2)}
 .sid-list li b{display:inline-block;min-width:150px;font-size:20px;letter-spacing:.02em;color:var(--ink);font-variant-numeric:tabular-nums}
 .sid-list li .ok{color:var(--sage);font-weight:700;margin-left:4px}
+.sid-list li .sid-by{display:block;margin:2px 0 0;font-size:15px;color:var(--ink);font-weight:700}
+.sid-list li .sid-by.none{color:var(--rose)}
 .sid-msg{margin:6px 0 0;font-weight:700;color:var(--sage)}
 .ev .sid{float:right;font-size:11.5px;color:var(--ink-3);font-variant-numeric:tabular-nums;margin-left:8px}
 .ev.hit{background:#f9eeda;border-radius:0 8px 8px 0;transition:background .6s}
@@ -2848,7 +2850,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.17e";
+const APP_VERSION = "專業版 2026.11.20a";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -6325,9 +6327,21 @@ function openSidModal(id){
   renderSidList(); $("#sidMsg").textContent = "";
   $("#sidModal").hidden = false; ($("#sidOk").hidden ? $("#sidClose") : $("#sidOk")).focus();
 }
+/* 11/20 管理者要求：序號視窗寫出是誰代課（代導師、調課對象）——紙本上要寫 */
+function sidBy(x){
+  const t = x.type;
+  if(t === "sub")  return { lab:"代課", name:x.who || "" };
+  if(t === "leave") return { lab:"代課", name:x.other || "" };
+  if(t === "tutor") return { lab:"代導師", name:x.who || "" };
+  if(t === "tutorLeave") return { lab:"代導師", name:x.other || "" };
+  if(t === "swap") return { lab:x.toDate ? "對調" : "代課", name:(x.partner || (x.dir === "調入" ? x.who : x.other) || "") };
+  return null;
+}
+const sidByText = x => { const b = sidBy(x); return !b ? "" : b.name ? `${b.lab}：${b.name}` : `還沒安排${b.lab === "對調" ? "對調老師" : b.lab}`; };
 function renderSidList(){
   $("#sidList").innerHTML = sidGroup.map(x => { const d = describe(x) || {p:""}; const done = isStamped(state.events.find(y => y.id===x.id) || x);
-    return `<li><b>${esc(sidOf(x))}</b>${esc(d.p)}${done ? `<span class="ok">✓ 已核章完成</span>` : ""}</li>`; }).join("");
+    const b = sidBy(x), bt = sidByText(x);
+    return `<li><b>${esc(sidOf(x))}</b>${esc(d.p)}${bt ? `<span class="sid-by${b && !b.name ? " none" : ""}">${esc(bt)}</span>` : ""}${done ? `<span class="ok">✓ 已核章完成</span>` : ""}</li>`; }).join("");
   const todo = sidGroup.filter(x => !isStamped(state.events.find(y => y.id===x.id) || x));
   $("#sidOk").hidden = !todo.length;
   $("#sidOk").textContent = todo.length === sidGroup.length ? "確認已核章完成" : `確認其餘 ${todo.length} 筆已核章完成`;
@@ -6362,7 +6376,8 @@ $("#sidClose").onclick = () => { $("#sidModal").hidden = true; };
 $("#sidModal").addEventListener("keydown", e => { if(e.key === "Escape") $("#sidModal").hidden = true; });
 $("#sidCopy").onclick = async () => {
   const t = sidGroup.map(sidOf).join("、");
-  try{ await navigator.clipboard.writeText(t); toast("已複製：" + t); }catch(err){ toast("序號：" + t); }
+  const full = sidGroup.map(x => { const d = describe(x) || {p:""}, bt = sidByText(x); return [sidOf(x), d.p, bt].filter(Boolean).join("　"); }).join("\n");
+  try{ await navigator.clipboard.writeText(full); toast("已複製：" + t); }catch(err){ toast("序號：" + t); }
 };
 $("#sidOk").onclick = async () => {
   const ids = sidGroup.filter(x => !isStamped(state.events.find(y => y.id===x.id) || x)).map(x => x.id); if(!ids.length) return;
