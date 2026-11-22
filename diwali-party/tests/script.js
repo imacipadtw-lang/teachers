@@ -63,18 +63,27 @@ const ok = (c, m) => { if (!c) fail.push(m); };
   await p.click('#p-s1 .play');
   await p.waitForTimeout(700);
   ok(got.length === 1, `單句播放應該只送出一個音檔，實際 ${got.join(',') || '無'}`);
-  got.length = 0;
-  const want = (await p.getAttribute('#p-s1 .seq', 'data-seq')).split(',');
-  await p.click('#p-s1 .seq');
-  ok((await p.textContent('#p-s1 .seq')).includes('停止'), '整段播放時按鈕沒變成「停止播放」');
-  await p.waitForTimeout(23000);
-  ok(got.join(',') === want.join(','), `整段播放順序不對：要 ${want.join(',')}，實際 ${got.join(',')}`);
-  ok(!(await p.textContent('#p-s1 .seq')).includes('停止'), '整段播完按鈕沒變回來');
-  // 分頁切換會停下播放
-  await p.click('#p-s1 .seq'); await p.waitForTimeout(400);
-  await p.click('.tab[data-p="core"]'); await p.waitForTimeout(400);
-  ok(await p.evaluate(() => !document.getElementById('p-core').hidden), '切換分頁沒有換頁');
   await p.close();
+
+  // 整段播放另開一個乾淨的分頁：同一頁播過的音檔會被瀏覽器快取，就看不到第二次的請求
+  const q = await b.newPage({ viewport: { width: 1280, height: 800 } });
+  const seq = [];
+  q.on('request', r => { const u = r.url(); if (u.includes('/voice/')) seq.push(u.split('/').pop().replace('.mp3', '')); });
+  await q.goto(BASE + '/script.html#s1', { waitUntil: 'networkidle' });
+  await q.waitForTimeout(300);
+  const want = (await q.getAttribute('#p-s1 .seq', 'data-seq')).split(',');
+  await q.click('#p-s1 .seq');
+  ok((await q.textContent('#p-s1 .seq')).includes('停止'), '整段播放時按鈕沒變成「停止播放」');
+  await q.waitForTimeout(23000);
+  ok(seq.join(',') === want.join(','), `整段播放順序不對：要 ${want.join(',')}，實際 ${seq.join(',')}`);
+  ok(!(await q.textContent('#p-s1 .seq')).includes('停止'), '整段播完按鈕沒變回來');
+  // 分頁切換會停下播放
+  await q.click('#p-s1 .seq'); await q.waitForTimeout(400);
+  await q.click('.tab[data-p="core"]'); await q.waitForTimeout(400);
+  ok(await q.evaluate(() => !document.getElementById('p-core').hidden), '切換分頁沒有換頁');
+  ok(await q.evaluate(() => { const a = document.querySelector('#p-s1 .seq'); return !a.dataset.on; }),
+     '換分頁沒有停下整段播放');
+  await q.close();
   await b.close();
 
   if (fail.length) { console.log('FAIL\n' + fail.join('\n')); process.exit(1); }
