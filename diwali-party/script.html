@@ -3,239 +3,305 @@
 <html lang="zh-Hant"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow,noai,noimageai">
-<title>Diwali Party 上課腳本</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>上課腳本｜Ankita's Diwali Party</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Noto+Sans+TC:wght@500;700;900&display=swap" media="print" onload="this.media='all'">
 <style>
-:root{--bg:#FFF8EC;--card:#fff;--ink:#24190A;--mut:#6B6176;--line:#E8DCC6;--night:#17114A;--gold:#FFC531;--me:#C0166E;--meb:#FFE7F2;--ank:#B44C00;--ankb:#FFEFD9;--st:#0B7F71;--stb:#DDF8F3;--do:#3D3566;--dob:#EEEBFA;
- --f:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;--e:"Baloo 2","Noto Sans TC",system-ui,sans-serif}
+:root{color-scheme:dark;
+ --night:#140E3F;--deep:#0C0828;--panel:#221A63;--card:#2B2176;--line:rgba(255,255,255,.14);
+ --ink:#FFF7E6;--mut:#C6BCEF;--gold:#FFC531;--pink:#FF8AC0;--mint:#5FE6D2;--teal:#2EDCA4;
+ --f:"Baloo 2","Noto Sans TC","PingFang TC",system-ui,sans-serif;
+ --zh:"Noto Sans TC","PingFang TC",system-ui,sans-serif}
 *{box-sizing:border-box}
-html{scroll-behavior:smooth;scroll-padding-top:64px}
-body{margin:0;background:var(--bg);color:var(--ink);font:500 17px/1.65 var(--f)}
-.wrap{max-width:860px;margin:0 auto;padding-block:16px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-header.top{background:var(--night);color:#fff}
-header.top .wrap{padding-block:22px 18px}
-h1{margin:0;font:900 26px/1.25 var(--f);text-wrap:balance}
-h1 small{display:block;font:800 15px/1.4 var(--e);letter-spacing:.12em;color:var(--gold)}
-.sub{margin:8px 0 0;color:#D8D2F5;font-size:15px}
-nav{position:sticky;top:0;z-index:5;background:var(--night);border-top:1px solid #3A2F86}
-nav .wrap{padding-block:8px;display:flex;gap:6px;overflow-x:auto}
-nav a{flex:none;color:#fff;text-decoration:none;font:700 14px/1 var(--f);padding:9px 12px;border-radius:999px;background:#2E2478;font-variant-numeric:tabular-nums}
-nav a:active{background:var(--gold);color:var(--ink)}
-h2{margin:30px 0 10px;font:900 21px/1.3 var(--f)}
-p{margin:8px 0}
-.legend{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 0}
-.tg{display:inline-block;font:900 13px/1 var(--f);padding:6px 9px 5px;border-radius:8px;white-space:nowrap}
-.tg.me{background:var(--meb);color:var(--me)}.tg.ank{background:var(--ankb);color:var(--ank)}.tg.st{background:var(--stb);color:var(--st)}.tg.do{background:var(--dob);color:var(--do)}.tg.key{background:var(--ink);color:#fff}
-.blk{background:var(--card);border:2px solid var(--line);border-radius:18px;margin:14px 0;overflow:hidden}
-.blk>header{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px;padding:12px 16px 10px;background:#FFF1CC;border-bottom:2px solid var(--line)}
-.blk.ankita>header{background:var(--ankb)}
-.blk>header b{font:800 22px/1 var(--e);font-variant-numeric:tabular-nums}
-.blk>header h3{margin:0;font:900 18px/1.3 var(--f);flex:1 1 200px}
-.blk>header span{font:700 13px/1.3 var(--f);color:var(--mut)}
-.r{display:grid;grid-template-columns:76px 1fr;gap:10px;padding:10px 16px;border-top:1px solid var(--line)}
-.r:first-of-type{border-top:0}
-.r>.tg{align-self:start;text-align:center;margin-top:3px}
-.r p{margin:0}
-.r p+p{margin-top:6px}
-.en{font:800 21px/1.4 var(--e);color:var(--ink)}
-.me .en{color:var(--me)}.ank .en{color:var(--ank)}.st .en{color:var(--st)}
-.act{color:var(--mut);font-size:15px}
-.zh{color:var(--mut);font-size:15px}
-kbd{font:700 14px/1 ui-monospace,Menlo,monospace;border:2px solid var(--ink);border-radius:6px;padding:2px 6px;background:#fff;white-space:nowrap}
-ul.chk{list-style:none;margin:0;padding:0}
-ul.chk li{border-top:1px solid var(--line)}
-ul.chk li:first-child{border-top:0}
-ul.chk label{display:grid;grid-template-columns:30px 1fr;gap:8px;padding:11px 16px;cursor:pointer}
-ul.chk input{width:22px;height:22px;margin:3px 0 0;accent-color:var(--me)}
-ul.chk input:checked+span{color:var(--mut);text-decoration:line-through}
-.tablewrap{overflow-x:auto;border:2px solid var(--line);border-radius:14px;background:#fff}
-table{border-collapse:collapse;width:100%;min-width:520px;font-size:15px}
-th,td{text-align:left;vertical-align:top;padding:9px 12px;border-top:1px solid var(--line)}
-thead th{border-top:0;background:#FFF1CC;font-weight:900}
-td.en{font-size:18px;color:var(--me)}
-.note{background:#F1EEFF;border-radius:14px;padding:12px 16px;font-size:15px}
-a{color:#4B2FD0}
-.card-en{background:#fff;border:2px solid var(--ank);border-radius:18px;padding:14px 16px}
-.card-en h3{margin:0 0 6px;font:800 20px/1.2 var(--e);color:var(--ank)}
-.card-en li{font:600 17px/1.5 var(--e)}
-.card-en b{color:var(--ank)}
-@media (max-width:480px){.r{grid-template-columns:1fr;gap:4px}.r>.tg{justify-self:start}.en{font-size:19px}}
+html,body{height:100%}
+body{margin:0;overflow:hidden;color:var(--ink);font:500 16px/1.5 var(--zh);
+ background:radial-gradient(900px 600px at 88% -5%,#4A34B8 0,transparent 62%),linear-gradient(165deg,#2A1E7A,var(--night) 55%,var(--deep));
+ -webkit-tap-highlight-color:transparent}
+.wrap{display:grid;grid-template-rows:auto auto minmax(0,1fr);height:100dvh;
+ padding-left:max(10px,env(safe-area-inset-left,0px));padding-right:max(10px,env(safe-area-inset-right,0px));
+ padding-top:max(8px,env(safe-area-inset-top,0px));padding-bottom:max(6px,env(safe-area-inset-bottom,0px))}
+
+/* top strip */
+.top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:2px 6px 8px}
+.top h1{margin:0;font:800 19px/1.1 var(--f);letter-spacing:.2px}
+.top h1 i{font-style:normal;color:var(--gold)}
+.top .sp{flex:1 1 auto}
+.sw{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.08);border:1px solid var(--line);
+ border-radius:999px;padding:3px}
+.sw button{appearance:none;border:0;background:transparent;color:var(--mut);font:700 13px/1 var(--zh);
+ padding:7px 11px;border-radius:999px;cursor:pointer}
+.sw button[aria-pressed=true]{background:var(--gold);color:#241700}
+.top a.lk{color:var(--mint);text-decoration:none;font-weight:700;font-size:13px;border-bottom:1px dashed rgba(95,230,210,.5)}
+
+/* bookmark tabs */
+.rail{display:flex;gap:4px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;padding:0 2px;
+ margin-bottom:-1px;position:relative;z-index:2;
+ -webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 30px),transparent);
+ mask-image:linear-gradient(90deg,#000 calc(100% - 30px),transparent)}
+.rail::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;appearance:none;cursor:pointer;text-align:left;min-width:92px;
+ background:rgba(255,255,255,.06);border:1px solid var(--line);border-bottom-color:transparent;
+ border-radius:14px 14px 0 0;padding:8px 13px 10px;color:var(--mut);font-family:var(--zh);
+ transition:transform .12s ease,background .12s ease}
+.tab small{display:block;font:700 10.5px/1.2 var(--zh);opacity:.75;letter-spacing:.3px}
+.tab b{display:block;font:700 15px/1.25 var(--zh);white-space:nowrap}
+.tab:hover{background:rgba(255,255,255,.12);transform:translateY(-2px)}
+.tab[aria-selected=true]{background:var(--panel);color:var(--ink);border-color:var(--line);
+ box-shadow:0 -3px 0 var(--gold) inset}
+.tab[aria-selected=true] small{color:var(--gold);opacity:1}
+.tab:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
+
+/* panel */
+.panel{min-height:0;overflow:auto;overscroll-behavior:contain;
+ background:var(--panel);border:1px solid var(--line);border-radius:0 16px 16px 16px;padding:14px 16px 18px}
+.ph{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;margin:0 0 12px}
+.ph h2{margin:0;font:800 20px/1.2 var(--zh)}
+.ph p{margin:3px 0 0;color:var(--mut);font-size:13.5px;max-width:62ch}
+.ph .seq{margin-left:auto}
+.seq{appearance:none;cursor:pointer;border:0;border-radius:999px;background:var(--gold);color:#241700;
+ font:700 14px/1 var(--zh);padding:11px 16px;box-shadow:0 3px 0 #C8920F}
+.seq:active{transform:translateY(2px);box-shadow:0 1px 0 #C8920F}
+.seq[data-on=1]{background:var(--mint);box-shadow:0 3px 0 #2A9E8F}
+h3.sub{margin:16px 0 8px;font:800 16px/1.3 var(--zh);color:var(--gold)}
+
+.fit{transform-origin:0 0}
+.rows{display:grid;gap:7px}
+@media (min-width:900px){
+ .rows{display:block;column-count:2;column-gap:16px}
+ .rows>*{break-inside:avoid;margin-bottom:7px}
+ .rows>h3.sub{column-span:all}
+}
+.row{display:grid;grid-template-columns:auto 1fr;gap:11px;align-items:start;
+ background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:12px;padding:9px 12px}
+.row p{margin:0}
+.rt .en{font:800 19px/1.3 var(--f);letter-spacing:.2px}
+.rt .zh{margin-top:2px;color:var(--mut);font-size:13px}
+.row.say{background:rgba(255,197,49,.1);border-color:rgba(255,197,49,.34)}
+.play{appearance:none;cursor:pointer;border:0;width:40px;height:40px;border-radius:50%;
+ background:var(--gold);color:#241700;font:700 15px/1 var(--f);padding-left:2px;flex:0 0 auto}
+.play:active{transform:scale(.94)}
+.play[data-on=1]{background:var(--mint);animation:pulse 1s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.07)}}
+.tg{display:inline-block;min-width:54px;text-align:center;border-radius:999px;padding:5px 8px;
+ font:700 12px/1.2 var(--zh)}
+.row.key .tg{background:rgba(95,230,210,.18);color:var(--mint)}
+.row.do .tg{background:rgba(255,138,192,.18);color:var(--pink)}
+.row.st .tg{background:rgba(255,255,255,.14);color:var(--ink)}
+.row.ank .tg{background:rgba(167,139,250,.22);color:#D6C6FF}
+.row.tip .tg{background:rgba(255,197,49,.18);color:var(--gold)}
+.row.key .rt p,.row.do .rt p,.row.st .rt p,.row.tip .rt p{font-size:14.5px}
+.row.ank .rt p{font:700 16px/1.35 var(--f)}
+.row.chk{grid-template-columns:auto 1fr;cursor:pointer}
+.row.chk input{width:22px;height:22px;accent-color:var(--gold);margin:2px 0 0}
+.row.chk span{font-size:14.5px}
+.row.chk:has(input:checked){opacity:.55}
+.row.chk:has(input:checked) span{text-decoration:line-through}
+.row.num{grid-template-columns:1fr;font-size:14.5px}
+.row.two{grid-template-columns:minmax(96px,150px) 1fr;align-items:center}
+.row.two b{font:700 14px/1.3 var(--zh);color:var(--gold)}
+.row.two span{font-size:14.5px}
+.panel.en .row.two b{color:var(--mint)}
+.panel.en .row.two span{font:600 16px/1.35 var(--f)}
+.row a{color:var(--mint)}
+kbd{font:700 12px/1 var(--f);background:rgba(255,255,255,.16);border:1px solid var(--line);
+ border-radius:5px;padding:2px 5px}
+i{font-style:normal;color:var(--gold)}
+.row.two i,.panel.en i{color:inherit}
+
+/* the 22 commands */
+.cards{display:grid;gap:7px;grid-template-columns:repeat(auto-fill,minmax(236px,1fr))}
+.card{display:grid;grid-template-columns:auto 1fr;gap:9px;align-items:center;text-align:left;cursor:pointer;
+ background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:12px;padding:8px 10px;color:var(--ink)}
+.card:hover{background:rgba(255,255,255,.13)}
+.card .pl{display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--gold);
+ color:#241700;font:700 12px/1 var(--f);padding-left:2px}
+.card[data-on=1] .pl{background:var(--mint)}
+.card b{display:block;font:800 16.5px/1.25 var(--f)}
+.card i{display:block;font-style:normal;color:var(--mut);font-size:12px;font-family:var(--zh)}
+.foot{display:none}
+
+.bar{display:flex;align-items:center;gap:8px;justify-content:space-between;padding:5px 8px 0;
+ color:var(--mut);font-size:11.5px}
+.bar kbd{font-size:11px}
+@media (max-width:640px){
+ .top h1{font-size:16px}.ph h2{font-size:17px}.rt .en{font-size:17px}
+ .panel{padding:12px 12px 16px;border-radius:0 14px 14px 14px}
+ .row.two{grid-template-columns:1fr;gap:3px}
+ .ph .seq{margin-left:0;width:100%}
+ .bar .hid{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media print{
+ body{overflow:visible;background:#fff;color:#000}
+ .wrap{display:block;height:auto}.rail,.top .sw,.bar,.seq,.play,.card .pl{display:none}
+ .panel{display:block!important;background:#fff;border:0;padding:0 0 18px;page-break-inside:avoid}
+ .panel[hidden]{display:block!important}
+ .row{background:#fff;border:1px solid #bbb}.rt .en,.card b{color:#000}
+ .rt .zh,.card i,.ph p{color:#333}.tg{border:1px solid #999;color:#000!important;background:#eee!important}
+ i,.row.two b,h3.sub,.ph h2{color:#000}
+}
 </style></head><body>
-<header class="top"><div class="wrap">
- <h1><small>FOOD FOR ANKITA'S DIWALI PARTY</small>上課腳本（英語為主）：中師與 Ankita 一步一步怎麼搭配</h1>
- <p class="sub">五年甲班・40 分鐘・英語為主、必要時一句中文・Ankita 主教前 20 分鐘，中師主教後 20 分鐘・Cool English／Wordwall／Padlet／因材網・不用紙本</p>
-</div></header>
-<nav aria-label="時間"><div class="wrap">
- <a href="#pre">課前</a><a href="#words">20 句</a><a href="#t00">0:00</a><a href="#t20">20:00</a><a href="#t2045">20:45</a><a href="#t22">22:00</a><a href="#t26">26:00</a><a href="#t30">30:00</a><a href="#t33">33:00</a><a href="#t35">35:00</a><a href="#t3830">38:30</a><a href="#after">課後</a><a href="#ank">For Ankita</a>
-</div></nav>
-<main class="wrap">
-
-<p>您說的話<strong>以簡單英語為主</strong>，每句三到六個字，配一個動作。孩子聽不懂時：① 慢一點再說一次 ② 做動作 ③ 指大螢幕的圖；還是不懂，再補<strong>一句中文</strong>（每一段標了「可補中文」的那一句）。灰色小字是操作提示，不用唸。</p>
-<p>大螢幕只開 <a href="class.html">上課簡報</a>，一直按「下一步」（點畫面右邊或 <kbd>→</kbd>）。學生 iPad 只開一個 <a href="kids.html">學生入口</a>，上面只有 1、2、3 三個大按鈕。</p>
-<div class="legend"><span class="tg key">按鍵</span><span class="tg me">我說</span><span class="tg do">我做</span><span class="tg ank">Ankita</span><span class="tg st">學生</span></div>
-
-<h2 id="words">先背這 20 句就夠了（整節課一直重複）</h2>
-<div class="tablewrap"><table><thead><tr><th>英文</th><th>動作</th><th>什麼時候用</th></tr></thead><tbody>
- <tr><td class="en">Eyes on me.</td><td>兩指指自己眼睛</td><td>要大家看老師（或按 <kbd>B</kbd> 出現大眼睛畫面）</td></tr>
- <tr><td class="en">iPads flat.</td><td>雙手掌心向下壓平</td><td>要大家停手、iPad 平放</td></tr>
- <tr><td class="en">iPads up.</td><td>雙手掌心向上抬</td><td>開始用 iPad</td></tr>
- <tr><td class="en">Watch me first.</td><td>指自己，再指螢幕</td><td>老師先示範</td></tr>
- <tr><td class="en">Now you.</td><td>手掌伸向學生</td><td>換學生做</td></tr>
- <tr><td class="en">Listen.</td><td>手放耳朵</td><td>聽</td></tr>
- <tr><td class="en">Say it with me.</td><td>手畫圈到自己嘴巴</td><td>跟著唸</td></tr>
- <tr><td class="en">One more time.</td><td>比 1</td><td>再一次</td></tr>
- <tr><td class="en">Your turn.</td><td>手掌伸向某人</td><td>輪到你</td></tr>
- <tr><td class="en">Tap number one.</td><td>比 1，手指點一下</td><td>按學生入口的 1（2、3 同理）</td></tr>
- <tr><td class="en">Show me.</td><td>雙手攤開</td><td>比 ✔ △ ?</td></tr>
- <tr><td class="en">I know it. / So-so. / Not yet.</td><td>大拇指／手掌搖／手放頭上</td><td>自我評量三個手勢</td></tr>
- <tr><td class="en">Need help? Raise your hand.</td><td>舉手</td><td>卡住時</td></tr>
- <tr><td class="en">Team time.</td><td>雙手合起來</td><td>小組開始</td></tr>
- <tr><td class="en">Thirty seconds.</td><td>比 3、比 0</td><td>剩 30 秒</td></tr>
- <tr><td class="en">Time's up.</td><td>雙手交叉</td><td>時間到</td></tr>
- <tr><td class="en">Stand up. / Sit down.</td><td>手往上／往下</td><td>Speed Round</td></tr>
- <tr><td class="en">Good job! / Great try!</td><td>比讚</td><td>說對／說錯都要給</td></tr>
- <tr><td class="en">Can you count it?</td><td>手指一個一個數</td><td>判斷要不要加 s</td></tr>
- <tr><td class="en">I want some ___.</td><td>手指向自己</td><td>今天的目標句</td></tr>
-</tbody></table></div>
-
-<h2 id="pre">課前：照順序打勾</h2>
-<div class="blk"><ul class="chk" id="chk">
- <li><label><input type="checkbox"><span><b>12/28 之前先上一節 20 分鐘「iPad 練習課」</b>：不教新單字，只練五個動作：掃 QR 開學生入口、按 1／2／3、Wordwall 拖曳、Padlet 按 ＋ 錄音、按左上角 &lt; 回來。孩子剛用 iPad 不久，當天就不會卡在操作。</span></label></li>
- <li><label><input type="checkbox"><span>做好 Wordwall 與 Padlet（做法在 <a href="plan.html#prep">教案「課前準備」</a>），把兩個連結貼到 <a href="./#setup">入口頁「老師設定」</a>，按「儲存」。</span></label></li>
- <li><label><input type="checkbox"><span>六台 iPad 掃入口頁的 QR code，打開「學生入口」，看得到 1、2、3 三個彩色大按鈕。在 Padlet 按一次錄音，讓 iPad 先允許麥克風。側邊靜音關掉、音量開大。</span></label></li>
- <li><label><input type="checkbox"><span>大螢幕用 Chrome 或 Edge 開「上課簡報」，按 <kbd>F</kbd> 全螢幕，停在第 1 頁，先點一下畫面。另開一個分頁登入 Wordwall 的「結果」頁，上課時看得到孩子的成績。</span></label></li>
- <li><label><input type="checkbox"><span>在 Spin 畫面按「🆕 新的一節課」兩下清掉舊紀錄；有人請假，到 Lunch Box Lab「教師工具」點掉座號。</span></label></li>
- <li><label><input type="checkbox"><span>和 Ankita 對好：她講到 20:00，交棒句 What food should we bring to the party?；後 20 分鐘她當派對主人、發音示範、裁判（她的台詞在最下面）。</span></label></li>
-</ul></div>
-
-<h2 id="t00">0:00–20:00　Ankita 主教，我協助</h2>
-<div class="blk ankita"><header><b>0:00–20:00</b><h3>Diwali 節慶介紹（Ankita 簡報第 1–24 頁）</h3><span>一人主教、一人協助</span></header>
- <div class="r do"><span class="tg do">我做</span><div><p>站在學生側後方：幫忙換頁或遞實物；孩子聽不懂時用動作、指圖片，不翻譯；記下兩位最需要幫忙的孩子。18:00 向 Ankita 比「2」。19:30 把大螢幕換到上課簡報第 1 頁。</p></div></div>
- <div class="r ank"><span class="tg ank">Ankita</span><div><p class="en">What food should we bring to the party?</p></div></div>
+<div class="wrap">
+ <div class="top">
+  <h1>上課腳本 <i>12/28 五甲</i></h1>
+  <div class="sw" role="group" aria-label="播放速度">
+   <button id="sp75" aria-pressed="false">0.75×</button>
+   <button id="sp10" aria-pressed="true">1×</button>
+  </div>
+  <div class="sw" role="group" aria-label="跟讀模式">
+   <button id="echo" aria-pressed="false">🔁 跟著唸</button>
+  </div>
+  <span class="sp"></span>
+  <a class="lk" href="class.html">上課簡報</a>
+  <a class="lk" href="plan.html">教案</a>
+  <a class="lk" href="./">入口頁</a>
+ </div>
+ <div class="rail" role="tablist" aria-label="腳本分頁">
+<button class="tab" role="tab" id="tab-pre" aria-controls="p-pre" aria-selected="true" data-p="pre"><small>12/28 之前</small><b>課前</b></button>
+<button class="tab" role="tab" id="tab-core" aria-controls="p-core" aria-selected="false" data-p="core"><small>整節課</small><b>口令</b></button>
+<button class="tab" role="tab" id="tab-s0" aria-controls="p-s0" aria-selected="false" data-p="s0"><small>0:00–20:00</small><b>0:00 外師</b></button>
+<button class="tab" role="tab" id="tab-s1" aria-controls="p-s1" aria-selected="false" data-p="s1"><small>20:00</small><b>20:00 接棒</b></button>
+<button class="tab" role="tab" id="tab-s2" aria-controls="p-s2" aria-selected="false" data-p="s2"><small>20:45</small><b>20:45 Spin</b></button>
+<button class="tab" role="tab" id="tab-s3" aria-controls="p-s3" aria-selected="false" data-p="s3"><small>22:00</small><b>22:00 Wordwall</b></button>
+<button class="tab" role="tab" id="tab-s4" aria-controls="p-s4" aria-selected="false" data-p="s4"><small>26:00</small><b>26:00 Menu</b></button>
+<button class="tab" role="tab" id="tab-s5" aria-controls="p-s5" aria-selected="false" data-p="s5"><small>30:00</small><b>30:00 Padlet</b></button>
+<button class="tab" role="tab" id="tab-s6" aria-controls="p-s6" aria-selected="false" data-p="s6"><small>33:00</small><b>33:00 Count it</b></button>
+<button class="tab" role="tab" id="tab-s7" aria-controls="p-s7" aria-selected="false" data-p="s7"><small>35:00</small><b>35:00 Speed</b></button>
+<button class="tab" role="tab" id="tab-s8" aria-controls="p-s8" aria-selected="false" data-p="s8"><small>38:30</small><b>38:30 結尾</b></button>
+<button class="tab" role="tab" id="tab-after" aria-controls="p-after" aria-selected="false" data-p="after"><small>下課後</small><b>課後／省時</b></button>
+<button class="tab" role="tab" id="tab-fix" aria-controls="p-fix" aria-selected="false" data-p="fix"><small>臨時狀況</small><b>應變</b></button>
+<button class="tab" role="tab" id="tab-ank" aria-controls="p-ank" aria-selected="false" data-p="ank"><small>For Ankita</small><b>Ankita</b></button>
+ </div>
+<section class="panel" role="tabpanel" id="p-pre" aria-labelledby="tab-pre"><header class="ph"><div><h2>照順序打勾</h2><p>全部打完勾，當天只要照著後面的分頁走。</p></div></header><div class="fit"><div class="rows"><label class="row chk"><input type="checkbox"><span><b>先上一節 20 分鐘「iPad 練習課」</b>：不教新單字，只練五個動作——掃 QR 開學生入口、按 1／2／3、Wordwall 拖曳、Padlet 按 ＋ 錄音、按左上角 &lt; 回來。</span></label><label class="row chk"><input type="checkbox"><span>做好 Wordwall 與 Padlet（做法在 <a href="plan.html">教案</a>「課前準備」），把兩個連結貼到 <a href="./#setup">入口頁「老師設定」</a>，按儲存。</span></label><label class="row chk"><input type="checkbox"><span>六台 iPad 掃入口頁 QR code，看得到 1、2、3 三個大按鈕。在 Padlet 按一次錄音讓 iPad 先允許麥克風。側邊靜音關掉、音量開大。</span></label><label class="row chk"><input type="checkbox"><span>大螢幕用 Chrome 或 Edge 開 <a href="class.html">上課簡報</a>，按 <kbd>F</kbd> 全螢幕，停在第 1 頁先點一下畫面。另開一個分頁登入 Wordwall 的「結果」頁。</span></label><label class="row chk"><input type="checkbox"><span>Spin 畫面按「🆕 新的一節課」兩下清掉舊紀錄；有人請假，到 Lunch Box Lab「教師工具」點掉座號。</span></label><label class="row chk"><input type="checkbox"><span>和 Ankita 對好：她講到 20:00，交棒句 <i>What food should we bring to the party?</i>；後 20 分鐘她當派對主人、發音示範、裁判。</span></label><div class="row tip"><span class="tg">提醒</span><div class="rt"><p>這一節全英語。每一句都配一個固定動作，孩子看動作就懂；真的卡住就慢慢再說一次＋做動作＋指螢幕，說 <i>Watch me.</i> 直接示範。</p></div></div></div></div></section>
+<section class="panel" role="tabpanel" id="p-core" aria-labelledby="tab-core" hidden><header class="ph"><div><h2>一直重複的 22 句</h2><p>每一句按 ▶ 聽一次、跟著唸一次。這 22 句練熟，整節課就夠用。</p></div></header><div class="fit"><div class="cards"><button class="card" data-a="c01"><span class="pl">▶</span><span class="ct"><b>All right, eyes on me.</b><i>好，看老師</i></span></button><button class="card" data-a="c02"><span class="pl">▶</span><span class="ct"><b>iPads down, please.</b><i>平板放下</i></span></button><button class="card" data-a="c03"><span class="pl">▶</span><span class="ct"><b>iPads up!</b><i>拿起平板</i></span></button><button class="card" data-a="c04"><span class="pl">▶</span><span class="ct"><b>Watch me first.</b><i>先看老師做一次</i></span></button><button class="card" data-a="c05"><span class="pl">▶</span><span class="ct"><b>Okay, your turn.</b><i>換你們</i></span></button><button class="card" data-a="c06"><span class="pl">▶</span><span class="ct"><b>Listen.</b><i>聽</i></span></button><button class="card" data-a="c07"><span class="pl">▶</span><span class="ct"><b>Say it with me.</b><i>跟我唸</i></span></button><button class="card" data-a="c08"><span class="pl">▶</span><span class="ct"><b>One more time.</b><i>再一次</i></span></button><button class="card" data-a="c09"><span class="pl">▶</span><span class="ct"><b>Show me.</b><i>比給我看</i></span></button><button class="card" data-a="c10"><span class="pl">▶</span><span class="ct"><b>Got it? So-so? Not yet?</b><i>會了？有點熟？還不熟？</i></span></button><button class="card" data-a="c11"><span class="pl">▶</span><span class="ct"><b>Tap number one.</b><i>按 1（2、3 同理）</i></span></button><button class="card" data-a="c12"><span class="pl">▶</span><span class="ct"><b>Need help? Raise your hand.</b><i>要幫忙就舉手</i></span></button><button class="card" data-a="c13"><span class="pl">▶</span><span class="ct"><b>Thirty seconds left!</b><i>剩 30 秒</i></span></button><button class="card" data-a="c14"><span class="pl">▶</span><span class="ct"><b>Time&#x27;s up!</b><i>時間到</i></span></button><button class="card" data-a="c15"><span class="pl">▶</span><span class="ct"><b>Stand up.</b><i>站起來</i></span></button><button class="card" data-a="c16"><span class="pl">▶</span><span class="ct"><b>Sit down.</b><i>坐下</i></span></button><button class="card" data-a="c17"><span class="pl">▶</span><span class="ct"><b>Nice job!</b><i>做得好</i></span></button><button class="card" data-a="c18"><span class="pl">▶</span><span class="ct"><b>Great try!</b><i>有試就很棒（說錯時用這句）</i></span></button><button class="card" data-a="c19"><span class="pl">▶</span><span class="ct"><b>Can you count it?</b><i>數得出來嗎？</i></span></button><button class="card" data-a="c20"><span class="pl">▶</span><span class="ct"><b>I want some rice.</b><i>今天的目標句</i></span></button><button class="card" data-a="c21"><span class="pl">▶</span><span class="ct"><b>Line up, please.</b><i>排隊</i></span></button><button class="card" data-a="c22"><span class="pl">▶</span><span class="ct"><b>Here we go!</b><i>開始囉</i></span></button></div><p class="foot">動作：</p></div></section>
+<section class="panel" role="tabpanel" id="p-s0" aria-labelledby="tab-s0" hidden><header class="ph"><div><h2>Ankita 主教，我協助</h2><p>她的簡報第 1–24 頁。我不翻譯。</p></div></header><div class="fit"><div class="rows"><div class="row do"><span class="tg">我做</span><div class="rt"><p>站在學生側後方：幫忙換頁、遞實物。孩子聽不懂時用動作、指圖片。記下兩位最需要幫忙的孩子。</p></div></div><div class="row do"><span class="tg">我做</span><div class="rt"><p><b>18:00</b> 向 Ankita 比「2」（還有兩分鐘）。<b>19:30</b> 把大螢幕換到上課簡報第 1 頁。</p></div></div><div class="row ank"><span class="tg">Ankita</span><div class="rt"><p>What food should we bring to the party?</p></div></div></div></div></section>
+<section class="panel" role="tabpanel" id="p-s1" aria-labelledby="tab-s1" hidden><header class="ph"><div><h2>任務與三個 I can</h2><p>簡報第 1、2 頁・45 秒</p></div><button class="seq" data-seq="a01,a02,a03,a04,a05">▶ 播放這一段（5 句）</button></header><div class="fit"><div class="rows"><div class="row key"><span class="tg">按鍵</span><div class="rt"><p>第 1 頁<b>按一下</b>：出現問句。</p></div></div><div class="row say"><button class="play" data-a="a01" aria-label="播放 Great question! Let&#x27;s plan the party food.">▶</button><div class="rt"><p class="en">Great question! Let&#x27;s plan the party food.</p><p class="zh">接住 Ankita 的交棒句・看向 Ankita，再轉向全班</p></div></div><div class="row key"><span class="tg">按鍵</span><div class="rt"><p><b>按一下</b>到第 2 頁，再<b>按三下</b>，一次出現一張卡。</p></div></div><div class="row say"><button class="play" data-a="a02" aria-label="播放 Here&#x27;s our job today: bring food to Ankita&#x27;s party!">▶</button><div class="rt"><p class="en">Here&#x27;s our job today: bring food to Ankita&#x27;s party!</p><p class="zh">揭示任務・手指大螢幕的大字</p></div></div><div class="row say"><button class="play" data-a="a03" aria-label="播放 Number one. Listen. Say it with me. Listen!">▶</button><div class="rt"><p class="en">Number one. Listen. Say it with me. Listen!</p><p class="zh">第一張卡・手放耳朵</p></div></div><div class="row say"><button class="play" data-a="a04" aria-label="播放 Number two. Say. Say!">▶</button><div class="rt"><p class="en">Number two. Say. Say!</p><p class="zh">第二張卡・手指嘴巴</p></div></div><div class="row say"><button class="play" data-a="a05" aria-label="播放 Number three. Think. Think!">▶</button><div class="rt"><p class="en">Number three. Think. Think!</p><p class="zh">第三張卡・手指頭</p></div></div><div class="row tip"><span class="tg">提醒</span><div class="rt"><p>每出現一張卡，指著大字帶全班唸一次。</p></div></div></div></div></section>
+<section class="panel" role="tabpanel" id="p-s2" aria-labelledby="tab-s2" hidden><header class="ph"><div><h2>導學｜Cool English 單字＋Spin</h2><p>第 3 頁・到 22:00</p></div><button class="seq" data-seq="b01,b02,b03,b04,b05">▶ 播放這一段（5 句）</button></header><div class="fit"><div class="rows"><div class="row key"><span class="tg">按鍵</span><div class="rt"><p><b>按一下</b>到第 3 頁（畫面寫 Words from Cool English），再<b>按一下</b>：出現 ✔ △ ?。</p></div></div><div class="row say"><button class="play" data-a="b01" aria-label="播放 Today&#x27;s words come from Cool English.">▶</button><div class="rt"><p class="en">Today&#x27;s words come from Cool English.</p><p class="zh">介紹單字來源，說一次就好・指畫面上那一行字</p></div></div><div class="row tip"><span class="tg">提醒</span><div class="rt"><p>指著畫面那一行說一次就好，不用切到酷英網。</p></div></div><div class="row say"><button class="play" data-a="b02" aria-label="播放 Show me. Got it? So-so? Not yet?">▶</button><div class="rt"><p class="en">Show me. Got it? So-so? Not yet?</p><p class="zh">請孩子自評・三個手勢各做一次</p></div></div><div class="row tip"><span class="tg">提醒</span><div class="rt"><p>邊說邊做三個手勢，孩子跟著做一次。</p></div></div><div class="row say"><button class="play" data-a="b03" aria-label="播放 Not yet? That&#x27;s okay. That&#x27;s what we&#x27;ll practice today.">▶</button><div class="rt"><p class="en">Not yet? That&#x27;s okay. That&#x27;s what we&#x27;ll practice today.</p><p class="zh">不會沒關係・搖頭、微笑</p></div></div><div class="row key"><span class="tg">按鍵</span><div class="rt"><p><b>按一下</b>，再<b>按一下</b>：Spin 在簡報裡打開。</p></div></div><div class="row say"><button class="play" data-a="b04" aria-label="播放 Let&#x27;s spin! Here we go.">▶</button><div class="rt"><p class="en">Let&#x27;s spin! Here we go.</p><p class="zh">開始轉輪盤・點「轉！」或按空白鍵</p></div></div><div class="row say"><button class="play" data-a="b05" aria-label="播放 Listen. Say it with me. One more time. Show me.">▶</button><div class="rt"><p class="en">Listen. Say it with me. One more time. Show me.</p><p class="zh">每個字的四個步驟・看多數人的手勢按 ✔ △ ?</p></div></div><div class="row do"><span class="tg">我做</span><div class="rt"><p>轉 3–4 個字，每個字都是同樣這幾句。看多數人的手勢按 ✔ △ ?（鍵盤 <kbd>3</kbd> <kbd>2</kbd> <kbd>1</kbd>）。</p></div></div><div class="row ank"><span class="tg">Ankita</span><div class="rt"><p>Say it with me.（第二次唸由她帶）</p></div></div><div class="row key"><span class="tg">按鍵</span><div class="rt"><p>22:00 按右下角「下一頁 →」。</p></div></div></div></div></section>
+<section class="panel" role="tabpanel" id="p-s3" aria-labelledby="tab-s3" hidden><header class="ph"><div><h2>自學｜Wordwall 配對</h2><p>第 4 頁・每人一台 iPad・倒數 3:30</p></div><button class="seq" data-seq="d01,d02,d03,d04,d05,d06,d07,d08">▶ 播放這一段（8 句）</button></header><div class="fit"><div class="rows"><div class="row key"><span class="tg">按鍵</span><div class="rt"><p><b>按一下</b>：出現四個步驟和「▶ Watch me first」。</p></div></div><div class="row say"><button class="play" data-a="d01" aria-label="播放 Watch me first.">▶</button><div class="rt"><p class="en">Watch me first.</p><p class="zh">先示範・點「▶ Watch me first」開 Wordwall</p></div></div><div class="row do"><span class="tg">我做</span><div class="rt"><p>點「▶ Watch me first」，Wordwall 在新分頁打開。示範一題。</p></div></div><div class="row say"><button class="play" data-a="d02" aria-label="播放 Drag the word onto the picture. There we go!">▶</button><div class="rt"><p class="en">Drag the word onto the picture. There we go!</p><p class="zh">示範拖一題・用手指在大螢幕上拖一次</p></div></div><div class="row do"><span class="tg">我做</span><div class="rt"><p>切回簡報分頁。</p></div></div><div class="row say"><button class="play" data-a="d03" aria-label="播放 iPads up. Tap number one.">▶</button><div class="rt"><p class="en">iPads up. Tap number one.</p><p class="zh">請孩子開始・切回簡報分頁</p></div></div><div class="row say"><button class="play" data-a="d04" aria-label="播放 Type your number, then start.">▶</button><div class="rt"><p class="en">Type your number, then start.</p><p class="zh">輸入座號・比打字的動作</p></div></div><div class="row key"><span class="tg">按鍵</span><div class="rt"><p>再<b>按一下</b>：出現 GO!，計時開始。</p></div></div><div class="row say"><button class="play" data-a="d05" aria-label="播放 Okay, your turn!">▶</button><div class="rt"><p class="en">Okay, your turn!</p><p class="zh">放手讓他們做・按下一步，出現 GO! 開始計時</p></div></div><div class="row st"><span class="tg">學生</span><div class="rt"><p>按入口的 <b>1</b> → 輸入座號 → 把單字拖到對的圖片上。點單字會唸出英文。</p></div></div><div class="row do"><span class="tg">我做</span><div class="rt"><p>先走到那兩位孩子旁邊，手指點螢幕示範，不替他做。看 Wordwall 結果頁，記下錯最多的一個字。</p></div></div><div class="row ank"><span class="tg">Ankita</span><div class="rt"><p>Say it with me.（蹲到孩子旁邊聽他唸、再示範）</p></div></div><div class="row say"><button class="play" data-a="d06" aria-label="播放 Thirty seconds left!">▶</button><div class="rt"><p class="en">Thirty seconds left!</p><p class="zh">剩 30 秒・巡視，看 Wordwall 結果頁</p></div></div><div class="row say"><button class="play" data-a="d07" aria-label="播放 Time&#x27;s up. iPads down.">▶</button><div class="rt"><p class="en">Time&#x27;s up. iPads down.</p><p class="zh">收・雙手壓平</p></div></div><div class="row say"><button class="play" data-a="d08" aria-label="播放 Let&#x27;s look at this one together. Noodles. Say it with me. Noodles!">▶</button><div class="rt"><p class="en">Let&#x27;s look at this one together. Noodles. Say it with me. Noodles!</p><p class="zh">把錯最多的字帶全班唸兩次（noodles 只是舉例）・指大螢幕的那張圖</p></div></div><div class="row tip"><span class="tg">提醒</span><div class="rt"><p>把錯最多的那個字唸兩次（上面用 noodles 當例子）。這 20 秒就是「依評量結果給回饋」。</p></div></div></div></div></section>
+<section class="panel" role="tabpanel" id="p-s4" aria-labelledby="tab-s4" hidden><header class="ph"><div><h2>共學｜Party Menu</h2><p>第 5 頁・一組一台 iPad・倒數 3:30</p></div><button class="seq" data-seq="e01,e02,e03,e04,e05,e06,e07">▶ 播放這一段（7 句）</button></header><div class="fit"><div class="rows"><div class="row key"><span class="tg">按鍵</span><div class="rt"><p><b>按一下</b>換到第 5 頁。再<b>按一下</b>：規則。再<b>按一下</b>：三個角色。</p></div></div><div class="row say"><button class="play" data-a="e01" aria-label="播放 Team time!">▶</button><div class="rt"><p class="en">Team time!</p><p class="zh">小組開始・雙手合起來</p></div></div><div class="row say"><button class="play" data-a="e02" aria-label="播放 Three foods. One from India.">▶</button><div class="rt"><p class="en">Three foods. One from India.</p><p class="zh">規則・比 3，再比 1，指印度食物的圖</p></div></div><div class="row tip"><span class="tg">提醒</span><div class="rt"><p>比 3，再比 1，指著 naan、curry、samosa 的圖。</p></div></div><div class="row say"><button class="play" data-a="e03" aria-label="播放 Leader, tap number two.">▶</button><div class="rt"><p class="en">Leader, tap number two.</p><p class="zh">Leader 的工作・指平板</p></div></div><div class="row say"><button class="play" data-a="e04" aria-label="播放 Checker, you ask: Can you count it?">▶</button><div class="rt"><p class="en">Checker, you ask: Can you count it?</p><p class="zh">Checker 的工作・手指一個一個數</p></div></div><div class="row say"><button class="play" data-a="e05" aria-label="播放 Reporter, you read the menu.">▶</button><div class="rt"><p class="en">Reporter, you read the menu.</p><p class="zh">Reporter 的工作・手指嘴巴</p></div></div><div class="row key"><span class="tg">按鍵</span><div class="rt"><p>再<b>按一下</b>：GO!，計時開始。</p></div></div><div class="row st"><span class="tg">學生</span><div class="rt"><p>Leader 按入口的 <b>2</b>，三人各選一種食物，再一起選對的句子。Reporter 帶全組把菜單唸一次。</p></div></div><div class="row say"><button class="play" data-a="e06" aria-label="播放 Can you count it?">▶</button><div class="rt"><p class="en">Can you count it?</p><p class="zh">孩子選錯時只問這一句，不給答案・指著畫面</p></div></div><div class="row tip"><span class="tg">提醒</span><div class="rt"><p>選錯時不給答案，只問這一句，指著畫面。答對說 <i>Nice job!</i></p></div></div><div class="row ank"><span class="tg">Ankita</span><div class="rt"><p>What food is from India? … Yes! I love samosas!</p></div></div><div class="row say"><button class="play" data-a="e07" aria-label="播放 Time&#x27;s up. iPads down.">▶</button><div class="rt"><p class="en">Time&#x27;s up. iPads down.</p><p class="zh">收・雙手壓平</p></div></div></div></div></section>
+<section class="panel" role="tabpanel" id="p-s5" aria-labelledby="tab-s5" hidden><header class="ph"><div><h2>互學｜Padlet 錄音互評</h2><p>第 6 頁・倒數 2:30</p></div><button class="seq" data-seq="f01,f02,f03,f04,f05,f06,f07,f08">▶ 播放這一段（8 句）</button></header><div class="fit"><div class="rows"><div class="row key"><span class="tg">按鍵</span><div class="rt"><p><b>按一下</b>換到第 6 頁，再<b>按一下</b>：Team A 的句子、「▶ Open Padlet」，GO! 計時 2:30。</p></div></div><div class="row say"><button class="play" data-a="f01" aria-label="播放 Watch me first.">▶</button><div class="rt"><p class="en">Watch me first.</p><p class="zh">先示範・點「▶ Open Padlet」</p></div></div><div class="row do"><span class="tg">我做</span><div class="rt"><p>點「▶ Open Padlet」，邊做邊說下一句的五個步驟。</p></div></div><div class="row say"><button class="play" data-a="f02" aria-label="播放 Tap the plus. Tap the microphone. Say your food. Tap stop. Then publish.">▶</button><div class="rt"><p class="en">Tap the plus. Tap the microphone. Say your food. Tap stop. Then publish.</p><p class="zh">邊做邊說這五步・在大螢幕上真的做一次</p></div></div><div class="row say"><button class="play" data-a="f03" aria-label="播放 Leader, tap number three. Your turn!">▶</button><div class="rt"><p class="en">Leader, tap number three. Your turn!</p><p class="zh">放手讓他們錄・手掌伸向學生</p></div></div><div class="row st"><span class="tg">學生</span><div class="rt"><p>每組在自己那一欄按 ＋ → 錄音 → 三人輪流說 <i>I want some ___.</i> → 發布。</p></div></div><div class="row key"><span class="tg">按鍵</span><div class="rt"><p><b>按一下</b>：Team B 的回應句。</p></div></div><div class="row say"><button class="play" data-a="f04" aria-label="播放 Team A, let&#x27;s listen.">▶</button><div class="rt"><p class="en">Team A, let&#x27;s listen.</p><p class="zh">播 A 組的錄音・在大螢幕點播放</p></div></div><div class="row do"><span class="tg">我做</span><div class="rt"><p>在大螢幕的 Padlet 播放 A 組的錄音。</p></div></div><div class="row say"><button class="play" data-a="f05" aria-label="播放 Team B, say: Yummy! I like your samosas.">▶</button><div class="rt"><p class="en">Team B, say: Yummy! I like your samosas.</p><p class="zh">B 組要說出對方的一種食物・手指 B 組</p></div></div><div class="row key"><span class="tg">按鍵</span><div class="rt"><p><b>按一下</b>：Checker 的問題。</p></div></div><div class="row say"><button class="play" data-a="f06" aria-label="播放 Checker, can you count it?">▶</button><div class="rt"><p class="en">Checker, can you count it?</p><p class="zh">請 Checker 檢查・手指一個一個數</p></div></div><div class="row say"><button class="play" data-a="f07" aria-label="播放 Fix it, and record it again.">▶</button><div class="rt"><p class="en">Fix it, and record it again.</p><p class="zh">有錯就重錄（依它組意見修改）・指平板</p></div></div><div class="row tip"><span class="tg">提醒</span><div class="rt"><p>有錯才說 <i>Fix it, and record it again.</i>——這就是「依它組意見修改」。沒錯就給一個 👍。</p></div></div><div class="row say"><button class="play" data-a="f08" aria-label="播放 Switch! Team B, your turn.">▶</button><div class="rt"><p class="en">Switch! Team B, your turn.</p><p class="zh">換 B 組・兩手交換位置</p></div></div><div class="row ank"><span class="tg">Ankita</span><div class="rt"><p>Thank you!（每組聽完說一次）</p></div></div></div></div></section>
+<section class="panel" role="tabpanel" id="p-s6" aria-labelledby="tab-s6" hidden><header class="ph"><div><h2>導學｜Can you count it?＋Impostor</h2><p>第 7 頁・2 分鐘</p></div><button class="seq" data-seq="g01,g02,g03,g04">▶ 播放這一段（4 句）</button></header><div class="fit"><div class="rows"><div class="row key"><span class="tg">按鍵</span><div class="rt"><p><b>按一下</b>換到第 7 頁，再<b>按一下</b>：YES 那一欄。</p></div></div><div class="row say"><button class="play" data-a="g01" aria-label="播放 Apples. Can you count it? One, two, three. Yes! Add an s.">▶</button><div class="rt"><p class="en">Apples. Can you count it? One, two, three. Yes! Add an s.</p><p class="zh">數得出來・手指一個一個數</p></div></div><div class="row key"><span class="tg">按鍵</span><div class="rt"><p>再<b>按一下</b>：NO 那一欄。</p></div></div><div class="row say"><button class="play" data-a="g02" aria-label="播放 Rice. Can you count it? No. No s.">▶</button><div class="rt"><p class="en">Rice. Can you count it? No. No s.</p><p class="zh">數不出來・搖手</p></div></div><div class="row say"><button class="play" data-a="g03" aria-label="播放 Can you count it? Add an s. Can&#x27;t count it? No s.">▶</button><div class="rt"><p class="en">Can you count it? Add an s. Can&#x27;t count it? No s.</p><p class="zh">今天的規則，唸兩次・先數、再搖手</p></div></div><div class="row tip"><span class="tg">提醒</span><div class="rt"><p>規則唸兩次，讓孩子自己說出來。</p></div></div><div class="row key"><span class="tg">按鍵</span><div class="rt"><p><b>按兩下</b>：Impostor 在簡報裡打開。</p></div></div><div class="row say"><button class="play" data-a="g04" aria-label="播放 Find the impostor! Which word is wrong?">▶</button><div class="rt"><p class="en">Find the impostor! Which word is wrong?</p><p class="zh">開始抓錯，抓 2 句・孩子說出來，我點那個字</p></div></div><div class="row do"><span class="tg">我做</span><div class="rt"><p>孩子指出來，我點那個字；整句都對就按「沒有內鬼」。抓 2 句。</p></div></div><div class="row ank"><span class="tg">Ankita</span><div class="rt"><p>把畫面上的句子照唸（錯的也照唸）。</p></div></div><div class="row key"><span class="tg">按鍵</span><div class="rt"><p>35:00 按「下一頁 →」。</p></div></div></div></div></section>
+<section class="panel" role="tabpanel" id="p-s7" aria-labelledby="tab-s7" hidden><header class="ph"><div><h2>統整｜Speed Round</h2><p>第 8 頁・到 38:30・每個人至少開口一次</p></div><button class="seq" data-seq="h01,h02,h03,h04,h05,h06,h07,h08">▶ 播放這一段（8 句）</button></header><div class="fit"><div class="rows"><div class="row key"><span class="tg">按鍵</span><div class="rt"><p><b>按一下</b>：兩隊。再<b>按一下</b>：規則。再<b>按兩下</b>：Speed Round 在簡報裡打開。</p></div></div><div class="row say"><button class="play" data-a="h01" aria-label="播放 Game time!">▶</button><div class="rt"><p class="en">Game time!</p><p class="zh">遊戲開始・拍手</p></div></div><div class="row say"><button class="play" data-a="h02" aria-label="播放 Team A: one, three, five. Team B: two, four, six.">▶</button><div class="rt"><p class="en">Team A: one, three, five. Team B: two, four, six.</p><p class="zh">分隊・手指兩邊</p></div></div><div class="row say"><button class="play" data-a="h03" aria-label="播放 Is that your number? Stand up!">▶</button><div class="rt"><p class="en">Is that your number? Stand up!</p><p class="zh">抽到的人站起來・雙手往上抬</p></div></div><div class="row say"><button class="play" data-a="h04" aria-label="播放 Ten seconds. Say: I want some...">▶</button><div class="rt"><p class="en">Ten seconds. Say: I want some...</p><p class="zh">十秒內說一句・比 10</p></div></div><div class="row do"><span class="tg">我做</span><div class="rt"><p>按「🎲 抽一位」（空白鍵）→ 唸座號 → 說對按 ✓（<kbd>1</kbd>），沒說出來按 ✗（<kbd>2</kbd>）。</p></div></div><div class="row say"><button class="play" data-a="h05" aria-label="播放 Number four!">▶</button><div class="rt"><p class="en">Number four!</p><p class="zh">唸出抽到的座號（數字照畫面）・點「🎲 抽一位」或按空白鍵</p></div></div><div class="row say"><button class="play" data-a="h06" aria-label="播放 Say it together!">▶</button><div class="rt"><p class="en">Say it together!</p><p class="zh">時間到，全班一起唸・手畫圈帶全班</p></div></div><div class="row say"><button class="play" data-a="h07" aria-label="播放 Great try!">▶</button><div class="rt"><p class="en">Great try!</p><p class="zh">說不出來時給這句，按 ✗ 再練・比讚</p></div></div><div class="row ank"><span class="tg">Ankita</span><div class="rt"><p>當裁判，重複正確句子：I want some samosas. Great!</p></div></div><div class="row say"><button class="play" data-a="h08" aria-label="播放 Team A, three points. Team B, three points. Awesome job, everybody!">▶</button><div class="rt"><p class="en">Team A, three points. Team B, three points. Awesome job, everybody!</p><p class="zh">唸分數（數字照畫面）・指畫面上方的分數</p></div></div><div class="row key"><span class="tg">按鍵</span><div class="rt"><p>38:30 按「下一頁 →」。</p></div></div></div></div></section>
+<section class="panel" role="tabpanel" id="p-s8" aria-labelledby="tab-s8" hidden><header class="ph"><div><h2>自我檢核與離場句</h2><p>第 9、10 頁・90 秒・離場句不能省</p></div><button class="seq" data-seq="i01,i02,i03,i04,i05,i06">▶ 播放這一段（6 句）</button></header><div class="fit"><div class="rows"><div class="row key"><span class="tg">按鍵</span><div class="rt"><p>第 9 頁<b>按三下</b>，一次一張卡。</p></div></div><div class="row say"><button class="play" data-a="i01" aria-label="播放 Number one. Listen. Show me!">▶</button><div class="rt"><p class="en">Number one. Listen. Show me!</p><p class="zh">第一個 I can・手放耳朵，再攤手</p></div></div><div class="row say"><button class="play" data-a="i02" aria-label="播放 Number two. Say. Show me!">▶</button><div class="rt"><p class="en">Number two. Say. Show me!</p><p class="zh">第二個 I can・手指嘴巴，再攤手</p></div></div><div class="row say"><button class="play" data-a="i03" aria-label="播放 Number three. Think. Show me!">▶</button><div class="rt"><p class="en">Number three. Think. Show me!</p><p class="zh">第三個 I can・手指頭，再攤手</p></div></div><div class="row say"><button class="play" data-a="i04" aria-label="播放 Great job today! We&#x27;ll practice more next time.">▶</button><div class="rt"><p class="en">Great job today! We&#x27;ll practice more next time.</p><p class="zh">收尾・比讚</p></div></div><div class="row key"><span class="tg">按鍵</span><div class="rt"><p><b>按一下</b>到第 10 頁，再<b>按兩下</b>：出現兩句對話。</p></div></div><div class="row say"><button class="play" data-a="i05" aria-label="播放 Line up. Tell Ankita: I want some...">▶</button><div class="rt"><p class="en">Line up. Tell Ankita: I want some...</p><p class="zh">排隊，每人對 Ankita 說一句・手往門口指</p></div></div><div class="row st"><span class="tg">學生</span><div class="rt"><p>I want some ___!（每個人對 Ankita 說一句）</p></div></div><div class="row ank"><span class="tg">Ankita</span><div class="rt"><p>Here you are! Happy Diwali!（和每個孩子擊掌）</p></div></div><div class="row key"><span class="tg">按鍵</span><div class="rt"><p>再<b>按兩下</b>：回家任務和煙火。</p></div></div><div class="row say"><button class="play" data-a="i06" aria-label="播放 Tonight at dinner, say it one more time. Happy Diwali! Bye-bye!">▶</button><div class="rt"><p class="en">Tonight at dinner, say it one more time. Happy Diwali! Bye-bye!</p><p class="zh">回家任務・揮手</p></div></div></div></div></section>
+<section class="panel" role="tabpanel" id="p-after" aria-labelledby="tab-after" hidden><header class="ph"><div><h2>課後 5 分鐘與省時順序</h2><p>學生不用操作。</p></div></header><div class="fit"><div class="rows"><label class="row chk"><input type="checkbox"><span>把上課簡報、Wordwall、Padlet 三個連結和 Wordwall 成績截圖放到<b>因材網</b>老師教材區，當作這一課的數位教材與學習紀錄。</span></label><label class="row chk"><input type="checkbox"><span>在 Lunch Box Lab「學習證據」看課前、課後的 ✔ △ ? 與每人開口次數，帶到議課。</span></label><h3 class="sub">時間不夠時，照這個順序省</h3><div class="row num"><span>1｜<b>Spin</b> 只轉 2 個字。</span></div><div class="row num"><span>2｜<b>Padlet</b> 只錄 A 組，B 組直接口頭說菜單。</span></div><div class="row num"><span>3｜<b>Impostor</b> 只抓 1 句。</span></div><div class="row num"><span>4｜<b>自我檢核</b> 只做 Number two。</span></div><div class="row tip"><span class="tg">提醒</span><div class="rt"><p><b>不能省</b>：離場句。每人對 Ankita 說一句 <i>I want some ___.</i></p></div></div></div></div></section>
+<section class="panel" role="tabpanel" id="p-fix" aria-labelledby="tab-fix" hidden><header class="ph"><div><h2>出狀況就看這一頁</h2><p>先處理孩子，不要停下來修機器。</p></div></header><div class="fit"><div class="rows"><div class="row two"><b>孩子聽不懂指令</b><span>慢慢再說一次＋做動作＋指螢幕；說 <i>Watch me.</i> 直接示範。</span></div><div class="row two"><b>Padlet 不能錄音</b><span>全組對著大螢幕直接說，我按 👍；課後再補錄。</span></div><div class="row two"><b>Wordwall 打不開</b><span>在大螢幕全班一起玩：我拖、孩子說，再進 Party Menu。</span></div><div class="row two"><b>某台 iPad 沒聲音</b><span>看側邊靜音與音量；不行就和旁邊同學共用。</span></div><div class="row two"><b>孩子回不到學生入口</b><span>按 Safari 左上角的 &lt;；還是不行重新掃 QR code。</span></div><div class="row two"><b>Speed Round 說不出來</b><span>10 秒到全班一起唸，按 ✗ 再練，說 <i>Great try!</i></span></div><div class="row two"><b>簡報按太快</b><span>點畫面最左邊或按 <kbd>←</kbd>；數字鍵 <kbd>1</kbd>–<kbd>9</kbd>、<kbd>0</kbd> 跳頁。</span></div><div class="row two"><b>孩子吵</b><span>按 <kbd>B</kbd> 出現 Eyes on me! 大畫面，等安靜再按一下回來。</span></div></div></div></section>
+<section class="panel en" role="tabpanel" id="p-ank" aria-labelledby="tab-ank" hidden><header class="ph"><div><h2>Your lines after 20:00</h2><p>You lead until 20:00. After that you are the party host. Short, slow sentences.</p></div></header><div class="fit"><div class="rows"><div class="row two"><b>20:00</b><span>What food should we bring to the party?</span></div><div class="row two"><b>Spin</b><span>Lead the second repeat: Say it with me.</span></div><div class="row two"><b>Wordwall</b><span>Sit next to a child: Say it with me.</span></div><div class="row two"><b>Party Menu</b><span>What food is from India? → Yes! I love samosas!</span></div><div class="row two"><b>Padlet</b><span>After each team's recording: Thank you!</span></div><div class="row two"><b>Impostor</b><span>Read the sentence on the screen aloud, mistakes included.</span></div><div class="row two"><b>Speed Round</b><span>Judge. Repeat the correct sentence: I want some ___. Great!</span></div><div class="row two"><b>At the door</b><span>Each child: I want some ___! You: Here you are! Happy Diwali!</span></div></div></div></section>
+ <div class="bar">
+  <span><span class="hid"><kbd>←</kbd> <kbd>→</kbd> 換分頁・<kbd>空白</kbd> 播放這一段・</span>全部 73 句都是 ElevenLabs 語音（合成語音，不是真人錄音）</span>
+  <span>v2026.11.22a</span>
+ </div>
 </div>
-
-<div class="blk" id="t20"><header><b>20:00</b><h3>任務與三個 I can（第 1、2 頁）</h3><span>45 秒</span></header>
- <div class="r key"><span class="tg key">按鍵</span><div><p>第 1 頁按一下，出現問句。</p></div></div>
- <div class="r me"><span class="tg me">我說</span><div><p class="en">Great question! Let's plan the party food.</p></div></div>
- <div class="r key"><span class="tg key">按鍵</span><div><p>按一下到第 2 頁，再按三下，一次出現一張卡。</p></div></div>
- <div class="r me"><span class="tg me">我說</span><div><p class="en">Our mission: bring food to the party!</p><p class="en">One. Listen. Say it with me: Listen!</p><p class="en">Two. Say. — Say!</p><p class="en">Three. Think. — Think!</p><p class="act">每出現一張卡，指著大字帶全班唸一次。</p></div></div>
-</div>
-
-<div class="blk" id="t2045"><header><b>20:45</b><h3>導學｜Cool English 單字＋Spin（第 3 頁）</h3><span>到 22:00</span></header>
- <div class="r key"><span class="tg key">按鍵</span><div><p>按一下到第 3 頁（畫面寫著 Words from Cool English），再按一下：出現 ✔ △ ?。</p></div></div>
- <div class="r me"><span class="tg me">我說</span><div><p class="en">Our words today come from Cool English.</p><p class="act">可補中文：「今天的單字是老師從酷英網挑的。」</p><p class="act">指著畫面那一行說一次就好，不用切到酷英網。</p><p class="en">Show me. I know it. So-so. Not yet.</p><p class="act">邊說邊做三個手勢，孩子跟著做一次。</p></div></div>
- <div class="r key"><span class="tg key">按鍵</span><div><p>按一下，再按一下：Spin 在簡報裡打開。</p></div></div>
- <div class="r me"><span class="tg me">我說</span><div><p class="en">"Not yet"? No problem.</p><p class="en">Spin it! … Listen. … Say it with me. … One more time. … Show me.</p><p class="act">轉 3–4 個字，每個字都是這五句。看多數人的手勢按 ✔ △ ?（鍵盤 <kbd>3</kbd> <kbd>2</kbd> <kbd>1</kbd>）。</p></div></div>
- <div class="r ank"><span class="tg ank">Ankita</span><div><p>第二次唸由她帶：<span class="en">Say it with me.</span></p></div></div>
- <div class="r key"><span class="tg key">按鍵</span><div><p>22:00 按右下角「下一頁 →」。</p></div></div>
-</div>
-
-<div class="blk" id="t22"><header><b>22:00</b><h3>自學｜Wordwall 配對（第 4 頁）</h3><span>每人一台 iPad・倒數 3:30</span></header>
- <div class="r key"><span class="tg key">按鍵</span><div><p>按一下：出現四個步驟和「▶ Watch me first」。</p></div></div>
- <div class="r me"><span class="tg me">我說</span><div><p class="en">Watch me first.</p><p class="act">點「▶ Watch me first」，Wordwall 在新分頁打開。示範一題：拖一個字到圖片上。</p><p class="en">Drag the word … to the picture. Yes!</p><p class="act">可補中文：「把字拖到對的圖片上。」</p><p class="act">切回簡報分頁（瀏覽器上方的簡報分頁）。</p></div></div>
- <div class="r me"><span class="tg me">我說</span><div><p class="en">iPads up. Tap number one.</p><p class="en">Type your number. Now you!</p></div></div>
- <div class="r key"><span class="tg key">按鍵</span><div><p>再按一下：出現 GO!，計時開始。</p></div></div>
- <div class="r st"><span class="tg st">學生</span><div><p>按入口的 1 → 輸入座號 → 把單字拖到對的圖片上。點單字會唸出英文。</p></div></div>
- <div class="r do"><span class="tg do">我做</span><div><p>先走到那兩位孩子旁邊。手指點螢幕示範，不替他做。看 Wordwall 結果頁，記下錯最多的一個字。</p></div></div>
- <div class="r ank"><span class="tg ank">Ankita</span><div><p>蹲到孩子旁邊，聽他唸、再示範：<span class="en">Say it with me.</span></p></div></div>
- <div class="r me"><span class="tg me">我說</span><div><p class="en">Thirty seconds. … Time's up. iPads flat.</p><p class="en">Look. Noodles. Say it with me. Noodles!</p><p class="act">把錯最多的那個字唸兩次（上面用 noodles 當例子）。這 20 秒就是「依評量結果給回饋」。</p></div></div>
-</div>
-
-<div class="blk" id="t26"><header><b>26:00</b><h3>共學｜Party Menu（第 5 頁）</h3><span>一組一台 iPad・倒數 3:30</span></header>
- <div class="r key"><span class="tg key">按鍵</span><div><p>按一下換到第 5 頁。再按一下：規則。再按一下：三個角色。</p></div></div>
- <div class="r me"><span class="tg me">我說</span><div><p class="en">Team time!</p><p class="en">Three foods. One from India.</p><p class="act">比 3，再比 1，指著 naan、curry、samosa 的圖。</p><p class="en">Leader, tap number two.</p><p class="en">Checker, ask: Can you count it?</p><p class="en">Reporter, read the menu.</p><p class="act">可補中文：「選三種食物，一種是印度的；Leader 按平板，Checker 檢查，Reporter 唸。」</p></div></div>
- <div class="r key"><span class="tg key">按鍵</span><div><p>再按一下：GO!，計時開始。</p></div></div>
- <div class="r st"><span class="tg st">學生</span><div><p>Leader 按入口的 2，三人各選一種食物，再一起選對的句子。Reporter 帶全組把菜單唸一次。</p></div></div>
- <div class="r do"><span class="tg do">我做</span><div><p>選錯時不給答案，指著畫面問：<span class="en">Can you count it?</span>　答對：<span class="en">Good job!</span></p></div></div>
- <div class="r ank"><span class="tg ank">Ankita</span><div><p class="en">What food is from India? … Yes! I love samosas!</p></div></div>
- <div class="r me"><span class="tg me">我說</span><div><p class="en">Time's up. iPads flat.</p></div></div>
-</div>
-
-<div class="blk" id="t30"><header><b>30:00</b><h3>互學｜Padlet 錄音互評（第 6 頁）</h3><span>倒數 2:30</span></header>
- <div class="r key"><span class="tg key">按鍵</span><div><p>按一下換到第 6 頁，再按一下：出現 Team A 的句子、「▶ Open Padlet」，GO! 計時 2:30 開始。</p></div></div>
- <div class="r me"><span class="tg me">我說</span><div><p class="en">Watch me first.</p><p class="act">點「▶ Open Padlet」。邊做邊說：</p><p class="en">Tap plus. Tap the mic. Say it. Tap stop. Publish.</p><p class="en">Leader, tap number three. Now you!</p><p class="act">可補中文：「按＋，按麥克風，三個人輪流說，按發布。」</p></div></div>
- <div class="r st"><span class="tg st">學生</span><div><p>每組在自己那一欄按 ＋ → 錄音 → 三人輪流說 <span class="en">I want some ___.</span> → 發布。</p></div></div>
- <div class="r key"><span class="tg key">按鍵</span><div><p>按一下：Team B 的回應句。</p></div></div>
- <div class="r me"><span class="tg me">我說</span><div><p class="en">Team A, let's listen.</p><p class="act">在大螢幕的 Padlet 播放 A 組的錄音。</p><p class="en">Team B, say: Yummy! I like your ___.</p></div></div>
- <div class="r key"><span class="tg key">按鍵</span><div><p>按一下：Checker 的問題。</p></div></div>
- <div class="r me"><span class="tg me">我說</span><div><p class="en">Checker, can you count it?</p><p class="act">有錯：<span class="en">Fix it. Record again.</span>（這就是「依它組意見修改」）沒錯：<span class="en">Good job!</span>，給一個 👍。</p><p class="en">Switch! Team B, your turn.</p></div></div>
- <div class="r ank"><span class="tg ank">Ankita</span><div><p>每組聽完說：<span class="en">Thank you!</span></p></div></div>
-</div>
-
-<div class="blk" id="t33"><header><b>33:00</b><h3>導學｜Can you count it?＋Impostor（第 7 頁）</h3><span>2 分鐘</span></header>
- <div class="r key"><span class="tg key">按鍵</span><div><p>按一下換到第 7 頁，再按一下：YES 那一欄。</p></div></div>
- <div class="r me"><span class="tg me">我說</span><div><p class="en">Apples. Can you count it? One, two, three. Yes! Add s.</p></div></div>
- <div class="r key"><span class="tg key">按鍵</span><div><p>再按一下：NO 那一欄。</p></div></div>
- <div class="r me"><span class="tg me">我說</span><div><p class="en">Rice. Can you count it? No! No s.</p><p class="en">Count it? Add s. Can't count it? No s.</p><p class="act">可補中文：「數得出來的加 s，數不出來的不加。」</p></div></div>
- <div class="r key"><span class="tg key">按鍵</span><div><p>按兩下：Impostor 在簡報裡打開。</p></div></div>
- <div class="r me"><span class="tg me">我說</span><div><p class="en">Find the impostor! Which word?</p><p class="act">孩子指出來，我點那個字；整句都對就按「沒有內鬼」。抓 2 句。</p></div></div>
- <div class="r ank"><span class="tg ank">Ankita</span><div><p>把畫面上的句子照唸（錯的也照唸）。</p></div></div>
- <div class="r key"><span class="tg key">按鍵</span><div><p>35:00 按「下一頁 →」。</p></div></div>
-</div>
-
-<div class="blk" id="t35"><header><b>35:00</b><h3>統整｜Speed Round（第 8 頁）</h3><span>到 38:30</span></header>
- <div class="r key"><span class="tg key">按鍵</span><div><p>按一下：兩隊。再按一下：規則。再按兩下：Speed Round 在簡報裡打開。</p></div></div>
- <div class="r me"><span class="tg me">我說</span><div><p class="en">Game time! Team A: one, three, five. Team B: two, four, six.</p><p class="en">Your number? Stand up!</p><p class="en">Ten seconds. Say: I want some ___.</p><p class="act">可補中文：「抽到號碼的站起來，十秒內說一句。」</p></div></div>
- <div class="r do"><span class="tg do">我做</span><div><p>按「🎲 抽一位」（空白鍵）→ 唸座號 <span class="en">Number four!</span> → 說對按 ✓（鍵盤 <kbd>1</kbd>），沒說出來按 ✗（鍵盤 <kbd>2</kbd>）。時間到程式會唸示範句，說 <span class="en">Say it together!</span> 全班一起唸。</p></div></div>
- <div class="r ank"><span class="tg ank">Ankita</span><div><p>當裁判，重複正確句子：<span class="en">I want some samosas. Great!</span></p></div></div>
- <div class="r me"><span class="tg me">我說</span><div><p class="en">Team A, three points. Team B, three points. Good job, everyone!</p><p class="act">分數照畫面上方唸。38:30 按「下一頁 →」。</p></div></div>
-</div>
-
-<div class="blk" id="t3830"><header><b>38:30</b><h3>自我檢核與離場句（第 9、10 頁）</h3><span>90 秒</span></header>
- <div class="r key"><span class="tg key">按鍵</span><div><p>第 9 頁按三下，一次一張卡。</p></div></div>
- <div class="r me"><span class="tg me">我說</span><div><p class="en">Number one. Listen. Show me!</p><p class="en">Number two. Say. Show me!</p><p class="en">Number three. Think. Show me!</p><p class="en">Great job! More practice next time.</p></div></div>
- <div class="r key"><span class="tg key">按鍵</span><div><p>按一下到第 10 頁，再按兩下：出現兩句對話。</p></div></div>
- <div class="r me"><span class="tg me">我說</span><div><p class="en">Line up. Tell Ankita: I want some ___!</p></div></div>
- <div class="r st"><span class="tg st">學生</span><div><p class="en">I want some ___!</p></div></div>
- <div class="r ank"><span class="tg ank">Ankita</span><div><p class="en">Here you are! Happy Diwali!</p><p class="act">和每個孩子擊掌。</p></div></div>
- <div class="r key"><span class="tg key">按鍵</span><div><p>再按兩下：回家任務和煙火。</p></div></div>
- <div class="r me"><span class="tg me">我說</span><div><p class="en">Tonight, say it at dinner. Happy Diwali! Bye-bye!</p></div></div>
-</div>
-
-<h2 id="after">課後 5 分鐘（學生不用操作）</h2>
-<div class="blk"><ul class="chk">
- <li><label><input type="checkbox"><span>把上課簡報、Wordwall、Padlet 三個連結和 Wordwall 成績截圖放到<b>因材網</b>的老師教材區，當作這一課的數位教材與學習紀錄。</span></label></li>
- <li><label><input type="checkbox"><span>在 Lunch Box Lab「學習證據」看課前、課後的 ✔ △ ? 與每人開口次數，帶到議課。</span></label></li>
-</ul></div>
-
-<h2>時間不夠時，照這個順序省</h2>
-<div class="tablewrap"><table><thead><tr><th>順序</th><th>省哪裡</th><th>怎麼做</th></tr></thead><tbody>
- <tr><td>1</td><td>Spin</td><td>只轉 2 個字。</td></tr>
- <tr><td>2</td><td>Padlet</td><td>只錄 A 組，B 組直接口頭說菜單。</td></tr>
- <tr><td>3</td><td>Impostor</td><td>只抓 1 句。</td></tr>
- <tr><td>4</td><td>自我檢核</td><td>只做 Number two。</td></tr>
- <tr><td>不能省</td><td>離場句</td><td>每人對 Ankita 說一句。</td></tr>
-</tbody></table></div>
-
-<h2>臨時狀況</h2>
-<div class="tablewrap"><table><thead><tr><th>狀況</th><th>處理</th></tr></thead><tbody>
- <tr><td>孩子聽不懂指令</td><td>慢慢再說一次＋做動作＋指螢幕；說 <span class="en">Watch me.</span> 直接示範；還不懂再補一句中文。</td></tr>
- <tr><td>Padlet 不能錄音</td><td>改成全組對著大螢幕直接說，我按 👍；課後再補錄。</td></tr>
- <tr><td>Wordwall 打不開</td><td>改用入口頁的 2（Party Menu）前先在大螢幕全班一起玩 Wordwall，我拖、孩子說。</td></tr>
- <tr><td>某台 iPad 沒聲音</td><td>看側邊靜音與音量；不行就和旁邊同學共用。</td></tr>
- <tr><td>孩子回不到學生入口</td><td>按 Safari 左上角的 &lt;；還是不行，重新掃 QR code。</td></tr>
- <tr><td>Speed Round 說不出來</td><td>10 秒到全班一起唸示範句，按 ✗ 再練，說 <span class="en">Great try!</span></td></tr>
- <tr><td>按太快</td><td>點畫面最左邊或按 <kbd>←</kbd>；數字鍵 <kbd>1</kbd>–<kbd>9</kbd>、<kbd>0</kbd> 跳頁。</td></tr>
-</tbody></table></div>
-
-<h2 id="ank">For Ankita: your lines after 20:00</h2>
-<div class="card-en"><h3>You lead until 20:00. After that, you are the party host. Please use short, slow sentences.</h3>
-<ul>
- <li><b>20:00</b> "What food should we bring to the party?"</li>
- <li><b>Spin</b> Lead the second repeat: "Say it with me."</li>
- <li><b>Wordwall</b> Sit next to a child: "Say it with me."</li>
- <li><b>Party Menu</b> "What food is from India?" → "Yes! I love samosas!"</li>
- <li><b>Padlet</b> After each team's recording: "Thank you!"</li>
- <li><b>Impostor</b> Read the sentence on the screen aloud, mistakes included.</li>
- <li><b>Speed Round</b> Judge. Repeat the correct sentence: "I want some ___. Great!"</li>
- <li><b>At the door</b> Each child: "I want some ___!" You: "Here you are! Happy Diwali!"</li>
-</ul></div>
-
-<p class="note" style="margin-top:22px">這份腳本和 <a href="class.html">上課簡報</a>、<a href="plan.html">教案</a> 用同一套時間與句子；要改流程時一起改。回 <a href="./">入口頁</a>。</p>
-</main>
 <script>
-(function(){const K='dp.chk2',boxes=[...document.querySelectorAll('ul.chk input')];let st=[];try{st=JSON.parse(localStorage.getItem(K)||'[]');}catch(e){}
- boxes.forEach((b,i)=>{b.checked=!!st[i];b.onchange=()=>{try{localStorage.setItem(K,JSON.stringify(boxes.map(x=>x.checked)));}catch(e){}};});})();
+(function(){
+ var $=function(s,r){return (r||document).querySelector(s)},
+     $$=function(s,r){return [].slice.call((r||document).querySelectorAll(s))};
+ var tabs=$$('.tab'),panels=$$('.panel'),rate=1,echo=false;
+ try{var v=localStorage.getItem('dp.rate');if(v)rate=parseFloat(v)||1;
+     echo=localStorage.getItem('dp.echo')==='1';}catch(e){}
+
+ /* ---- shrink to fit: the whole page must be visible without scrolling ---- */
+ function fit(p){
+  var f=$('.fit',p);if(!f)return;
+  f.style.transform='';f.style.width='';f.style.height='';
+  p.scrollTop=0;
+  var pr=p.getBoundingClientRect(),fr=f.getBoundingClientRect(),
+      pb=parseFloat(getComputedStyle(p).paddingBottom)||0,
+      avail=pr.bottom-pb-fr.top-2,k=1,nat=f.scrollHeight;
+  for(var i=0;i<5&&nat&&nat*k>avail+0.5;i++){
+   k=Math.max(0.68,avail/nat);
+   f.style.transform='scale('+k.toFixed(3)+')';
+   f.style.width=(100/k).toFixed(2)+'%';
+   nat=f.scrollHeight;               /* wider box: the two columns rebalance */
+   if(k<=0.68)break;
+  }
+  /* a transform does not shrink the layout box, so give it the painted height */
+  if(k<1)f.style.height=Math.ceil(nat*k)+'px';
+ }
+ function fitNow(){var p=panels.find(function(x){return !x.hidden;});if(p)fit(p);}
+ var rz;addEventListener('resize',function(){clearTimeout(rz);rz=setTimeout(fitNow,120);});
+ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitNow);
+
+ /* ---- tabs ---- */
+ function show(id,push){
+  tabs.forEach(function(t){var on=t.dataset.p===id;t.setAttribute('aria-selected',on?'true':'false');
+   if(on)t.scrollIntoView({block:'nearest',inline:'nearest'});});
+  panels.forEach(function(p){p.hidden=p.id!=='p-'+id;if(!p.hidden){p.scrollTop=0;fit(p);}});
+  stop();
+  if(push&&location.hash!=='#'+id)history.replaceState(null,'','#'+id);
+ }
+ tabs.forEach(function(t){t.onclick=function(){show(t.dataset.p,true);};});
+ function move(d){var i=tabs.findIndex(function(t){return t.getAttribute('aria-selected')==='true';});
+  var n=Math.min(tabs.length-1,Math.max(0,i+d));if(n!==i){show(tabs[n].dataset.p,true);tabs[n].focus();}}
+
+ /* ---- audio ---- */
+ var au=new Audio(),cur=null,seq=null,qi=0,timer=0;
+ au.preload='auto';
+ function mark(el,on){if(el)el.dataset.on=on?'1':'';}
+ function stop(){clearTimeout(timer);au.pause();au.currentTime=0;mark(cur,false);cur=null;
+  if(seq){mark(seq,false);seq=null;}
+  $$('.seq').forEach(function(b){b.dataset.on='';b.textContent=b.dataset.lbl||b.textContent;});}
+ function play(id,el){
+  clearTimeout(timer);mark(cur,false);cur=el;mark(el,true);
+  au.src='voice/'+id+'.mp3';au.playbackRate=rate;
+  au.play().catch(function(){mark(el,false);});
+ }
+ au.onended=function(){
+  var wait=echo?(au.duration||1.2)*1000/rate+450:350;
+  if(!seq){timer=setTimeout(function(){mark(cur,false);cur=null;},echo?wait:0);return;}
+  timer=setTimeout(next,wait);
+ };
+ function next(){
+  var list=seq.dataset.seq.split(',');
+  mark(cur,false);
+  if(qi>=list.length){stop();return;}
+  var id=list[qi++],el=$('.play[data-a="'+id+'"]',seq.closest('.panel'));
+  if(el&&el.scrollIntoView)el.scrollIntoView({block:'nearest',behavior:'smooth'});
+  play(id,el);
+ }
+ document.addEventListener('click',function(e){
+  var b=e.target.closest('[data-a]');
+  if(b){var same=cur===b&&!au.paused;stop();if(!same)play(b.dataset.a,b);return;}
+  var s=e.target.closest('.seq');
+  if(s){var on=seq===s;stop();if(on)return;
+   seq=s;qi=0;s.dataset.lbl=s.dataset.lbl||s.textContent;s.dataset.on='1';s.textContent='■ 停止播放';next();}
+ });
+
+ /* ---- controls ---- */
+ function setRate(r){rate=r;au.playbackRate=r;
+  $('#sp75').setAttribute('aria-pressed',r===0.75?'true':'false');
+  $('#sp10').setAttribute('aria-pressed',r===1?'true':'false');
+  try{localStorage.setItem('dp.rate',r);}catch(e){}}
+ $('#sp75').onclick=function(){setRate(0.75);};
+ $('#sp10').onclick=function(){setRate(1);};
+ function setEcho(v){echo=v;$('#echo').setAttribute('aria-pressed',v?'true':'false');
+  try{localStorage.setItem('dp.echo',v?'1':'0');}catch(e){}}
+ $('#echo').onclick=function(){setEcho(!echo);};
+ setRate(rate);setEcho(echo);
+
+ /* ---- checkboxes remember ---- */
+ $$('.row.chk input').forEach(function(c,i){
+  var k='dp.chk3.'+i;
+  try{if(localStorage.getItem(k)==='1')c.checked=true;}catch(e){}
+  c.onchange=function(){try{localStorage.setItem(k,c.checked?'1':'0');}catch(e){}};
+ });
+
+ /* ---- keys ---- */
+ document.addEventListener('keydown',function(e){
+  if(/^(INPUT|TEXTAREA|SELECT)$/.test((e.target.tagName||''))||e.metaKey||e.ctrlKey||e.altKey)return;
+  if(e.key==='ArrowRight'){move(1);e.preventDefault();}
+  else if(e.key==='ArrowLeft'){move(-1);e.preventDefault();}
+  else if(e.key===' '){var p=panels.find(function(x){return !x.hidden;});var s=p&&$('.seq',p);
+   if(s){s.click();e.preventDefault();}}
+  else if(e.key==='Escape'){stop();}
+ });
+ function fromHash(){
+  var h=(location.hash||'').replace('#','');
+  if(h&&tabs.some(function(t){return t.dataset.p===h;}))show(h,false);
+  else show(tabs[0].dataset.p,false);
+ }
+ addEventListener('hashchange',fromHash);
+ fromHash();
+})();
 </script>
 </body></html>

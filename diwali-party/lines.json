@@ -1,0 +1,151 @@
+{
+  "voice": "Emma - Bright Kids Educator (oClOrzqamOXmtcB8iqTj)",
+  "model": "eleven_multilingual_v2",
+  "note": "全英語上課腳本的每一句。id 就是音檔檔名（voice/<id>.mp3）。改句子後：python3 make_voice.py plan 重新分批、用 ElevenLabs 補錄、python3 make_voice.py cut 切檔，再 python3 make_script.py 重建 script.html。",
+  "groups": [
+    {
+      "id": "core",
+      "zh": "隨時都會用到的口令",
+      "sub": "整節課一直重複這幾句。每一句都配一個固定動作，孩子看動作就懂。",
+      "lines": [
+        { "id": "c01", "en": "All right, eyes on me.", "zh": "好，看老師", "do": "兩指指自己眼睛" },
+        { "id": "c02", "en": "iPads down, please.", "zh": "平板放下", "do": "雙手掌心向下壓平" },
+        { "id": "c03", "en": "iPads up!", "zh": "拿起平板", "do": "雙手掌心向上抬" },
+        { "id": "c04", "en": "Watch me first.", "zh": "先看老師做一次", "do": "指自己，再指大螢幕" },
+        { "id": "c05", "en": "Okay, your turn.", "zh": "換你們", "do": "手掌伸向學生" },
+        { "id": "c06", "en": "Listen.", "zh": "聽", "do": "手放耳朵" },
+        { "id": "c07", "en": "Say it with me.", "zh": "跟我唸", "do": "手從嘴巴畫向全班" },
+        { "id": "c08", "en": "One more time.", "zh": "再一次", "do": "比 1" },
+        { "id": "c09", "en": "Show me.", "zh": "比給我看", "do": "雙手攤開" },
+        { "id": "c10", "en": "Got it? So-so? Not yet?", "zh": "會了？有點熟？還不熟？", "do": "大拇指／手掌搖一搖／手放頭上" },
+        { "id": "c11", "en": "Tap number one.", "zh": "按 1（2、3 同理）", "do": "比 1，手指點一下" },
+        { "id": "c12", "en": "Need help? Raise your hand.", "zh": "要幫忙就舉手", "do": "舉手" },
+        { "id": "c13", "en": "Thirty seconds left!", "zh": "剩 30 秒", "do": "比 3，再比 0" },
+        { "id": "c14", "en": "Time's up!", "zh": "時間到", "do": "雙手交叉" },
+        { "id": "c15", "en": "Stand up.", "zh": "站起來", "do": "雙手往上抬" },
+        { "id": "c16", "en": "Sit down.", "zh": "坐下", "do": "雙手往下壓" },
+        { "id": "c17", "en": "Nice job!", "zh": "做得好", "do": "比讚" },
+        { "id": "c18", "en": "Great try!", "zh": "有試就很棒（說錯時用這句）", "do": "比讚" },
+        { "id": "c19", "en": "Can you count it?", "zh": "數得出來嗎？", "do": "手指一個一個數" },
+        { "id": "c20", "en": "I want some rice.", "zh": "今天的目標句", "do": "手指向自己" },
+        { "id": "c21", "en": "Line up, please.", "zh": "排隊", "do": "手往門口指" },
+        { "id": "c22", "en": "Here we go!", "zh": "開始囉", "do": "拍一下手" }
+      ]
+    },
+    {
+      "id": "s1",
+      "zh": "20:00　接棒＋今天的任務",
+      "sub": "簡報第 1、2 頁。按一下出現問句，再按一下到第 2 頁，然後按三下，一次出現一張卡。",
+      "lines": [
+        { "id": "a01", "en": "Great question! Let's plan the party food.", "zh": "接住 Ankita 的交棒句", "do": "看向 Ankita，再轉向全班" },
+        { "id": "a02", "en": "Here's our job today: bring food to Ankita's party!", "zh": "揭示任務", "do": "手指大螢幕的大字" },
+        { "id": "a03", "en": "Number one. Listen. Say it with me. Listen!", "zh": "第一張卡", "do": "手放耳朵" },
+        { "id": "a04", "en": "Number two. Say. Say!", "zh": "第二張卡", "do": "手指嘴巴" },
+        { "id": "a05", "en": "Number three. Think. Think!", "zh": "第三張卡", "do": "手指頭" }
+      ]
+    },
+    {
+      "id": "s2",
+      "zh": "20:45　導學　Cool English 單字＋Spin",
+      "sub": "第 3 頁。轉 3 到 4 個字，每個字都講同樣五句。",
+      "lines": [
+        { "id": "b01", "en": "Today's words come from Cool English.", "zh": "介紹單字來源，說一次就好", "do": "指畫面上那一行字" },
+        { "id": "b02", "en": "Show me. Got it? So-so? Not yet?", "zh": "請孩子自評", "do": "三個手勢各做一次" },
+        { "id": "b03", "en": "Not yet? That's okay. That's what we'll practice today.", "zh": "不會沒關係", "do": "搖頭、微笑" },
+        { "id": "b04", "en": "Let's spin! Here we go.", "zh": "開始轉輪盤", "do": "點「轉！」或按空白鍵" },
+        { "id": "b05", "en": "Listen. Say it with me. One more time. Show me.", "zh": "每個字的四個步驟", "do": "看多數人的手勢按 ✔ △ ?" }
+      ]
+    },
+    {
+      "id": "s3",
+      "zh": "22:00　自學　Wordwall（每人一台 iPad）",
+      "sub": "第 4 頁。先示範一題再放手，計時 3 分 30 秒。",
+      "lines": [
+        { "id": "d01", "en": "Watch me first.", "zh": "先示範", "do": "點「▶ Watch me first」開 Wordwall" },
+        { "id": "d02", "en": "Drag the word onto the picture. There we go!", "zh": "示範拖一題", "do": "用手指在大螢幕上拖一次" },
+        { "id": "d03", "en": "iPads up. Tap number one.", "zh": "請孩子開始", "do": "切回簡報分頁" },
+        { "id": "d04", "en": "Type your number, then start.", "zh": "輸入座號", "do": "比打字的動作" },
+        { "id": "d05", "en": "Okay, your turn!", "zh": "放手讓他們做", "do": "按下一步，出現 GO! 開始計時" },
+        { "id": "d06", "en": "Thirty seconds left!", "zh": "剩 30 秒", "do": "巡視，看 Wordwall 結果頁" },
+        { "id": "d07", "en": "Time's up. iPads down.", "zh": "收", "do": "雙手壓平" },
+        { "id": "d08", "en": "Let's look at this one together. Noodles. Say it with me. Noodles!", "zh": "把錯最多的字帶全班唸兩次（noodles 只是舉例）", "do": "指大螢幕的那張圖" }
+      ]
+    },
+    {
+      "id": "s4",
+      "zh": "26:00　共學　Party Menu（一組一台 iPad）",
+      "sub": "第 5 頁。三個角色講完才按 GO!，計時 3 分 30 秒。",
+      "lines": [
+        { "id": "e01", "en": "Team time!", "zh": "小組開始", "do": "雙手合起來" },
+        { "id": "e02", "en": "Three foods. One from India.", "zh": "規則", "do": "比 3，再比 1，指印度食物的圖" },
+        { "id": "e03", "en": "Leader, tap number two.", "zh": "Leader 的工作", "do": "指平板" },
+        { "id": "e04", "en": "Checker, you ask: Can you count it?", "zh": "Checker 的工作", "do": "手指一個一個數" },
+        { "id": "e05", "en": "Reporter, you read the menu.", "zh": "Reporter 的工作", "do": "手指嘴巴" },
+        { "id": "e06", "en": "Can you count it?", "zh": "孩子選錯時只問這一句，不給答案", "do": "指著畫面" },
+        { "id": "e07", "en": "Time's up. iPads down.", "zh": "收", "do": "雙手壓平" }
+      ]
+    },
+    {
+      "id": "s5",
+      "zh": "30:00　互學　Padlet 錄音互評",
+      "sub": "第 6 頁。先示範錄音，計時 2 分 30 秒。",
+      "lines": [
+        { "id": "f01", "en": "Watch me first.", "zh": "先示範", "do": "點「▶ Open Padlet」" },
+        { "id": "f02", "en": "Tap the plus. Tap the microphone. Say your food. Tap stop. Then publish.", "zh": "邊做邊說這五步", "do": "在大螢幕上真的做一次" },
+        { "id": "f03", "en": "Leader, tap number three. Your turn!", "zh": "放手讓他們錄", "do": "手掌伸向學生" },
+        { "id": "f04", "en": "Team A, let's listen.", "zh": "播 A 組的錄音", "do": "在大螢幕點播放" },
+        { "id": "f05", "en": "Team B, say: Yummy! I like your samosas.", "zh": "B 組要說出對方的一種食物", "do": "手指 B 組" },
+        { "id": "f06", "en": "Checker, can you count it?", "zh": "請 Checker 檢查", "do": "手指一個一個數" },
+        { "id": "f07", "en": "Fix it, and record it again.", "zh": "有錯就重錄（依它組意見修改）", "do": "指平板" },
+        { "id": "f08", "en": "Switch! Team B, your turn.", "zh": "換 B 組", "do": "兩手交換位置" }
+      ]
+    },
+    {
+      "id": "s6",
+      "zh": "33:00　導學　Can you count it?＋Impostor",
+      "sub": "第 7 頁。規則讓孩子自己說出來。",
+      "lines": [
+        { "id": "g01", "en": "Apples. Can you count it? One, two, three. Yes! Add an s.", "zh": "數得出來", "do": "手指一個一個數" },
+        { "id": "g02", "en": "Rice. Can you count it? No. No s.", "zh": "數不出來", "do": "搖手" },
+        { "id": "g03", "en": "Can you count it? Add an s. Can't count it? No s.", "zh": "今天的規則，唸兩次", "do": "先數、再搖手" },
+        { "id": "g04", "en": "Find the impostor! Which word is wrong?", "zh": "開始抓錯，抓 2 句", "do": "孩子說出來，我點那個字" }
+      ]
+    },
+    {
+      "id": "s7",
+      "zh": "35:00　統整　Speed Round",
+      "sub": "第 8 頁。每個人至少開口一次。",
+      "lines": [
+        { "id": "h01", "en": "Game time!", "zh": "遊戲開始", "do": "拍手" },
+        { "id": "h02", "en": "Team A: one, three, five. Team B: two, four, six.", "zh": "分隊", "do": "手指兩邊" },
+        { "id": "h03", "en": "Is that your number? Stand up!", "zh": "抽到的人站起來", "do": "雙手往上抬" },
+        { "id": "h04", "en": "Ten seconds. Say: I want some...", "zh": "十秒內說一句", "do": "比 10" },
+        { "id": "h05", "en": "Number four!", "zh": "唸出抽到的座號（數字照畫面）", "do": "點「🎲 抽一位」或按空白鍵" },
+        { "id": "h06", "en": "Say it together!", "zh": "時間到，全班一起唸", "do": "手畫圈帶全班" },
+        { "id": "h07", "en": "Great try!", "zh": "說不出來時給這句，按 ✗ 再練", "do": "比讚" },
+        { "id": "h08", "en": "Team A, three points. Team B, three points. Awesome job, everybody!", "zh": "唸分數（數字照畫面）", "do": "指畫面上方的分數" }
+      ]
+    },
+    {
+      "id": "s8",
+      "zh": "38:30　自我檢核＋離場句",
+      "sub": "第 9、10 頁。離場句不能省。",
+      "lines": [
+        { "id": "i01", "en": "Number one. Listen. Show me!", "zh": "第一個 I can", "do": "手放耳朵，再攤手" },
+        { "id": "i02", "en": "Number two. Say. Show me!", "zh": "第二個 I can", "do": "手指嘴巴，再攤手" },
+        { "id": "i03", "en": "Number three. Think. Show me!", "zh": "第三個 I can", "do": "手指頭，再攤手" },
+        { "id": "i04", "en": "Great job today! We'll practice more next time.", "zh": "收尾", "do": "比讚" },
+        { "id": "i05", "en": "Line up. Tell Ankita: I want some...", "zh": "排隊，每人對 Ankita 說一句", "do": "手往門口指" },
+        { "id": "i06", "en": "Tonight at dinner, say it one more time. Happy Diwali! Bye-bye!", "zh": "回家任務", "do": "揮手" }
+      ]
+    }
+  ],
+  "ankita": [
+    "What food should we bring to the party?",
+    "Say it with me.",
+    "What food is from India? Yes! I love samosas!",
+    "Thank you!",
+    "I want some samosas. Great!",
+    "Here you are! Happy Diwali!"
+  ]
+}

@@ -1,0 +1,215 @@
+[
+ {
+  "bid": "b00",
+  "ids": [
+   "c01",
+   "c02",
+   "c03",
+   "c04",
+   "c05"
+  ],
+  "est": 12.5,
+  "text": "All right, eyes on me. <break time=\"1.5s\" /> iPads down, please. <break time=\"1.5s\" /> iPads up! <break time=\"1.5s\" /> Watch me first. <break time=\"1.5s\" /> Okay, your turn."
+ },
+ {
+  "bid": "b01",
+  "ids": [
+   "c06",
+   "c07",
+   "c08",
+   "c09",
+   "c10"
+  ],
+  "est": 11.4,
+  "text": "Listen. <break time=\"1.5s\" /> Say it with me. <break time=\"1.5s\" /> One more time. <break time=\"1.5s\" /> Show me. <break time=\"1.5s\" /> Got it? So-so? Not yet?"
+ },
+ {
+  "bid": "b02",
+  "ids": [
+   "c11",
+   "c12",
+   "c13",
+   "c14",
+   "c15"
+  ],
+  "est": 12.5,
+  "text": "Tap number one. <break time=\"1.5s\" /> Need help? Raise your hand. <break time=\"1.5s\" /> Thirty seconds left! <break time=\"1.5s\" /> Time's up! <break time=\"1.5s\" /> Stand up."
+ },
+ {
+  "bid": "b03",
+  "ids": [
+   "c16",
+   "c17",
+   "c18",
+   "c19",
+   "c20"
+  ],
+  "est": 11.0,
+  "text": "Sit down. <break time=\"1.5s\" /> Nice job! <break time=\"1.5s\" /> Great try! <break time=\"1.5s\" /> Can you count it? <break time=\"1.5s\" /> I want some rice."
+ },
+ {
+  "bid": "b04",
+  "ids": [
+   "c21",
+   "c22",
+   "a01",
+   "a02"
+  ],
+  "est": 14.1,
+  "text": "Line up, please. <break time=\"1.5s\" /> Here we go! <break time=\"1.5s\" /> Great question! Let's plan the party food. <break time=\"1.5s\" /> Here's our job today: bring food to Ankita's party!"
+ },
+ {
+  "bid": "b05",
+  "ids": [
+   "a03",
+   "a04",
+   "a05"
+  ],
+  "est": 10.3,
+  "text": "Number one. Listen. Say it with me. Listen! <break time=\"1.5s\" /> Number two. Say. Say! <break time=\"1.5s\" /> Number three. Think. Think!"
+ },
+ {
+  "bid": "b06",
+  "ids": [
+   "b01",
+   "b02",
+   "b03"
+  ],
+  "est": 12.9,
+  "text": "Today's words come from Cool English. <break time=\"1.5s\" /> Show me. Got it? So-so? Not yet? <break time=\"1.5s\" /> Not yet? That's okay. That's what we'll practice today."
+ },
+ {
+  "bid": "b07",
+  "ids": [
+   "b04",
+   "b05",
+   "d01"
+  ],
+  "est": 9.8,
+  "text": "Let's spin! Here we go. <break time=\"1.5s\" /> Listen. Say it with me. One more time. Show me. <break time=\"1.5s\" /> Watch me first."
+ },
+ {
+  "bid": "b08",
+  "ids": [
+   "d02",
+   "d03",
+   "d04",
+   "d05"
+  ],
+  "est": 13.6,
+  "text": "Drag the word onto the picture. There we go! <break time=\"1.5s\" /> iPads up. Tap number one. <break time=\"1.5s\" /> Type your number, then start. <break time=\"1.5s\" /> Okay, your turn!"
+ },
+ {
+  "bid": "b09",
+  "ids": [
+   "d06",
+   "d07",
+   "d08",
+   "e01"
+  ],
+  "est": 13.9,
+  "text": "Thirty seconds left! <break time=\"1.5s\" /> Time's up. iPads down. <break time=\"1.5s\" /> Let's look at this one together. Noodles. Say it with me. Noodles! <break time=\"1.5s\" /> Team time!"
+ },
+ {
+  "bid": "b10",
+  "ids": [
+   "e02",
+   "e03",
+   "e04",
+   "e05"
+  ],
+  "est": 13.6,
+  "text": "Three foods. One from India. <break time=\"1.5s\" /> Leader, tap number two. <break time=\"1.5s\" /> Checker, you ask: Can you count it? <break time=\"1.5s\" /> Reporter, you read the menu."
+ },
+ {
+  "bid": "b11",
+  "ids": [
+   "e06",
+   "e07",
+   "f01"
+  ],
+  "est": 7.3,
+  "text": "Can you count it? <break time=\"1.5s\" /> Time's up. iPads down. <break time=\"1.5s\" /> Watch me first."
+ },
+ {
+  "bid": "b12",
+  "ids": [
+   "f02",
+   "f03",
+   "f04"
+  ],
+  "est": 13.3,
+  "text": "Tap the plus. Tap the microphone. Say your food. Tap stop. Then publish. <break time=\"1.5s\" /> Leader, tap number three. Your turn! <break time=\"1.5s\" /> Team A, let's listen."
+ },
+ {
+  "bid": "b13",
+  "ids": [
+   "f05",
+   "f06",
+   "f07",
+   "f08"
+  ],
+  "est": 14.1,
+  "text": "Team B, say: Yummy! I like your samosas. <break time=\"1.5s\" /> Checker, can you count it? <break time=\"1.5s\" /> Fix it, and record it again. <break time=\"1.5s\" /> Switch! Team B, your turn."
+ },
+ {
+  "bid": "b14",
+  "ids": [
+   "g01",
+   "g02",
+   "g03"
+  ],
+  "est": 14.1,
+  "text": "Apples. Can you count it? One, two, three. Yes! Add an s. <break time=\"1.5s\" /> Rice. Can you count it? No. No s. <break time=\"1.5s\" /> Can you count it? Add an s. Can't count it? No s."
+ },
+ {
+  "bid": "b15",
+  "ids": [
+   "g04",
+   "h01",
+   "h02"
+  ],
+  "est": 10.8,
+  "text": "Find the impostor! Which word is wrong? <break time=\"1.5s\" /> Game time! <break time=\"1.5s\" /> Team A: one, three, five. Team B: two, four, six."
+ },
+ {
+  "bid": "b16",
+  "ids": [
+   "h03",
+   "h04",
+   "h05",
+   "h06",
+   "h07"
+  ],
+  "est": 14.0,
+  "text": "Is that your number? Stand up! <break time=\"1.5s\" /> Ten seconds. Say: I want some... <break time=\"1.5s\" /> Number four! <break time=\"1.5s\" /> Say it together! <break time=\"1.5s\" /> Great try!"
+ },
+ {
+  "bid": "b17",
+  "ids": [
+   "h08",
+   "i01",
+   "i02"
+  ],
+  "est": 12.6,
+  "text": "Team A, three points. Team B, three points. Awesome job, everybody! <break time=\"1.5s\" /> Number one. Listen. Show me! <break time=\"1.5s\" /> Number two. Say. Show me!"
+ },
+ {
+  "bid": "b18",
+  "ids": [
+   "i03",
+   "i04",
+   "i05"
+  ],
+  "est": 12.0,
+  "text": "Number three. Think. Show me! <break time=\"1.5s\" /> Great job today! We'll practice more next time. <break time=\"1.5s\" /> Line up. Tell Ankita: I want some..."
+ },
+ {
+  "bid": "b19",
+  "ids": [
+   "i06"
+  ],
+  "est": 5.0,
+  "text": "Tonight at dinner, say it one more time. Happy Diwali! Bye-bye!"
+ }
+]
