@@ -418,6 +418,8 @@ details.settings>summary span{font-size:13px;color:var(--ink-3)}
 }
 @media print{.wb,.wb-nav{display:none!important}}
 .heli-panel{margin-top:18px;border-top:2px solid var(--line);padding-top:14px}
+@media screen{.backpick{margin:10px 0 4px;padding:10px 12px;border:1px dashed var(--line);border-radius:12px;display:grid;gap:4px}.backpick.on{border-style:solid;border-color:var(--amber);background:var(--surface)}.backpick label{font-weight:700}.backpick select{min-height:44px;max-width:100%}.backpick small{color:var(--ink-3);font-size:13px;line-height:1.5}
+.acct-back{margin-top:12px;border:1px solid var(--line);border-radius:12px;padding:10px 14px;background:var(--surface)}.acct-back h5{margin:4px 0;font-size:15px}.acct-back ul{margin:4px 0 8px;padding-left:20px}.acct-back li{margin:2px 0;font-size:14px}}
 .heli-panel h3 span{font-size:13px;font-weight:600;color:var(--ink-3)}
 .heli-warn{margin:8px 0 0;padding-left:18px;font-size:13px;color:var(--amber)}
 .heli-warn li{margin:2px 0}
@@ -2685,6 +2687,23 @@ var PAY = (function () {
   function isHeliSub(e, heli) { return e.type === "sub" && heli.indexOf(e.other) >= 0; }
   function absCovers(e, p) { var s = e.scope; return s === "上午" ? +p <= 4 : s === "下午" ? +p >= 5 : s === "節次" ? (e.periods || []).map(String).indexOf(String(p)) >= 0 : true; }
   function absLabel(e) { return e.scope === "節次" ? "第" + (e.periods || []).join("、") + "節" : (e.scope || "全天"); }
+  /* ---- 補發（115.11.23 管理者要求）：之前月份漏列、晚交代課單的代課／代導師，在備註寫「補發：115年11月帳」，就改算在那個月的會計帳。
+   *      只對代課（sub）、代導師（tutor）有效；只能往後補（寫比原月份早的不算）；原月份不再列入，避免重複發。 */
+  var BACK_RE = /補發[：:]\s*(\d{2,4})\s*年\s*(\d{1,2})\s*月/;
+  function payYm(e) {
+    var d = String((e && e.date) || "").slice(0, 7);
+    if (!e || (e.type !== "sub" && e.type !== "tutor")) return d;
+    var m = BACK_RE.exec(String(e.note || "")); if (!m) return d;
+    var y = +m[1]; if (y < 1911) y += 1911;
+    var ym = y + "-" + pad2(+m[2]); return ym > d ? ym : d;
+  }
+  function backFrom(e) { var d = String((e && e.date) || "").slice(0, 7), q = payYm(e); return q !== d ? d : ""; }
+  function backLabel(ym) { return (+ym.slice(0, 4) - 1911) + "年" + (+ym.slice(5, 7)) + "月帳"; }
+  function setBackNote(note, ym) {
+    var s = String(note || "").replace(/[；;]?\s*補發[：:]\s*\d{2,4}\s*年\s*\d{1,2}\s*月帳?/g, "").replace(/^[；;\s]+|[；;\s]+$/g, "");
+    return ym ? (s ? s + "；" : "") + "補發：" + backLabel(ym) : s;
+  }
+  function backText(e) { var b = backFrom(e); return b ? "前期補發（原 " + (+b.slice(0, 4) - 1911) + " 年 " + (+b.slice(5, 7)) + " 月漏列，改在 " + (+payYm(e).slice(5, 7)) + " 月補發）" : ""; }
 
   /* ---- 勞健保 ---- */
   function days(p, ym) {
@@ -2791,10 +2810,11 @@ var PAY = (function () {
       return { name: name, slots: sl, weekly: sl.length, L: L, n1: n1, n15: n15, units: units, pay: pay, amt: pay * rateSub,
                hol: cnt("hol"), off: cnt("off"), subN: cnt("sub"), none: cnt("none"), moved: cnt("moved") };
     });
-    var subs = all.filter(function (e) { return isHeliSub(e, ctx.heli || []) && e.date.indexOf(r) === 0 && !e.nofee; }).sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : (+a.period || 0) - (+b.period || 0); });
+    var subs = all.filter(function (e) { return isHeliSub(e, ctx.heli || []) && payYm(e).indexOf(r) === 0 && !e.nofee; }).sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : (+a.period || 0) - (+b.period || 0); });
     var S = {};
     subs.forEach(function (e) {
-      var t = T.find(function (x) { return x.name === e.other; }), l = t && t.L.find(function (x) { return x.date === e.date && x.p === String(e.period) && x.st === "sub" && x.sub === e.who; });
+      var bf = backFrom(e), t = bf ? (function () { try { return heli(ctx, bf, e.other).T[0]; } catch (err) { return null; } })() : T.find(function (x) { return x.name === e.other; });
+      var l = t && t.L.find(function (x) { return x.date === e.date && x.p === String(e.period) && x.st === "sub" && x.sub === e.who; });
       var w = l ? l.w : heliW(e), s = S[e.who] || (S[e.who] = { n1: 0, n15: 0, units: 0, list: [] });
       if (!l) warn.push(e.who + " " + fmtMD(e.date) + " 第" + e.period + "節代 " + e.other + " 的課，對不到 " + e.other + " 的合理員額課表（暫以 " + w + " 節計，請確認）");
       if (w === 1) s.n1++; else s.n15++;
@@ -2814,7 +2834,11 @@ var PAY = (function () {
   /* ---- 校內代課（公假等）：某月份（ctx = {events, heli, rateSub, rateTutor}） ---- */
   function acct(ctx, r) {
     var heliList = ctx.heli || [], rateSub = ctx.rateSub, rateTutor = ctx.rateTutor, T = {}, L = {};
-    var inM = ctx.events.filter(function (e) { return e.date.indexOf(r) === 0; });
+    var inM = ctx.events.filter(function (e) { return payYm(e).indexOf(r) === 0; });   // 補發的算在補發的月份
+    var isFeeRec = function (e) { return !e.nofee && (e.type === "tutor" || (e.type === "sub" && !isHeliSub(e, heliList))); };
+    var back = inM.filter(function (e) { return isFeeRec(e) && backFrom(e); }), out = ctx.events.filter(function (e) { return isFeeRec(e) && e.date.indexOf(r) === 0 && payYm(e).indexOf(r) !== 0; });
+    var amtOf = function (e) { return e.type === "sub" ? (e.rate || rateSub) : (e.rate || rateTutor) * (+e.days || 1); };
+    var backAmt = back.reduce(function (s, e) { return s + amtOf(e); }, 0), outAmt = out.reduce(function (s, e) { return s + amtOf(e); }, 0);
     var n = 0, fee = 0, days = 0, tfee = 0, voidN = 0, flagN = 0, fixN = 0, recSum = 0, heliN = 0, heliAmt = 0;
     var who = function (name) { return T[name] || (T[name] = { b: 0, c: 0, d: 0, amt: 0, td: 0, tamt: 0, flags: 0 }); };
     var lt = function (e) { var k = e.leaveType || "（未填假別）"; return L[k] || (L[k] = { n: 0, days: 0, amt: 0 }); };
@@ -2825,6 +2849,7 @@ var PAY = (function () {
       if (e.nofee) { voidN++; return; }
       var rate = e.rate || rateSub, t = who(e.who);
       if (rate !== rateSub) t.d++; else if (heliList.indexOf(e.who) >= 0) t.c++; else t.b++;
+      if (backFrom(e)) { t.back = (t.back || 0) + rate; t.backN = (t.backN || 0) + 1; }
       t.amt += rate; n++; fee += rate; recSum += feeOf(e);
       var x = lt(e); x.n++; x.amt += rate;
       if ((e.flags || []).length) { t.flags++; flagN++; }
@@ -2833,13 +2858,15 @@ var PAY = (function () {
       if (e.fix) fixN++;
       if (e.nofee) { voidN++; return; }
       var dd = +e.days || 1, t = who(e.who), rt = e.rate || rateTutor;
+      if (backFrom(e)) { t.back = (t.back || 0) + rt * dd; t.backD = (t.backD || 0) + dd; }
       t.td += dd; t.tamt += rt * dd; days += dd; tfee += rt * dd; recSum += feeOf(e);
       var x = lt(e); x.days += dd; x.amt += rt * dd;
       if ((e.flags || []).length) { t.flags++; flagN++; }
     });
     var byTeacher = Object.keys(T).reduce(function (s, k) { return s + T[k].amt + T[k].tamt; }, 0), byLeave = Object.keys(L).reduce(function (s, k) { return s + L[k].amt; }, 0);
     var unassigned = inM.filter(function (e) { return (e.type === "leave" || e.type === "tutorLeave") && !e.other; }).length;
-    return { T: T, L: L, n: n, fee: fee, days: days, tfee: tfee, total: fee + tfee, byTeacher: byTeacher, byLeave: byLeave, recSum: recSum, voidN: voidN, flagN: flagN, fixN: fixN, unassigned: unassigned, heliN: heliN, heliAmt: heliAmt };
+    return { T: T, L: L, n: n, fee: fee, days: days, tfee: tfee, total: fee + tfee, byTeacher: byTeacher, byLeave: byLeave, recSum: recSum, voidN: voidN, flagN: flagN, fixN: fixN, unassigned: unassigned, heliN: heliN, heliAmt: heliAmt,
+             back: back, backAmt: backAmt, out: out, outAmt: outAmt };
   }
   /* ---- 印領清冊、明細用：把 heli() 的結果整理成「本人」「代課」各一組 [{kind, name, label, units, pay, amt, rows:[{date,p,cls,subject,owner,by,w,counted,note}]}] ---- */
   function groups(H) {
@@ -2850,7 +2877,7 @@ var PAY = (function () {
     Object.keys(H.S).sort(function (a, b) { return a.localeCompare(b, "zh-Hant"); }).forEach(function (n) { var s = H.S[n];
       G.push({ kind: "代課", name: n, label: n + "（代合理員額教師課）", units: s.units, pay: s.pay, amt: s.amt,
         rows: s.list.map(function (x) { var e = x.e; return { date: e.date, p: String(e.period), cls: x.cls, subject: x.subject, owner: e.other, by: n, w: x.w, counted: true,
-          note: [e.other + " 請假（" + (e.leaveType || "未填假別") + "），由 " + n + " 代課；領 " + e.other + " 原本這一節的 " + x.w + " 節"].concat(e.flags || [], e.fix ? ["管理者已修正（" + e.fix.text + "）"] : []).filter(Boolean).join("；") }; }) }); });
+          note: [e.other + " 請假（" + (e.leaveType || "未填假別") + "），由 " + n + " 代課；領 " + e.other + " 原本這一節的 " + x.w + " 節", backText(e)].concat(e.flags || [], e.fix ? ["管理者已修正（" + e.fix.text + "）"] : []).filter(Boolean).join("；") }; }) }); });
     return G;
   }
   /* ---- 新臺幣大寫 ---- */
@@ -2869,7 +2896,8 @@ var PAY = (function () {
   }
   return { groups: groups, bigNum: bigNum, dow: dow, fmtMD: fmtMD, payUnits: payUnits, unitsText: unitsText, heliCls: heliCls, isHeliSub: isHeliSub,
            days: days, ins: ins, laborEmp: laborEmp, laborEr: laborEr, occEr: occEr, pensionEr: pensionEr, nhiEmp: nhiEmp, nhiEr: nhiEr, suppFee: suppFee, taxWh: taxWh,
-           deductFor: deductFor, deductSum: deductSum, deductText: deductText, slots: slots, heli: heli, acct: acct };
+           deductFor: deductFor, deductSum: deductSum, deductText: deductText, slots: slots, heli: heli, acct: acct,
+           payYm: payYm, backFrom: backFrom, backText: backText, backLabel: backLabel, setBackNote: setBackNote };
 })();
 
 /* ---------- 呼叫後端 ---------- */
@@ -2893,7 +2921,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.20d";
+const APP_VERSION = "專業版 2026.11.23a";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -2938,7 +2966,16 @@ async function api0(params){
     await new Promise(ok => setTimeout(ok, 1200 * (i + 1)));
   }
 }
-const fetchData = (name, h, as, fresh) => api({action:"data", name, h, as, fresh: fresh ? "1" : ""});
+const fetchData = (name, h, as, fresh) => api({action:"data", name, h, as, fresh: fresh ? "1" : ""}).then(d => { if(d && d.events) d.events.forEach(feeFix); return d; });
+/* 本土語直播共學照常計費（115.11.23 管理者要求：代本土語老師本人的那一節要算代課費）：
+ * 雲端把本土語直播共學自動標「另案經費、不計費」；備註寫「照常計費」的那一筆改回照常算校內代課費（只有管理者在「修改」打勾才會寫上）。 */
+const FEE_ON_RE = /(^|[；;，,\s])照常計費/;
+function feeFix(e){
+  if(e && e.nofee && e.exempt === "本土語直播共學" && FEE_ON_RE.test(String(e.note || "")) && !(e.flags || []).some(f => /重複/.test(f))){
+    e.nofee = false; e.exempt = ""; e.liveFee = true;
+  }
+  return e;
+}
 async function apiPost0(body){
   if (DEMO) return demoPost(body);
   if (!API_URL) throw new Error("網頁還沒連上資料表");
@@ -5327,10 +5364,27 @@ function tutDays(){
   plan.tutor.over = dayCapOver(d, to);
   return out;
 }
+/* 補發的選項（115.11.23 管理者要求「程式中都要多一個補發的選項」）：紀錄的日期在以前的月份 → 可以選「補發到 ○ 月帳」。
+ * 選了就在備註加「補發：115年11月帳」；會計帳、印領清冊、Excel 算在那個月並註明「前期補發」，原本的月份不再列入（避免重複發）。 */
+function backMonths(dateYm){
+  const cur = ymd(new Date()).slice(0,7), out = [];
+  termMonths().forEach(([y,m]) => { const ym = `${y}-${String(m+1).padStart(2,"0")}`; if(ym > dateYm && ym <= (cur > dateYm ? cur : dateYm)) out.push(ym); });
+  if(!out.length && cur > dateYm) out.push(cur);
+  return out;
+}
+const rocYm = ym => `${+ym.slice(0,4)-1911} 年 ${+ym.slice(5,7)} 月`;
+function backPick(id, key, dateYm, val, attr){
+  if(!dateYm) return "";
+  const ms = backMonths(dateYm); if(!ms.length && !val) return "";
+  if(val && !ms.includes(val)) ms.push(val);
+  return `<div class="backpick${val ? " on" : ""}"><label for="${id}">補發</label><select id="${id}" ${attr}="${key}">
+    <option value="">不補發（算在 ${rocYm(dateYm)} 的帳）</option>${ms.map(m => `<option value="${m}" ${m===val?"selected":""}>前期補發：算在 ${rocYm(m)} 的帳</option>`).join("")}</select>
+    <small>${val ? `原本 ${rocYm(dateYm)} 的帳不列入，改在 ${rocYm(val)} 的會計帳、印領清冊補發，並註明「前期補發」。` : `${rocYm(dateYm)} 的代課費已經送出、這張單才補交時，選「前期補發」，費用就會列在之後月份的會計帳。`}</small></div>`;
+}
 function formData(){
   if(plan.kind==="tutor"){
     const T = plan.tutor, home = T.leaver && state.meta.homeroom[T.leaver];
-    return {tutors: tutDays().map(d => ({leaver:T.leaver, leaveType:T.leaveType, date:d, cls:home||"", sub:T.sub, note:T.note}))};
+    return {tutors: tutDays().map(d => ({leaver:T.leaver, leaveType:T.leaveType, date:d, cls:home||"", sub:T.sub, note:PAY.setBackNote(T.note, T.back || "")}))};
   }
   if(plan.kind==="absent"){
     const A = plan.absent;
@@ -5342,8 +5396,9 @@ function formData(){
                                   toDate:r.pend ? "" : r.toDate, toPeriod:r.pend ? "" : r.toPeriod, toSubject:r.pend ? "" : r.toSubject, partner:r.partner, pend:!!r.pend}))};
   }
   const U = plan.sub, home = U.leaver && state.meta.homeroom[U.leaver];
-  return {subs:U.rows.map(r=>({leaver:U.leaver, leaveType:U.leaveType, date:U.date, period:r.period, cls:r.cls, subject:r.subject, sub:r.sub, note:U.note, self:!!U.self})),
-          tutors: U.tutor && home ? [{leaver:U.leaver, leaveType:U.leaveType, date:U.date, cls:home, sub:U.tutorSub, note:U.note, self:!!U.self}] : [], self: !!U.self};
+  const note = PAY.setBackNote(U.note, U.back || "");
+  return {subs:U.rows.map(r=>({leaver:U.leaver, leaveType:U.leaveType, date:U.date, period:r.period, cls:r.cls, subject:r.subject, sub:r.sub, note, self:!!U.self})),
+          tutors: U.tutor && home ? [{leaver:U.leaver, leaveType:U.leaveType, date:U.date, cls:home, sub:U.tutorSub, note, self:!!U.self}] : [], self: !!U.self};
 }
 function missingOf(kind, r){
   const m=[];
@@ -5479,6 +5534,7 @@ function renderPlan(){
       <div><label for="tT">到（迄，一天就不用填）</label><input type="date" id="tT" data-k="t.to" value="${esc(T.to)}" min="${esc(T.from||state.term.from)}" max="${state.term.to}"><div class="dow-tag" data-dow="t.to"></div></div>
       <div><label for="tS">代導師</label><select id="tS" data-k="t.sub">${teacherOpts(T.sub)}</select>${rotHint("t", T.sub, T.from)}</div>
       <div class="wkend"><label class="inline"><input type="checkbox" data-k="t.weekend" ${T.weekend?"checked":""}> 週六、週日也列（假日要代導師時勾選）</label></div><div><label for="tN">備註</label><input id="tN" data-k="t.note" value="${esc(T.note)}" placeholder="${T.leaveType==="其他"?"假別選「其他」一定要寫，例如：公傷假":"選填"}"></div></div>
+      ${backPick("tBack", "t.back", (T.from||"").slice(0,7), T.back || "", "data-k")}
       ${rotEditor()}<p class="hintline">${home ? `${esc(T.leaver)}是 <b>${esc(home)}</b> 導師。` : ""}一天一列（預設週六、週日不列；假日要代導師請勾「週六、週日也列」，只選一天會直接列），每天代導師費 ${RATE_TUTOR} 元，由代導師領。只登代導師；那幾天的課要代課，請到「代課」或「請假」分頁登記。</p>`;
     days.forEach((d,i)=>{
       html += `<div class="rowc"><div class="rhead"><b>${esc(CF.md(d))}</b><span class="abs-sc">${esc(home||"")}${home ? " 導師" : ""}${T.sub ? "・由 " + esc(T.sub) + " 代" : ""}</span></div><div data-chk="tutor.${i}"></div></div>`;
@@ -5510,6 +5566,7 @@ function renderPlan(){
       <div><label for="pLeave">假別</label><select id="pLeave" data-k="u.leaveType">${LEAVES.map(l=>opt(l,l,U.leaveType)).join("")}</select></div>
       <div><label for="pDate">日期</label><input type="date" id="pDate" data-k="u.date" value="${esc(U.date)}" min="${state.term.from}" max="${state.term.to}"><div class="dow-tag" data-dow="u.date"></div></div>
       <div><label for="pNote">備註</label><input id="pNote" data-k="u.note" value="${esc(U.note)}" placeholder="${U.leaveType==="其他"?"假別選「其他」一定要寫，例如：公傷假":"選填"}"></div></div>
+      ${U.self ? "" : backPick("pBack", "u.back", (U.date||"").slice(0,7), U.back || "", "data-k")}
       <p class="hintline">先選請假老師和日期，再按「帶入這天的課」。代課老師清單會把那一節有空的老師排在前面。</p>
       <button type="button" class="btn ghost small" id="fillDay" ${U.leaver&&U.date?"":"disabled"}>帶入${esc(U.leaver||"請假老師")}這天的課</button>
       <div style="height:12px"></div>`;
@@ -5675,7 +5732,7 @@ $("#planBody").addEventListener("change", e=>{
     return;
   }
   if((k==="u.leaver" || k==="u.date") && plan.sub.leaver && plan.sub.date && !plan.sub.rows.length && state.meta) fillDay();   // 115.11.10：選好老師和日期就自動帶入那天的課
-  if(k==="u.leaver" || k==="u.tutor" || k==="u.date" || k==="u.self" || /\.pend$/.test(k) || k.indexOf("a.")===0 || (k.indexOf("t.")===0 && k!=="t.note")) renderPlan();   // 會改變版面的才整個重畫
+  if(k==="u.leaver" || k==="u.tutor" || k==="u.date" || k==="u.self" || k==="u.back" || k==="t.back" || /\.pend$/.test(k) || k.indexOf("a.")===0 || (k.indexOf("t.")===0 && k!=="t.note")) renderPlan();   // 會改變版面的才整個重畫
   else refreshPlan();
 });
 $("#planBody").addEventListener("input", e=>{            // 打字中：只記下來，不重畫（避免游標跳掉）
@@ -5921,6 +5978,8 @@ function renderFix(){
   if(fx.step==="edit"){
     body = (e.fix ? `<div class="fix-now">✎ 這筆已經修正過：${esc(e.fix.text)}${e.fix.pending && exSyncOn() ?"（Excel 還沒改）":""}</div>` : "")
       + `<div class="fix-grid">${FIXF[r.kind].map(([k,l,t]) => fixField(k,l,t)).join("")}</div>`
+      + (r.kind === "代課" && (e.exempt === "本土語直播共學" || e.liveFee) ? `<label class="backpick${FEE_ON_RE.test(fx.cur.note||"") ? " on" : ""}" style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" data-fee="1" ${FEE_ON_RE.test(fx.cur.note||"") ? "checked" : ""} style="width:22px;height:22px;margin-top:2px"><span><b>照常計費</b>（這節是本土語直播共學，預設是另案經費、不算校內代課費；勾選後這筆照常算 ${RATE_SUB} 元代課費）</span></label>` : "")
+      + (r.kind !== "調課" && r.src !== "自理" ? backPick("fx-back", "back", (fx.cur.date||"").slice(0,7), PAY.payYm({type: r.kind==="代課" ? "sub" : "tutor", date: fx.cur.date, note: fx.cur.note}) === (fx.cur.date||"").slice(0,7) ? "" : PAY.payYm({type: r.kind==="代課" ? "sub" : "tutor", date: fx.cur.date, note: fx.cur.note}), "data-fb") : "")
       + `<p class="fix-tip">${r.src==="Excel" && exSyncOn() ? "Excel 原檔不會被改；網站、LINE、代課總表、月報表會用修改後的資料，之後 Excel 同步也不會蓋掉。" : "修改會直接寫回資料表那一列；網站、LINE、代課總表、月報表一起更新，「修正」分頁留紀錄。"}</p>`;
     acts = `<button type="button" class="btn dghost" data-fxa="delete">刪除這筆</button>`
       + (r.kind!=="調課" ? (r.src==="自理" ? `<button type="button" class="btn ghost" data-fxa="public">改回公費</button>` : `<button type="button" class="btn ghost" data-fxa="self">改為費用自理</button>`) : "")
@@ -5964,6 +6023,19 @@ function openFix(key){
 }
 function closeFix(){ $("#fixModal").hidden = true; if(fx.back && fx.back.isConnected && fx.back.focus) try{ fx.back.focus(); }catch(e){} }
 function fixInput(e){
+  if(e.target.dataset.fee && e.type === "change"){          // 本土語直播共學照常計費：備註加／拿掉「照常計費」
+    const base = String(fx.cur.note || "").replace(/[；;]?\s*照常計費(（[^）]*）)?/g, "").replace(/^[；;\s]+|[；;\s]+$/g, "");
+    fx.cur.note = e.target.checked ? (base ? base + "；" : "") + "照常計費" : base;
+    const n = $("#fx-note"); if(n){ n.value = fx.cur.note; n.parentElement.classList.toggle("chg", fxTrim(fx.cur.note) !== fxTrim(fx.orig.note)); }
+    e.target.closest(".backpick").classList.toggle("on", e.target.checked); $("#fixErr").textContent = ""; return;
+  }
+  if(e.target.dataset.fb && e.type === "change"){            // 補發：改寫備註裡的「補發：○年○月帳」
+    fx.cur.note = PAY.setBackNote(fx.cur.note, e.target.value);
+    const n = $("#fx-note"); if(n){ n.value = fx.cur.note; n.parentElement.classList.toggle("chg", fxTrim(fx.cur.note) !== fxTrim(fx.orig.note)); }
+    const box = e.target.closest(".backpick"); if(box){ box.classList.toggle("on", !!e.target.value); const sm = box.querySelector("small"), dy = (fx.cur.date||"").slice(0,7);
+      if(sm && dy) sm.textContent = e.target.value ? `原本 ${rocYm(dy)} 的帳不列入，改在 ${rocYm(e.target.value)} 的會計帳、印領清冊補發，並註明「前期補發」。` : `${rocYm(dy)} 的代課費已經送出、這張單才補交時，選「前期補發」，費用就會列在之後月份的會計帳。`; }
+    $("#fixErr").textContent = ""; return;
+  }
   const k = e.target.dataset.fk; if(!k) return;
   fx.cur[k] = e.target.value;
   e.target.parentElement.classList.toggle("chg", fxTrim(fx.cur[k]) !== fxTrim(fx.orig[k]));
@@ -6208,8 +6280,8 @@ function renderBoard(){
 }
 function renderSummary(){
   applySettingsAt(state.range || ymd(new Date()).slice(0,7));
-  const N = state.viewing, t = tally(state.events.filter(e => inRange(e, state.range || ""))), R = state.range ? `${+state.range.slice(5,7)} 月` : "本學期";
-  const hN = isAll() ? state.events.filter(e => inRange(e, state.range || "") && isHeliSub(e)).length : 0;   // 115.11.9：只加說明，金額不變
+  const N = state.viewing, t = tally(state.events.filter(e => inPayRange(e, state.range || ""))), R = state.range ? `${+state.range.slice(5,7)} 月` : "本學期";
+  const hN = isAll() ? state.events.filter(e => inPayRange(e, state.range || "") && isHeliSub(e)).length : 0;   // 115.11.9：只加說明，金額不變
   const m = (k, n, unit, sub) => `<div class="meter"><div class="k">${esc(R + " " + k)}</div><b data-n="${n}" data-u="${esc(unit)}"></b><span>${esc(sub)}</span></div>`;
   $("#summary").innerHTML = isAll()
     ? m("全校代課", t.subN, "節", `代課費 ${yuan(t.subFee)}${hN ? `（含代合理員額教師課 ${hN} 節，這幾節實發依合理員額報表進位計算）` : ""}`) + m("全校代導師", t.tutorD, "日", `代導費 ${yuan(t.tutorFee)}`)
@@ -6260,7 +6332,7 @@ function monthProgress(ym){
   const C = reportChecks(ym), err = C.filter(x => x.lv === "err" && x.k !== "closed" && x.k !== "future"), warn = C.filter(x => x.lv === "warn");
   const heli = state.heli || [], si = signinOf(ym), signed = heli.filter(n => si[n] !== "" && si[n] != null).length;
   const c = state.closes && state.closes[ym], closed = !!(c && c.data && !c.open), fl = wbFlags(ym);
-  const t = tally(state.events.filter(e => inRange(e, ym))), un = t.unN;
+  const t = tally(state.events.filter(e => inPayRange(e, ym))), un = t.unN;
   const steps = [
     {k:"sign", t:"印簽到表", done: !!fl.sign || closed, sub: fl.sign ? `已印（${fl.sign}）` : "月初印給合理員額老師", act: () => printHeliSign(ym), verb:"列印簽到表"},
     {k:"reg", t:"登記請假代課", done: closed || (past && !un), sub: un ? `${un} 筆請假還沒安排代課` : (future ? "還沒到" : past ? "沒有未安排的" : "隨時登記；請假要填代課老師"), act: () => un ? wbUnassigned(ym) : openPlan(), verb: un ? "看哪幾筆" : "登記一筆"},
@@ -6525,7 +6597,7 @@ function renderWorkbench(){
                           : `<div class="wb-next ok"><span>${roc}</span><b>${P.closed ? "已結帳 ✓" : "能判斷的步驟都完成了"}</b></div>`) : "";
   const todos = P ? wbTodos(ym, P) : [];
   // 本月數字（只顯示；金額一律用 tally()／feeOf()，和報表同一套）
-  const mt = (() => { try { applySettingsAt(ym); return tally(state.events.filter(e => inRange(e, ym))); } catch(e){ return null; } })();
+  const mt = (() => { try { applySettingsAt(ym); return tally(state.events.filter(e => inPayRange(e, ym))); } catch(e){ return null; } })();
   const mstat = mt ? `<dl class="wb-mstat" aria-label="${roc} 數字"><div><dt>代課</dt><dd>${mt.subN}<small>節</small></dd></div><div><dt>代導師</dt><dd>${mt.tutorD}<small>日</small></dd></div><div title="代課費 ${Number(mt.subFee).toLocaleString("zh-TW")} 元＋代導費 ${Number(mt.tutorFee).toLocaleString("zh-TW")} 元${mt.heliN ? `；含代合理員額教師課 ${mt.heliN} 節，這幾節實發依合理員額報表進位計算，不在校內代課清冊` : ""}"><dt>應發合計</dt><dd>${Number(mt.subFee + mt.tutorFee).toLocaleString("zh-TW")}<small>元</small><span class="wb-ms-sub">代課 ${Number(mt.subFee).toLocaleString("zh-TW")}＋代導 ${Number(mt.tutorFee).toLocaleString("zh-TW")}</span>${mt.heliN ? `<span class="wb-ms-sub warn">含代合理員額教師課 ${mt.heliN} 節（實發依合理員額報表進位）</span>` : ""}</dd></div>`
     + `<div class="${mt.unN ? "bad" : ""}"><dt>還沒安排代課</dt><dd>${mt.unN ? `<button type="button" id="wbUnN" title="看清單">${mt.unN}<small>筆</small></button>` : `0<small>筆</small>`}</dd></div></dl>` : "";
   const list = todos.length ? `<ul class="wb-todo">${todos.map((x, i) => `<li class="${x.lv}"><span>${esc2(x.text)}</span>${x.act ? `<button type="button" class="btn ghost small" data-todo="${i}">${esc2(x.verb)}</button>` : ""}</li>`).join("")}</ul>`
@@ -7135,6 +7207,8 @@ function setRange(r, from){
 $("#rangeSel").addEventListener("change", () => setRange($("#rangeSel").value, "rangeSel"));
 const rangeLabel = r => r ? `${r.slice(0,4)} 年 ${+r.slice(5,7)} 月` : `115 學年度上學期（${termText()}）`;
 const inRange = (e, r) => !r || e.date.startsWith(r);
+/* 算錢用的月份（115.11.23 補發）：代課、代導師看「入帳月份」（備註寫「補發：115年11月帳」就算在 11 月）；其他看日期。年曆、清單仍看日期。 */
+const inPayRange = (e, r) => !r || ((e.type === "sub" || e.type === "tutor") ? PAY.payYm(e).startsWith(r) : e.date.startsWith(r));
 
 /* 表格的一列：日期、星期、節次、類別、班級、科目、內容、假別、金額、領費的人、說明 */
 function tableRows(evs){
@@ -7146,7 +7220,7 @@ function tableRows(evs){
     const payee = e.type==="sub"||e.type==="tutor" ? e.who : (e.type==="leave"||e.type==="tutorLeave") ? (e.other||"") : "";
     const subj = e.type==="swap" ? "" : (tutorish ? "導師" : (e.subject||""));
     const heliPaid = isHeliSub(e) || (e.type==="leave" && e.other && (state.heli||[]).includes(e.who));
-    const note = [].concat(heliPaid ? ["合理員額經費（每月加總後進位）"] : [], e.flags||[], e.note ? ["備註：" + e.note] : [], e.fix ? [state.role==="admin" && e.fix.text ? "管理者已修正：" + e.fix.text : "教務組已更正這筆資料"] : []).join("；");
+    const note = [].concat(PAY.backText(e) ? [PAY.backText(e)] : [], heliPaid ? ["合理員額經費（每月加總後進位）"] : [], e.flags||[], e.note ? ["備註：" + e.note] : [], e.fix ? [state.role==="admin" && e.fix.text ? "管理者已修正：" + e.fix.text : "教務組已更正這筆資料"] : []).join("；");
     return { date:`${d.getMonth()+1}/${d.getDate()}`, dow:DOW[d.getDay()], per: e.period ? `第${e.period}節` : (tutorish ? "全日" : ""),
              kind, cls: e.cls||"", subj, what: x.w + (e.type==="swap" ? "（" + x.f + "）" : ""), leave: e.type==="swap" ? "" : (e.leaveType||""),
              fee: fee, payee, note, e };
@@ -7169,7 +7243,7 @@ async function loadExcelJS(){
     s.src = "vendor/exceljs-4.4.0.min.js";   /* 115.11.9 改放本倉庫（npm 官方檔，MIT）：不靠 CDN，學校網路擋 CDN 也能下載 Excel */ s.onload = res; s.onerror = () => rej(new Error("Excel 元件下載失敗，請確認網路後再試")); document.head.appendChild(s); });
 }
 $("#dlExcel").onclick = async () => {
-  const r = $("#rangeSel").value, evs = state.events.filter(e => inRange(e, r)), rows = tableRows(evs);
+  const r = $("#rangeSel").value, evs = state.events.filter(e => inPayRange(e, r)), rows = tableRows(evs);
   if(!rows.length){ toast(`${rangeLabel(r)}沒有紀錄`); return; }
   const cloud = state.role === "admin" || state.role === "acct", win = cloud ? cloudWin() : null;   // 一般老師沒有學校雲端硬碟權限：老師畫面維持下載自己的明細
   busy(true);
@@ -7233,7 +7307,7 @@ function sheetTable(rows){
     <tbody>${rows.map(x => `<tr><td class="nw">${esc(x.date)}</td><td>${esc(x.dow)}</td><td class="nw">${esc(x.per)}</td><td>${esc(x.kind)}</td><td class="nw">${esc(x.cls)}</td><td>${esc(x.subj)}</td><td class="l">${esc(x.what)}</td><td class="nw">${esc(x.leave)}</td><td class="r nw">${x.fee ? x.fee.toLocaleString("zh-TW") : ""}</td><td class="nw">${esc(x.payee)}</td><td class="l">${esc(x.note)}</td></tr>`).join("")}</tbody></table>`;
 }
 $("#printTable").onclick = () => {
-  const r = $("#rangeSel").value, evs = state.events.filter(e => inRange(e, r)), rows = tableRows(evs);
+  const r = $("#rangeSel").value, evs = state.events.filter(e => inPayRange(e, r)), rows = tableRows(evs);
   if(!rows.length){ toast(`${rangeLabel(r)}沒有紀錄`); return; }
   const tot = totalsFor(evs);
   printSheets(`<div class="sheet"><h1>南投縣草屯鎮土城國民小學　代課・調課明細表</h1>
@@ -7261,8 +7335,8 @@ async function printSign(r){
   applySettingsAt(r);
   let all;
   try{ all = pubOnly(await allEvents()); } catch(err){ toast("讀取失敗：" + err.message); return; }
-  const heliN = all.filter(e => e.date.startsWith(r) && isHeliSub(e) && !e.nofee).length;
-  const evs = all.filter(e => e.date.startsWith(r) && (e.type==="sub" || e.type==="tutor") && !isHeliSub(e));   // 代合理員額教師課屬合理員額，在合理員額簽到表簽名
+  const heliN = all.filter(e => inPayRange(e, r) && isHeliSub(e) && !e.nofee).length;
+  const evs = all.filter(e => inPayRange(e, r) && (e.type==="sub" || e.type==="tutor") && !isHeliSub(e));   // 代合理員額教師課屬合理員額，在合理員額簽到表簽名
   if(!evs.length){ toast(`${rangeLabel(r)}沒有校內代課紀錄${heliN ? `（代合理員額教師課 ${heliN} 節請用「合理員額簽到表」）` : ""}`); return; }
   const by = {}; evs.forEach(e => (by[e.who] ||= []).push(e));
   const names = Object.keys(by).sort((a,b) => a.localeCompare(b, "zh-Hant"));
@@ -7371,6 +7445,7 @@ function renderAcct(r){
     <div class="acct-chk">
       <span class="${okAll ? "ok" : "bad"}">${okAll ? "✓" : "✗"} 核對：依老師 ${f(A.byTeacher)}＝逐筆明細 ${f(A.recSum)}＝依假別 ${f(A.byLeave)}${okAll ? "，三方一致" : "，不一致，請先不要送出"}</span>
       ${A.flagN ? `<span class="w">⚠ 待確認 ${A.flagN} 筆</span>` : `<span>沒有待確認的項目</span>`}
+      ${A.back.length ? `<span class="w">含前期補發 ${A.back.length} 筆 ${f(A.backAmt)} 元</span>` : ""}${A.out.length ? `<span>${A.out.length} 筆改到後面月份補發（${f(A.outAmt)} 元，不算在本月）</span>` : ""}
       ${A.voidN ? `<span>不計費 ${A.voidN} 筆</span>` : ""}${A.fixN ? `<span>管理者修正 ${A.fixN} 筆</span>` : ""}${A.unassigned ? `<span class="w">還沒安排代課 ${A.unassigned} 筆</span>` : ""}${A.heliN ? `<span>代合理員額教師課 ${A.heliN} 節（${A.heliAmt.toLocaleString("zh-TW")} 元）列在下方合理員額</span>` : ""}</div>
     <div class="acct-cols">
       <div class="scroll" tabindex="0" aria-label="表格（可左右捲動）"><table><caption>依老師（和出納會計月報表同一套算法）</caption>
@@ -7381,7 +7456,16 @@ function renderAcct(r){
         <thead><tr><th scope="col">假別</th><th scope="col">代課節數</th><th scope="col">代導日數</th><th scope="col">金額（元）</th></tr></thead>
         <tbody>${leaves.map(([k,x]) => `<tr><td>${esc(k)}</td><td>${x.n || "–"}</td><td>${x.days || "–"}</td><td><b>${f(x.amt)}</b></td></tr>`).join("")}</tbody>
         <tfoot><tr><td>合計</td><td>${A.n}</td><td>${A.days}</td><td>${f(A.byLeave)}</td></tr></tfoot></table></div>
-    </div>`;
+    </div>${backHtml(A, r)}`;
+}
+/* 前期補發（115.11.23）：以前月份漏列、晚交代課單，改在這個月補發的；以及這個月的紀錄改到後面月份補發的 */
+function backHtml(A, r){
+  if(!A.back.length && !A.out.length) return "";
+  const f = v => Number(v).toLocaleString("zh-TW"), roc = ym => `${+ym.slice(0,4)-1911} 年 ${+ym.slice(5,7)} 月`;
+  const li = e => `<li>${esc(fmtMD(e.date))}${e.period ? ` 第${esc(e.period)}節` : ""} ${esc(e.cls||"")}${e.subject ? " " + esc(e.subject) : ""}：${esc(e.other||"")} 請假 → <b>${esc(e.who)}</b> ${e.type==="tutor" ? "代導師" : "代課"}　${f(e.type==="tutor" ? (e.rate||RATE_TUTOR) * (+e.days||1) : (e.rate||RATE_SUB))} 元${e.id ? `　<span class="sid">${esc(e.id)}</span>` : ""}</li>`;
+  return `<div class="acct-back">${A.back.length ? `<h5>前期補發（以前月份漏列，算在 ${roc(r)}）共 ${A.back.length} 筆 ${f(A.backAmt)} 元</h5><ul>${A.back.map(e => li(e).replace("</li>", `　<small>原 ${roc(PAY.backFrom(e))}</small></li>`)).join("")}</ul>` : ""}
+    ${A.out.length ? `<h5>改到後面月份補發（不算在 ${roc(r)}）共 ${A.out.length} 筆 ${f(A.outAmt)} 元</h5><ul>${A.out.map(e => li(e).replace("</li>", `　<small>補發到 ${roc(PAY.payYm(e))}</small></li>`)).join("")}</ul>` : ""}
+    <p class="hint" style="margin:4px 0 0">要補發的紀錄：按那一筆的「修改」→「補發」選月份（或在備註寫「補發：115年12月帳」）。</p></div>`;
 }
 /* ---------- 合理員額代課教師鐘點費（和公假那份是不同的會計項目） ----------
  * 教務組 10/24 規則（會計室確認）：
@@ -7787,7 +7871,7 @@ const SIG7 = [["製表員",1,3],["出納員",4,5],["勞保承辦人",6,8],["總�
  * ================================================================ */
 function buildAcctSheets(K, all, r, A){
   const {wb, NUM, HEAD, TOT, font, center, boxAll, page, col} = K, P = periodOf(r), heli = state.heli || [];
-  const inM = all.filter(e => e.date.startsWith(r));
+  const inM = all.filter(e => inPayRange(e, r));
   const subs = inM.filter(e => e.type==="sub" && !isHeliSub(e)).sort((a,b) => a.date.localeCompare(b.date) || (+a.period||0) - (+b.period||0));
   const tutors = inM.filter(e => e.type==="tutor").sort((a,b) => a.date.localeCompare(b.date));
   // ---------- 印領清冊 ----------
@@ -7816,7 +7900,8 @@ function buildAcctSheets(K, all, r, A){
     R.getCell(16).value = {formula: `SUM(J${row}:O${row})`, result: dd};
     R.getCell(17).value = {formula: `E${row}-P${row}`, result: t.amt - dd};               // 實領＝實支(A)−應扣
     const fl = subs.filter(e => e.who===n && !e.nofee && (e.flags||[]).length).length;
-    R.getCell(18).value = [t.b ? `一般 ${t.b} 節×${RATE_SUB}` : "", t.c ? `代課他人 ${t.c} 節×${RATE_SUB}` : "", t.d ? `合班 ${t.d} 節×${RATE_COMB}` : "", fl ? `有 ${fl} 筆待確認（見逐節明細）` : "", DD.length ? `扣款：${deductText(DD)}` : ""].filter(Boolean).join("；");
+    const bk = subs.filter(e => e.who===n && !e.nofee && PAY.backFrom(e));
+    R.getCell(18).value = [bk.length ? `含前期補發 ${bk.length} 節（${bk.map(e => fmtMD(e.date)).join("、")}）` : "", t.b ? `一般 ${t.b} 節×${RATE_SUB}` : "", t.c ? `代課他人 ${t.c} 節×${RATE_SUB}` : "", t.d ? `合班 ${t.d} 節×${RATE_COMB}` : "", fl ? `有 ${fl} 筆待確認（見逐節明細）` : "", DD.length ? `扣款：${deductText(DD)}` : ""].filter(Boolean).join("；");
     R.height = 24; row++;
   });
   const r0 = 6, r1 = row - 1;
@@ -7847,7 +7932,7 @@ function buildAcctSheets(K, all, r, A){
   let q = 5;
   subs.forEach((e,i) => {
     const d = new Date(e.date+"T00:00:00"), rate = e.rate || RATE_SUB;
-    const note = [...(e.flags||[]), e.exempt ? "另案經費：" + e.exempt : "", e.fix ? "管理者已修正（" + e.fix.text + "）" : "", e.note ? "備註：" + e.note : ""].filter(Boolean).join("；");
+    const note = [PAY.backText(e), ...(e.flags||[]), e.exempt ? "另案經費：" + e.exempt : "", e.fix ? "管理者已修正（" + e.fix.text + "）" : "", e.note ? "備註：" + e.note : ""].filter(Boolean).join("；");
     const R = s2.getRow(q);
     R.values = [i+1, e.id||"", rocDate(e.date), DOW[d.getDay()], `第${e.period}節`, e.cls||"", e.subject||"", e.other||"", e.leaveType||"", e.who, rate, e.nofee ? "否" : "是", null, note];
     R.getCell(13).value = {formula: `IF(L${q}="是",K${q},0)`, result: e.nofee ? 0 : rate};
@@ -8160,7 +8245,7 @@ async function acctExcel(r){
   const win = cloudWin();
   applySettingsAt(r);
   let all; try{ all = pubOnly(await allEvents()); } catch(err){ cloudFail(win, "讀取失敗：" + err.message); return; }
-  const A = acctOf(all, r), inM = all.filter(e => e.date.startsWith(r));
+  const A = acctOf(all, r), inM = all.filter(e => inPayRange(e, r));
   if(!inM.some(e => (e.type==="sub" && !isHeliSub(e)) || e.type==="tutor")){ cloudFail(win, `${rangeLabel(r)}沒有校內代課紀錄`); return; }
   busy(true);
   try{
@@ -8531,7 +8616,7 @@ async function ledgerExcel(r){
 /* 會計總帳 Excel（整本）：下載和月結歸檔共用；回傳 {wb, K, name}，沒有資料回 null */
 async function ledgerWorkbook(r){
   let all, H; try{ all = await allEvents(); await ensureMeta(); applySettingsAt(r); H = heliOf(all, r); } catch(err){ toast("讀取失敗：" + err.message); return null; }
-  const A = acctOf(all, r), inM = all.filter(e => e.date.startsWith(r));
+  const A = acctOf(all, r), inM = all.filter(e => inPayRange(e, r));
   const hasAcct = inM.some(e => (e.type==="sub" && !isHeliSub(e)) || e.type==="tutor"), hasHeli = H.T.some(t => t.L.length) || H.subs.length;
   if(!hasAcct && !hasHeli){ toast(`${rangeLabel(r)}沒有任何代課、合理員額紀錄`); return null; }
   busy(true);
@@ -8579,7 +8664,7 @@ async function printAcct(r){
   applySettingsAt(r);
   let all;
   try{ all = pubOnly(await allEvents()); } catch(err){ toast("讀取失敗：" + err.message); return; }
-  const evs = all.filter(e => e.date.startsWith(r)), heli = state.heli || [];
+  const evs = all.filter(e => inPayRange(e, r)), heli = state.heli || [];
   const subs = evs.filter(e => e.type==="sub" && !isHeliSub(e)).sort((a,b) => a.date.localeCompare(b.date) || (+a.period||0) - (+b.period||0));
   const tutors = evs.filter(e => e.type==="tutor");
   if(!subs.length && !tutors.length){ toast(`${rangeLabel(r)}沒有代課紀錄`); return; }
@@ -8595,9 +8680,9 @@ async function printAcct(r){
   let T = {b:0, c:0, d:0, B:0, C:0, D:0};
   const rows = names.map(n => { const t = by[n], B = t.b*RATE_SUB, C = t.c*RATE_SUB, D = t.dAmt, A = B + C + D;
     T.b += t.b; T.c += t.c; T.d += t.d; T.B += B; T.C += C; T.D += D;
-    const flags = subs.filter(e => e.who===n && !e.nofee && (e.flags||[]).length).length;
+    const flags = subs.filter(e => e.who===n && !e.nofee && (e.flags||[]).length).length, bk = subs.filter(e => e.who===n && !e.nofee && PAY.backFrom(e));
     return `<tr style="height:26px"><td><b>${esc(n)}</b></td>${amt(t.b, RATE_SUB, B)}${amt(t.c, RATE_SUB, C)}${amt(t.d, RATE_COMB, D)}<td class="r"><b>${f(A)}</b></td>
-      <td></td><td></td><td></td><td class="r">${f(A)}</td><td></td><td></td><td></td><td></td><td></td><td></td><td class="r"><b>${f(A)}</b></td><td class="l" style="font-size:10px">${flags ? `有 ${flags} 筆標⚠，請確認` : ""}</td></tr>`; }).join("");
+      <td></td><td></td><td></td><td class="r">${f(A)}</td><td></td><td></td><td></td><td></td><td></td><td></td><td class="r"><b>${f(A)}</b></td><td class="l" style="font-size:10px">${[bk.length ? `含前期補發 ${bk.length} 節（${bk.map(e => fmtMD(e.date)).join("、")}）` : "", flags ? `有 ${flags} 筆標⚠，請確認` : ""].filter(Boolean).join("；")}</td></tr>`; }).join("");
   const A = T.B + T.C + T.D;
   const head = (title, extra) => `<h1>南投縣草屯鎮土城國民小學</h1><p class="sub" style="font-size:16px;font-weight:700;margin-bottom:4px">${title}</p>
     <div class="meta"><span>資料年月：＿＿＿＿　梯次：＿＿　計薪期間：${roc}/${String(mon).padStart(2,"0")}/01－${roc}/${String(mon).padStart(2,"0")}/${last}</span><span>列印日期：${printedAt()}　${extra||""}</span></div>`;
@@ -8619,7 +8704,7 @@ async function printAcct(r){
       <tr class="tot"><td>共 ${tn.length} 人</td><td></td><td>${TT}</td><td></td><td class="r">${f(TT*RATE_TUTOR)}</td><td colspan="2" class="l">新臺幣${bigNum(TT*RATE_TUTOR)}</td></tr></tbody></table>${stamp}</div>`;
   }
   const detail = subs.map((e,i) => { const d = new Date(e.date+"T00:00:00");
-    return `<tr${e.nofee?' style="color:#888;text-decoration:line-through"':""}><td>${i+1}</td><td class="nw">${esc(e.id||"")}</td><td class="nw">${roc}/${String(d.getMonth()+1).padStart(2,"0")}/${String(d.getDate()).padStart(2,"0")}</td><td>${DOW[d.getDay()]}</td><td class="nw">第${esc(e.period)}節</td><td class="nw">${esc(e.cls)}</td><td>${esc(e.subject||"")}</td><td class="nw">${esc(e.other)}</td><td class="nw">${esc(e.leaveType||"")}</td><td class="nw"><b>${esc(e.who)}</b></td><td class="r">${e.rate||RATE_SUB}</td><td class="r">${e.nofee?0:f(e.rate||RATE_SUB)}</td><td class="l" style="text-decoration:none">${esc([...(e.flags||[]), e.fix ? "管理者已修正（" + e.fix.text + "）" : ""].filter(Boolean).join("；"))}</td></tr>`; }).join("");
+    return `<tr${e.nofee?' style="color:#888;text-decoration:line-through"':""}><td>${i+1}</td><td class="nw">${esc(e.id||"")}</td><td class="nw">${roc}/${String(d.getMonth()+1).padStart(2,"0")}/${String(d.getDate()).padStart(2,"0")}</td><td>${DOW[d.getDay()]}</td><td class="nw">第${esc(e.period)}節</td><td class="nw">${esc(e.cls)}</td><td>${esc(e.subject||"")}</td><td class="nw">${esc(e.other)}</td><td class="nw">${esc(e.leaveType||"")}</td><td class="nw"><b>${esc(e.who)}</b></td><td class="r">${e.rate||RATE_SUB}</td><td class="r">${e.nofee?0:f(e.rate||RATE_SUB)}</td><td class="l" style="text-decoration:none">${esc([PAY.backText(e), ...(e.flags||[]), e.fix ? "管理者已修正（" + e.fix.text + "）" : ""].filter(Boolean).join("；"))}</td></tr>`; }).join("");
   html += `<div class="sheet land">${head(`${mon}月校內代課明細（逐節）`, "")}
     <table><thead><tr><th>序</th><th>序號</th><th>日期</th><th>星期</th><th>節次</th><th>班級</th><th>科目</th><th>請假教師</th><th>假別</th><th>代課教師</th><th>單價</th><th>金額</th><th style="width:26%">說明</th></tr></thead>
     <tbody>${detail}<tr class="tot"><td colspan="11">合計（劃線的不計費）</td><td class="r">${f(A)}</td><td></td></tr></tbody></table>

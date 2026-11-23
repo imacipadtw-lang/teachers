@@ -1,0 +1,27 @@
+/* 補發（115.11.23）：PAY.payYm／acct／heli 的入帳月份。執行：node daike-calendar/tests/backpay.js */
+const fs = require("fs"), path = require("path"), assert = require("assert");
+const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
+const i = html.indexOf("var PAY = (function"), j = html.indexOf("})();", i) + 5;
+const PAY = new Function(html.slice(i, j) + "; return PAY;")();
+let n = 0; const ok = (c, m) => { assert.ok(c, m); n++; console.log("  ✓ " + m); };
+const base = { type: "sub", date: "2026-10-13", period: "6", cls: "高年級", subject: "體育", who: "甲老師", other: "乙老師", leaveType: "公假", id: "示範-1" };
+const e1 = Object.assign({}, base, { note: "網頁登記；已核章完成；補發：115年11月帳" });
+const e2 = Object.assign({}, base, { id: "A1", date: "2026-10-06", note: "紙本已核章" });
+ok(PAY.payYm(e1) === "2026-11", "備註寫「補發：115年11月帳」→ 入帳 11 月");
+ok(PAY.payYm(e2) === "2026-10", "沒寫補發 → 原月份");
+ok(PAY.payYm(Object.assign({}, base, { note: "補發：115年9月帳" })) === "2026-10", "不能往前補（寫 9 月仍算 10 月）");
+ok(PAY.payYm(Object.assign({}, base, { type: "leave", note: "補發：115年11月帳" })) === "2026-10", "請假那一筆不受影響");
+ok(PAY.setBackNote("網頁登記；已核章完成", "2026-11") === "網頁登記；已核章完成；補發：115年11月帳", "加上補發標記");
+ok(PAY.setBackNote("網頁登記；已核章完成；補發：115年11月帳", "") === "網頁登記；已核章完成", "取消補發會拿掉標記");
+ok(PAY.setBackNote("補發：115年11月帳", "2026-12") === "補發：115年12月帳", "改補發月份只留一個標記");
+const ctx = { events: [e1, e2], heli: [], rateSub: 405, rateTutor: 133 };
+const oct = PAY.acct(ctx, "2026-10"), nov = PAY.acct(ctx, "2026-11");
+ok(oct.total === 405 && oct.T["甲老師"].amt === 405, "10 月只算 10/6 那一節 405（10/13 不重複發）");
+ok(oct.out.length === 1 && oct.outAmt === 405, "10 月列出「改到後面月份補發」1 筆");
+ok(nov.total === 405 && nov.back.length === 1 && nov.backAmt === 405, "11 月含前期補發 1 筆 405");
+ok(nov.T["甲老師"].back === 405 && nov.total === nov.byTeacher && nov.total === nov.recSum && nov.total === nov.byLeave, "11 月三方核對一致");
+ok(PAY.backText(e1).indexOf("原 115 年 10 月") >= 0, "明細說明寫「前期補發（原 115 年 10 月…）」");
+const t1 = { type: "tutor", date: "2026-10-16", days: 1, who: "丙老師", other: "丁老師", cls: "六甲", note: "補發：115年11月帳" };
+const A2 = PAY.acct({ events: [t1], heli: [], rateSub: 405, rateTutor: 133 }, "2026-11");
+ok(A2.tfee === 133 && A2.back.length === 1, "代導師也能補發（133 元算在 11 月）");
+console.log(`\n✓ 補發 ${n} 項全部通過`);
