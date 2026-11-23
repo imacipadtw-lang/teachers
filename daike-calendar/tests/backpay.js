@@ -24,4 +24,14 @@ ok(PAY.backText(e1).indexOf("原 115 年 10 月") >= 0, "明細說明寫「前�
 const t1 = { type: "tutor", date: "2026-10-16", days: 1, who: "丙老師", other: "丁老師", cls: "六甲", note: "補發：115年11月帳" };
 const A2 = PAY.acct({ events: [t1], heli: [], rateSub: 405, rateTutor: 133 }, "2026-11");
 ok(A2.tfee === 133 && A2.back.length === 1, "代導師也能補發（133 元算在 11 月）");
+// 本土語直播共學代課費：另一個會計項目
+const lv1 = { type: "sub", date: "2026-11-06", period: "3", cls: "三甲", subject: "本土語/卡群布農語", who: "戊老師", other: "己老師", nofee: true, exempt: "本土語直播共學", rate: 405, id: "L1" };
+const lv2 = Object.assign({}, lv1, { id: "L2", period: "4" });
+const lvDup = Object.assign({}, lv1, { id: "L3", flags: ["重複登錄（和 L1 相同），不重複計算"] });
+const lvOn = Object.assign({}, lv1, { id: "L4", period: "5", exempt: "", nofee: false, liveFee: true });
+const ctx2 = { events: [lv1, lv2, lvDup, lvOn, e1], heli: [], rateSub: 405, rateTutor: 133 };
+const L = PAY.live(ctx2, "2026-11"), A3 = PAY.acct(ctx2, "2026-11");
+ok(L.list.length === 2 && L.total === 810 && L.T["戊老師"].n === 2, "直播共學另列：2 節 810 元（重複的第二筆不算）");
+ok(A3.total === 405 + 405 && !A3.T["戊老師"] === false && A3.T["戊老師"].amt === 405, "校內代課只含「照常計費」那一節，不和直播共學列在一起");
+ok(PAY.live(ctx2, "2026-10").list.length === 0, "10 月沒有直播共學代課費");
 console.log(`\n✓ 補發 ${n} 項全部通過`);

@@ -419,7 +419,7 @@ details.settings>summary span{font-size:13px;color:var(--ink-3)}
 @media print{.wb,.wb-nav{display:none!important}}
 .heli-panel{margin-top:18px;border-top:2px solid var(--line);padding-top:14px}
 @media screen{.backpick{margin:10px 0 4px;padding:10px 12px;border:1px dashed var(--line);border-radius:12px;display:grid;gap:4px}.backpick.on{border-style:solid;border-color:var(--amber);background:var(--surface)}.backpick label{font-weight:700}.backpick select{min-height:44px;max-width:100%}.backpick small{color:var(--ink-3);font-size:13px;line-height:1.5}
-.acct-back{margin-top:12px;border:1px solid var(--line);border-radius:12px;padding:10px 14px;background:var(--surface)}.acct-back h5{margin:4px 0;font-size:15px}.acct-back ul{margin:4px 0 8px;padding-left:20px}.acct-back li{margin:2px 0;font-size:14px}}
+.acct-live{border-color:var(--sky)}.acct-back{margin-top:12px;border:1px solid var(--line);border-radius:12px;padding:10px 14px;background:var(--surface)}.acct-back h5{margin:4px 0;font-size:15px}.acct-back ul{margin:4px 0 8px;padding-left:20px}.acct-back li{margin:2px 0;font-size:14px}}
 .heli-panel h3 span{font-size:13px;font-weight:600;color:var(--ink-3)}
 .heli-warn{margin:8px 0 0;padding-left:18px;font-size:13px;color:var(--amber)}
 .heli-warn li{margin:2px 0}
@@ -2868,6 +2868,20 @@ var PAY = (function () {
     return { T: T, L: L, n: n, fee: fee, days: days, tfee: tfee, total: fee + tfee, byTeacher: byTeacher, byLeave: byLeave, recSum: recSum, voidN: voidN, flagN: flagN, fixN: fixN, unassigned: unassigned, heliN: heliN, heliAmt: heliAmt,
              back: back, backAmt: backAmt, out: out, outAmt: outAmt };
   }
+  /* ---- 本土語直播共學代課費（115.11.23 管理者要求：直播共學請公假時別的老師的代課費要另外計算，是會計帳另外的項目，另外列出、不和校內代課列在一起）
+   *      雲端標「本土語直播共學」不計校內代課費的代課／代導師 → 另列這一本；重複登錄的第二筆不算；備註寫「照常計費」的已改回校內代課，不在這裡。 */
+  function isLive(e) { return !!e && (e.type === "sub" || e.type === "tutor") && e.exempt === "本土語直播共學" && !e.self && !(e.flags || []).some(function (f) { return /不重複計算/.test(f); }); }
+  function live(ctx, r) {
+    var list = ctx.events.filter(function (e) { return isLive(e) && payYm(e).indexOf(r) === 0; })
+      .sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : (+a.period || 0) - (+b.period || 0); });
+    var T = {}, total = 0, n = 0, days = 0;
+    list.forEach(function (e) {
+      var amt = e.type === "sub" ? (e.rate || ctx.rateSub) : (e.rate || ctx.rateTutor) * (+e.days || 1), t = T[e.who] || (T[e.who] = { n: 0, days: 0, amt: 0, list: [] });
+      if (e.type === "sub") { t.n++; n++; } else { t.days += +e.days || 1; days += +e.days || 1; }
+      t.amt += amt; total += amt; t.list.push(e); e.liveAmt = amt;
+    });
+    return { list: list, T: T, total: total, n: n, days: days };
+  }
   /* ---- 印領清冊、明細用：把 heli() 的結果整理成「本人」「代課」各一組 [{kind, name, label, units, pay, amt, rows:[{date,p,cls,subject,owner,by,w,counted,note}]}] ---- */
   function groups(H) {
     var G = [];
@@ -2897,7 +2911,7 @@ var PAY = (function () {
   return { groups: groups, bigNum: bigNum, dow: dow, fmtMD: fmtMD, payUnits: payUnits, unitsText: unitsText, heliCls: heliCls, isHeliSub: isHeliSub,
            days: days, ins: ins, laborEmp: laborEmp, laborEr: laborEr, occEr: occEr, pensionEr: pensionEr, nhiEmp: nhiEmp, nhiEr: nhiEr, suppFee: suppFee, taxWh: taxWh,
            deductFor: deductFor, deductSum: deductSum, deductText: deductText, slots: slots, heli: heli, acct: acct,
-           payYm: payYm, backFrom: backFrom, backText: backText, backLabel: backLabel, setBackNote: setBackNote };
+           payYm: payYm, backFrom: backFrom, backText: backText, backLabel: backLabel, setBackNote: setBackNote, isLive: isLive, live: live };
 })();
 
 /* ---------- 呼叫後端 ---------- */
@@ -2921,7 +2935,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.23a";
+const APP_VERSION = "專業版 2026.11.23b";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -4348,7 +4362,7 @@ function swapView(e){
 function describe(e){
   const r = describe0(e);
   if(r && e.self && e.type!=="swap") r.f = "費用自理：老師自付，不列入公費";
-  else if(r && e.nofee && e.type!=="swap") r.f = e.live && e.exempt === "本土語直播共學" && !(e.flags||[]).length ? "本土語直播共學：另案經費，不算校內代課費" : "這筆不計費（原因寫在下面）";
+  else if(r && e.nofee && e.type!=="swap") r.f = e.live && e.exempt === "本土語直播共學" && !(e.flags||[]).length ? "本土語直播共學：另一個會計項目（另列「本土語直播共學代課費」），不算在校內代課費" : "這筆不計費（原因寫在下面）";
   return r;
 }
 function describe0(e){
@@ -5655,8 +5669,8 @@ function refreshPlan(){
       fee.innerHTML = U.self
         ? `<b>費用自理</b>：代課 <b>${n}</b> 節${U.tutor&&home?"、代導師 1 日":""}由 ${esc(U.leaver||"請假老師")} 自己付給代課老師，<b>不列入公費</b>（會計報表、簽收單不會出現）`
         : nLive === n && n
-        ? `代課 <b>${n}</b> 節，都是本土語直播共學（另案經費），<b>不算校內代課費</b>${tut}`
-        : `代課 <b>${n}</b> 節${nLive ? `（其中 ${nLive} 節是本土語直播共學，另案經費不算；算代課費的 ${n - nLive} 節）` : ""}${comb ? `（其中合班 ${comb} 節，每節 ${RATE_COMB} 元）` : ` × ${RATE_SUB} 元`} ＝ <b>${rates.reduce((a,b)=>a+b,0).toLocaleString()} 元</b>（由各代課老師領）${tut}`;
+        ? `代課 <b>${n}</b> 節，都是本土語直播共學，<b>另列「本土語直播共學代課費」</b>（另一個會計項目，不算在校內代課費）${tut}`
+        : `代課 <b>${n}</b> 節${nLive ? `（其中 ${nLive} 節是本土語直播共學，另列「本土語直播共學代課費」；算校內代課費的 ${n - nLive} 節）` : ""}${comb ? `（其中合班 ${comb} 節，每節 ${RATE_COMB} 元）` : ` × ${RATE_SUB} 元`} ＝ <b>${rates.reduce((a,b)=>a+b,0).toLocaleString()} 元</b>（由各代課老師領）${tut}`;
     }
   }
   if(plan.kind==="absent") renderAbsInfo();
@@ -5978,7 +5992,7 @@ function renderFix(){
   if(fx.step==="edit"){
     body = (e.fix ? `<div class="fix-now">✎ 這筆已經修正過：${esc(e.fix.text)}${e.fix.pending && exSyncOn() ?"（Excel 還沒改）":""}</div>` : "")
       + `<div class="fix-grid">${FIXF[r.kind].map(([k,l,t]) => fixField(k,l,t)).join("")}</div>`
-      + (r.kind === "代課" && (e.exempt === "本土語直播共學" || e.liveFee) ? `<label class="backpick${FEE_ON_RE.test(fx.cur.note||"") ? " on" : ""}" style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" data-fee="1" ${FEE_ON_RE.test(fx.cur.note||"") ? "checked" : ""} style="width:22px;height:22px;margin-top:2px"><span><b>照常計費</b>（這節是本土語直播共學，預設是另案經費、不算校內代課費；勾選後這筆照常算 ${RATE_SUB} 元代課費）</span></label>` : "")
+      + (r.kind === "代課" && (e.exempt === "本土語直播共學" || e.liveFee) ? `<label class="backpick${FEE_ON_RE.test(fx.cur.note||"") ? " on" : ""}" style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" data-fee="1" ${FEE_ON_RE.test(fx.cur.note||"") ? "checked" : ""} style="width:22px;height:22px;margin-top:2px"><span><b>照常計費</b>（這節是本土語直播共學，預設是另案經費、不算校內代課費；不勾＝列在另一個會計項目「本土語直播共學代課費」；勾選後改算在校內代課費 ${RATE_SUB} 元）</span></label>` : "")
       + (r.kind !== "調課" && r.src !== "自理" ? backPick("fx-back", "back", (fx.cur.date||"").slice(0,7), PAY.payYm({type: r.kind==="代課" ? "sub" : "tutor", date: fx.cur.date, note: fx.cur.note}) === (fx.cur.date||"").slice(0,7) ? "" : PAY.payYm({type: r.kind==="代課" ? "sub" : "tutor", date: fx.cur.date, note: fx.cur.note}), "data-fb") : "")
       + `<p class="fix-tip">${r.src==="Excel" && exSyncOn() ? "Excel 原檔不會被改；網站、LINE、代課總表、月報表會用修改後的資料，之後 Excel 同步也不會蓋掉。" : "修改會直接寫回資料表那一列；網站、LINE、代課總表、月報表一起更新，「修正」分頁留紀錄。"}</p>`;
     acts = `<button type="button" class="btn dghost" data-fxa="delete">刪除這筆</button>`
@@ -7425,6 +7439,15 @@ function renderMonthly(){
   $("#mAcctX").onclick = () => acctExcel($("#mSel").value);
 }
 /* 會計總覽：選定月份的金額，依老師、依假別；同一份資料用三種方式加總互相核對 */
+function liveOf(evs, r){ return PAY.live({events: pubOnly(evs), rateSub: RATE_SUB, rateTutor: RATE_TUTOR}, r); }   // 本土語直播共學代課費（另一個會計項目）
+function liveHtml(r){
+  const L = liveOf(state.events, r); if(!L.list.length) return "";
+  const f = v => Number(v).toLocaleString("zh-TW"), names = Object.keys(L.T).sort((a,b) => a.localeCompare(b, "zh-Hant"));
+  return `<div class="acct-back acct-live"><h5>本土語直播共學代課費（另一個會計項目，和校內代課分開核銷）共 ${L.list.length} 筆 ${f(L.total)} 元</h5>
+    <ul>${names.map(n => `<li><b>${esc(n)}</b>：${L.T[n].n ? L.T[n].n + " 節" : ""}${L.T[n].days ? (L.T[n].n ? "、" : "") + "代導師 " + L.T[n].days + " 日" : ""}　<b>${f(L.T[n].amt)}</b> 元
+      <small>（${L.T[n].list.map(e => `${fmtMD(e.date)}${e.period ? " 第" + e.period + "節" : ""} ${e.cls||""} ${e.subject||""}，代 ${e.other||""}${e.id ? "，" + e.id : ""}${PAY.backFrom(e) ? "，前期補發" : ""}`).map(esc).join("；")}）</small></li>`).join("")}</ul>
+    <p class="hint" style="margin:4px 0 0">不含在上面「校內代課」的應發合計裡；印領清冊、會計總帳 Excel 另外一張。</p></div>`;
+}
 function acctOf(evs, r){ return PAY.acct({events: evs, heli: state.heli || [], rateSub: RATE_SUB, rateTutor: RATE_TUTOR}, r); }   // 算法在 PAY（和 Apps Script 共用）
 function renderAcct(r){
   const box = $("#acctBox"); if(!box) return;
@@ -7434,7 +7457,7 @@ function renderAcct(r){
   const okAll = A.total === A.byTeacher && A.total === A.recSum && A.total === A.byLeave;
   const names = Object.keys(A.T).sort((a,b) => ((state.heli||[]).includes(a) - (state.heli||[]).includes(b)) || a.localeCompare(b, "zh-Hant"));
   const leaves = Object.entries(A.L).sort((a,b) => b[1].amt - a[1].amt);
-  if(!names.length){ box.innerHTML = `<div class="acct-head"><h4>${roc} 會計總覽</h4></div><p class="hint" style="margin:6px 0 0">這個月沒有要發的代課費、代導費。</p>`; return; }
+  if(!names.length){ box.innerHTML = `<div class="acct-head"><h4>${roc} 會計總覽</h4></div><p class="hint" style="margin:6px 0 0">這個月沒有要發的校內代課費、代導費。</p>${liveHtml(r)}`; return; }
   box.innerHTML = `<div class="acct-head"><h4>${roc} 會計總覽</h4><span>依目前資料即時計算${$("#updated").textContent ? "・" + esc($("#updated").textContent) : ""}</span></div>
     <div class="acct-kpi">
       <div><span class="k">代課</span><b>${f(A.n)}<small>節</small></b></div>
@@ -7456,7 +7479,7 @@ function renderAcct(r){
         <thead><tr><th scope="col">假別</th><th scope="col">代課節數</th><th scope="col">代導日數</th><th scope="col">金額（元）</th></tr></thead>
         <tbody>${leaves.map(([k,x]) => `<tr><td>${esc(k)}</td><td>${x.n || "–"}</td><td>${x.days || "–"}</td><td><b>${f(x.amt)}</b></td></tr>`).join("")}</tbody>
         <tfoot><tr><td>合計</td><td>${A.n}</td><td>${A.days}</td><td>${f(A.byLeave)}</td></tr></tfoot></table></div>
-    </div>${backHtml(A, r)}`;
+    </div>${backHtml(A, r)}${liveHtml(r)}`;
 }
 /* 前期補發（115.11.23）：以前月份漏列、晚交代課單，改在這個月補發的；以及這個月的紀錄改到後面月份補發的 */
 function backHtml(A, r){
@@ -8614,11 +8637,29 @@ async function ledgerExcel(r){
   finally{ busy(false); }
 }
 /* 會計總帳 Excel（整本）：下載和月結歸檔共用；回傳 {wb, K, name}，沒有資料回 null */
+/* 本土語直播共學代課費（另一個會計項目，115.11.23）：一張印領清冊＋逐筆明細 */
+function buildLiveSheet(K, LV, r){
+  if(!LV.list.length) return null;
+  const P = periodOf(r), ws = K.wb.addWorksheet("本土語直播共學代課費", {pageSetup: Object.assign({}, K.page)});
+  ws.columns = [12,8,10,12,14,60].map(w => ({width:w}));
+  K.title(ws, 6, `${P.mon}月本土語直播共學代課費（另一個會計項目，和校內代課分開核銷）`, P.text);
+  K.head(ws, 4, ["員工姓名","節數","代導師日數","金額","簽收","明細（日期、節次、班級、代誰）"]);
+  let row = 5; const names = Object.keys(LV.T).sort((a,b) => a.localeCompare(b, "zh-Hant"));
+  names.forEach(n => { const t = LV.T[n];
+    ws.getRow(row).values = [n, t.n || "", t.days || "", t.amt, "", t.list.map(e => `${fmtMD(e.date)}${e.period ? " 第" + e.period + "節" : ""} ${e.cls||""} ${e.subject||""}（代 ${e.other||""}${e.id ? "，" + e.id : ""}${PAY.backFrom(e) ? "，前期補發" : ""}）`).join("；")];
+    ws.getRow(row).height = 30; row++; });
+  ws.getRow(row).values = [`共 ${names.length} 人`, LV.n, LV.days, {formula: `SUM(D5:D${row-1})`, result: LV.total}, "", `新臺幣${bigNum(LV.total)}`];
+  for(let i=4; i<=row; i++) ws.getRow(i).eachCell({includeEmpty:true}, (c, cc) => { if(cc<=6){ c.font = K.font({size:10, bold: i===4 || i===row}); if(cc===4) c.numFmt = K.NUM; c.alignment = cc===6 ? {wrapText:true, vertical:"middle"} : {horizontal:"center", vertical:"middle"}; if(i===row) c.fill = K.TOT; } });
+  K.boxAll(ws, 4, 1, row, 6);
+  ws.mergeCells(row+2, 1, row+2, 6); ws.getCell(row+2, 1).value = "註：本土語直播共學屬另一個經費項目，金額不含在「校內代課鐘點費」與總表合計裡，請另外核銷。";
+  ws.getCell(row+2, 1).font = K.font({size:9, color:{argb:"FF555555"}});
+  return {row};
+}
 async function ledgerWorkbook(r){
   let all, H; try{ all = await allEvents(); await ensureMeta(); applySettingsAt(r); H = heliOf(all, r); } catch(err){ toast("讀取失敗：" + err.message); return null; }
   const A = acctOf(all, r), inM = all.filter(e => inPayRange(e, r));
-  const hasAcct = inM.some(e => (e.type==="sub" && !isHeliSub(e)) || e.type==="tutor"), hasHeli = H.T.some(t => t.L.length) || H.subs.length;
-  if(!hasAcct && !hasHeli){ toast(`${rangeLabel(r)}沒有任何代課、合理員額紀錄`); return null; }
+  const hasAcct = inM.some(e => (e.type==="sub" && !isHeliSub(e)) || e.type==="tutor"), hasHeli = H.T.some(t => t.L.length) || H.subs.length, LV = liveOf(all, r);
+  if(!hasAcct && !hasHeli && !LV.list.length){ toast(`${rangeLabel(r)}沒有任何代課、合理員額紀錄`); return null; }
   busy(true);
   try{
     await loadExcelJS(); const wb = new ExcelJS.Workbook(); wb.creator = "代課查詢系統"; wb.created = new Date(); const K = xlKit(wb), P = periodOf(r);
@@ -8630,6 +8671,7 @@ async function ledgerWorkbook(r){
     const AC = buildHeliAcctSheet(K, H, HR, r);
     buildCalcSheet(K, H, r, INSOUT);
     const ck = buildHeliCheck(K, H, HR, r);
+    buildLiveSheet(K, LV, r);
     buildTableSheet(K); buildLawSheet(K);
     // ---------- 總表 ----------
     S.columns = [6,34,16,16,16,16,16,40].map(w => ({width:w}));
@@ -8650,6 +8692,8 @@ async function ledgerWorkbook(r){
     S.mergeCells(11, 1, 11, 8); S.getCell(11,1).value = `實領合計新臺幣（大寫）：${bigNum(X.subTotal+X.tTot+H.total-emp-dedAll)}（實支現金給與 − 應扣${dedAll ? `，含扣款調整 ${dedAll.toLocaleString("zh-TW")}` : ""}）　　機關補助（雇主負擔勞保、職災、勞退、健保，不發給老師）合計 ${er.toLocaleString("zh-TW")} 元`; S.getCell(11,1).font = K.font({bold:true, size:12});
     S.mergeCells(12, 1, 12, 8); S.getCell(12,1).value = `1 和 2 為校內代課（公假等）經費；3 和 4 為合理員額經費，分開核銷。網站會計總覽：校內代課＋代導 ${A.total.toLocaleString("zh-TW")} 元、合理員額 ${H.total.toLocaleString("zh-TW")} 元。${H.warn.length ? "要確認：" + H.warn.join("；") : "無待確認事項。"} 產生時間：${new Date().toLocaleString("zh-TW",{hour12:false})}`;
     S.getCell(12,1).font = K.font({size:9, color:{argb:"FF555555"}}); S.getCell(12,1).alignment = {wrapText:true, vertical:"top"}; S.getRow(12).height = 44;
+    if(LV.list.length){ S.mergeCells(13, 1, 13, 8); S.getCell(13,1).value = `另一個會計項目：本土語直播共學代課費 ${LV.total.toLocaleString("zh-TW")} 元（${Object.keys(LV.T).length} 人、${LV.list.length} 筆）→「本土語直播共學代課費」工作表，不含在上面的合計，請另外核銷。`;
+      S.getCell(13,1).font = K.font({size:10, bold:true}); S.getCell(13,1).alignment = {wrapText:true, vertical:"top"}; S.getRow(13).height = 30; }
     S.mergeCells(14, 1, 14, 8); S.getCell(14,1).value = "工作表：總表｜報帳檢查｜校內代課鐘點費｜校內代課明細｜代理導師費｜合理員額教師鐘點費｜代合理員額教師課｜合理員額明細｜保險計算｜會計印領清冊（會計室格式：所有領合理員額經費的人同一張）｜計算過程｜合理員額核對｜級距表｜法規依據。淡黃格可改，改了全部跟著重算。"; S.getCell(14,1).font = K.font({size:9});
     return {wb, K, name: `土城國小_${P.rocY}年${P.mon}月_代課鐘點費會計總帳.xlsx`};
   }catch(err){ toast("產生失敗：" + err.message); return null; }
@@ -8666,8 +8710,8 @@ async function printAcct(r){
   try{ all = pubOnly(await allEvents()); } catch(err){ toast("讀取失敗：" + err.message); return; }
   const evs = all.filter(e => inPayRange(e, r)), heli = state.heli || [];
   const subs = evs.filter(e => e.type==="sub" && !isHeliSub(e)).sort((a,b) => a.date.localeCompare(b.date) || (+a.period||0) - (+b.period||0));
-  const tutors = evs.filter(e => e.type==="tutor");
-  if(!subs.length && !tutors.length){ toast(`${rangeLabel(r)}沒有代課紀錄`); return; }
+  const tutors = evs.filter(e => e.type==="tutor"), LV = liveOf(all, r);
+  if(!subs.length && !tutors.length && !LV.list.length){ toast(`${rangeLabel(r)}沒有代課紀錄`); return; }
   const roc = `${+r.slice(0,4)-1911}`, mon = +r.slice(5,7), last = new Date(+r.slice(0,4), mon, 0).getDate();
   const by = {};
   subs.forEach(e => { const t = (by[e.who] ||= {b:0, c:0, d:0, dAmt:0}); if(e.nofee) return;
@@ -8709,6 +8753,14 @@ async function printAcct(r){
     <table><thead><tr><th>序</th><th>序號</th><th>日期</th><th>星期</th><th>節次</th><th>班級</th><th>科目</th><th>請假教師</th><th>假別</th><th>代課教師</th><th>單價</th><th>金額</th><th style="width:26%">說明</th></tr></thead>
     <tbody>${detail}<tr class="tot"><td colspan="11">合計（劃線的不計費）</td><td class="r">${f(A)}</td><td></td></tr></tbody></table>
     <p class="note">核對：本頁合計 ${f(A)} 元＝第一頁實支現金給與合計 ${f(A)} 元 ${A === subs.filter(e=>!e.nofee).reduce((s,e)=>s+(e.rate||RATE_SUB),0) ? "✓ 相符" : "✗ 不符，請檢查"}。</p></div>`;
+  if(LV.list.length){                                      // 本土語直播共學代課費：另一個會計項目，另一張（115.11.23）
+    const ln = Object.keys(LV.T).sort((a,b) => a.localeCompare(b, "zh-Hant"));
+    html += `<div class="sheet land">${head(`${mon}月本土語直播共學代課費`, "另一個會計項目，和校內代課分開核銷")}
+      <table><thead><tr><th style="width:9%">員工姓名</th><th>節數</th><th>代導師日數</th><th>金額</th><th style="width:16%">簽收</th><th>明細（日期、節次、班級、代誰）</th></tr></thead><tbody>
+      ${ln.map(n => { const t = LV.T[n]; return `<tr style="height:36px"><td><b>${esc(n)}</b></td><td>${t.n || "-"}</td><td>${t.days || "-"}</td><td class="r"><b>${f(t.amt)}</b></td><td></td><td class="l" style="font-size:11px">${t.list.map(e => `${fmtMD(e.date)}${e.period ? " 第" + esc(e.period) + "節" : ""} ${esc(e.cls||"")} ${esc(e.subject||"")}（代 ${esc(e.other||"")}${e.id ? "，" + esc(e.id) : ""}${PAY.backFrom(e) ? "，前期補發" : ""}）`).join("；")}</td></tr>`; }).join("")}
+      <tr class="tot"><td>共 ${ln.length} 人</td><td>${LV.n}</td><td>${LV.days}</td><td class="r">${f(LV.total)}</td><td colspan="2" class="l">新臺幣${bigNum(LV.total)}</td></tr></tbody></table>
+      <p class="note">註：本土語直播共學屬另一個經費項目，這張的金額不含在「${mon}月校內代課鐘點費」裡，請另外核銷。</p></div>`;
+  }
   landscape(true);
   const done = () => { landscape(false); window.removeEventListener("afterprint", done); };
   window.addEventListener("afterprint", done);
