@@ -2936,7 +2936,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.25c";
+const APP_VERSION = "專業版 2026.11.25d";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -7434,6 +7434,7 @@ function renderMonthly(){
       <p>依課表逐節計算；合班且只有一位老師上的課 ×1.5。上面選的月份同時套用。簽到表月初印給老師簽，月底印清冊送出納、會計。</p>
       <div class="mrow"><button class="btn" type="button" id="hSignIn">合理員額簽到表（列印）</button>
         <button class="btn" type="button" id="hPrint">合理員額印領清冊（列印／PDF）</button>
+        <button class="btn ghost" type="button" id="hPrintN" title="給護理師的版本：只列節數與鐘點費，沒有勞保、勞退、健保等欄位">合理員額印領清冊（護理師用，不含勞健保）</button>
         <button class="btn ghost" type="button" id="hExcel">合理員額試算表（雲端）</button>
         <button class="btn" type="button" id="hLedger">會計總帳（雲端試算表，全部工作表）</button></div>
       <div class="mrow acct-range"><span class="si-t">會計對照表（可跨月；計算明細 A4 一頁＋每人逐節 1 節／1.5 節）</span>
@@ -7460,7 +7461,7 @@ function renderMonthly(){
   if(state.range && months.includes(state.range) && $("#mSel").value !== state.range) $("#mSel").value = state.range;
   renderAcct($("#mSel").value); renderHeli($("#mSel").value); renderChecks($("#mSel").value);
   if($("#hAcctRange")) $("#hAcctRange").onclick = () => acctRangeExcel($("#arFrom").value, $("#arTo").value);
-  if($("#hSignIn")){ $("#hSignIn").onclick = () => printHeliSign($("#mSel").value); $("#hPrint").onclick = () => printHeli($("#mSel").value); $("#hExcel").onclick = () => heliExcel($("#mSel").value); $("#hLedger").onclick = () => ledgerExcel($("#mSel").value); }
+  if($("#hSignIn")){ $("#hSignIn").onclick = () => printHeliSign($("#mSel").value); $("#hPrint").onclick = () => printHeli($("#mSel").value); $("#hPrintN").onclick = () => printHeli($("#mSel").value, "nurse"); $("#hExcel").onclick = () => heliExcel($("#mSel").value); $("#hLedger").onclick = () => ledgerExcel($("#mSel").value); }
   $("#mSign").onclick = () => printSign($("#mSel").value);
   $("#lvSign").onclick = () => printSign($("#mSel").value, "live");
   $("#lvAcct").onclick = () => printAcct($("#mSel").value, "live");
@@ -7636,7 +7637,9 @@ const heliNote = () => ({
   sub: `註：1. 本表為合理員額代課教師請假時，由校內同仁代課之鐘點費，屬合理員額經費，不列入校內代課（公假等）鐘點費印領清冊。2. 代課教師領取該合理員額教師原本該節之節數（一般 1 節；合班且由一位老師上課 1.5 節；與協同教師共同上課 1 節），每人每月加總後進位為整數節，乘以每節 ${RATE_SUB} 元。3. 依據見「法規依據」。機關補助及應扣項目由人事、出納依實際計算填入。`
 });
 /* 列印：合理員額印領清冊（本人、代課分開兩張）＋逐節明細＋法規依據 */
-async function printHeli(r){
+/* 115.11.25 管理者要求：多一個給護理師的版本（mode="nurse"），印領清冊上不要有勞保、勞退、健保等欄位（機關補助、應扣、請領、實領都不列），只列節數與鐘點費 */
+async function printHeli(r, mode){
+  const NO_INS = mode === "nurse";
   applySettingsAt(r);
   let H;
   try{ H = await heliData(r); } catch(err){ toast("讀取失敗：" + err.message); return; }
@@ -7653,24 +7656,24 @@ async function printHeli(r){
   const book = (title, list, note, merge) => {
     const sa = g => merge && SUBOF[g.name] ? SUBOF[g.name].amt : 0, A = g => g.amt + sa(g);
     const tot = list.reduce((s,g) => s + A(g), 0), own = list.reduce((s,g) => s + g.amt, 0), subT = list.reduce((s,g) => s + sa(g), 0), pay = list.reduce((s,g) => s + g.pay, 0);
-    const icOf = g => g.kind === "本人" ? insCalc(insOf(g.name), r, g.amt) : null;      // 本人：勞保、勞退、健保、扣繳（資料表「保險設定」）
+    const icOf = g => !NO_INS && g.kind === "本人" ? insCalc(insOf(g.name), r, g.amt) : null;      // 本人：勞保、勞退、健保、扣繳（資料表「保險設定」）
     const sum = k => list.reduce((s,g) => { const c = icOf(g); return s + (c ? c[k] : 0); }, 0), dedOf = g => deductSum(deductFor(g.name, r, "heli")), dedAll = list.reduce((s,g) => s + dedOf(g), 0);
     const xc = v => merge ? `<td class="r amt">${v}</td>` : "";
     const row = g => { const c = icOf(g), er = c ? c.erTotal : 0, dd = dedOf(g), emp = (c ? c.empTotal : 0) + dd, DD = deductFor(g.name, r, "heli"), S = merge && SUBOF[g.name];
       return `<tr style="height:26px"><td><b>${esc(g.name)}</b></td><td>${cnt(g,1) || "-"}</td><td>${cnt(g,1.5) || "-"}</td><td>${unitsText(g.units)}</td><td><b>${g.pay}</b></td>
-      <td class="r amt"><small>${g.pay}*${RATE_SUB}=</small>${f(g.amt)}</td>${xc(S ? `<small>${S.pay}*${RATE_SUB}=</small>${f(S.amt)}` : "")}<td class="r"><b>${f(A(g))}</b></td><td class="r">${c ? f(c.erLaborAll) : ""}</td><td class="r">${c ? f(c.erPension) : ""}</td><td class="r">${c ? f(c.erNhi) : ""}</td><td class="r">${f(A(g) + er)}</td>
-      <td class="r">${c ? f(c.empLabor) : ""}</td><td></td><td class="r">${c ? f(c.empNhi) : ""}</td><td class="r">${c ? f(c.tax) : ""}</td><td class="r">${c ? f(c.supp) : ""}</td><td class="r">${dd ? f(dd) : ""}</td><td class="r">${c || dd ? f(emp) : ""}</td><td class="r"><b>${f(A(g) - emp)}</b></td>
+      <td class="r amt"><small>${g.pay}*${RATE_SUB}=</small>${f(g.amt)}</td>${xc(S ? `<small>${S.pay}*${RATE_SUB}=</small>${f(S.amt)}` : "")}<td class="r"><b>${f(A(g))}</b></td>${NO_INS ? "" : `<td class="r">${c ? f(c.erLaborAll) : ""}</td><td class="r">${c ? f(c.erPension) : ""}</td><td class="r">${c ? f(c.erNhi) : ""}</td><td class="r">${f(A(g) + er)}</td>
+      <td class="r">${c ? f(c.empLabor) : ""}</td><td></td><td class="r">${c ? f(c.empNhi) : ""}</td><td class="r">${c ? f(c.tax) : ""}</td><td class="r">${c ? f(c.supp) : ""}</td><td class="r">${dd ? f(dd) : ""}</td><td class="r">${c || dd ? f(emp) : ""}</td><td class="r"><b>${f(A(g) - emp)}</b></td>`}
       <td class="l" style="font-size:10px">${g.kind === "本人" ? `合理員額代課教師（${H.T.find(t => t.name === g.name).weekly}節/週）${c && c.days && c.days < 30 ? `，投保 ${c.days} 天` : ""}${S ? `；代課他人 ${S.pay} 節（代 ${esc([...new Set(S.rows.map(x => x.owner))].join("、"))}），本月共 ${g.pay + S.pay} 節` : ""}` : "代 " + esc([...new Set(g.rows.map(x => x.owner))].join("、")) + " 的課"}${DD.length ? `。扣款：${esc(deductText(DD))}` : ""}</td></tr>`; };
-    const NCw = merge ? 21 : 20;
+    const NCw = NO_INS ? (merge ? 9 : 8) : (merge ? 21 : 20);
     return `<div class="sheet land">${head(title, "")}
     <table><thead>
-      <tr class="grp"><th rowspan="2" style="width:7%">員工姓名</th><th colspan="4">上課節數</th><th${merge ? ' colspan="2"' : ""}>實支現金給與</th><th rowspan="2">小計(A)</th><th colspan="3">機　關　補　助(B)</th><th rowspan="2">請領金額<br>(A+B)</th><th colspan="7">應　　扣　　項　　目</th><th rowspan="2">實領金額</th><th rowspan="2" style="width:12%">備註</th></tr>
-      <tr><th>一般<br>1節</th><th>合班<br>1.5節</th><th>合計</th><th>請領<br>(進位)</th><th>鐘點費<br>${RATE_SUB}元</th>${merge ? `<th>代課他人<br>${RATE_SUB}元</th>` : ""}<th>勞保</th><th>勞退</th><th>健保</th><th>勞保</th><th>勞退</th><th>健保</th><th>所得稅</th><th>補充保費</th><th>其他</th><th>小計</th></tr></thead>
+      <tr class="grp"><th rowspan="2" style="width:7%">員工姓名</th><th colspan="4">上課節數</th><th${merge ? ' colspan="2"' : ""}>實支現金給與</th><th rowspan="2">${NO_INS ? "鐘點費合計" : "小計(A)"}</th>${NO_INS ? "" : `<th colspan="3">機　關　補　助(B)</th><th rowspan="2">請領金額<br>(A+B)</th><th colspan="7">應　　扣　　項　　目</th><th rowspan="2">實領金額</th>`}<th rowspan="2" style="width:${NO_INS ? 30 : 12}%">備註</th></tr>
+      <tr><th>一般<br>1節</th><th>合班<br>1.5節</th><th>合計</th><th>請領<br>(進位)</th><th>鐘點費<br>${RATE_SUB}元</th>${merge ? `<th>代課他人<br>${RATE_SUB}元</th>` : ""}${NO_INS ? "" : "<th>勞保</th><th>勞退</th><th>健保</th><th>勞保</th><th>勞退</th><th>健保</th><th>所得稅</th><th>補充保費</th><th>其他</th><th>小計</th>"}</tr></thead>
     <tbody>${list.length ? list.map(row).join("") : `<tr style="height:26px"><td colspan="${NCw}">本月沒有資料</td></tr>`}
       <tr style="height:20px"><td>以下空白</td>${"<td></td>".repeat(NCw - 1)}</tr>
-      <tr class="tot"><td>共 ${list.length} 人</td><td>${list.reduce((s,g) => s + cnt(g,1), 0)}</td><td>${list.reduce((s,g) => s + cnt(g,1.5), 0)}</td><td></td><td>${pay}</td><td class="r">${f(own)}</td>${merge ? `<td class="r">${f(subT)}</td>` : ""}<td class="r">${f(tot)}</td><td class="r">${f(sum("erLaborAll"))}</td><td class="r">${f(sum("erPension"))}</td><td class="r">${f(sum("erNhi"))}</td><td class="r">${f(tot + sum("erTotal"))}</td><td class="r">${f(sum("empLabor"))}</td><td></td><td class="r">${f(sum("empNhi"))}</td><td class="r">${f(sum("tax"))}</td><td class="r">${f(sum("supp"))}</td><td class="r">${dedAll ? f(dedAll) : ""}</td><td class="r">${f(sum("empTotal") + dedAll)}</td><td class="r">${f(tot - sum("empTotal") - dedAll)}</td><td></td></tr></tbody></table>
-    <p style="font-weight:700;margin:8px 0 2px">實領合計新臺幣（大寫）：${bigNum(tot - sum("empTotal") - dedAll)}</p>
-    <p class="note">${note}</p>${stamp}</div>`;
+      <tr class="tot"><td>共 ${list.length} 人</td><td>${list.reduce((s,g) => s + cnt(g,1), 0)}</td><td>${list.reduce((s,g) => s + cnt(g,1.5), 0)}</td><td></td><td>${pay}</td><td class="r">${f(own)}</td>${merge ? `<td class="r">${f(subT)}</td>` : ""}<td class="r">${f(tot)}</td>${NO_INS ? "<td></td>" : `<td class="r">${f(sum("erLaborAll"))}</td><td class="r">${f(sum("erPension"))}</td><td class="r">${f(sum("erNhi"))}</td><td class="r">${f(tot + sum("erTotal"))}</td><td class="r">${f(sum("empLabor"))}</td><td></td><td class="r">${f(sum("empNhi"))}</td><td class="r">${f(sum("tax"))}</td><td class="r">${f(sum("supp"))}</td><td class="r">${dedAll ? f(dedAll) : ""}</td><td class="r">${f(sum("empTotal") + dedAll)}</td><td class="r">${f(tot - sum("empTotal") - dedAll)}</td><td></td>`}</tr></tbody></table>
+    <p style="font-weight:700;margin:8px 0 2px">${NO_INS ? `鐘點費合計新臺幣（大寫）：${bigNum(tot)}` : `實領合計新臺幣（大寫）：${bigNum(tot - sum("empTotal") - dedAll)}`}</p>
+    <p class="note">${NO_INS ? note.replace(/機關補助及應扣項目由人事、出納依實際計算填入[^。]*。/, "本表只列節數與鐘點費，不含機關補助及應扣項目（勞保、勞退、健保等）。") : note}</p>${stamp}</div>`;
   };
   const subOnly = subG.filter(g => !SUBOF[g.name]);
   let html = book(`${mon}月國小合理教師員額代課教師鐘點費`, mine, heliNote().self, true);
