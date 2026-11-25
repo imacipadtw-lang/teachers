@@ -2595,7 +2595,8 @@ var HR = (function () {
   }
   /* 核對。ctx：{tSlot, ev（全校紀錄）, off, homeroom, times（節次時間字串）}
    * 回傳 {missing:[…], noHr:[…], typeDiff:[…], ok:[…], range:[from,to], leaves:n} */
-  var LIVE_RE = /直播|^本土語\s*[\/／]/;                                                 // 本土語直播共學：另案經費，規定不登錄，不算漏登
+  var LIVE_RE = /直播|^本土語\s*[\/／]/;
+  var SWAP_NOTE = "調課（不用請假）", SWAP_OK_RE = /調課\s*[（(，,、]?\s*不用請假/;                     // 115.11.25：代課備註寫這幾個字＝其實是調課，請假比對 ② 不列                                                 // 本土語直播共學：另案經費，規定不登錄，不算漏登
   function compare(text, ctx, teachers) {
     var P = parse(text, teachers), times = periodTimes(ctx.times), ev = ctx.ev || [];
     var missing = [], noHr = [], typeDiff = [], okList = [], covered = {}, minD = "", maxD = "", dayPer = {};
@@ -2654,6 +2655,8 @@ var HR = (function () {
     });
     // 反向：本系統有登代課（代導師、請假登記）、人事卻沒有（只看人事資料涵蓋的日期範圍）。調課不用請假，不列。
     var hrNames0 = {}; P.all.forEach(function (r) { hrNames0[r.who] = 1; });
+    // 115.11.25 管理者：「是調課的不需要寫出來他沒有請假」——備註有「調課（不用請假）」的代課，老師本來就不用請假，不列；另外回傳 swapOk 讓畫面寫出不列的是哪幾筆
+    var swapOk = [], noteOf = function (e) { if (e.note) return String(e.note); var s = ev.filter(function (y) { return y.id && y.id === e.id && y.date === e.date && y.note; })[0]; return s ? String(s.note) : ""; };
     var notInHr = function (T) { return (ctx.skipIfAbsent || []).indexOf(T) >= 0 && !hrNames0[T]; };   // 合理員額老師不在人事差勤系統：整個不比
     if (minD) ev.forEach(function (e) {
       if (e.date < minD || e.date > maxD) return;
@@ -2665,7 +2668,9 @@ var HR = (function () {
       if (notInHr(T)) return;
       var hasAny = Object.keys(covered).some(function (k) { return k.indexOf(T + "|" + e.date + "|") === 0; });
       var hit = p == null ? hasAny : !!covered[T + "|" + e.date + "|" + p];
-      if (!hit) noHr.push({ who: T, date: e.date, p: p, id: e.id, label: label, type: e.type, sameDay: hasAny, soft: false });
+      if (hit) return;
+      if (e.type !== "absent" && SWAP_OK_RE.test(noteOf(e))) { swapOk.push({ who: T, date: e.date, p: p, id: e.id, label: label, type: e.type }); return; }
+      noHr.push({ who: T, date: e.date, p: p, id: e.id, label: label, type: e.type, sameDay: hasAny, soft: false });
     });
     // 名單層級：本系統整學期有請假／代課／調課／代導師紀錄，但人事資料裡完全沒有這個人（不限日期範圍）
     var hrNames = {}; P.leaves.forEach(function (r) { hrNames[r.who] = 1; });
@@ -2674,9 +2679,9 @@ var HR = (function () {
     var noName = Object.keys(sysDays).filter(function (w) { return !hrNames[w]; }).map(function (w) { return { who: w, dates: Object.keys(sysDays[w]).sort() }; });
     var key = function (x) { return x.who + "|" + x.date + "|" + (x.p === "導" ? 0 : +x.p || 0); };
     [missing, noHr, typeDiff, okList, edge].forEach(function (L) { L.sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : key(a) < key(b) ? -1 : 1; }); });
-    return { missing: missing, noHr: noHr, typeDiff: typeDiff, ok: okList, edge: edge, noName: noName, hrNames: Object.keys(hrNames), range: [minD, maxD], leaves: P.leaves.length, cancels: P.cancels.length, warn: P.warn, md: md };
+    return { missing: missing, noHr: noHr, swapOk: swapOk, typeDiff: typeDiff, ok: okList, edge: edge, noName: noName, hrNames: Object.keys(hrNames), range: [minD, maxD], leaves: P.leaves.length, cancels: P.cancels.length, warn: P.warn, md: md };
   }
-  return { parse: parse, slots: slots, periodTimes: periodTimes, checkTimes: checkTimes, compare: compare, md: md, DEF_TIMES: DEF_TIMES };
+  return { parse: parse, slots: slots, periodTimes: periodTimes, checkTimes: checkTimes, compare: compare, md: md, DEF_TIMES: DEF_TIMES, SWAP_NOTE: SWAP_NOTE, SWAP_OK_RE: SWAP_OK_RE };
 })();
 
 var PAY = (function () {
@@ -2939,7 +2944,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.25f";
+const APP_VERSION = "專業版 2026.11.25g";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -6897,6 +6902,15 @@ async function hrDelNoHr(i){
   }catch(err){ toast("刪除失敗：" + err.message); }
   finally{ busy(false); }
 }
+async function hrSwapOk(i){                       // 115.11.25 管理者：「是調課的不需要寫出來他沒有請假」
+  const x = state.hr && state.hr.noHr[i], d = hrDelRef(x); if(!d || d.absent) return toast("找不到這筆紀錄，請重新整理");
+  const sid = sidOf(d.e) || d.e.id, note = String(d.e.note || "").trim();
+  if(!confirm(`${sid}　${x.who} ${md(x.date)} ${x.label}\n\n這節是調課、老師不用請假？\n備註會加上「${HR.SWAP_NOTE}」，請假比對以後不再列出這筆。\n\n代課費不會跟著改；這筆如果其實不該領代課費，請改按「刪除」或用「修改」。`)) return;
+  busy(true);
+  try{ await fixSend("save", d.ref, {note: note ? note + "；" + HR.SWAP_NOTE : HR.SWAP_NOTE}); toast(`已標成調課：${sid}`); state.meta = null; await reload(true, true); }
+  catch(err){ toast("沒有存成功：" + err.message); }
+  finally{ busy(false); }
+}
 function hrSee(i){
   const x = state.hr && state.hr.noHr[i]; if(!x) return;
   const e = x.id && state.events.find(y => y.id === x.id && y.date === x.date);
@@ -7006,7 +7020,7 @@ function renderHrBox(){
   // ② 有代課（代導師、請假登記），人事系統沒有這位老師這節的請假
   const nohrHtml = !R ? "" : group(R.noHr, (x, i) => `<li class="nohr"><span class="kd">沒請假</span><b>${esc(x.who)}</b>　${esc(x.label)}${x.id ? `<span class="sid2">${esc(sidOf({id:x.id}) || x.id)}</span>` : ""}
       <span class="why">請假系統沒有這位老師這${x.p==null ? "天" : "節"}的請假${x.sameDay ? "（同一天有請假，但時段不含這節）" : ""}，請確認是否漏請假或登錯</span>
-      <span class="hracts"><button type="button" class="btn ghost small hrsee" data-hrsee="${i}">看這筆</button><button type="button" class="btn ghost small" data-hrskip="${esc(x.who)}" title="核准請假的人（例如教務組）不用自己核准自己">${esc(x.who)}不用比對</button>${hrDelRef(x) ? `<button type="button" class="btn dghost small hrdel2" data-hrdel2="${i}" aria-label="刪除 ${esc(x.who)} ${esc(md(x.date))} ${esc(x.label)}">刪除</button>` : ""}</span></li>`);
+      <span class="hracts"><button type="button" class="btn ghost small hrsee" data-hrsee="${i}">看這筆</button><button type="button" class="btn ghost small" data-hrskip="${esc(x.who)}" title="核准請假的人（例如教務組）不用自己核准自己">${esc(x.who)}不用比對</button>${hrDelRef(x) && x.type !== "absent" ? `<button type="button" class="btn ghost small" data-hrswap="${i}" title="這節其實是調課，老師本來就不用請假：備註加上「調課（不用請假）」，以後不再列出">是調課，不用請假</button>` : ""}${hrDelRef(x) ? `<button type="button" class="btn dghost small hrdel2" data-hrdel2="${i}" aria-label="刪除 ${esc(x.who)} ${esc(md(x.date))} ${esc(x.label)}">刪除</button>` : ""}</span></li>`);
   const edge = R && R.edge && R.edge.length ? `<details class="hredge"><summary>只重疊幾分鐘、不算遺漏的 ${R.edge.length} 節（老師多半已回來上課，供參考）</summary><ul>${R.edge.map(x => li(x, esc(`第${x.p}節 ${x.cls} ${x.subject || ""}：請假 ${x.span}，只重疊 ${x.ov} 分鐘`))).join("")}</ul></details>` : "";
   const nA = R ? R.missing.length : 0, nB = R ? R.noHr.length : 0;
   const sync = cloudN == null ? "" : state.hrSync && state.hrSync.local ? `<p class="hrsync warn">⚠ 這次只存在這台電腦（雲端沒存成功）</p>`
@@ -7021,6 +7035,7 @@ function renderHrBox(){
       ${F !== "miss" ? `<div class="hrmis hrb"><h4>② 請假對照檢視遺漏：有代課，但請假系統沒有請假<span class="n">${nB}</span></h4>
         <p class="hrlegend">代課（或代導師）紀錄找不到對應的假，請確認老師是否漏請假，或代課登錯日期、節次。</p>
         ${hrSkipNames().length ? `<p class="hrlegend">不列入：${hrSkipNames().map(n => `${esc(n)}${state.cred && n === state.cred.name ? "（登入的核准人）" : ""} <button type="button" class="linkbtn" data-hrunskip="${esc(n)}">恢復</button>`).join("、")}</p>` : ""}
+        ${R.swapOk && R.swapOk.length ? `<p class="hrlegend">是調課、不用請假，不列：${R.swapOk.map(x => `${esc(x.who)} ${esc(md(x.date))}${x.p && x.p !== "導" ? ` 第${esc(x.p)}節` : ""}${x.id ? `（${esc(sidOf({id:x.id}) || x.id)}）` : ""}`).join("、")}。要再列出：按那筆的「修改」，把備註的「${HR.SWAP_NOTE}」拿掉。</p>` : ""}
         ${nohrHtml || `<p class="none">✓ 沒有：代課都有對應的請假。</p>`}</div>` : ""}
       ${edge}
       ${R.typeDiff.length ? `<h4 class="warn">假別不一樣<span class="n">${R.typeDiff.length}</span></h4><ul>${R.typeDiff.map(x => li(x, esc(`第${x.p}節 ${x.cls}：人事「${x.hr}」、系統「${x.sys}」（${x.id || ""}）`))).join("")}</ul>` : ""}
@@ -7056,6 +7071,7 @@ function renderHrBox(){
   box.querySelectorAll("[data-hrskip]").forEach(b => b.onclick = () => { if(confirm(`${b.dataset.hrskip} 以後都不列在「② 沒請假」？（核准請假的人不用自己核准自己；下方可以恢復）`)) hrSkipSet(b.dataset.hrskip, true); });
   box.querySelectorAll("[data-hrunskip]").forEach(b => b.onclick = () => hrSkipSet(b.dataset.hrunskip, false));
   box.querySelectorAll("[data-hrdel2]").forEach(b => b.onclick = () => hrDelNoHr(+b.dataset.hrdel2));
+  box.querySelectorAll("[data-hrswap]").forEach(b => b.onclick = () => hrSwapOk(+b.dataset.hrswap));
   const dz = $("#hrDrop");
   ["dragenter","dragover"].forEach(t => dz.addEventListener(t, e => { if(e.dataTransfer && [...e.dataTransfer.types].includes("Files")){ e.preventDefault(); dz.classList.add("over"); } }));
   ["dragleave","dragend"].forEach(t => dz.addEventListener(t, () => dz.classList.remove("over")));
