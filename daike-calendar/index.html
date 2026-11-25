@@ -2935,7 +2935,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.23b";
+const APP_VERSION = "專業版 2026.11.25a";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -7355,29 +7355,39 @@ async function printSign(r){
   const by = {}; evs.forEach(e => (by[e.who] ||= []).push(e));
   const names = Object.keys(by).sort((a,b) => a.localeCompare(b, "zh-Hant"));
   const roc = `${+r.slice(0,4)-1911} 年 ${+r.slice(5,7)} 月`;
-  const sum = list => { const s = list.filter(e=>e.type==="sub"&&!e.nofee), t = list.filter(e=>e.type==="tutor"&&!e.nofee);
-    return {n:s.length, fee:s.reduce((a,e)=>a+feeOf(e),0), d:t.reduce((a,e)=>a+(+e.days||1),0), tfee:t.reduce((a,e)=>a+feeOf(e),0)}; };
+  /* 115.11.25 管理者要求：本土語直播共學（另一個會計項目）在簽收單上金額分開列清楚，老師確認時才看得懂 */
+  const liveAmt = e => e.type === "tutor" ? (e.rate || RATE_TUTOR) * (+e.days || 1) : (e.rate || RATE_SUB);
+  const sum = list => { const s = list.filter(e=>e.type==="sub"&&!e.nofee), t = list.filter(e=>e.type==="tutor"&&!e.nofee), L = list.filter(e => PAY.isLive(e));
+    return {n:s.length, fee:s.reduce((a,e)=>a+feeOf(e),0), d:t.reduce((a,e)=>a+(+e.days||1),0), tfee:t.reduce((a,e)=>a+feeOf(e),0),
+            ln:L.filter(e=>e.type==="sub").length, ld:L.filter(e=>e.type==="tutor").reduce((a,e)=>a+(+e.days||1),0), lfee:L.reduce((a,e)=>a+liveAmt(e),0)}; };
   const totals = names.map(n => [n, sum(by[n])]);
-  const G = totals.reduce((a,[,s]) => ({n:a.n+s.n, fee:a.fee+s.fee, d:a.d+s.d, tfee:a.tfee+s.tfee}), {n:0,fee:0,d:0,tfee:0});
-  const voids = evs.filter(e => e.nofee).length, flags = evs.filter(e => (e.flags||[]).length && !e.nofee).length;
+  const G = totals.reduce((a,[,s]) => ({n:a.n+s.n, fee:a.fee+s.fee, d:a.d+s.d, tfee:a.tfee+s.tfee, ln:a.ln+s.ln, lfee:a.lfee+s.lfee}), {n:0,fee:0,d:0,tfee:0,ln:0,lfee:0});
+  const voids = evs.filter(e => e.nofee && !PAY.isLive(e)).length, flags = evs.filter(e => (e.flags||[]).length && !e.nofee).length;
   let html = `<div class="sheet"><h1>南投縣草屯鎮土城國民小學　${roc}校內代課鐘點費簽收總表</h1>
     <p class="sub">計算期間：${r}-01 ～ ${r}-${String(new Date(+r.slice(0,4), +r.slice(5,7), 0).getDate()).padStart(2,"0")}</p>
     <div class="meta"><span>共 ${names.length} 人</span><span>列印日期：${printedAt()}</span></div>
-    <table><thead><tr><th style="width:5%">序</th><th style="width:12%">教師</th><th>代課節數</th><th>代課費</th><th>代導師日數</th><th>代導費</th><th>合計（元）</th><th style="width:16%">簽收（簽名）</th><th style="width:11%">日期</th></tr></thead><tbody>
-    ${totals.map(([n,s],i) => `<tr style="height:34px"><td>${i+1}</td><td>${esc(n)}</td><td>${s.n} 節</td><td class="r">${s.fee.toLocaleString("zh-TW")}</td><td>${s.d ? s.d + " 日" : "—"}</td><td class="r">${s.tfee ? s.tfee.toLocaleString("zh-TW") : "—"}</td><td class="r"><b>${(s.fee+s.tfee).toLocaleString("zh-TW")}</b></td><td></td><td></td></tr>`).join("")}
-    <tr class="tot"><td colspan="2">合計</td><td>${G.n} 節</td><td class="r">${G.fee.toLocaleString("zh-TW")}</td><td>${G.d} 日</td><td class="r">${G.tfee.toLocaleString("zh-TW")}</td><td class="r">${(G.fee+G.tfee).toLocaleString("zh-TW")}</td><td colspan="2" class="l">新臺幣${bigNum(G.fee+G.tfee)}</td></tr></tbody></table>
-    <p class="note">說明：1. 每節 ${RATE_SUB} 元；合班每節 ${RATE_COMB} 元（${RATE_SUB}×1.5＝${RATE_SUB*1.5} 進位），但代的是協同老師的課仍是 ${RATE_SUB} 元；代導師每日 ${RATE_TUTOR} 元。2. 重複登錄只算一次；颱風假、國定假日當天的紀錄，以及由其他經費支應（例如本土語直播共學）的紀錄，不列入本表${voids ? `（本月有 ${voids} 筆不計費，明細見各人頁面）` : ""}。${[flags ? `本月有 ${flags} 筆標「⚠」需確認（例如衝堂），請教務組確認後再送出。` : "", "各人代課明細附於後頁，請老師核對後簽名。", heliN ? `代合理員額教師（${esc((state.heli||[]).join("、"))}）的課 ${heliN} 節屬合理員額經費，不列入本表，請代課老師在「合理員額簽到表」簽名。` : ""].filter(Boolean).map((t, i) => `${i + 3}. ${t}`).join(" ")}</p>
+    <table><thead><tr><th style="width:5%">序</th><th style="width:12%">教師</th><th>代課節數</th><th>代課費</th><th>代導師日數</th><th>代導費</th><th>合計（元）</th>${G.lfee ? `<th style="width:11%">本土語直播共學<br>（另外核銷）</th>` : ""}<th style="width:16%">簽收（簽名）</th><th style="width:11%">日期</th></tr></thead><tbody>
+    ${totals.map(([n,s],i) => `<tr style="height:34px"><td>${i+1}</td><td>${esc(n)}</td><td>${s.n} 節</td><td class="r">${s.fee.toLocaleString("zh-TW")}</td><td>${s.d ? s.d + " 日" : "—"}</td><td class="r">${s.tfee ? s.tfee.toLocaleString("zh-TW") : "—"}</td><td class="r"><b>${(s.fee+s.tfee).toLocaleString("zh-TW")}</b></td>${G.lfee ? `<td class="r">${s.lfee ? `${s.ln} 節 ${s.lfee.toLocaleString("zh-TW")}` : "—"}</td>` : ""}<td></td><td></td></tr>`).join("")}
+    <tr class="tot"><td colspan="2">合計</td><td>${G.n} 節</td><td class="r">${G.fee.toLocaleString("zh-TW")}</td><td>${G.d} 日</td><td class="r">${G.tfee.toLocaleString("zh-TW")}</td><td class="r">${(G.fee+G.tfee).toLocaleString("zh-TW")}</td>${G.lfee ? `<td class="r">${G.ln} 節 ${G.lfee.toLocaleString("zh-TW")}</td>` : ""}<td colspan="2" class="l">新臺幣${bigNum(G.fee+G.tfee)}</td></tr></tbody></table>
+    <p class="note">說明：1. 每節 ${RATE_SUB} 元；合班每節 ${RATE_COMB} 元（${RATE_SUB}×1.5＝${RATE_SUB*1.5} 進位），但代的是協同老師的課仍是 ${RATE_SUB} 元；代導師每日 ${RATE_TUTOR} 元。2. 重複登錄只算一次；颱風假、國定假日當天的紀錄，以及由其他經費支應的紀錄，不列入本表的合計；本土語直播共學代課費是另一個會計項目，另列一欄${G.lfee ? `（共 ${G.ln} 節 ${G.lfee.toLocaleString("zh-TW")} 元，另外核銷）` : ""}，不含在合計裡${voids ? `（本月有 ${voids} 筆不計費，明細見各人頁面）` : ""}。${[flags ? `本月有 ${flags} 筆標「⚠」需確認（例如衝堂），請教務組確認後再送出。` : "", "各人代課明細附於後頁，請老師核對後簽名。", heliN ? `代合理員額教師（${esc((state.heli||[]).join("、"))}）的課 ${heliN} 節屬合理員額經費，不列入本表，請代課老師在「合理員額簽到表」簽名。` : ""].filter(Boolean).map((t, i) => `${i + 3}. ${t}`).join(" ")}</p>
     </div>`;   /* 10/31 主計提醒：自製表格不放核章欄（查核時空白核章欄會有問題） */
   names.forEach(n => {
     const list = by[n].sort((a,b) => a.date.localeCompare(b.date) || (+a.period||0) - (+b.period||0)), s = sum(list);
-    const rows = list.map((e,i) => { const d = new Date(e.date+"T00:00:00"), fee = feeOf(e);
-      return `<tr><td>${i+1}</td><td>${d.getMonth()+1}/${d.getDate()}</td><td>${DOW[d.getDay()]}</td><td>${e.type==="tutor" ? "全日" : "第" + esc(e.period) + "節"}</td><td>${esc(e.cls)}</td><td>${e.type==="tutor" ? "代理導師" : esc(e.subject||"")}</td><td>${esc(e.other)}</td><td>${esc(e.leaveType||"")}</td><td class="r">${e.type==="tutor" ? RATE_TUTOR : (e.rate||RATE_SUB)}</td><td class="r">${e.nofee ? "0" : fee.toLocaleString("zh-TW")}</td><td class="l">${esc([...(e.flags||[]), e.stamp, e.fix ? "教務組已更正（" + e.fix.text + "）" : ""].filter(Boolean).join("；"))}</td></tr>`; }).join("");
+    const regs = list.filter(e => !PAY.isLive(e)), lives = list.filter(e => PAY.isLive(e));
+    const row = (e,i) => { const d = new Date(e.date+"T00:00:00"), lv = PAY.isLive(e), fee = lv ? liveAmt(e) : feeOf(e);
+      return `<tr><td>${i+1}</td><td>${d.getMonth()+1}/${d.getDate()}</td><td>${DOW[d.getDay()]}</td><td>${e.type==="tutor" ? "全日" : "第" + esc(e.period) + "節"}</td><td>${esc(e.cls)}</td><td>${e.type==="tutor" ? "代理導師" : esc(e.subject||"")}</td><td>${esc(e.other)}</td><td>${esc(e.leaveType||"")}</td><td class="r">${e.type==="tutor" ? RATE_TUTOR : (e.rate||RATE_SUB)}</td><td class="r">${(e.nofee && !lv) ? "0" : fee.toLocaleString("zh-TW")}</td><td class="l">${esc([lv ? "本土語直播共學（另一個會計項目，另外核銷）" : "", (e.nofee && !lv) ? "不計費" + (e.exempt ? "：" + e.exempt : "") : "", PAY.backText(e), ...(e.flags||[]), e.stamp, e.fix ? "教務組已更正（" + e.fix.text + "）" : ""].filter(Boolean).join("；"))}</td></tr>`; };
+    const big = (v) => v ? `新臺幣${bigNum(v)}` : "—";
+    const rows = regs.map(row).join("")
+      + (regs.length ? `<tr class="tot"><td colspan="9">校內代課鐘點費 小計${s.d ? "（含代理導師）" : ""}</td><td class="r">${(s.fee+s.tfee).toLocaleString("zh-TW")}</td><td class="l">${big(s.fee+s.tfee)}</td></tr>` : "")
+      + (lives.length ? `<tr><td colspan="11" class="l" style="background:#eef3fb;font-weight:700">本土語直播共學代課費（另一個會計項目，另外核銷，不含在上面的校內代課鐘點費）</td></tr>`
+        + lives.map((e,i) => row(e, regs.length + i)).join("")
+        + `<tr class="tot"><td colspan="9">本土語直播共學代課費 小計</td><td class="r">${s.lfee.toLocaleString("zh-TW")}</td><td class="l">${big(s.lfee)}</td></tr>` : "");
     html += `<div class="sheet"><h1>${roc}　代課節數簽收確認單</h1>
       <p class="sub">南投縣草屯鎮土城國民小學　教師：<b>${esc(n)}</b></p>
-      <div class="meta"><span>代課 ${s.n} 節、代導師 ${s.d} 日</span><span>列印日期：${printedAt()}</span></div>
+      <div class="meta"><span>校內代課 ${s.n} 節、代導師 ${s.d} 日${s.lfee ? `；本土語直播共學 ${s.ln} 節${s.ld ? "、代導 " + s.ld + " 日" : ""}（另計）` : ""}</span><span>列印日期：${printedAt()}</span></div>
       <table><thead><tr><th style="width:4%">序</th><th style="width:7%">日期</th><th style="width:5%">星期</th><th style="width:7%">節次</th><th style="width:7%">班級</th><th style="width:14%">科目</th><th style="width:10%">代誰的課</th><th style="width:6%">假別</th><th style="width:8%">每節／日</th><th style="width:8%">金額</th><th>說明</th></tr></thead>
-      <tbody>${rows}<tr class="tot"><td colspan="9">合計</td><td class="r">${(s.fee+s.tfee).toLocaleString("zh-TW")}</td><td class="l">新臺幣${bigNum(s.fee+s.tfee)}</td></tr></tbody></table>
-      <p class="note">本人確認 ${roc}代課共 <b>${s.n}</b> 節${s.d ? `、代理導師 <b>${s.d}</b> 日` : ""}，合計新臺幣 <b>${(s.fee+s.tfee).toLocaleString("zh-TW")}</b> 元（${bigNum(s.fee+s.tfee)}），以上明細無誤。如有不符，請於簽名前告知教務組更正。</p>
+      <tbody>${rows}${s.lfee && regs.length ? `<tr class="tot"><td colspan="9">兩項合計（校內代課 ${(s.fee+s.tfee).toLocaleString("zh-TW")} ＋ 本土語直播共學 ${s.lfee.toLocaleString("zh-TW")}）</td><td class="r">${(s.fee+s.tfee+s.lfee).toLocaleString("zh-TW")}</td><td class="l">${big(s.fee+s.tfee+s.lfee)}</td></tr>` : ""}</tbody></table>
+      <p class="note">本人確認 ${roc}${regs.length ? `校內代課共 <b>${s.n}</b> 節${s.d ? `、代理導師 <b>${s.d}</b> 日` : ""}，合計新臺幣 <b>${(s.fee+s.tfee).toLocaleString("zh-TW")}</b> 元（${bigNum(s.fee+s.tfee)}）` : ""}${regs.length && s.lfee ? "；另" : ""}${s.lfee ? `本土語直播共學代課 <b>${s.ln}</b> 節${s.ld ? `、代導 <b>${s.ld}</b> 日` : ""}，新臺幣 <b>${s.lfee.toLocaleString("zh-TW")}</b> 元（${bigNum(s.lfee)}，另一個會計項目，另外核銷）` : ""}，以上明細無誤。如有不符，請於簽名前告知教務組更正。</p>
       <div class="sign"><div>教師簽名：</div><div>日期：　　　年　　　月　　　日</div></div></div>`;
   });
   printSheets(html);
