@@ -918,6 +918,9 @@ body:not(.has-view) .ev-other button{display:none}   /* 管理者看某位老師
   .print-note{display:block;margin-bottom:10px;font-weight:700}
   body.print-sheet #app > *:not(#printArea){display:none!important}
   body.print-sheet #printArea{display:block}
+  /* 115.11.25：只有一張的表（直播共學印領清冊）印出來變兩張——畫面最小高度（100dvh）在列印時有的瀏覽器（Safari、iPad）照螢幕高度算，後面多一張空白頁 */
+  html,body,#app,#tapp,#login{min-height:0!important;height:auto!important}
+  body.print-sheet #printArea .sheet:last-child{break-after:auto;page-break-after:auto}
   /* 列印放大（10/26：字太小看不清楚）：表格、簽收單、簽到表、年曆都放大約 1.3 倍 */
   .sheet{font-size:16px}
   /* 10/29：列印不超出格線——字可以換行、一列不會被切到兩頁、表頭每頁重複；明細表欄寬固定 */
@@ -2936,7 +2939,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.25e";
+const APP_VERSION = "專業版 2026.11.25f";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -7313,6 +7316,11 @@ function fitPrintSheets(){
     const over = () => sh.scrollWidth > sh.clientWidth + 1 || [...sh.querySelectorAll("table")].some(t => t.getBoundingClientRect().width > sh.getBoundingClientRect().width + 1)
       || [...sh.querySelectorAll("td,th")].some(c => { const r = document.createRange(); r.selectNodeContents(c); const a = r.getBoundingClientRect(), b = c.getBoundingClientRect(); return a.width && (a.right > b.right + 1 || a.left < b.left - 1); });
     for(let z = 1; z > 0.7 && over(); ) { z = +(z - 0.04).toFixed(2); sh.style.zoom = z; }
+    if(sh.classList.contains("one")){                  // 115.11.25：標 one 的表一定印在一張紙上（太長就整張縮小，最小 50%）
+      const land = !!document.getElementById("pageSize"), mm = 96 / 25.4, lim = (land ? 210 - 14 : 297 - 24) * mm - 12;
+      const tall = () => sh.getBoundingClientRect().height > lim;
+      for(let z = +(sh.style.zoom || 1); z > 0.5 && tall(); ) { z = +(z - 0.03).toFixed(2); sh.style.zoom = z; }
+    }
   });
 }
 const PRINT_MQ = window.matchMedia ? window.matchMedia("print") : null;
@@ -8790,10 +8798,10 @@ async function printAcct(r, mode){
     <p class="note">核對：本頁合計 ${f(A)} 元＝第一頁實支現金給與合計 ${f(A)} 元 ${A === subs.filter(e=>!e.nofee).reduce((s,e)=>s+(e.rate||RATE_SUB),0) ? "✓ 相符" : "✗ 不符，請檢查"}。</p></div>`;
   if(mode === "live"){                                     // 本土語直播共學代課費：另一個會計項目，自己的按鈕、自己的一張（115.11.25）
     const ln = Object.keys(LV.T).sort((a,b) => a.localeCompare(b, "zh-Hant"));
-    html = `<div class="sheet land">${head(`${mon}月本土語直播共學代課費`, "另一個會計項目，和校內代課分開核銷")}
-      <table><thead><tr><th style="width:9%">員工姓名</th><th>節數</th><th>代導師日數</th><th>金額</th><th style="width:16%">簽收</th><th>明細（日期、節次、班級、代誰）</th></tr></thead><tbody>
-      ${ln.map(n => { const t = LV.T[n]; return `<tr style="height:36px"><td><b>${esc(n)}</b></td><td>${t.n || "-"}</td><td>${t.days || "-"}</td><td class="r"><b>${f(t.amt)}</b></td><td></td><td class="l" style="font-size:11px">${t.list.map(e => `${fmtMD(e.date)}${e.period ? " 第" + esc(e.period) + "節" : ""} ${esc(e.cls||"")} ${esc(e.subject||"")}（代 ${esc(e.other||"")}${e.id ? "，" + esc(e.id) : ""}${PAY.backFrom(e) ? "，前期補發" : ""}）`).join("；")}</td></tr>`; }).join("")}
-      <tr class="tot"><td>共 ${ln.length} 人</td><td>${LV.n}</td><td>${LV.days}</td><td class="r">${f(LV.total)}</td><td colspan="2" class="l">新臺幣${bigNum(LV.total)}</td></tr></tbody></table>
+    html = `<div class="sheet land one">${head(`${mon}月本土語直播共學代課費`, "另一個會計項目，和校內代課分開核銷")}
+      <table><thead><tr><th style="width:9%">員工姓名</th><th style="width:5%">節數</th><th style="width:7%">代導師日數</th><th style="width:8%">金額</th><th style="width:15%">簽收</th><th>明細（日期、節次、班級、代誰）</th></tr></thead><tbody>
+      ${ln.map(n => { const t = LV.T[n]; return `<tr style="height:36px"><td class="nw"><b>${esc(n)}</b></td><td class="nw">${t.n || "-"}</td><td class="nw">${t.days || "-"}</td><td class="r nw"><b>${f(t.amt)}</b></td><td></td><td class="l" style="font-size:11px">${t.list.map(e => `${fmtMD(e.date)}${e.period ? " 第" + esc(e.period) + "節" : ""} ${esc(e.cls||"")} ${esc(e.subject||"")}（代 ${esc(e.other||"")}${e.id ? "，" + esc(e.id) : ""}${PAY.backFrom(e) ? "，前期補發" : ""}）`).join("；")}</td></tr>`; }).join("")}
+      <tr class="tot"><td class="nw">共 ${ln.length} 人</td><td class="nw">${LV.n}</td><td class="nw">${LV.days}</td><td class="r nw">${f(LV.total)}</td><td colspan="2" class="l">新臺幣${bigNum(LV.total)}</td></tr></tbody></table>
       <p class="note">註：本土語直播共學屬另一個經費項目，這張的金額不含在「${mon}月校內代課鐘點費」裡，請另外核銷。</p></div>`;
   } else if(liveOf(all, r).list.length){
     html = html.replace("</p></div>", `</p><p class="note">另：本月有本土語直播共學代課 ${liveOf(all, r).list.length} 筆，屬另一個會計項目，不在本表，請按「本土語直播共學印領清冊」另外列印。</p></div>`);
