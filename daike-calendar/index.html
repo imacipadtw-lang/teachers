@@ -2944,7 +2944,7 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 20000);
 /* 版本號：看到這個日期＝最新版本（粉色、深色兩種模式都一樣） */
-const APP_VERSION = "專業版 2026.11.25g";
+const APP_VERSION = "專業版 2026.11.27a";
 { const v = document.getElementById("appVer"); if(v) v.textContent = APP_VERSION; document.querySelectorAll(".appfoot .ver").forEach(x => x.textContent = "代課・調課查詢 " + APP_VERSION); }
 function setTheme(t){
   const dark = t === "dark";
@@ -2990,13 +2990,21 @@ async function api0(params){
   }
 }
 const fetchData = (name, h, as, fresh) => api({action:"data", name, h, as, fresh: fresh ? "1" : ""}).then(d => { if(d && d.events) d.events.forEach(feeFix); return d; });
-/* 本土語直播共學照常計費（115.11.23 管理者要求：代本土語老師本人的那一節要算代課費）：
- * 雲端把本土語直播共學自動標「另案經費、不計費」；備註寫「照常計費」的那一筆改回照常算校內代課費（只有管理者在「修改」打勾才會寫上）。 */
+/* 本土語直播共學代課費只算「直播共學老師」請假的（115.11.27 管理者：「只有代課（直播共學老師）才是放在直播共學的代課費用…代（另兩位本土語老師）的放在一般代課費用，
+ * 因為會計科目不同，請特別處理不要出錯」）。直播共學的課（客家語、原住民語）課表上是兩位老師一起上：
+ *   ‧ 直播共學老師請假 → 代課費列「本土語直播共學代課費」（另一個會計科目）；
+ *   ‧ 另一位（本土語老師）請假 → 和一般代課一樣，算校內代課鐘點費（405／合班 608）。
+ * 雲端（後端）目前把這種課一律標「本土語直播共學、不計校內代課費」，所以讀進來時在這裡改回來；後端要一起改（見 CLAUDE.md）。
+ * 公開倉庫不放姓名：直播共學老師用姓名雜湊（FNV-1a 32 位元）辨認；換人時把新老師姓名的 nameHash 加進 LIVE_T。 */
 const FEE_ON_RE = /(^|[；;，,\s])照常計費/;
+const nameHash = s => { let h = 0x811c9dc5; for(const ch of String(s || "").trim()){ h ^= ch.codePointAt(0); h = Math.imul(h, 0x01000193) >>> 0; } return h.toString(16).padStart(8, "0"); };
+const LIVE_T = new Set(["86ccfa3a"]);                          // 本土語直播共學老師（姓名雜湊）
+const isLiveTeacher = n => !!n && LIVE_T.has(nameHash(n));
+const liveLeaverOf = e => !e ? "" : (e.type === "leave" || e.type === "tutorLeave" || e.type === "absent") ? e.who : e.other;   // 這節是誰請假
 function feeFix(e){
-  return e;   // 115.11.25 管理者要求「全部都要把代課客家語與原住民語的代課拉出來另外計算」：本土語直播共學一律列另一個會計科目，「照常計費」不再改回校內代課
-  if(e && e.nofee && e.exempt === "本土語直播共學" && FEE_ON_RE.test(String(e.note || "")) && !(e.flags || []).some(f => /重複/.test(f))){
-    e.nofee = false; e.exempt = ""; e.liveFee = true;
+  if(e && e.exempt === "本土語直播共學" && !e.self && !isLiveTeacher(liveLeaverOf(e))){
+    e.exempt = ""; e.liveReg = true;                              // 直播共學的課，但請假的是本土語老師 → 校內代課
+    if(!(e.flags || []).some(f => /不重複計算|假日|颱風|停課|停班/.test(f))) e.nofee = false;   // 重複登錄的第二筆、假日停課的照舊不計
   }
   return e;
 }
@@ -4372,6 +4380,7 @@ function swapView(e){
 function describe(e){
   const r = describe0(e);
   if(r && e.self && e.type!=="swap") r.f = "費用自理：老師自付，不列入公費";
+  else if(r && e.liveReg && !e.nofee && e.type!=="swap") r.f += "（本土語直播共學的課，請假的是本土語老師：算校內代課費，不列直播共學代課費）";
   else if(r && e.nofee && e.type!=="swap") r.f = e.live && e.exempt === "本土語直播共學" && !(e.flags||[]).length ? "本土語直播共學：另一個會計項目（另列「本土語直播共學代課費」），不算在校內代課費" : "這筆不計費（原因寫在下面）";
   return r;
 }
@@ -4545,7 +4554,7 @@ function renderYear(){
       const has = ents.length>0 || oth.length>0, off = (state.off||{})[key], flagged = ents.some(x=>x.fl);
       const offTxt = off ? off.name + (off.scope && off.scope!=="全天" ? "（" + off.scope + "）" : "") : "";
       const canAdd = state.role==="admin";                 // 管理者：格子右上角「＋」直接補登（10/30；11/16 週六、週日也可以：假日研習、補休）
-      // 一格一行一筆（整個月放得進一個畫面；完整內容點格子看右邊明細）：「2 林家玉代黃詠裕」「調5 陳佳君上國語」「導 林繼于代黃羽瑄」
+      // 一格一行一筆（整個月放得進一個畫面；完整內容點格子看右邊明細）：「2 甲老師代乙老師」「調5 丙老師上國語」「導 丁老師代戊老師」
       const short = x => { const per = (x.p.match(/第(\d)節/)||[])[1] || "", kind = /^調課/.test(x.p) ? "調" : /^請假/.test(x.p) ? "假" : /導師/.test(x.p) ? "導" : ""; return `<span class="cp">${esc(kind + per || "·")}</span><span class="cw">${esc(x.w.replace(/\s+/g, ""))}</span>`; };
       const MAXL = 99, all = ents.map(x => ({h: short(x), fl: x.fl, o: false})).concat(oth.map(x => ({h: short(x), o: true})));
       const evHtml = all.slice(0, MAXL).map(x => `<div class="cell-ev${x.o ? " other" : ""}${x.fl ? " flag" : ""}" title="${esc(x.fl || "")}">${x.h}</div>`).join("")
@@ -5453,7 +5462,7 @@ function termOf(kind, r){                    // 不在本學期的日期
 /* 本土語直播共學（科目「本土語/客家語海陸腔」這種有斜線的，或含「直播」）：11/5 起代課可以登記，但屬另案經費，不算校內代課費（雲端會自動標不計費） */
 const LIVE_SUBJ_RE = /直播|^本土語\s*[\/／]/;
 /* 115.11.25：本土語直播共學（客家語、原住民語）的代課、請假在年曆／清單自成一類「只看直播共學」，金額另外算（不同會計科目） */
-const isLiveRec = e => !!e && (PAY.isLive(e) || ((e.type === "sub" || e.type === "leave") && LIVE_SUBJ_RE.test(String(e.subject || "").trim())));
+const isLiveRec = e => !!e && (PAY.isLive(e) || ((e.type === "sub" || e.type === "leave") && LIVE_SUBJ_RE.test(String(e.subject || "").trim()) && isLiveTeacher(liveLeaverOf(e))));   // 115.11.27：只有直播共學老師請假的才算
 const liveFeeOf = e => e.type === "tutor" ? (e.rate || RATE_TUTOR) * (+e.days || 1) : (e.rate || RATE_SUB);
 function liveAt(date, period, cls, subject){
   const x = state.meta && state.meta.tt && date && period && cls ? state.meta.tt[CF.dow(date)+"|"+String(period)+"|"+cls] : null;
@@ -5680,7 +5689,7 @@ function refreshPlan(){
     });
     const fee = $("#planFee"), home = U.leaver && state.meta.homeroom[U.leaver];
     if(fee){
-      const live = U.rows.map(r => liveAt(U.date, r.period, r.cls, r.subject)), nLive = live.filter(Boolean).length;
+      const live = U.rows.map(r => isLiveTeacher(U.leaver) && liveAt(U.date, r.period, r.cls, r.subject)), nLive = live.filter(Boolean).length;   // 115.11.27：只有直播共學老師請假才另列
       const n = U.rows.length, rates = U.rows.map((r, i) => live[i] ? 0 : rateFor(U.leaver, U.date, r.period, r.cls, r.subject, U.note)), comb = rates.filter(x => x && x !== RATE_SUB).length;
       const tut = U.tutor&&home?`；代導師 1 日 <b>${RATE_TUTOR} 元</b>（由代導師領）`:"";
       fee.innerHTML = U.self
